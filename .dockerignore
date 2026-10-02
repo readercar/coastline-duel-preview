@@ -1,0 +1,7 @@
+**
+!Dockerfile
+!.server-output/
+!.server-output/**
+!build/
+!build/web-mobile/
+!build/web-mobile/**

@@ -1,11 +1,17 @@
 import { Storage } from './Game';
-/** Development online service. Local-only endpoint; no production credentials. */
+/** Explicit deployment endpoint; public static builds never connect to a visitor's localhost. */
+export function apiEndpoint(location?:{hostname:string;origin:string},configured?:string):string {
+    if(configured){const u=new URL(configured);if(u.username||u.password||u.search||u.hash||(!['https:'].includes(u.protocol)&&!(u.protocol==='http:'&&['localhost','127.0.0.1'].includes(u.hostname))))throw Error('online.configInvalid');return u.href.replace(/\/$/,'');}
+    if(!location)return 'http://127.0.0.1:8788/api';
+    return ['localhost','127.0.0.1'].includes(location.hostname)?location.origin+'/api':'';
+}
 export class Online {
-    base = 'http://127.0.0.1:8788/api';
+    base = apiEndpoint(typeof window==='undefined'?undefined:window.location,typeof window==='undefined'?undefined:(window as unknown as {EMBER_API_BASE?:string}).EMBER_API_BASE);
     token = '';
     accountId = '';
     constructor(private storage: Storage) { this.token = storage.getItem('ember-online-token') || ''; this.accountId = storage.getItem('ember-online-id') || ''; }
     async request(path: string, data?: Record<string, unknown>): Promise<any> {
+        if(!this.base)throw Error('online.unconfigured');
         const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 8000);
         try {
             const r = await fetch(this.base + path, {

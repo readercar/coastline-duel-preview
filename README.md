@@ -74,3 +74,18 @@ Node 22.13 이상 환경에서는 `npm test`, `npm run build`, `npm run server`�
 웹 미리보기: https://readercar.github.io/coastline-duel-preview/
 
 GitHub Pages는 커밋된 `docs/web` 웹 빌드를 정적으로 제공합니다. 빌드 후 `node scripts/prepare-pages.cjs`로 갱신합니다. Pages에는 Node 서버가 없어 길드·대회·광고·결제 검증 API는 동작하지 않습니다.
+
+## 서버 배포와 복구
+
+`node scripts/server.cjs --compile-only`와 Cocos 웹 빌드 후 Docker 이미지를 만들 수 있습니다. Dockerfile은 Node 24와 컴파일된 코드만 포함하며 DB/계정 토큰/백업은 이미지와 Git에 포함하지 않습니다. 이 환경에는 Docker가 없어 이미지 실행 검증은 하지 않았습니다. 로컬 Node 서버와 HTTP 건강 상태 및 출처 차단은 검증했습니다.
+
+- `EMBER_HOST`: 기본 127.0.0.1, 컨테이너는 0.0.0.0
+- `PORT`: 기본 8788
+- `EMBER_DATA_DIR`: SQLite 저장 디렉터리, 컨테이너 /data에 영구 볼륨 필요
+- `EMBER_ALLOWED_ORIGINS`: 허용하는 정확한 웹 origin의 쉼표 목록. Pages 연결 시 https://readercar.github.io 사용
+- `EMBER_MAINTENANCE=1`: API 점검 모드
+- `EMBER_PUBLIC_API_BASE`: Pages 빌드에 넣는 HTTPS API 주소(끝에 /api), 키/토큰/쿼리 금지. 없으면 공개 미리보기의 온라인 접속은 비활성화합니다.
+
+백업: `node scripts/backup-server.cjs`. SQLite 온라인 백업 API를 사용하며 기본 `.server-backups` 아래 비공개 파일로 생성합니다. 복구할 때 서버를 중지하고 현재 DB를 별도 보관한 후 검증된 백업을 데이터 디렉터리의 development.sqlite로 복원해야 합니다. 운영 TLS·인증 사업자·모니터링·신고 처리 담당자는 별도 연결 대상입니다. 이 구성만으로 운영 출시 검증을 완료한 것은 아닙니다.
+
+대회/길드 보상은 서버 지급 원장에 남으며 계정 화면의 미수령 서버 보상 복구에서 다시 반영합니다. 로컬 저장에 반영한 뒤에만 서버 수령 확인을 기록합니다. 길드 채팅 차단은 차단한 계정에만 적용하며 신고는 해당 길드 메시지에 한해 기록합니다. 신고를 자동으로 처리하거나 운영자에게 외부 전송하지 않습니다.

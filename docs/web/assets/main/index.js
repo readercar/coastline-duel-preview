@@ -385,13 +385,20 @@ System.register("chunks:///_virtual/Expansion.ts", ['./rollupPluginModLoBabelHel
             x.monumentEnchanted.fill(0);
           }
           if (season > x.eventSeason) {
-            var _old = x.eventSeason;
+            var _old = x.eventSeason,
+              unclaimed = Array.from({
+                length: 10
+              }, function (_, i) {
+                return i;
+              }).filter(function (i) {
+                return x.eventEarned >= (i + 1) * 100 && !g.s.claims.includes("event." + i);
+              }).length;
             x.mails.push({
               id: "event-" + _old,
               title: 'extra.mail.event',
               expires: now + 3 * 86400000,
-              gems: Math.floor(g.s.eventTokens / 100),
-              shards: 0,
+              gems: Math.floor(g.s.eventTokens / 100) + 15 * unclaimed,
+              shards: 5 * unclaimed,
               claimed: false
             });
             x.eventSeason = season;
@@ -768,12 +775,13 @@ System.register("chunks:///_virtual/Expansion.ts", ['./rollupPluginModLoBabelHel
 });
 
 System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Balance.ts', './Expansion.ts', './Amount.ts', './I18n.ts'], function (exports) {
-  var _asyncToGenerator, _regeneratorRuntime, _createClass, cclegacy, tween, Vec3, GROWTH_STATS, gemstoneSlots, gemstoneBonus, Expansion, display, t;
+  var _asyncToGenerator, _regeneratorRuntime, _createClass, _createForOfIteratorHelperLoose, cclegacy, tween, Vec3, GROWTH_STATS, gemstoneSlots, gemstoneBonus, Expansion, display, t;
   return {
     setters: [function (module) {
       _asyncToGenerator = module.asyncToGenerator;
       _regeneratorRuntime = module.regeneratorRuntime;
       _createClass = module.createClass;
+      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
     }, function (module) {
       cclegacy = module.cclegacy;
       tween = module.tween;
@@ -964,13 +972,14 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                   return _this4.a.onlineService.request('/competition?id=' + id);
                 case 2:
                   data = _context3.sent;
-                  ended = Date.now() >= data.tournament.end;
+                  ended = data.serverNow >= data.tournament.end;
                   _this4.a.competitionId = id;
                   p = _this4.a.open(_this4.tr(mode === 'regular' ? 'complete.regular' : 'online.abyss'), 710);
                   _this4.a.label(p, _this4.tr(mode === 'regular' ? 'complete.regularRule' : 'online.competitionInfo'), 0, 231, 375, 125, 16);
                   _this4.a.label(p, _this4.tr('complete.tournamentEnd', {
                     time: new Date(data.tournament.end).toLocaleString(_this4.g.s.locale)
                   }), 0, 144, 375, 45, 14);
+                  _this4.a.label(p, _this4.tr('ops.group'), 0, 108, 375, 38, 12);
                   _this4.a.scroll(p, 0, -60, 400, 335, data.leaderboard.map(function (r, i) {
                     return {
                       title: _this4.tr('online.rank', {
@@ -992,12 +1001,12 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                   }));
                   _this4.a.button(p, _this4.tr(ended ? data.claimed ? 'action.claimed' : 'action.claim' : data.state ? 'online.enter' : 'online.join'), 0, -277, 375, 50, function () {
                     void _this4.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
-                      var reward, result;
+                      var result;
                       return _regeneratorRuntime().wrap(function _callee2$(_context2) {
                         while (1) switch (_context2.prev = _context2.next) {
                           case 0:
                             if (!ended) {
-                              _context2.next = 9;
+                              _context2.next = 11;
                               break;
                             }
                             _context2.next = 3;
@@ -1005,33 +1014,32 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                               id: id
                             }, "tournament-claim-" + id + "-" + _this4.a.onlineService.accountId);
                           case 3:
-                            reward = _context2.sent;
-                            _this4.action(function () {
-                              return _this4.applyServerReward(reward);
-                            }, function () {
-                              return _this4.a.toast(_this4.tr('reward.done'));
-                            });
+                            _context2.sent;
+                            _context2.next = 6;
+                            return _this4.deliverRewards();
+                          case 6:
+                            _this4.a.toast(_this4.tr('reward.done'));
                             _this4.a.remoteBusy = false;
                             _this4.tournament(id, mode);
-                            _context2.next = 14;
+                            _context2.next = 16;
                             break;
-                          case 9:
-                            _context2.next = 11;
+                          case 11:
+                            _context2.next = 13;
                             return _this4.a.onlineService.command('/competition/join', {
                               mode: mode
                             });
-                          case 11:
+                          case 13:
                             result = _context2.sent;
                             _this4.a.competitionId = result.id;
                             _this4.a.competitionBattle(result.state);
-                          case 14:
+                          case 16:
                           case "end":
                             return _context2.stop();
                         }
                       }, _callee2);
                     })));
                   }, true);
-                case 10:
+                case 11:
                 case "end":
                   return _context3.stop();
               }
@@ -1365,20 +1373,39 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
         };
         _proto.account = function account() {
           var _this13 = this;
-          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
+          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
             var boot, cloud;
-            return _regeneratorRuntime().wrap(function _callee8$(_context8) {
-              while (1) switch (_context8.prev = _context8.next) {
+            return _regeneratorRuntime().wrap(function _callee9$(_context9) {
+              while (1) switch (_context9.prev = _context9.next) {
                 case 0:
-                  _context8.next = 2;
+                  _context9.next = 2;
                   return _this13.a.onlineService.connect(_this13.tr('online.defaultName'));
                 case 2:
-                  boot = _context8.sent;
-                  _context8.next = 5;
+                  boot = _context9.sent;
+                  _context9.next = 5;
                   return _this13.a.onlineService.request('/account/save');
                 case 5:
-                  cloud = _context8.sent;
+                  cloud = _context9.sent;
                   _this13.list('complete.account', [{
+                    title: _this13.tr('ops.recoverRewards'),
+                    action: _this13.tr('action.claim'),
+                    click: function click() {
+                      void _this13.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
+                        return _regeneratorRuntime().wrap(function _callee7$(_context7) {
+                          while (1) switch (_context7.prev = _context7.next) {
+                            case 0:
+                              _context7.next = 2;
+                              return _this13.deliverRewards();
+                            case 2:
+                              _this13.a.toast(_this13.tr('reward.done'));
+                            case 3:
+                            case "end":
+                              return _context7.stop();
+                          }
+                        }, _callee7);
+                      })));
+                    }
+                  }, {
                     title: boot.profile.name,
                     sub: _this13.a.onlineService.accountId,
                     action: _this13.tr('complete.rename'),
@@ -1392,11 +1419,11 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                     }),
                     action: _this13.tr('settings.saveButton'),
                     click: function click() {
-                      void _this13.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
-                        return _regeneratorRuntime().wrap(function _callee7$(_context7) {
-                          while (1) switch (_context7.prev = _context7.next) {
+                      void _this13.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
+                        return _regeneratorRuntime().wrap(function _callee8$(_context8) {
+                          while (1) switch (_context8.prev = _context8.next) {
                             case 0:
-                              _context7.next = 2;
+                              _context8.next = 2;
                               return _this13.a.onlineService.command('/account/save', {
                                 version: cloud.version,
                                 state: _this13.g.s
@@ -1406,9 +1433,9 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                               _this13.account();
                             case 4:
                             case "end":
-                              return _context7.stop();
+                              return _context8.stop();
                           }
-                        }, _callee7);
+                        }, _callee8);
                       })));
                     }
                   }, {
@@ -1444,9 +1471,9 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                   }]);
                 case 7:
                 case "end":
-                  return _context8.stop();
+                  return _context9.stop();
               }
-            }, _callee8);
+            }, _callee9);
           })));
         };
         _proto.renameAccount = function renameAccount() {
@@ -1455,11 +1482,11 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             field = this.a.edit(p, 0, 35, 370, 48, this.tr('online.defaultName'));
           field.maxLength = 24;
           this.a.button(p, this.tr('action.apply'), 0, -70, 370, 50, function () {
-            void _this14.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
-              return _regeneratorRuntime().wrap(function _callee9$(_context9) {
-                while (1) switch (_context9.prev = _context9.next) {
+            void _this14.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10() {
+              return _regeneratorRuntime().wrap(function _callee10$(_context10) {
+                while (1) switch (_context10.prev = _context10.next) {
                   case 0:
-                    _context9.next = 2;
+                    _context10.next = 2;
                     return _this14.a.onlineService.command('/account/name', {
                       name: field.string
                     });
@@ -1468,9 +1495,9 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                     _this14.account();
                   case 4:
                   case "end":
-                    return _context9.stop();
+                    return _context10.stop();
                 }
-              }, _callee9);
+              }, _callee10);
             })));
           }, true);
         };
@@ -1513,20 +1540,20 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                 return;
               }
               _this15.a.confirm(_this15.tr('complete.recoveryImport'), _this15.tr('complete.switchAccount'), function () {
-                void _this15.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10() {
-                  return _regeneratorRuntime().wrap(function _callee10$(_context10) {
-                    while (1) switch (_context10.prev = _context10.next) {
+                void _this15.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
+                  return _regeneratorRuntime().wrap(function _callee11$(_context11) {
+                    while (1) switch (_context11.prev = _context11.next) {
                       case 0:
-                        _context10.next = 2;
+                        _context11.next = 2;
                         return _this15.a.onlineService.recover(data.token, data.accountId);
                       case 2:
                         _this15.a.remoteBusy = false;
                         _this15.account();
                       case 4:
                       case "end":
-                        return _context10.stop();
+                        return _context11.stop();
                     }
-                  }, _callee10);
+                  }, _callee11);
                 })));
               });
             });
@@ -2198,9 +2225,9 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             return _this37.a.globalRaid();
           }], ['extra.eventRanks', function () {
             return _this37.a.eventRanks();
-          }]].map(function (_ref12) {
-            var key = _ref12[0],
-              fn = _ref12[1];
+          }]].map(function (_ref13) {
+            var key = _ref13[0],
+              fn = _ref13[1];
             return {
               title: _this37.tr(key),
               action: _this37.tr('action.open'),
@@ -2461,53 +2488,53 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
         };
         _proto.serviceStatus = function serviceStatus() {
           var _this49 = this;
-          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
+          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12() {
             var health;
-            return _regeneratorRuntime().wrap(function _callee11$(_context11) {
-              while (1) switch (_context11.prev = _context11.next) {
+            return _regeneratorRuntime().wrap(function _callee12$(_context12) {
+              while (1) switch (_context12.prev = _context12.next) {
                 case 0:
-                  _context11.next = 2;
+                  _context12.next = 2;
                   return _this49.a.onlineService.request('/health');
                 case 2:
-                  health = _context11.sent;
+                  health = _context12.sent;
                   _this49.a.info(_this49.tr('extra.serviceStatus'), _this49.tr(health.maintenance ? 'extra.maintenance' : 'extra.serviceReady', {
                     version: health.version || '0.2.0'
                   }));
                 case 4:
                 case "end":
-                  return _context11.stop();
+                  return _context12.stop();
               }
-            }, _callee11);
+            }, _callee12);
           })));
         };
         _proto.guildBattle = function guildBattle() {
           var _this50 = this;
-          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12() {
+          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee13() {
             var r;
-            return _regeneratorRuntime().wrap(function _callee12$(_context12) {
-              while (1) switch (_context12.prev = _context12.next) {
+            return _regeneratorRuntime().wrap(function _callee13$(_context13) {
+              while (1) switch (_context13.prev = _context13.next) {
                 case 0:
-                  _context12.next = 2;
+                  _context13.next = 2;
                   return _this50.a.onlineService.request('/guild/raid');
                 case 2:
-                  r = _context12.sent;
+                  r = _context13.sent;
                   if (r) {
-                    _context12.next = 7;
+                    _context13.next = 7;
                     break;
                   }
-                  _context12.next = 6;
+                  _context13.next = 6;
                   return _this50.a.onlineService.command('/guild/raid/start', {
                     deck: _this50.g.s.deck
                   });
                 case 6:
-                  r = _context12.sent;
+                  r = _context13.sent;
                 case 7:
                   _this50.guildBattlePanel(r);
                 case 8:
                 case "end":
-                  return _context12.stop();
+                  return _context13.stop();
               }
-            }, _callee12);
+            }, _callee13);
           })));
         };
         _proto.guildBattlePanel = function guildBattlePanel(data) {
@@ -2520,24 +2547,24 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             _this51.a.button(p, _this51.tr('raid.part', {
               part: i + 1
             }) + '\n' + display(r.hp[i]), i % 2 ? 94 : -94, 160 - Math.floor(i / 2) * 80, 175, 65, function () {
-              void _this51.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee14() {
+              void _this51.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee15() {
                 var next;
-                return _regeneratorRuntime().wrap(function _callee14$(_context14) {
-                  while (1) switch (_context14.prev = _context14.next) {
+                return _regeneratorRuntime().wrap(function _callee15$(_context15) {
+                  while (1) switch (_context15.prev = _context15.next) {
                     case 0:
-                      _context14.next = 2;
+                      _context15.next = 2;
                       return _this51.a.onlineService.command('/guild/raid/hit', {
                         id: data.id,
                         part: i
                       });
                     case 2:
-                      next = _context14.sent;
+                      next = _context15.sent;
                       _this51.guildBattlePanel(next);
                     case 4:
                     case "end":
-                      return _context14.stop();
+                      return _context15.stop();
                   }
-                }, _callee14);
+                }, _callee15);
               })));
             });
           };
@@ -2546,17 +2573,17 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           }
           this.a.label(p, this.tr('extra.guildDeckInfo'), 0, -172, 375, 64, 14);
           this.a.button(p, this.tr('extra.raidSubmit'), 0, -260, 375, 52, function () {
-            void _this51.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee13() {
+            void _this51.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee14() {
               var result;
-              return _regeneratorRuntime().wrap(function _callee13$(_context13) {
-                while (1) switch (_context13.prev = _context13.next) {
+              return _regeneratorRuntime().wrap(function _callee14$(_context14) {
+                while (1) switch (_context14.prev = _context14.next) {
                   case 0:
-                    _context13.next = 2;
+                    _context14.next = 2;
                     return _this51.a.onlineService.command('/guild/raid/finish', {
                       id: data.id
                     }, 'raid-finish-' + data.id);
                   case 2:
-                    result = _context13.sent;
+                    result = _context14.sent;
                     _this51.a.info(_this51.tr('raid.result'), _this51.tr('extra.raidSummary', {
                       damage: result.damage,
                       hp: result.hp,
@@ -2566,9 +2593,9 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                     }));
                   case 4:
                   case "end":
-                    return _context13.stop();
+                    return _context14.stop();
                 }
-              }, _callee13);
+              }, _callee14);
             })));
           }, true);
           this.a.modalRefresh = function () {
@@ -2579,216 +2606,155 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           };
           this.a.modalRefresh();
         };
-        _proto.guildTools = function guildTools() {
-          var _this52 = this;
-          this.list('extra.guildTools', [['complete.guildInfo', function () {
-            return _this52.guildInfo();
-          }], ['extra.guildSearch', function () {
-            return _this52.guildSearch();
-          }], ['extra.guildEdit', function () {
-            return _this52.guildEdit();
-          }], ['extra.stickers', function () {
-            return _this52.stickers();
-          }], ['extra.guildLogs', function () {
-            return _this52.guildLogs();
-          }], ['extra.guildVault', function () {
-            return _this52.vault();
-          }], ['extra.retire', function () {
-            return _this52.retire();
-          }]].map(function (_ref17) {
-            var key = _ref17[0],
-              fn = _ref17[1];
-            return {
-              title: _this52.tr(key),
-              action: _this52.tr('action.open'),
-              click: fn
-            };
-          }));
-        };
-        _proto.joinGuild = function joinGuild(id, name) {
-          var _this53 = this;
-          this.a.confirm(this.tr('online.join'), this.tr('complete.joinGuild', {
-            name: name
-          }), function () {
-            void _this53.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee15() {
-              return _regeneratorRuntime().wrap(function _callee15$(_context15) {
-                while (1) switch (_context15.prev = _context15.next) {
-                  case 0:
-                    _context15.next = 2;
-                    return _this53.a.onlineService.command('/guild/join', {
-                      guild: id
-                    });
-                  case 2:
-                    _this53.a.remoteBusy = false;
-                    _this53.a.guild();
-                  case 4:
-                  case "end":
-                    return _context15.stop();
-                }
-              }, _callee15);
-            })));
-          });
-        };
-        _proto.guildInfo = function guildInfo() {
-          var _this54 = this;
-          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee16() {
-            var data, info;
+        _proto.deliverRewards = /*#__PURE__*/function () {
+          var _deliverRewards = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee16() {
+            var o, rows, _iterator, _step, row;
             return _regeneratorRuntime().wrap(function _callee16$(_context16) {
               while (1) switch (_context16.prev = _context16.next) {
                 case 0:
-                  _context16.next = 2;
-                  return _this54.a.onlineService.request('/guild');
-                case 2:
-                  data = _context16.sent;
-                  _context16.next = 5;
-                  return _this54.a.onlineService.request('/guild/info');
+                  o = this.a.onlineService;
+                  _context16.next = 3;
+                  return o.request('/rewards');
+                case 3:
+                  rows = _context16.sent;
+                  _iterator = _createForOfIteratorHelperLoose(rows);
                 case 5:
-                  info = _context16.sent;
-                  _this54.a.info(data.guild.name, _this54.tr('complete.guildInfoBody', {
-                    count: data.members.length,
-                    description: info.settings.description || _this54.tr('complete.noDescription'),
-                    damage: info.vault
-                  }));
-                case 7:
+                  if ((_step = _iterator()).done) {
+                    _context16.next = 13;
+                    break;
+                  }
+                  row = _step.value;
+                  if (!(!this.g.s.claims.includes(row.claimId) && !this.applyServerReward(row))) {
+                    _context16.next = 9;
+                    break;
+                  }
+                  throw Error(this.g.notice || 'error.storage');
+                case 9:
+                  _context16.next = 11;
+                  return o.command('/rewards/ack', {
+                    id: row.claimId
+                  });
+                case 11:
+                  _context16.next = 5;
+                  break;
+                case 13:
                 case "end":
                   return _context16.stop();
               }
-            }, _callee16);
-          })));
-        };
-        _proto.guildSearch = function guildSearch() {
-          var _this55 = this;
-          var p = this.a.open(this.tr('extra.guildSearch'), 680),
-            field = this.a.edit(p, 0, 225, 375, 48, this.tr('online.guildName'));
-          this.a.button(p, this.tr('extra.search'), 0, 150, 375, 48, function () {
-            var q = field.string;
-            void _this55.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee17() {
-              var rows;
-              return _regeneratorRuntime().wrap(function _callee17$(_context17) {
-                while (1) switch (_context17.prev = _context17.next) {
-                  case 0:
-                    _context17.next = 2;
-                    return _this55.a.onlineService.connect(_this55.tr('online.defaultName'));
-                  case 2:
-                    _context17.next = 4;
-                    return _this55.a.onlineService.request('/guilds?q=' + encodeURIComponent(q));
-                  case 4:
-                    rows = _context17.sent;
-                    _this55.list('extra.guildSearch', rows.map(function (r) {
-                      return {
-                        title: r.name,
-                        sub: _this55.tr('online.members', {
-                          count: r.members
-                        }),
-                        action: _this55.tr('online.join'),
-                        click: function click() {
-                          return _this55.joinGuild(r.id, r.name);
-                        }
-                      };
-                    }));
-                  case 6:
-                  case "end":
-                    return _context17.stop();
-                }
-              }, _callee17);
-            })));
-          });
-        };
-        _proto.guildEdit = function guildEdit() {
-          var _this56 = this;
+            }, _callee16, this);
+          }));
+          function deliverRewards() {
+            return _deliverRewards.apply(this, arguments);
+          }
+          return deliverRewards;
+        }();
+        _proto.moderation = function moderation() {
+          var _this52 = this;
           void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee19() {
-            var data, info, p, name, desc;
+            var data;
             return _regeneratorRuntime().wrap(function _callee19$(_context19) {
               while (1) switch (_context19.prev = _context19.next) {
                 case 0:
                   _context19.next = 2;
-                  return _this56.a.onlineService.request('/guild');
+                  return _this52.a.onlineService.request('/guild');
                 case 2:
                   data = _context19.sent;
-                  _context19.next = 5;
-                  return _this56.a.onlineService.request('/guild/info');
-                case 5:
-                  info = _context19.sent;
-                  p = _this56.a.open(_this56.tr('extra.guildEdit'), 590);
-                  name = _this56.a.edit(p, 0, 170, 375, 48, _this56.tr('online.guildName'));
-                  desc = _this56.a.edit(p, 0, 60, 375, 70, _this56.tr('extra.description'));
-                  name.string = data.guild.name;
-                  desc.string = info.settings.description;
-                  _this56.a.button(p, _this56.tr('action.apply'), 0, -130, 375, 50, function () {
-                    void _this56.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee18() {
-                      return _regeneratorRuntime().wrap(function _callee18$(_context18) {
-                        while (1) switch (_context18.prev = _context18.next) {
-                          case 0:
-                            _context18.next = 2;
-                            return _this56.a.onlineService.command('/guild/edit', {
-                              name: name.string,
-                              description: desc.string,
-                              badge: info.settings.badge
-                            });
-                          case 2:
-                            _this56.a.remoteBusy = false;
-                            _this56.a.guild();
-                          case 4:
-                          case "end":
-                            return _context18.stop();
-                        }
-                      }, _callee18);
-                    })));
-                  }, true);
-                case 12:
+                  _this52.list('ops.moderation', data.messages.filter(function (m) {
+                    return m.account !== _this52.a.onlineService.accountId;
+                  }).map(function (m) {
+                    return {
+                      title: m.name,
+                      sub: m.body,
+                      action: _this52.tr('action.details'),
+                      click: function click() {
+                        var p = _this52.a.open(m.name, 480);
+                        _this52.a.label(p, m.body, 0, 100, 370, 150, 18);
+                        _this52.a.button(p, _this52.tr('ops.block'), 0, -35, 370, 50, function () {
+                          void _this52.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee17() {
+                            return _regeneratorRuntime().wrap(function _callee17$(_context17) {
+                              while (1) switch (_context17.prev = _context17.next) {
+                                case 0:
+                                  _context17.next = 2;
+                                  return _this52.a.onlineService.command('/player/block', {
+                                    target: m.account,
+                                    enabled: true
+                                  });
+                                case 2:
+                                  _this52.a.close();
+                                case 3:
+                                case "end":
+                                  return _context17.stop();
+                              }
+                            }, _callee17);
+                          })));
+                        });
+                        _this52.a.button(p, _this52.tr('ops.report'), 0, -110, 370, 50, function () {
+                          _this52.a.confirm(_this52.tr('ops.report'), _this52.tr('ops.reportConfirm'), function () {
+                            void _this52.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee18() {
+                              return _regeneratorRuntime().wrap(function _callee18$(_context18) {
+                                while (1) switch (_context18.prev = _context18.next) {
+                                  case 0:
+                                    _context18.next = 2;
+                                    return _this52.a.onlineService.command('/player/report', {
+                                      message: m.id,
+                                      reason: 'Inappropriate guild chat'
+                                    });
+                                  case 2:
+                                    _this52.a.toast(_this52.tr('ops.reported'));
+                                    _this52.a.close();
+                                  case 4:
+                                  case "end":
+                                    return _context18.stop();
+                                }
+                              }, _callee18);
+                            })));
+                          });
+                        });
+                      }
+                    };
+                  }));
+                case 4:
                 case "end":
                   return _context19.stop();
               }
             }, _callee19);
           })));
         };
-        _proto.stickers = function stickers() {
-          var _this57 = this;
-          this.list('extra.stickers', Array.from({
-            length: 6
-          }, function (_, i) {
-            return {
-              title: _this57.tr("extra.sticker." + i),
-              action: _this57.tr('online.send'),
-              click: function click() {
-                void _this57.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee20() {
-                  return _regeneratorRuntime().wrap(function _callee20$(_context20) {
-                    while (1) switch (_context20.prev = _context20.next) {
-                      case 0:
-                        _context20.next = 2;
-                        return _this57.a.onlineService.command('/guild/chat', {
-                          body: "[sticker:" + i + "]"
-                        });
-                      case 2:
-                        _this57.a.remoteBusy = false;
-                        _this57.a.guild();
-                      case 4:
-                      case "end":
-                        return _context20.stop();
-                    }
-                  }, _callee20);
-                })));
-              }
-            };
-          }));
-        };
-        _proto.guildLogs = function guildLogs() {
-          var _this58 = this;
+        _proto.blocked = function blocked() {
+          var _this53 = this;
           void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee21() {
-            var info;
+            var rows;
             return _regeneratorRuntime().wrap(function _callee21$(_context21) {
               while (1) switch (_context21.prev = _context21.next) {
                 case 0:
                   _context21.next = 2;
-                  return _this58.a.onlineService.request('/guild/info');
+                  return _this53.a.onlineService.request('/blocks');
                 case 2:
-                  info = _context21.sent;
-                  _this58.list('extra.guildLogs', info.logs.map(function (r) {
+                  rows = _context21.sent;
+                  _this53.list('ops.blocks', rows.map(function (r) {
                     return {
                       title: r.name,
-                      sub: _this58.tr('extra.contribution', {
-                        value: r.damage
-                      })
+                      action: _this53.tr('ops.unblock'),
+                      click: function click() {
+                        void _this53.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee20() {
+                          return _regeneratorRuntime().wrap(function _callee20$(_context20) {
+                            while (1) switch (_context20.prev = _context20.next) {
+                              case 0:
+                                _context20.next = 2;
+                                return _this53.a.onlineService.command('/player/block', {
+                                  target: r.id,
+                                  enabled: false
+                                });
+                              case 2:
+                                _this53.a.remoteBusy = false;
+                                _this53.blocked();
+                              case 4:
+                              case "end":
+                                return _context20.stop();
+                            }
+                          }, _callee20);
+                        })));
+                      }
                     };
                   }));
                 case 4:
@@ -2798,63 +2764,118 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             }, _callee21);
           })));
         };
-        _proto.vault = function vault() {
-          var _this59 = this;
+        _proto.guildTools = function guildTools() {
+          var _this54 = this;
+          this.list('extra.guildTools', [['ops.moderation', function () {
+            return _this54.moderation();
+          }], ['ops.blocks', function () {
+            return _this54.blocked();
+          }], ['complete.guildInfo', function () {
+            return _this54.guildInfo();
+          }], ['extra.guildSearch', function () {
+            return _this54.guildSearch();
+          }], ['extra.guildEdit', function () {
+            return _this54.guildEdit();
+          }], ['extra.stickers', function () {
+            return _this54.stickers();
+          }], ['extra.guildLogs', function () {
+            return _this54.guildLogs();
+          }], ['extra.guildVault', function () {
+            return _this54.vault();
+          }], ['extra.retire', function () {
+            return _this54.retire();
+          }]].map(function (_ref23) {
+            var key = _ref23[0],
+              fn = _ref23[1];
+            return {
+              title: _this54.tr(key),
+              action: _this54.tr('action.open'),
+              click: fn
+            };
+          }));
+        };
+        _proto.joinGuild = function joinGuild(id, name) {
+          var _this55 = this;
+          this.a.confirm(this.tr('online.join'), this.tr('complete.joinGuild', {
+            name: name
+          }), function () {
+            void _this55.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee22() {
+              return _regeneratorRuntime().wrap(function _callee22$(_context22) {
+                while (1) switch (_context22.prev = _context22.next) {
+                  case 0:
+                    _context22.next = 2;
+                    return _this55.a.onlineService.command('/guild/join', {
+                      guild: id
+                    });
+                  case 2:
+                    _this55.a.remoteBusy = false;
+                    _this55.a.guild();
+                  case 4:
+                  case "end":
+                    return _context22.stop();
+                }
+              }, _callee22);
+            })));
+          });
+        };
+        _proto.guildInfo = function guildInfo() {
+          var _this56 = this;
           void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee23() {
-            var info, p;
+            var data, info;
             return _regeneratorRuntime().wrap(function _callee23$(_context23) {
               while (1) switch (_context23.prev = _context23.next) {
                 case 0:
                   _context23.next = 2;
-                  return _this59.a.onlineService.request('/guild/info');
+                  return _this56.a.onlineService.request('/guild');
                 case 2:
+                  data = _context23.sent;
+                  _context23.next = 5;
+                  return _this56.a.onlineService.request('/guild/info');
+                case 5:
                   info = _context23.sent;
-                  p = _this59.a.open(_this59.tr('extra.guildVault'), 440);
-                  _this59.a.label(p, _this59.tr('extra.vaultInfo', {
+                  _this56.a.info(data.guild.name, _this56.tr('complete.guildInfoBody', {
+                    count: data.members.length,
+                    description: info.settings.description || _this56.tr('complete.noDescription'),
                     damage: info.vault
-                  }), 0, 70, 375, 140, 19);
-                  _this59.a.button(p, _this59.tr('action.claim'), 0, -100, 375, 50, function () {
-                    void _this59.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee22() {
-                      var r;
-                      return _regeneratorRuntime().wrap(function _callee22$(_context22) {
-                        while (1) switch (_context22.prev = _context22.next) {
-                          case 0:
-                            _context22.next = 2;
-                            return _this59.a.onlineService.command('/guild/vault', {}, "vault-" + Math.floor(Date.now() / 43200000) + "-" + _this59.a.onlineService.accountId);
-                          case 2:
-                            r = _context22.sent;
-                            _this59.action(function () {
-                              return _this59.applyServerReward(r);
-                            }, function () {
-                              return _this59.a.close();
-                            });
-                          case 4:
-                          case "end":
-                            return _context22.stop();
-                        }
-                      }, _callee22);
-                    })));
-                  }, true);
-                case 6:
+                  }));
+                case 7:
                 case "end":
                   return _context23.stop();
               }
             }, _callee23);
           })));
         };
-        _proto.retire = function retire() {
-          var _this60 = this;
-          this.a.confirm(this.tr('extra.retire'), this.tr('extra.retireInfo'), function () {
-            void _this60.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee24() {
+        _proto.guildSearch = function guildSearch() {
+          var _this57 = this;
+          var p = this.a.open(this.tr('extra.guildSearch'), 680),
+            field = this.a.edit(p, 0, 225, 375, 48, this.tr('online.guildName'));
+          this.a.button(p, this.tr('extra.search'), 0, 150, 375, 48, function () {
+            var q = field.string;
+            void _this57.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee24() {
+              var rows;
               return _regeneratorRuntime().wrap(function _callee24$(_context24) {
                 while (1) switch (_context24.prev = _context24.next) {
                   case 0:
                     _context24.next = 2;
-                    return _this60.a.onlineService.command('/guild/retire');
+                    return _this57.a.onlineService.connect(_this57.tr('online.defaultName'));
                   case 2:
-                    _this60.a.remoteBusy = false;
-                    _this60.a.guild();
+                    _context24.next = 4;
+                    return _this57.a.onlineService.request('/guilds?q=' + encodeURIComponent(q));
                   case 4:
+                    rows = _context24.sent;
+                    _this57.list('extra.guildSearch', rows.map(function (r) {
+                      return {
+                        title: r.name,
+                        sub: _this57.tr('online.members', {
+                          count: r.members
+                        }),
+                        action: _this57.tr('online.join'),
+                        click: function click() {
+                          return _this57.joinGuild(r.id, r.name);
+                        }
+                      };
+                    }));
+                  case 6:
                   case "end":
                     return _context24.stop();
                 }
@@ -2862,48 +2883,214 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             })));
           });
         };
-        _proto.member = function member(id) {
-          var _this61 = this;
-          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee25() {
-            var r, p;
-            return _regeneratorRuntime().wrap(function _callee25$(_context25) {
-              while (1) switch (_context25.prev = _context25.next) {
+        _proto.guildEdit = function guildEdit() {
+          var _this58 = this;
+          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee26() {
+            var data, info, p, name, desc;
+            return _regeneratorRuntime().wrap(function _callee26$(_context26) {
+              while (1) switch (_context26.prev = _context26.next) {
                 case 0:
-                  _context25.next = 2;
-                  return _this61.a.onlineService.request('/guild/member?id=' + encodeURIComponent(id));
+                  _context26.next = 2;
+                  return _this58.a.onlineService.request('/guild');
                 case 2:
-                  r = _context25.sent;
-                  p = _this61.a.open(r.name, 420);
-                  _this61.a.label(p, _this61.tr('extra.contribution', {
-                    value: r.damage
-                  }), 0, 50, 375, 90, 22);
-                  _this61.a.label(p, _this61.tr(r.role === 'leader' ? 'online.leader' : 'online.member'), 0, -50, 375, 50, 20);
+                  data = _context26.sent;
+                  _context26.next = 5;
+                  return _this58.a.onlineService.request('/guild/info');
+                case 5:
+                  info = _context26.sent;
+                  p = _this58.a.open(_this58.tr('extra.guildEdit'), 590);
+                  name = _this58.a.edit(p, 0, 170, 375, 48, _this58.tr('online.guildName'));
+                  desc = _this58.a.edit(p, 0, 60, 375, 70, _this58.tr('extra.description'));
+                  name.string = data.guild.name;
+                  desc.string = info.settings.description;
+                  _this58.a.button(p, _this58.tr('action.apply'), 0, -130, 375, 50, function () {
+                    void _this58.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee25() {
+                      return _regeneratorRuntime().wrap(function _callee25$(_context25) {
+                        while (1) switch (_context25.prev = _context25.next) {
+                          case 0:
+                            _context25.next = 2;
+                            return _this58.a.onlineService.command('/guild/edit', {
+                              name: name.string,
+                              description: desc.string,
+                              badge: info.settings.badge
+                            });
+                          case 2:
+                            _this58.a.remoteBusy = false;
+                            _this58.a.guild();
+                          case 4:
+                          case "end":
+                            return _context25.stop();
+                        }
+                      }, _callee25);
+                    })));
+                  }, true);
+                case 12:
+                case "end":
+                  return _context26.stop();
+              }
+            }, _callee26);
+          })));
+        };
+        _proto.stickers = function stickers() {
+          var _this59 = this;
+          this.list('extra.stickers', Array.from({
+            length: 6
+          }, function (_, i) {
+            return {
+              title: _this59.tr("extra.sticker." + i),
+              action: _this59.tr('online.send'),
+              click: function click() {
+                void _this59.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee27() {
+                  return _regeneratorRuntime().wrap(function _callee27$(_context27) {
+                    while (1) switch (_context27.prev = _context27.next) {
+                      case 0:
+                        _context27.next = 2;
+                        return _this59.a.onlineService.command('/guild/chat', {
+                          body: "[sticker:" + i + "]"
+                        });
+                      case 2:
+                        _this59.a.remoteBusy = false;
+                        _this59.a.guild();
+                      case 4:
+                      case "end":
+                        return _context27.stop();
+                    }
+                  }, _callee27);
+                })));
+              }
+            };
+          }));
+        };
+        _proto.guildLogs = function guildLogs() {
+          var _this60 = this;
+          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee28() {
+            var info;
+            return _regeneratorRuntime().wrap(function _callee28$(_context28) {
+              while (1) switch (_context28.prev = _context28.next) {
+                case 0:
+                  _context28.next = 2;
+                  return _this60.a.onlineService.request('/guild/info');
+                case 2:
+                  info = _context28.sent;
+                  _this60.list('extra.guildLogs', info.logs.map(function (r) {
+                    return {
+                      title: r.name,
+                      sub: _this60.tr('extra.contribution', {
+                        value: r.damage
+                      })
+                    };
+                  }));
+                case 4:
+                case "end":
+                  return _context28.stop();
+              }
+            }, _callee28);
+          })));
+        };
+        _proto.vault = function vault() {
+          var _this61 = this;
+          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee30() {
+            var info, p;
+            return _regeneratorRuntime().wrap(function _callee30$(_context30) {
+              while (1) switch (_context30.prev = _context30.next) {
+                case 0:
+                  _context30.next = 2;
+                  return _this61.a.onlineService.request('/guild/info');
+                case 2:
+                  info = _context30.sent;
+                  p = _this61.a.open(_this61.tr('extra.guildVault'), 440);
+                  _this61.a.label(p, _this61.tr('extra.vaultInfo', {
+                    damage: info.vault
+                  }), 0, 70, 375, 140, 19);
+                  _this61.a.button(p, _this61.tr('action.claim'), 0, -100, 375, 50, function () {
+                    void _this61.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee29() {
+                      return _regeneratorRuntime().wrap(function _callee29$(_context29) {
+                        while (1) switch (_context29.prev = _context29.next) {
+                          case 0:
+                            _context29.next = 2;
+                            return _this61.a.onlineService.command('/guild/vault', {}, "vault-" + Math.floor(Date.now() / 43200000) + "-" + _this61.a.onlineService.accountId);
+                          case 2:
+                            _context29.sent;
+                            _context29.next = 5;
+                            return _this61.deliverRewards();
+                          case 5:
+                            _this61.a.close();
+                          case 6:
+                          case "end":
+                            return _context29.stop();
+                        }
+                      }, _callee29);
+                    })));
+                  }, true);
                 case 6:
                 case "end":
-                  return _context25.stop();
+                  return _context30.stop();
               }
-            }, _callee25);
+            }, _callee30);
+          })));
+        };
+        _proto.retire = function retire() {
+          var _this62 = this;
+          this.a.confirm(this.tr('extra.retire'), this.tr('extra.retireInfo'), function () {
+            void _this62.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee31() {
+              return _regeneratorRuntime().wrap(function _callee31$(_context31) {
+                while (1) switch (_context31.prev = _context31.next) {
+                  case 0:
+                    _context31.next = 2;
+                    return _this62.a.onlineService.command('/guild/retire');
+                  case 2:
+                    _this62.a.remoteBusy = false;
+                    _this62.a.guild();
+                  case 4:
+                  case "end":
+                    return _context31.stop();
+                }
+              }, _callee31);
+            })));
+          });
+        };
+        _proto.member = function member(id) {
+          var _this63 = this;
+          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee32() {
+            var r, p;
+            return _regeneratorRuntime().wrap(function _callee32$(_context32) {
+              while (1) switch (_context32.prev = _context32.next) {
+                case 0:
+                  _context32.next = 2;
+                  return _this63.a.onlineService.request('/guild/member?id=' + encodeURIComponent(id));
+                case 2:
+                  r = _context32.sent;
+                  p = _this63.a.open(r.name, 420);
+                  _this63.a.label(p, _this63.tr('extra.contribution', {
+                    value: r.damage
+                  }), 0, 50, 375, 90, 22);
+                  _this63.a.label(p, _this63.tr(r.role === 'leader' ? 'online.leader' : 'online.member'), 0, -50, 375, 50, 20);
+                case 6:
+                case "end":
+                  return _context32.stop();
+              }
+            }, _callee32);
           })));
         };
         _proto.limited = function limited() {
-          var _this62 = this;
+          var _this64 = this;
           var day = Math.floor(this.g.now() / 86400000);
           this.list('extra.limited', [{
             title: this.tr('extra.limitedOffer'),
             sub: this.tr('extra.limitedInfo'),
             action: this.tr(this.g.s.claims.includes('daily.limited') ? 'action.claimed' : 'action.buy'),
             click: function click() {
-              return _this62.action(function () {
-                return _this62.g.transaction("limited-" + day, function () {
-                  _this62.g.require(!_this62.g.s.claims.includes('daily.limited'), 'error.claimed');
-                  _this62.g.require(_this62.g.s.gems >= 100);
-                  _this62.g.s.claims.push('daily.limited');
-                  _this62.g.s.gems -= 100;
-                  _this62.g.s.shards += 20;
-                  _this62.e.fortune(10);
+              return _this64.action(function () {
+                return _this64.g.transaction("limited-" + day, function () {
+                  _this64.g.require(!_this64.g.s.claims.includes('daily.limited'), 'error.claimed');
+                  _this64.g.require(_this64.g.s.gems >= 100);
+                  _this64.g.s.claims.push('daily.limited');
+                  _this64.g.s.gems -= 100;
+                  _this64.g.s.shards += 20;
+                  _this64.e.fortune(10);
                 });
               }, function () {
-                return _this62.limited();
+                return _this64.limited();
               });
             }
           }]);
@@ -3896,6 +4083,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
         _proto.claimEvent = function claimEvent(i) {
           var _this25 = this;
           return this.transaction("event.path." + this.s.extra.eventSeason + "." + i, function () {
+            _this25.require(Number.isInteger(i) && i >= 0 && i < 10, 'error.invalid');
             var key = "event." + i;
             _this25.require(!_this25.s.claims.includes(key), 'error.claimed');
             _this25.require(Math.max(_this25.s.extra.eventEarned, _this25.s.eventTokens) >= (i + 1) * 100, 'error.locked');
@@ -3907,6 +4095,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
         _proto.revealTile = function revealTile(i, id) {
           var _this26 = this;
           return this.transaction(id, function () {
+            _this26.require(Number.isInteger(i) && i >= 0 && i < _this26.s.board.length, 'error.invalid');
             _this26.require(!_this26.s.board[i], 'error.claimed');
             _this26.require(_this26.s.eventTokens >= 20);
             _this26.s.eventTokens -= 20;
@@ -7795,6 +7984,32 @@ System.register("chunks:///_virtual/I18n.ts", ['cc'], function (exports) {
         "art.enemy.1": "Ironclad Titan",
         "art.enemy.2": "Cyclops Guardian"
       });
+      Object.assign(translations.ko, {
+        "online.unconfigured": "이 웹 미리보기에는 온라인 서버가 연결되지 않았습니다. 기본 전투와 로컬 성장은 이용할 수 있습니다.",
+        "online.configInvalid": "서버 연결 주소 설정이 올바르지 않습니다.",
+        "ops.recoverRewards": "미수령 서버 보상 복구",
+        "ops.moderation": "채팅 차단·신고",
+        "ops.blocks": "차단 목록",
+        "ops.block": "이 사용자 차단",
+        "ops.unblock": "차단 해제",
+        "ops.report": "이 메시지 신고",
+        "ops.reportConfirm": "이 길드 메시지를 신고 기록으로 제출합니다.",
+        "ops.reported": "신고가 접수되었습니다.",
+        "ops.group": "성장 등급별 최대 50명 그룹 · 동점은 먼저 도달한 순서"
+      });
+      Object.assign(translations.en, {
+        "online.unconfigured": "This web preview has no online server connected. Combat and local progression remain available.",
+        "online.configInvalid": "The server endpoint configuration is invalid.",
+        "ops.recoverRewards": "Recover Pending Server Rewards",
+        "ops.moderation": "Block or Report Chat",
+        "ops.blocks": "Blocked Players",
+        "ops.block": "Block This Player",
+        "ops.unblock": "Unblock",
+        "ops.report": "Report This Message",
+        "ops.reportConfirm": "Submit this guild message as a report.",
+        "ops.reported": "Report recorded.",
+        "ops.group": "Up to 50 players per progression bracket. Earlier scores win ties."
+      });
       cclegacy._RF.pop();
     }
   };
@@ -8372,11 +8587,12 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
 });
 
 System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Monetization.ts'], function (exports) {
-  var _asyncToGenerator, _regeneratorRuntime, cclegacy, PRODUCTS, VIP_THRESHOLDS, AD_PLACEMENTS;
+  var _asyncToGenerator, _regeneratorRuntime, _extends, cclegacy, PRODUCTS, VIP_THRESHOLDS, AD_PLACEMENTS;
   return {
     setters: [function (module) {
       _asyncToGenerator = module.asyncToGenerator;
       _regeneratorRuntime = module.regeneratorRuntime;
+      _extends = module.extends;
     }, function (module) {
       cclegacy = module.cclegacy;
     }, function (module) {
@@ -8408,32 +8624,39 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
           }).krw.toLocaleString('ko-KR');
         };
         _proto.run = /*#__PURE__*/function () {
-          var _run = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(work) {
+          var _run = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(work, offline) {
             var key;
             return _regeneratorRuntime().wrap(function _callee$(_context) {
               while (1) switch (_context.prev = _context.next) {
                 case 0:
-                  _context.prev = 0;
-                  _context.next = 3;
-                  return this.a.onlineService.connect(this.tr('online.defaultName'));
-                case 3:
+                  if (offline === void 0) {
+                    offline = false;
+                  }
+                  _context.prev = 1;
+                  if (!(!offline || this.a.onlineService.base)) {
+                    _context.next = 5;
+                    break;
+                  }
                   _context.next = 5;
-                  return work();
+                  return this.a.onlineService.connect(this.tr('online.defaultName'));
                 case 5:
-                  _context.next = 11;
-                  break;
+                  _context.next = 7;
+                  return work();
                 case 7:
-                  _context.prev = 7;
-                  _context.t0 = _context["catch"](0);
+                  _context.next = 13;
+                  break;
+                case 9:
+                  _context.prev = 9;
+                  _context.t0 = _context["catch"](1);
                   key = _context.t0.message;
                   this.a.info(this.tr('money.result'), this.tr(/^(money|error|online)\./.test(key) ? key : 'money.verification'));
-                case 11:
+                case 13:
                 case "end":
                   return _context.stop();
               }
-            }, _callee, this, [[0, 7]]);
+            }, _callee, this, [[1, 9]]);
           }));
-          function run(_x) {
+          function run(_x, _x2) {
             return _run.apply(this, arguments);
           }
           return run;
@@ -8476,10 +8699,23 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
                 case 3:
                   _this2.quotes = _context4.sent;
                 case 4:
-                  _context4.next = 6;
+                  if (!_this2.a.onlineService.base) {
+                    _context4.next = 10;
+                    break;
+                  }
+                  _context4.next = 7;
                   return _this2.a.onlineService.request('/commerce/status');
-                case 6:
-                  status = _context4.sent;
+                case 7:
+                  _context4.t0 = _context4.sent;
+                  _context4.next = 11;
+                  break;
+                case 10:
+                  _context4.t0 = {
+                    tier: 0,
+                    vipPoints: 0
+                  };
+                case 11:
+                  status = _context4.t0;
                   _this2.a.extensions.list('money.store', [{
                     title: _this2.tr('money.balance', {
                       count: _this2.a.game.s.gems
@@ -8545,12 +8781,12 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
                       })));
                     }
                   }]));
-                case 8:
+                case 13:
                 case "end":
                   return _context4.stop();
               }
             }, _callee4);
-          })));
+          })), true);
         };
         _proto.product = function product(id) {
           var _this3 = this;
@@ -8682,10 +8918,30 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
             return _regeneratorRuntime().wrap(function _callee7$(_context7) {
               while (1) switch (_context7.prev = _context7.next) {
                 case 0:
-                  _context7.next = 2;
+                  if (!_this6.a.onlineService.base) {
+                    _context7.next = 6;
+                    break;
+                  }
+                  _context7.next = 3;
                   return _this6.a.onlineService.request('/commerce/status');
-                case 2:
-                  s = _context7.sent;
+                case 3:
+                  _context7.t0 = _context7.sent;
+                  _context7.next = 7;
+                  break;
+                case 6:
+                  _context7.t0 = {
+                    placements: AD_PLACEMENTS.filter(function (p) {
+                      return p.group !== 'legacy';
+                    }).map(function (p) {
+                      return _extends({}, p, {
+                        used: 0,
+                        skip: false,
+                        readyAt: 0
+                      });
+                    })
+                  };
+                case 7:
+                  s = _context7.t0;
                   _this6.a.extensions.list('money.adPoints', s.placements.filter(function (p) {
                     return !group || p.group === group;
                   }).map(function (p) {
@@ -8698,12 +8954,12 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
                       }
                     };
                   }));
-                case 4:
+                case 9:
                 case "end":
                   return _context7.stop();
               }
             }, _callee7);
-          })));
+          })), true);
         };
         _proto.ad = function ad(id, status) {
           var _this7 = this;
@@ -8763,11 +9019,21 @@ System.register("chunks:///_virtual/Online.ts", ['./rollupPluginModLoBabelHelper
       cclegacy = module.cclegacy;
     }],
     execute: function () {
+      exports('apiEndpoint', apiEndpoint);
       cclegacy._RF.push({}, "c6a192EHo9P4JoeCSc1PtlZ", "Online", undefined);
-      /** Development online service. Local-only endpoint; no production credentials. */
+      /** Explicit deployment endpoint; public static builds never connect to a visitor's localhost. */
+      function apiEndpoint(location, configured) {
+        if (configured) {
+          var u = new URL(configured);
+          if (u.username || u.password || u.search || u.hash || !['https:'].includes(u.protocol) && !(u.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(u.hostname))) throw Error('online.configInvalid');
+          return u.href.replace(/\/$/, '');
+        }
+        if (!location) return 'http://127.0.0.1:8788/api';
+        return ['localhost', '127.0.0.1'].includes(location.hostname) ? location.origin + '/api' : '';
+      }
       var Online = exports('Online', /*#__PURE__*/function () {
         function Online(storage) {
-          this.base = 'http://127.0.0.1:8788/api';
+          this.base = apiEndpoint(typeof window === 'undefined' ? undefined : window.location, typeof window === 'undefined' ? undefined : window.EMBER_API_BASE);
           this.token = '';
           this.accountId = '';
           this.storage = storage;
@@ -8781,11 +9047,17 @@ System.register("chunks:///_virtual/Online.ts", ['./rollupPluginModLoBabelHelper
             return _regeneratorRuntime().wrap(function _callee$(_context) {
               while (1) switch (_context.prev = _context.next) {
                 case 0:
+                  if (this.base) {
+                    _context.next = 2;
+                    break;
+                  }
+                  throw Error('online.unconfigured');
+                case 2:
                   controller = new AbortController(), timer = setTimeout(function () {
                     return controller.abort();
                   }, 8000);
-                  _context.prev = 1;
-                  _context.next = 4;
+                  _context.prev = 3;
+                  _context.next = 6;
                   return fetch(this.base + path, _extends({
                     method: data ? 'POST' : 'GET',
                     headers: _extends({
@@ -8798,38 +9070,38 @@ System.register("chunks:///_virtual/Online.ts", ['./rollupPluginModLoBabelHelper
                   } : {}, {
                     signal: controller.signal
                   }));
-                case 4:
+                case 6:
                   r = _context.sent;
-                  _context.next = 7;
+                  _context.next = 9;
                   return r.json();
-                case 7:
+                case 9:
                   result = _context.sent;
                   if (r.ok) {
-                    _context.next = 10;
+                    _context.next = 12;
                     break;
                   }
                   throw Error(result.error || 'online.serverError');
-                case 10:
+                case 12:
                   return _context.abrupt("return", result);
-                case 13:
-                  _context.prev = 13;
-                  _context.t0 = _context["catch"](1);
+                case 15:
+                  _context.prev = 15;
+                  _context.t0 = _context["catch"](3);
                   if (!(_context.t0.message.startsWith('online.') || _context.t0.message.startsWith('error.') || _context.t0.message.startsWith('extra.') || _context.t0.message.startsWith('money.'))) {
-                    _context.next = 17;
+                    _context.next = 19;
                     break;
                   }
                   throw _context.t0;
-                case 17:
+                case 19:
                   throw Error('online.unreachable');
-                case 18:
-                  _context.prev = 18;
+                case 20:
+                  _context.prev = 20;
                   clearTimeout(timer);
-                  return _context.finish(18);
-                case 21:
+                  return _context.finish(20);
+                case 23:
                 case "end":
                   return _context.stop();
               }
-            }, _callee, this, [[1, 13, 18, 21]]);
+            }, _callee, this, [[3, 15, 20, 23]]);
           }));
           function request(_x, _x2) {
             return _request.apply(this, arguments);

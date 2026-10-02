@@ -12,3 +12,7 @@
 /.server-output/
 
 /dist/
+
+/.server-backups/
+.env
+.env.*

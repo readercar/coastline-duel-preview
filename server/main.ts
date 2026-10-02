@@ -4,10 +4,14 @@ import { resolve, extname, join } from 'node:path';
 import { CommerceService } from './Commerce';
 import { Service, ServiceError } from './Service';
 const root = process.cwd();
-mkdirSync(join(root, '.local-server'), {
+const dataDir=resolve(process.env.EMBER_DATA_DIR||join(root,'.local-server'));
+const host=process.env.EMBER_HOST||'127.0.0.1';
+const port=Number(process.env.PORT||8788);
+const allowedOrigins=new Set((process.env.EMBER_ALLOWED_ORIGINS||'http://127.0.0.1:8788,http://localhost:8788,http://127.0.0.1:8765,http://localhost:8765').split(',').map(s=>s.trim()));
+mkdirSync(dataDir, {
     recursive: true
 });
-const service = new Service(join(root, '.local-server', 'development.sqlite'));
+const service = new Service(join(dataDir,'development.sqlite'));
 const commerce=new CommerceService(service);
 const windows = new Map<string, {
     since: number;
@@ -28,12 +32,14 @@ catch {
 } }
 createServer(async (req, res) => {
     const origin = req.headers.origin;
-    if (origin && /^http:\/\/(127\.0\.0\.1|localhost):(8765|8788)$/.test(origin)) {
+    if (origin && allowedOrigins.has(origin)) {
         res.setHeader('Access-Control-Allow-Origin', origin);
         res.setHeader('Vary', 'Origin');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     }
+    res.setHeader('X-Content-Type-Options','nosniff');
+    if(origin&&!allowedOrigins.has(origin)){send(res,403,{error:'online.permission'});return;}
     if (req.method === 'OPTIONS') {
         res.writeHead(204);
         res.end();
@@ -66,13 +72,14 @@ createServer(async (req, res) => {
         }
         if(process.env.EMBER_MAINTENANCE==='1')throw new ServiceError(503,'online.maintenance');
         const data = req.method === 'POST' ? await body(req) : {};
-        const rateKey = String(req.headers.authorization || req.socket.remoteAddress) + (path === '/api/competition/action' ? ':battle' : ':api'), now = Date.now(), window = windows.get(rateKey);
+        const rateKey = String(req.socket.remoteAddress) + (path === '/api/competition/action' ? ':battle' : ':api'), now = Date.now(), window = windows.get(rateKey);
         if (!window || now - window.since > 1000)
             windows.set(rateKey, {
                 since: now, count: 1
             });
         else if (++window.count > (path === '/api/competition/action' ? 12 : 40))
             throw new ServiceError(429, 'online.rateLimit');
+        if(windows.size>10000)for(const [key,w] of windows)if(now-w.since>60000)windows.delete(key);
         if (path === '/api/account' && req.method === 'POST') {
             send(res, 201, service.account(data.name));
             return;
@@ -87,6 +94,8 @@ createServer(async (req, res) => {
                 result = service.searchGuilds(url.searchParams.get('q')||'');
             else if (path === '/api/guild')
                 result = service.guild(account);
+            else if(path==='/api/rewards')result=service.pendingRewards(account);
+            else if(path==='/api/blocks')result=service.blocks(account);
             else if(path==='/api/commerce/status')result=commerce.status(account);
             else if(path==='/api/commerce/grants')result=commerce.grants(account);
             else if(path==='/api/account/save')result=service.cloudSave(account);
@@ -104,6 +113,9 @@ createServer(async (req, res) => {
         }
         else if (req.method === 'POST') {
             switch (path) {
+                case '/api/rewards/ack':result=service.acknowledgeReward(account,data.id,data.key);break;
+                case '/api/player/block':result=service.block(account,data.target,data.enabled,data.key);break;
+                case '/api/player/report':result=service.report(account,data.message,data.reason,data.key);break;
                 case '/api/commerce/purchase':result=await commerce.purchase(account,data.receipt,data.key,data.product);break;
                 case '/api/commerce/restore':result=await commerce.purchase(account,data.receipt,data.key);break;
                 case '/api/commerce/ad/start':result=commerce.startAd(account,data.placement,data.key);break;
@@ -159,4 +171,4 @@ createServer(async (req, res) => {
             error: e instanceof ServiceError ? e.message : 'online.serverError'
         });
     }
-}).listen(8788, '127.0.0.1', () => console.log('Ember Ascent development server: http://127.0.0.1:8788'));
+}).listen(port,host,()=>console.log(`Ember Ascent server listening on ${host}:${port}`));

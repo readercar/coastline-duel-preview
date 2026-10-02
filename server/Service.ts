@@ -10,6 +10,10 @@ export class Service {
     constructor(path: string, public now = () => Date.now()) {
         this.db = new DatabaseSync(path);
         this.db.exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;
+      CREATE TABLE IF NOT EXISTS reward_deliveries(id TEXT PRIMARY KEY,account TEXT NOT NULL,payload TEXT NOT NULL,acked INTEGER NOT NULL DEFAULT 0);
+      CREATE TABLE IF NOT EXISTS player_blocks(account TEXT NOT NULL,target TEXT NOT NULL,PRIMARY KEY(account,target));
+      CREATE TABLE IF NOT EXISTS player_reports(id INTEGER PRIMARY KEY AUTOINCREMENT,account TEXT NOT NULL,message INTEGER NOT NULL,reason TEXT NOT NULL,created INTEGER NOT NULL,UNIQUE(account,message));
+      CREATE TABLE IF NOT EXISTS competition_groups(account TEXT NOT NULL,tournament INTEGER NOT NULL,bracket INTEGER NOT NULL,pool INTEGER NOT NULL,PRIMARY KEY(account,tournament));
       CREATE TABLE IF NOT EXISTS cloud_saves(account TEXT PRIMARY KEY,state TEXT NOT NULL,version INTEGER NOT NULL,updated INTEGER NOT NULL);
       CREATE TABLE IF NOT EXISTS raid_wallets(account TEXT PRIMARY KEY,state TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS accounts(id TEXT PRIMARY KEY, token_hash TEXT UNIQUE NOT NULL, name TEXT NOT NULL, created INTEGER NOT NULL);
@@ -26,7 +30,17 @@ export class Service {
       CREATE TABLE IF NOT EXISTS vault_claims(account TEXT NOT NULL,guild TEXT NOT NULL,cycle INTEGER NOT NULL,PRIMARY KEY(account,guild,cycle));
       CREATE TABLE IF NOT EXISTS raid_attacks(account TEXT NOT NULL,guild TEXT NOT NULL,cycle INTEGER NOT NULL,count INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(account,guild,cycle));
     `);
+        for(const entry of this.all('SELECT account,tournament,score FROM entries ORDER BY rowid'))this.assignGroup(entry.account,entry.tournament,entry.score);
+        for(const tx of this.all("SELECT account,result FROM transactions WHERE result LIKE '%claimId%'")){try{const r=JSON.parse(tx.result);if(typeof r.claimId==='string'&&/^(tournament:|vault:)/.test(r.claimId)&&Number.isInteger(r.gems)&&Number.isInteger(r.shards))this.queueReward(tx.account,r);}catch{}}
     }
+    pendingRewards(account:string):any[]{return this.all('SELECT payload FROM reward_deliveries WHERE account=? AND acked=0 ORDER BY rowid',account).map(r=>JSON.parse(r.payload));}
+    queueReward(account:string,reward:any):any{this.run('INSERT OR IGNORE INTO reward_deliveries(id,account,payload) VALUES(?,?,?)',reward.claimId,account,JSON.stringify(reward));return reward;}
+    acknowledgeReward(account:string,id:unknown,key:unknown):any{return this.tx(account,key,()=>{const value=this.text(id,1,200);if(!this.one('SELECT id FROM reward_deliveries WHERE id=? AND account=?',value,account))throw new ServiceError(404,'online.notFound');this.run('UPDATE reward_deliveries SET acked=1 WHERE id=?',value);return {acked:true};});}
+    blocks(account:string):any[]{return this.all('SELECT a.id,a.name FROM player_blocks b JOIN accounts a ON a.id=b.target WHERE b.account=?',account);}
+    block(account:string,target:unknown,enabled:unknown,key:unknown):any{return this.tx(account,key,()=>{const id=this.text(target,24,24);if(typeof enabled!=='boolean'||id===account||!this.one('SELECT id FROM accounts WHERE id=?',id))throw new ServiceError(400,'error.invalid');if(enabled)this.run('INSERT OR IGNORE INTO player_blocks VALUES(?,?)',account,id);else this.run('DELETE FROM player_blocks WHERE account=? AND target=?',account,id);return {blocked:enabled};});}
+    report(account:string,message:unknown,reason:unknown,key:unknown):any{return this.tx(account,key,()=>{if(!Number.isInteger(message))throw new ServiceError(400,'error.invalid');const m=this.needMember(account),row=this.one('SELECT * FROM messages WHERE id=? AND guild=?',message as number,m.guild);if(!row||row.account===account)throw new ServiceError(404,'online.notFound');this.run('INSERT OR IGNORE INTO player_reports(account,message,reason,created) VALUES(?,?,?,?)',account,message as number,this.text(reason,3,240),this.now());return {reported:true};});}
+    assignGroup(account:string,id:number,score:number):void{if(this.one('SELECT account FROM competition_groups WHERE account=? AND tournament=?',account,id))return;const bracket=Math.floor(Math.log10(Math.max(1,score))),count=this.one('SELECT COUNT(*) AS n FROM competition_groups WHERE tournament=? AND bracket=?',id,bracket).n;this.run('INSERT INTO competition_groups VALUES(?,?,?,?)',account,id,bracket,Math.floor(count/50));}
+    ranked(account:string,id:number):any[]{const group=this.one('SELECT bracket,pool FROM competition_groups WHERE account=? AND tournament=?',account,id);if(!group)return [];return this.all('SELECT a.id,a.name,e.score,e.updated FROM entries e JOIN accounts a ON a.id=e.account JOIN competition_groups g ON g.account=e.account AND g.tournament=e.tournament WHERE e.tournament=? AND g.bracket=? AND g.pool=? ORDER BY e.score DESC,e.updated ASC,e.account ASC',id,group.bracket,group.pool);}
     one(sql: string, ...args: (string | number)[]): any { return this.db.prepare(sql).get(...args); }
     all(sql: string, ...args: (string | number)[]): any[] { return this.db.prepare(sql).all(...args); }
     run(sql: string, ...args: (string | number)[]): void { this.db.prepare(sql).run(...args); }
@@ -77,7 +91,7 @@ export class Service {
         id
     }; }); }
     guild(account: string): any { const m = this.needMember(account); return {
-        guild: this.one('SELECT id,name,owner,raid_hp,raid_cycle FROM guilds WHERE id=?', m.guild), role: m.role, members: this.all('SELECT a.id,a.name,m.role FROM members m JOIN accounts a ON a.id=m.account WHERE m.guild=?', m.guild), messages: this.all('SELECT m.id,a.name,m.body,m.created FROM messages m JOIN accounts a ON a.id=m.account WHERE m.guild=? ORDER BY m.id DESC LIMIT 50', m.guild).reverse()
+        guild: this.one('SELECT id,name,owner,raid_hp,raid_cycle FROM guilds WHERE id=?', m.guild), role: m.role, members: this.all('SELECT a.id,a.name,m.role FROM members m JOIN accounts a ON a.id=m.account WHERE m.guild=?', m.guild), messages: this.all('SELECT m.id,m.account,a.name,m.body,m.created FROM messages m JOIN accounts a ON a.id=m.account WHERE m.guild=? AND NOT EXISTS(SELECT 1 FROM player_blocks b WHERE b.account=? AND b.target=m.account) ORDER BY m.id DESC LIMIT 50', m.guild,account).reverse()
     }; }
     chat(account: string, body: unknown, key: unknown): any { return this.tx(account, key, () => { const m = this.needMember(account); this.run('INSERT INTO messages(guild,account,body,created) VALUES(?,?,?,?)', m.guild, account, this.text(body, 1, 240), this.now()); return {
         sent: true
@@ -120,15 +134,14 @@ export class Service {
     guildInfo(account:string):any{const m=this.needMember(account);return {settings:this.one('SELECT description,badge FROM guild_settings WHERE guild=?',m.guild)||{description:'',badge:0},logs:this.all('SELECT a.name,l.damage,l.created FROM guild_logs l JOIN accounts a ON a.id=l.account WHERE l.guild=? ORDER BY l.id DESC LIMIT 50',m.guild),vault:this.one('SELECT COALESCE(SUM(damage),0) AS damage FROM guild_logs WHERE guild=?',m.guild).damage};}
     editGuild(account:string,name:unknown,description:unknown,badge:unknown,key:unknown):any{return this.tx(account,key,()=>{const m=this.needMember(account);if(m.role!=='leader')throw new ServiceError(403,'online.permission');if(!Number.isInteger(badge)||(badge as number)<0||(badge as number)>5)throw new ServiceError(400,'error.invalid');const desc=typeof description==='string'?description:'';if(desc.length>240)throw new ServiceError(400,'error.invalid');this.run('UPDATE guilds SET name=? WHERE id=?',this.text(name,2,24),m.guild);this.run('INSERT INTO guild_settings VALUES(?,?,?) ON CONFLICT(guild) DO UPDATE SET description=excluded.description,badge=excluded.badge',m.guild,desc,badge as number);return {updated:true};});}
     memberProfile(account:string,target:string):any{const m=this.needMember(account),other=this.needMember(target);if(m.guild!==other.guild)throw new ServiceError(403,'online.permission');return {...this.one('SELECT name,created FROM accounts WHERE id=?',target),role:other.role,damage:this.one('SELECT COALESCE(SUM(damage),0) AS damage FROM guild_logs WHERE account=? AND guild=?',target,m.guild).damage};}
-    vault(account:string,key:unknown):any{return this.tx(account,key,()=>{const m=this.needMember(account),cycle=Math.floor(this.now()/43200000),damage=this.one('SELECT COALESCE(SUM(damage),0) AS total FROM guild_logs WHERE guild=? AND created>=?',m.guild,cycle*43200000).total;if(damage<1000)throw new ServiceError(409,'error.locked');if(this.one('SELECT account FROM vault_claims WHERE account=? AND guild=? AND cycle=?',account,m.guild,cycle))throw new ServiceError(409,'error.claimed');this.run('INSERT INTO vault_claims VALUES(?,?,?)',account,m.guild,cycle);return {claimId:`vault:${m.guild}:${cycle}:${account}`,gems:20,shards:5};});}
+    vault(account:string,key:unknown):any{return this.tx(account,key,()=>{const m=this.needMember(account),cycle=Math.floor(this.now()/43200000),damage=this.one('SELECT COALESCE(SUM(damage),0) AS total FROM guild_logs WHERE guild=? AND created>=?',m.guild,cycle*43200000).total;if(damage<1000)throw new ServiceError(409,'error.locked');if(this.one('SELECT account FROM vault_claims WHERE account=? AND guild=? AND cycle=?',account,m.guild,cycle))throw new ServiceError(409,'error.claimed');this.run('INSERT INTO vault_claims VALUES(?,?,?)',account,m.guild,cycle);return this.queueReward(account,{claimId:`vault:${m.guild}:${cycle}:${account}`,gems:20,shards:5});});}
     retireRaid(account:string,key:unknown):any{return this.tx(account,key,()=>{const m=this.needMember(account);if(m.role!=='leader')throw new ServiceError(403,'online.permission');this.run('UPDATE raid_sessions SET finished=1 WHERE guild=? AND finished=0',m.guild);this.run('UPDATE guilds SET raid_hp=100000,raid_cycle=raid_cycle+1 WHERE id=?',m.guild);return {retired:true};});}
     currentTournament(mode='abyss'): any { const regular=mode==='regular',period=regular?172800000:86400000,cycle=Math.floor(this.now()/period),id=regular?-(cycle+1):cycle,start=cycle*period,end=start+period; this.run('INSERT OR IGNORE INTO tournaments VALUES(?,?,?)', id, start, end); return {
         id, start, end
     }; }
-    joinTournament(account: string, key: unknown, mode='abyss'): any { return this.tx(account, key, () => { if(!['abyss','regular'].includes(mode))throw new ServiceError(400,'error.invalid');const t = this.currentTournament(mode); const old = this.one('SELECT state FROM entries WHERE account=? AND tournament=?', account, t.id); if (old)
-        return {
+    joinTournament(account: string, key: unknown, mode='abyss'): any { return this.tx(account, key, () => { if(!['abyss','regular'].includes(mode))throw new ServiceError(400,'error.invalid');const t = this.currentTournament(mode); const old = this.one('SELECT state FROM entries WHERE account=? AND tournament=?', account, t.id); if (old){this.assignGroup(account,t.id,JSON.parse(old.state).maxStage);return {
             id: t.id, state: JSON.parse(old.state)
-        }; const g = new Game(undefined, this.now);if(mode==='regular'){const previous=this.one('SELECT state FROM entries WHERE account=? AND tournament<0 ORDER BY tournament ASC LIMIT 1',account);if(previous){g.s=JSON.parse(previous.state);g.migrate(g.s);g.validate(g.s);}}else { g.s.run.master = 100; g.s.run.gold = amount(100000); g.s.gems = 1000;} this.run('INSERT INTO entries(account,tournament,state,updated,score) VALUES(?,?,?,?,?)', account, t.id, JSON.stringify(g.s), this.now(),g.s.maxStage); return {
+        };} const g = new Game(undefined, this.now);if(mode==='regular'){const previous=this.one('SELECT state FROM entries WHERE account=? AND tournament<0 ORDER BY tournament ASC LIMIT 1',account);if(previous){g.s=JSON.parse(previous.state);g.migrate(g.s);g.validate(g.s);}}else { g.s.run.master = 100; g.s.run.gold = amount(100000); g.s.gems = 1000;} this.run('INSERT INTO entries(account,tournament,state,updated,score) VALUES(?,?,?,?,?)', account, t.id, JSON.stringify(g.s), this.now(),g.s.maxStage);this.assignGroup(account,t.id,g.s.maxStage); return {
         id: t.id, state: g.s
     }; }); }
     tournamentHistory(account:string):any[]{return this.all('SELECT t.id,t.start,t.end,e.score,e.claimed FROM entries e JOIN tournaments t ON t.id=e.tournament WHERE e.account=? ORDER BY t.start DESC LIMIT 30',account);}
@@ -137,7 +150,7 @@ export class Service {
         g.tick(Math.min(1, elapsed - seconds)); return g; }
     competition(account: string, id: number): any { const tournament = this.one('SELECT * FROM tournaments WHERE id=?', id); if (!tournament)
         throw new ServiceError(404, 'online.notFound'); const entry = this.one('SELECT * FROM entries WHERE account=? AND tournament=?', account, id); return {
-        tournament, state: entry ? JSON.parse(entry.state) : null, claimed: entry?.claimed === 1, leaderboard: this.all('SELECT a.id,a.name,e.score FROM entries e JOIN accounts a ON a.id=e.account WHERE e.tournament=? ORDER BY score DESC,updated ASC,account ASC LIMIT 50', id)
+        tournament, state: entry ? JSON.parse(entry.state) : null, claimed: entry?.claimed === 1, leaderboard: this.ranked(account,id),group:this.one('SELECT bracket,pool FROM competition_groups WHERE account=? AND tournament=?',account,id),serverNow:this.now()
     }; }
     competitionAction(account: string, id: number, action: unknown, hero: unknown, key: unknown): any { return this.tx(account, key, () => { const tournament = this.one('SELECT * FROM tournaments WHERE id=?', id); if (!tournament || this.now() >= tournament.end)
         throw new ServiceError(409, 'online.ended'); const g = this.advance(account, id); if (action === 'tap') {
@@ -163,7 +176,7 @@ export class Service {
     claimTournament(account: string, id: number, key: unknown): any { return this.tx(account, key, () => { const t = this.one('SELECT * FROM tournaments WHERE id=?', id), entry = this.one('SELECT * FROM entries WHERE account=? AND tournament=?', account, id); if (!entry || !t)
         throw new ServiceError(404, 'online.notJoined'); if (this.now() < t.end)
         throw new ServiceError(409, 'online.notEnded'); if (entry.claimed)
-        throw new ServiceError(409, 'error.claimed'); const ranks = this.all('SELECT account FROM entries WHERE tournament=? ORDER BY score DESC,updated ASC,account ASC', id); const rank = ranks.findIndex(r => r.account === account) + 1; this.run('UPDATE entries SET claimed=1 WHERE account=? AND tournament=?', account, id); return {
+        throw new ServiceError(409, 'error.claimed'); this.assignGroup(account,id,entry.score);const ranks=this.ranked(account,id);const rank=ranks.findIndex(r=>r.id===account)+1; this.run('UPDATE entries SET claimed=1 WHERE account=? AND tournament=?', account, id); return this.queueReward(account,{
         claimId: `tournament:${id}:${account}`, rank, gems: Math.max(25, 200 - (rank - 1) * 10), shards: 10
-    }; }); }
+    }); }); }
 }

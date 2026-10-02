@@ -378,3 +378,7 @@ Object.assign(translations.en,{"balance.title": "Growth Effects", "balance.scope
 
 Object.assign(translations.ko,{"art.enemy.0": "뿔 달린 파수병", "art.enemy.1": "철갑 거인", "art.enemy.2": "외눈 수호자"});
 Object.assign(translations.en,{"art.enemy.0": "Horned Sentinel", "art.enemy.1": "Ironclad Titan", "art.enemy.2": "Cyclops Guardian"});
+
+Object.assign(translations.ko,{"online.unconfigured": "이 웹 미리보기에는 온라인 서버가 연결되지 않았습니다. 기본 전투와 로컬 성장은 이용할 수 있습니다.", "online.configInvalid": "서버 연결 주소 설정이 올바르지 않습니다.", "ops.recoverRewards": "미수령 서버 보상 복구", "ops.moderation": "채팅 차단·신고", "ops.blocks": "차단 목록", "ops.block": "이 사용자 차단", "ops.unblock": "차단 해제", "ops.report": "이 메시지 신고", "ops.reportConfirm": "이 길드 메시지를 신고 기록으로 제출합니다.", "ops.reported": "신고가 접수되었습니다.", "ops.group": "성장 등급별 최대 50명 그룹 · 동점은 먼저 도달한 순서"});
+
+Object.assign(translations.en,{"online.unconfigured": "This web preview has no online server connected. Combat and local progression remain available.", "online.configInvalid": "The server endpoint configuration is invalid.", "ops.recoverRewards": "Recover Pending Server Rewards", "ops.moderation": "Block or Report Chat", "ops.blocks": "Blocked Players", "ops.block": "Block This Player", "ops.unblock": "Unblock", "ops.report": "Report This Message", "ops.reportConfirm": "Submit this guild message as a report.", "ops.reported": "Report recorded.", "ops.group": "Up to 50 players per progression bracket. Earlier scores win ties."});
