@@ -1,0 +1,14 @@
+/library/
+/temp/
+/local/
+/profiles/
+/build/
+/.reference/
+/.test-output/
+/node_modules/
+*.log
+.DS_Store
+/.local-server/
+/.server-output/
+
+/dist/

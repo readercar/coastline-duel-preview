@@ -1,0 +1,4042 @@
+[
+  {
+    "id": "HUD-01",
+    "referenceName": "Main Battle",
+    "surface": "HUD/Overlay",
+    "blocking": "No",
+    "authority": "Mixed",
+    "mutation": "Read/Config",
+    "persistence": "Run/Session",
+    "close": "Nav/auto",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HUD-02",
+    "referenceName": "Boss Battle",
+    "surface": "HUD/Overlay",
+    "blocking": "No",
+    "authority": "Mixed",
+    "mutation": "Read/Config",
+    "persistence": "Run/Session",
+    "close": "Nav/auto",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HUD-03",
+    "referenceName": "Boss Failed",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Mixed",
+    "mutation": "Read/Config",
+    "persistence": "Run/Session",
+    "close": "CTA/Cancel",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HUD-04",
+    "referenceName": "Boss Toggle",
+    "surface": "HUD/Overlay",
+    "blocking": "No",
+    "authority": "Mixed",
+    "mutation": "Read/Config",
+    "persistence": "Run/Session",
+    "close": "Nav/auto",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HUD-05",
+    "referenceName": "Fairy Reward",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HUD-06",
+    "referenceName": "Fairy Ad Offer",
+    "surface": "Modal",
+    "blocking": "Partial",
+    "authority": "Mixed",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "integration-required",
+    "implementation": "assets/scripts/MonetizationUI.ts; assets/scripts/core/Monetization.ts; server/Commerce.ts",
+    "limitation": "KR iOS reference prices, opt-in ad placements, quota/cooldown, verified receipt/proof interfaces, durable reward ledger and restore/retry flows implemented. Production billing/ad SDK and verifier are not connected; unknown bundle contents remain disabled.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HUD-07",
+    "referenceName": "Ad Result",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Mixed",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "CTA/Cancel",
+    "status": "integration-required",
+    "implementation": "assets/scripts/MonetizationUI.ts; assets/scripts/core/Monetization.ts; server/Commerce.ts",
+    "limitation": "KR iOS reference prices, opt-in ad placements, quota/cooldown, verified receipt/proof interfaces, durable reward ledger and restore/retry flows implemented. Production billing/ad SDK and verifier are not connected; unknown bundle contents remain disabled.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HUD-08",
+    "referenceName": "Equipment Pile",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/core/Game.ts; assets/scripts/core/Expansion.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local functional flow, with independent content and balance. Portal persistence, daily rewards, deck presets, item discovery and display/save recovery implemented. Source-game parity is not established.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HUD-09",
+    "referenceName": "Pet Egg Ready",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Mixed",
+    "mutation": "Read/Config",
+    "persistence": "Timer/Server",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HUD-10",
+    "referenceName": "Offline Welcome Back",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HUD-11",
+    "referenceName": "Milestone Banner",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Persisted milestone/weapon/scroll/set-result notifications, five-slot appearance palette changes, and event rules. Independent assets and rules, not original-game art/content parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HUD-12",
+    "referenceName": "Feature Unlock",
+    "surface": "Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/core/Game.ts; assets/scripts/core/Expansion.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local functional flow, with independent content and balance. Portal persistence, daily rewards, deck presets, item discovery and display/save recovery implemented. Source-game parity is not established.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HUD-13",
+    "referenceName": "Resource Insufficient",
+    "surface": "Modal",
+    "blocking": "Partial",
+    "authority": "Mixed",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HUD-14",
+    "referenceName": "Network Retry",
+    "surface": "Modal",
+    "blocking": "Partial",
+    "authority": "Mixed",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "server/Service.ts; assets/scripts/GameApp.ts",
+    "limitation": "Online development subset. Daily independent competition differs from normal/weekly matching. Guild raid is fixed-damage development action, solo raid has simplified body/card rules.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HUD-15",
+    "referenceName": "Maintenance/Version Gate",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Mixed",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Required action",
+    "status": "partial",
+    "implementation": "server/main.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Service health/version and maintenance gating implemented. Mandatory client binary update/store redirect is not connected.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SM-01",
+    "referenceName": "Sword Master Tab",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SM-02",
+    "referenceName": "Buy Mode",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Spend/Trade",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SM-03",
+    "referenceName": "Spell Slots",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SM-04",
+    "referenceName": "Spell Select",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SM-05",
+    "referenceName": "Spell Detail",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SM-06",
+    "referenceName": "Multi-Cast",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SM-07",
+    "referenceName": "Perk Slots",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SM-08",
+    "referenceName": "Perk Select",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SM-09",
+    "referenceName": "Perk Swap Warning",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "CTA/Cancel",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SM-10",
+    "referenceName": "Prestige Summary",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Server Action",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SM-11",
+    "referenceName": "Prestige Confirm",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Server Action",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SM-12",
+    "referenceName": "Prestige Result",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Server Action",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SM-13",
+    "referenceName": "Skill Tree",
+    "surface": "Fullscreen",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SM-14",
+    "referenceName": "Skill Node Detail",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SM-15",
+    "referenceName": "Skill Apply Confirm",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SM-16",
+    "referenceName": "Skill Revert",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SM-17",
+    "referenceName": "Skill Respec",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Timer/Server",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SM-18",
+    "referenceName": "Build Overview",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SM-19",
+    "referenceName": "Talents",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HERO-01",
+    "referenceName": "Hero List",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HERO-02",
+    "referenceName": "Hero Locked",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HERO-03",
+    "referenceName": "Hero Hire",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HERO-04",
+    "referenceName": "Hero Level-Up",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HERO-05",
+    "referenceName": "Hero Skill Unlock",
+    "surface": "Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Spend/Trade",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HERO-06",
+    "referenceName": "Hero Ascend",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HERO-07",
+    "referenceName": "Hero Stats",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HERO-08",
+    "referenceName": "Hero Weapons",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HERO-09",
+    "referenceName": "Weapon Reward",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Persisted milestone/weapon/scroll/set-result notifications, five-slot appearance palette changes, and event rules. Independent assets and rules, not original-game art/content parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HERO-10",
+    "referenceName": "Weapon Set Complete",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Persisted milestone/weapon/scroll/set-result notifications, five-slot appearance palette changes, and event rules. Independent assets and rules, not original-game art/content parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HERO-11",
+    "referenceName": "Clan Scrolls",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "HERO-12",
+    "referenceName": "Scroll Reward",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Persisted milestone/weapon/scroll/set-result notifications, five-slot appearance palette changes, and event rules. Independent assets and rules, not original-game art/content parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EQ-01",
+    "referenceName": "Equipment Home",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EQ-02",
+    "referenceName": "Slot Inventory",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EQ-03",
+    "referenceName": "Item Detail",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EQ-04",
+    "referenceName": "Compare",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EQ-05",
+    "referenceName": "Equip Confirm",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EQ-06",
+    "referenceName": "Sell Confirm",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Spend/Trade",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EQ-07",
+    "referenceName": "Bulk Sell",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Spend/Trade",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EQ-08",
+    "referenceName": "Lock/Unlock",
+    "surface": "Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EQ-09",
+    "referenceName": "Equipment Drop Result",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "local-functional",
+    "implementation": "assets/scripts/core/Game.ts; assets/scripts/core/Expansion.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local functional flow, with independent content and balance. Portal persistence, daily rewards, deck presets, item discovery and display/save recovery implemented. Source-game parity is not established.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EQ-10",
+    "referenceName": "Set List",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/core/Game.ts; assets/scripts/core/Expansion.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local functional flow, with independent content and balance. Portal persistence, daily rewards, deck presets, item discovery and display/save recovery implemented. Source-game parity is not established.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EQ-11",
+    "referenceName": "Set Detail",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/core/Game.ts; assets/scripts/core/Expansion.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local functional flow, with independent content and balance. Portal persistence, daily rewards, deck presets, item discovery and display/save recovery implemented. Source-game parity is not established.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EQ-12",
+    "referenceName": "Crafting Home",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Server",
+    "mutation": "Spend/Trade",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EQ-13",
+    "referenceName": "Craft Confirm",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Spend/Trade",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EQ-14",
+    "referenceName": "Craft Result",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Spend/Trade",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EQ-15",
+    "referenceName": "Set Complete",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Persisted milestone/weapon/scroll/set-result notifications, five-slot appearance palette changes, and event rules. Independent assets and rules, not original-game art/content parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EQ-16",
+    "referenceName": "Crafting Power",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Spend/Trade",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/core/Game.ts; assets/scripts/core/Expansion.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local functional flow, with independent content and balance. Portal persistence, daily rewards, deck presets, item discovery and display/save recovery implemented. Source-game parity is not established.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EQ-17",
+    "referenceName": "Transmog",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Persisted milestone/weapon/scroll/set-result notifications, five-slot appearance palette changes, and event rules. Independent assets and rules, not original-game art/content parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EQ-18",
+    "referenceName": "Inventory Full",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Spend/Trade",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "PET-01",
+    "referenceName": "Pet Collection",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "PET-02",
+    "referenceName": "Pet Detail",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/core/Game.ts; assets/scripts/core/Expansion.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local functional flow, with independent content and balance. Portal persistence, daily rewards, deck presets, item discovery and display/save recovery implemented. Source-game parity is not established.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "PET-03",
+    "referenceName": "Equip Pet",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "PET-04",
+    "referenceName": "Pet Egg Timer",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "Timer/Server",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "PET-05",
+    "referenceName": "Pet Egg Hatch",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Timer/Server",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "PET-06",
+    "referenceName": "Pet Level Up",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "PET-07",
+    "referenceName": "Pet Paradise Home",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "PET-08",
+    "referenceName": "Critter Haven Board",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "PET-09",
+    "referenceName": "Critter Reward",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "PET-10",
+    "referenceName": "Pet Milestone",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "ART-01",
+    "referenceName": "Artifacts Home",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "ART-02",
+    "referenceName": "Discover Artifact",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Spend/Trade",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "ART-03",
+    "referenceName": "Discovery Result",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "ART-04",
+    "referenceName": "Artifact Detail",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "ART-05",
+    "referenceName": "Upgrade",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Spend/Trade",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "ART-06",
+    "referenceName": "Salvage Confirm",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Spend/Trade",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "ART-07",
+    "referenceName": "Salvaged List",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Server",
+    "mutation": "Spend/Trade",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "ART-08",
+    "referenceName": "Enchant Artifact",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "TRANS-01",
+    "referenceName": "Transcendence Home",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "TRANS-02",
+    "referenceName": "Monuments",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "TRANS-03",
+    "referenceName": "Discover Monument",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/core/Game.ts; assets/scripts/core/Expansion.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local functional flow, with independent content and balance. Portal persistence, daily rewards, deck presets, item discovery and display/save recovery implemented. Source-game parity is not established.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "TRANS-04",
+    "referenceName": "Monument Detail",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "TRANS-05",
+    "referenceName": "Monument Salvage",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Spend/Trade",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "TRANS-06",
+    "referenceName": "Monument Enchant Choice",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "TRANS-07",
+    "referenceName": "Season End Reward",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SHOP-01",
+    "referenceName": "Regular Shop",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Mixed",
+    "mutation": "Read/Config",
+    "persistence": "Server State",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SHOP-02",
+    "referenceName": "Progression Shop",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Mixed",
+    "mutation": "Read/Config",
+    "persistence": "Server State",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SHOP-03",
+    "referenceName": "Limited-Time Shop",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Mixed",
+    "mutation": "Read/Config",
+    "persistence": "Server State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SHOP-04",
+    "referenceName": "Daily Deals",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Spend/Trade",
+    "persistence": "Timer/Server",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SHOP-05",
+    "referenceName": "Deal Detail",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Spend/Trade",
+    "persistence": "Server State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SHOP-06",
+    "referenceName": "Chests",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Mixed",
+    "mutation": "Read/Config",
+    "persistence": "Server State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SHOP-07",
+    "referenceName": "Chest Preview",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Mixed",
+    "mutation": "Read/Config",
+    "persistence": "Server State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SHOP-08",
+    "referenceName": "Chest Open",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Server State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SHOP-09",
+    "referenceName": "Diamond Packs",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Mixed",
+    "mutation": "Read/Config",
+    "persistence": "Server State",
+    "close": "Back/X/outside",
+    "status": "integration-required",
+    "implementation": "assets/scripts/MonetizationUI.ts; assets/scripts/core/Monetization.ts; server/Commerce.ts",
+    "limitation": "KR iOS reference prices, opt-in ad placements, quota/cooldown, verified receipt/proof interfaces, durable reward ledger and restore/retry flows implemented. Production billing/ad SDK and verifier are not connected; unknown bundle contents remain disabled.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SHOP-10",
+    "referenceName": "Bundle Detail",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Mixed",
+    "mutation": "Read/Config",
+    "persistence": "Server State",
+    "close": "Back/X/outside",
+    "status": "integration-required",
+    "implementation": "assets/scripts/MonetizationUI.ts; assets/scripts/core/Monetization.ts; server/Commerce.ts",
+    "limitation": "KR iOS reference prices, opt-in ad placements, quota/cooldown, verified receipt/proof interfaces, durable reward ledger and restore/retry flows implemented. Production billing/ad SDK and verifier are not connected; unknown bundle contents remain disabled.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SHOP-11",
+    "referenceName": "IAP Native Confirm",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Mixed",
+    "mutation": "Read/Config",
+    "persistence": "Server State",
+    "close": "CTA/Cancel",
+    "status": "integration-required",
+    "implementation": "assets/scripts/MonetizationUI.ts; assets/scripts/core/Monetization.ts; server/Commerce.ts",
+    "limitation": "KR iOS reference prices, opt-in ad placements, quota/cooldown, verified receipt/proof interfaces, durable reward ledger and restore/retry flows implemented. Production billing/ad SDK and verifier are not connected; unknown bundle contents remain disabled.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SHOP-12",
+    "referenceName": "Purchase Success",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Spend/Trade",
+    "persistence": "Server State",
+    "close": "Back/X/outside",
+    "status": "integration-required",
+    "implementation": "assets/scripts/MonetizationUI.ts; assets/scripts/core/Monetization.ts; server/Commerce.ts",
+    "limitation": "KR iOS reference prices, opt-in ad placements, quota/cooldown, verified receipt/proof interfaces, durable reward ledger and restore/retry flows implemented. Production billing/ad SDK and verifier are not connected; unknown bundle contents remain disabled.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SHOP-13",
+    "referenceName": "Purchase Error",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Spend/Trade",
+    "persistence": "Server State",
+    "close": "Back/X/outside",
+    "status": "integration-required",
+    "implementation": "assets/scripts/MonetizationUI.ts; assets/scripts/core/Monetization.ts; server/Commerce.ts",
+    "limitation": "KR iOS reference prices, opt-in ad placements, quota/cooldown, verified receipt/proof interfaces, durable reward ledger and restore/retry flows implemented. Production billing/ad SDK and verifier are not connected; unknown bundle contents remain disabled.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SHOP-14",
+    "referenceName": "VIP Info",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Mixed",
+    "mutation": "Read/Config",
+    "persistence": "Server State",
+    "close": "Back/X/outside",
+    "status": "integration-required",
+    "implementation": "assets/scripts/MonetizationUI.ts; assets/scripts/core/Monetization.ts; server/Commerce.ts",
+    "limitation": "KR iOS reference prices, opt-in ad placements, quota/cooldown, verified receipt/proof interfaces, durable reward ledger and restore/retry flows implemented. Production billing/ad SDK and verifier are not connected; unknown bundle contents remain disabled.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SHOP-15",
+    "referenceName": "Free Shop Reward",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Timer/Server",
+    "close": "CTA/Cancel",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "CLAN-01",
+    "referenceName": "Clan Directory",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; assets/scripts/core/Online.ts; assets/scripts/GameApp.ts",
+    "limitation": "Loopback development server, anonymous credentials, local SQLite. No production identity, moderation, deployment or cross-device recovery.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "CLAN-02",
+    "referenceName": "Clan Search Filter",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Loopback SQLite service only. Anonymous credentials. No production deployment or cross-device recovery.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "CLAN-03",
+    "referenceName": "Clan Detail",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Server Action",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; assets/scripts/core/Online.ts; assets/scripts/GameApp.ts",
+    "limitation": "Loopback development server, anonymous credentials, local SQLite. No production identity, moderation, deployment or cross-device recovery.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "CLAN-04",
+    "referenceName": "Join Confirm",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Server Action",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "server-development",
+    "implementation": "server/Service.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Confirmed join flow and guild information panel backed by local SQLite. Production clan infrastructure is not connected.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "CLAN-05",
+    "referenceName": "Create Clan",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Server Action",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; assets/scripts/core/Online.ts; assets/scripts/GameApp.ts",
+    "limitation": "Loopback development server, anonymous credentials, local SQLite. No production identity, moderation, deployment or cross-device recovery.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "CLAN-06",
+    "referenceName": "Clan Chat",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; assets/scripts/core/Online.ts; assets/scripts/GameApp.ts",
+    "limitation": "Loopback development server, anonymous credentials, local SQLite. No production identity, moderation, deployment or cross-device recovery.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "CLAN-07",
+    "referenceName": "Sticker Picker",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Loopback SQLite service only. Anonymous credentials. No production deployment or cross-device recovery.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "CLAN-08",
+    "referenceName": "Clan Info",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Confirmed join flow and guild information panel backed by local SQLite. Production clan infrastructure is not connected.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "CLAN-09",
+    "referenceName": "Edit Clan",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Loopback SQLite service only. Anonymous credentials. No production deployment or cross-device recovery.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "CLAN-10",
+    "referenceName": "Clan Members",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; assets/scripts/core/Online.ts; assets/scripts/GameApp.ts",
+    "limitation": "Loopback development server, anonymous credentials, local SQLite. No production identity, moderation, deployment or cross-device recovery.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "CLAN-11",
+    "referenceName": "Member Profile",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Loopback SQLite service only. Anonymous credentials. No production deployment or cross-device recovery.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "CLAN-12",
+    "referenceName": "Role Action",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Server Action",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; assets/scripts/core/Online.ts; assets/scripts/GameApp.ts",
+    "limitation": "Loopback development server, anonymous credentials, local SQLite. No production identity, moderation, deployment or cross-device recovery.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "CLAN-13",
+    "referenceName": "Leave Clan Confirm",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Server Action",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "server-development",
+    "implementation": "server/Service.ts; assets/scripts/core/Online.ts; assets/scripts/GameApp.ts",
+    "limitation": "Loopback development server, anonymous credentials, local SQLite. No production identity, moderation, deployment or cross-device recovery.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "CLAN-14",
+    "referenceName": "Clan Quest/Vault",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "Timer/Server",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Loopback SQLite service only. Anonymous credentials. No production deployment or cross-device recovery.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "RAID-01",
+    "referenceName": "Clan Raid Home",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Resumable server-authoritative part battle with persisted card levels, fragments, dust and upgrades. Levels snapshot at attack start; completion rewards are idempotent. Independent card proc rules.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "RAID-02",
+    "referenceName": "Raid Info",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Resumable server-authoritative part battle with persisted card levels, fragments, dust and upgrades. Levels snapshot at attack start; completion rewards are idempotent. Independent card proc rules.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "RAID-03",
+    "referenceName": "Titan Part View",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Resumable server-authoritative part battle with persisted card levels, fragments, dust and upgrades. Levels snapshot at attack start; completion rewards are idempotent. Independent card proc rules.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "RAID-04",
+    "referenceName": "Deck Select",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Resumable server-authoritative part battle with persisted card levels, fragments, dust and upgrades. Levels snapshot at attack start; completion rewards are idempotent. Independent card proc rules.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "RAID-05",
+    "referenceName": "Raid Attack",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Server Action",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Resumable server-authoritative part battle with persisted card levels, fragments, dust and upgrades. Levels snapshot at attack start; completion rewards are idempotent. Independent card proc rules.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "RAID-06",
+    "referenceName": "Attack Result",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Server Action",
+    "persistence": "Timer/Server",
+    "close": "CTA/Cancel",
+    "status": "server-development",
+    "implementation": "server/Service.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Resumable server-authoritative part battle with persisted card levels, fragments, dust and upgrades. Levels snapshot at attack start; completion rewards are idempotent. Independent card proc rules.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "RAID-07",
+    "referenceName": "Raid Log",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Server Action",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Loopback SQLite service only. Anonymous credentials. No production deployment or cross-device recovery.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "RAID-08",
+    "referenceName": "Raid Completion",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Loopback SQLite service only. Anonymous credentials. No production deployment or cross-device recovery.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "RAID-09",
+    "referenceName": "Retire Raid",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Loopback SQLite service only. Anonymous credentials. No production deployment or cross-device recovery.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "CARD-01",
+    "referenceName": "Raid Card Collection",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "CARD-02",
+    "referenceName": "Card Detail",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "CARD-03",
+    "referenceName": "Card Upgrade",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "CARD-04",
+    "referenceName": "Dust Shop",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Spend/Trade",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "CARD-05",
+    "referenceName": "Raid Crystal",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "CARD-06",
+    "referenceName": "Crystal Card Picker",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SOLO-01",
+    "referenceName": "Solo Raid Home",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/core/Game.ts; assets/scripts/core/Expansion.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local functional flow, with independent content and balance. Portal persistence, daily rewards, deck presets, item discovery and display/save recovery implemented. Source-game parity is not established.",
+    "qa": {
+      "open": "observed-ko-en-local-browser-2026-10-02",
+      "close": "observed-local-browser-2026-10-02",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SOLO-02",
+    "referenceName": "Portal Select",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/core/Game.ts; assets/scripts/core/Expansion.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local functional flow, with independent content and balance. Portal persistence, daily rewards, deck presets, item discovery and display/save recovery implemented. Source-game parity is not established.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SOLO-03",
+    "referenceName": "Preset Deck Choice",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "Timer/Server",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/core/Game.ts; assets/scripts/core/Expansion.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local functional flow, with independent content and balance. Portal persistence, daily rewards, deck presets, item discovery and display/save recovery implemented. Source-game parity is not established.",
+    "qa": {
+      "open": "observed-ko-en-local-browser-2026-10-02",
+      "close": "observed-local-browser-2026-10-02",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SOLO-04",
+    "referenceName": "Solo Attack",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Server Action",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/core/Game.ts; assets/scripts/core/Expansion.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local functional flow, with independent content and balance. Portal persistence, daily rewards, deck presets, item discovery and display/save recovery implemented. Source-game parity is not established.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SOLO-05",
+    "referenceName": "Solo Result",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "local-functional",
+    "implementation": "assets/scripts/core/Game.ts; assets/scripts/core/Expansion.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local functional flow, with independent content and balance. Portal persistence, daily rewards, deck presets, item discovery and display/save recovery implemented. Source-game parity is not established.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "SOLO-06",
+    "referenceName": "Daily Portal Reward",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Timer/Server",
+    "close": "CTA/Cancel",
+    "status": "local-functional",
+    "implementation": "assets/scripts/core/Game.ts; assets/scripts/core/Expansion.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local functional flow, with independent content and balance. Portal persistence, daily rewards, deck presets, item discovery and display/save recovery implemented. Source-game parity is not established.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "TOUR-01",
+    "referenceName": "Tournament Available",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/core/Online.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local SQLite service. Account recovery file and revision-checked snapshots; separate 2-day regular progression and daily independent tournament, history and rewards. Original production identity, matching, weekly rules and global infrastructure are not reproduced.",
+    "qa": {
+      "open": "observed-en-local-browser-2026-10-02",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "TOUR-02",
+    "referenceName": "Tournament Join",
+    "surface": "Fullscreen",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Server Action",
+    "persistence": "Account",
+    "close": "Back/X",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/core/Online.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local SQLite service. Account recovery file and revision-checked snapshots; separate 2-day regular progression and daily independent tournament, history and rewards. Original production identity, matching, weekly rules and global infrastructure are not reproduced.",
+    "qa": {
+      "open": "observed-en-local-browser-2026-10-02",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "TOUR-03",
+    "referenceName": "Tournament Active",
+    "surface": "Fullscreen",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/core/Online.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local SQLite service. Account recovery file and revision-checked snapshots; separate 2-day regular progression and daily independent tournament, history and rewards. Original production identity, matching, weekly rules and global infrastructure are not reproduced.",
+    "qa": {
+      "open": "observed-en-local-browser-2026-10-02",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "TOUR-04",
+    "referenceName": "Tournament Rules",
+    "surface": "Fullscreen",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/core/Online.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local SQLite service. Account recovery file and revision-checked snapshots; separate 2-day regular progression and daily independent tournament, history and rewards. Original production identity, matching, weekly rules and global infrastructure are not reproduced.",
+    "qa": {
+      "open": "observed-en-local-browser-2026-10-02",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "TOUR-05",
+    "referenceName": "Player Rank Detail",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/core/Online.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local SQLite service. Account recovery file and revision-checked snapshots; separate 2-day regular progression and daily independent tournament, history and rewards. Original production identity, matching, weekly rules and global infrastructure are not reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "TOUR-06",
+    "referenceName": "Tournament End",
+    "surface": "Fullscreen",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "Timer/Server",
+    "close": "Back/X",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/core/Online.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local SQLite service. Account recovery file and revision-checked snapshots; separate 2-day regular progression and daily independent tournament, history and rewards. Original production identity, matching, weekly rules and global infrastructure are not reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "TOUR-07",
+    "referenceName": "Tournament Reward",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/core/Online.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local SQLite service. Account recovery file and revision-checked snapshots; separate 2-day regular progression and daily independent tournament, history and rewards. Original production identity, matching, weekly rules and global infrastructure are not reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "AT-01",
+    "referenceName": "AT Available",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/core/Online.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local SQLite service. Account recovery file and revision-checked snapshots; separate 2-day regular progression and daily independent tournament, history and rewards. Original production identity, matching, weekly rules and global infrastructure are not reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "AT-02",
+    "referenceName": "AT Join",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Server Action",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/core/Online.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local SQLite service. Account recovery file and revision-checked snapshots; separate 2-day regular progression and daily independent tournament, history and rewards. Original production identity, matching, weekly rules and global infrastructure are not reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "AT-03",
+    "referenceName": "AT Rules",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/core/Online.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local SQLite service. Account recovery file and revision-checked snapshots; separate 2-day regular progression and daily independent tournament, history and rewards. Original production identity, matching, weekly rules and global infrastructure are not reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "AT-04",
+    "referenceName": "AT World",
+    "surface": "Fullscreen",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/core/Online.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local SQLite service. Account recovery file and revision-checked snapshots; separate 2-day regular progression and daily independent tournament, history and rewards. Original production identity, matching, weekly rules and global infrastructure are not reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "AT-05",
+    "referenceName": "World Switch",
+    "surface": "Fullscreen",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/core/Online.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local SQLite service. Account recovery file and revision-checked snapshots; separate 2-day regular progression and daily independent tournament, history and rewards. Original production identity, matching, weekly rules and global infrastructure are not reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "AT-06",
+    "referenceName": "AT Shop",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Loopback SQLite service only. Anonymous credentials. No production deployment or cross-device recovery.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "AT-07",
+    "referenceName": "AT Leaderboard",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/core/Online.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local SQLite service. Account recovery file and revision-checked snapshots; separate 2-day regular progression and daily independent tournament, history and rewards. Original production identity, matching, weekly rules and global infrastructure are not reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "AT-08",
+    "referenceName": "AT End Reward",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/core/Online.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local SQLite service. Account recovery file and revision-checked snapshots; separate 2-day regular progression and daily independent tournament, history and rewards. Original production identity, matching, weekly rules and global infrastructure are not reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "NECRO-01",
+    "referenceName": "Titan Souls Home",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "NECRO-02",
+    "referenceName": "Banner Select",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "NECRO-03",
+    "referenceName": "Summon Confirm",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "NECRO-04",
+    "referenceName": "Summon Result",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "NECRO-05",
+    "referenceName": "Auto/Fast Summon",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "NECRO-06",
+    "referenceName": "Titan Collection",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "NECRO-07",
+    "referenceName": "Titan Detail",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "NECRO-08",
+    "referenceName": "Level All",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "NECRO-09",
+    "referenceName": "Necrobear Level Up",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "RES-01",
+    "referenceName": "Forbidden Research",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "RES-02",
+    "referenceName": "Research Node",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "GEM-01",
+    "referenceName": "Mystic Home",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "GEM-02",
+    "referenceName": "Crack Geode",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "GEM-03",
+    "referenceName": "Geode Result",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "CTA/Cancel",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "GEM-04",
+    "referenceName": "Gemstone List",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "GEM-05",
+    "referenceName": "Gemstone Detail",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "GEM-06",
+    "referenceName": "Mystic Research",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Progression",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "GEM-07",
+    "referenceName": "Gem Milestone",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "DAY-01",
+    "referenceName": "Daily Tasks",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "Timer/Server",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "DAY-02",
+    "referenceName": "Daily Claim",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Timer/Server",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "DAY-03",
+    "referenceName": "Daily Collectibles",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "Timer/Server",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "ACH-01",
+    "referenceName": "Progress Achievements",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "ACH-02",
+    "referenceName": "Achievement Claim",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "MILE-01",
+    "referenceName": "Milestones",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "INBOX-01",
+    "referenceName": "Inbox",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "INBOX-02",
+    "referenceName": "Message Detail",
+    "surface": "Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "PROFILE-01",
+    "referenceName": "Player Profile",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "PROFILE-02",
+    "referenceName": "Stats",
+    "surface": "Sheet/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "PROFILE-03",
+    "referenceName": "Cosmetics",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "OPT-01",
+    "referenceName": "Options",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "observed-ko-en-local-browser-2026-10-02",
+      "close": "observed-local-browser-2026-10-02",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "OPT-02",
+    "referenceName": "Account",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/core/Online.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local SQLite service. Account recovery file and revision-checked snapshots; separate 2-day regular progression and daily independent tournament, history and rewards. Original production identity, matching, weekly rules and global infrastructure are not reproduced.",
+    "qa": {
+      "open": "observed-ko-en-local-browser-2026-10-02",
+      "close": "observed-local-browser-2026-10-02",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "OPT-03",
+    "referenceName": "Language",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Independent data and local authority. No assertion of source-game parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "OPT-04",
+    "referenceName": "Notifications",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/ExpansionUI.ts",
+    "limitation": "Browser permission and background-tab reminders for eggs, daily rewards and mail. No closed-browser/mobile push delivery.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "OPT-05",
+    "referenceName": "Audio/Display",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/core/Game.ts; assets/scripts/core/Expansion.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local functional flow, with independent content and balance. Portal persistence, daily rewards, deck presets, item discovery and display/save recovery implemented. Source-game parity is not established.",
+    "qa": {
+      "open": "observed-ko-en-local-browser-2026-10-02",
+      "close": "observed-local-browser-2026-10-02",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "OPT-06",
+    "referenceName": "Support/About",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/core/Game.ts; assets/scripts/core/Expansion.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Local functional flow, with independent content and balance. Portal persistence, daily rewards, deck presets, item discovery and display/save recovery implemented. Source-game parity is not established.",
+    "qa": {
+      "open": "observed-ko-local-browser-2026-10-02",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "OPT-07",
+    "referenceName": "Export Data",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EVENT-01",
+    "referenceName": "Event Hub",
+    "surface": "Tab/Panel",
+    "blocking": "No",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "Timer/Server",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EVENT-02",
+    "referenceName": "Reward Path",
+    "surface": "Modal",
+    "blocking": "Yes",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Account",
+    "close": "CTA/Cancel",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EVENT-03",
+    "referenceName": "Season Pass",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Spend/Trade",
+    "persistence": "Account",
+    "close": "Back/X/outside",
+    "status": "integration-required",
+    "implementation": "assets/scripts/MonetizationUI.ts; assets/scripts/core/Monetization.ts; server/Commerce.ts",
+    "limitation": "KR iOS reference prices, opt-in ad placements, quota/cooldown, verified receipt/proof interfaces, durable reward ledger and restore/retry flows implemented. Production billing/ad SDK and verifier are not connected; unknown bundle contents remain disabled.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EVENT-04",
+    "referenceName": "Event Shop",
+    "surface": "Fullscreen",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "Timer/Server",
+    "close": "Back/X",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EVENT-05",
+    "referenceName": "Event Rules",
+    "surface": "Fullscreen",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "Timer/Server",
+    "close": "Back/X",
+    "status": "local-functional",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Persisted milestone/weapon/scroll/set-result notifications, five-slot appearance palette changes, and event rules. Independent assets and rules, not original-game art/content parity.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EVENT-06",
+    "referenceName": "Event Leaderboard",
+    "surface": "Fullscreen",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "Timer/Server",
+    "close": "Back/X",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Loopback SQLite service only. Anonymous credentials. No production deployment or cross-device recovery.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EVENT-07",
+    "referenceName": "Dungeon Board",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Timer/Server",
+    "close": "Back/X/outside",
+    "status": "partial",
+    "implementation": "assets/scripts/GameApp.ts; assets/scripts/core/Game.ts",
+    "limitation": "Reduced independent content/rules or combined presentation; source specification not fully reproduced.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EVENT-08",
+    "referenceName": "Alchemy Lab",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "Timer/Server",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EVENT-09",
+    "referenceName": "Drop Minigame",
+    "surface": "Fullscreen",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EVENT-10",
+    "referenceName": "Global Raid",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Server Action",
+    "persistence": "Timer/Server",
+    "close": "Back/X/outside",
+    "status": "server-development",
+    "implementation": "server/Service.ts; server/main.ts; assets/scripts/ExpansionUI.ts",
+    "limitation": "Loopback SQLite service only. Anonymous credentials. No production deployment or cross-device recovery.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EVENT-11",
+    "referenceName": "Tower/Quest Board",
+    "surface": "Panel/Modal",
+    "blocking": "Partial",
+    "authority": "Local+Snapshot",
+    "mutation": "Read/Config",
+    "persistence": "View State",
+    "close": "Back/X/outside",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  },
+  {
+    "id": "EVENT-12",
+    "referenceName": "Event End",
+    "surface": "Fullscreen",
+    "blocking": "Partial",
+    "authority": "Server",
+    "mutation": "Claim/RNG",
+    "persistence": "Timer/Server",
+    "close": "Back/X",
+    "status": "local-functional",
+    "implementation": "assets/scripts/ExpansionUI.ts; assets/scripts/core/Expansion.ts",
+    "limitation": "Independent local implementation. Source-game numerical/content parity is not established. KO/EN screen smoke tests and selected transactional tests passed.",
+    "qa": {
+      "open": "pending-per-screen",
+      "close": "pending-per-screen",
+      "back": "pending-per-screen",
+      "error": "pending-per-screen",
+      "retry": "pending-per-screen"
+    }
+  }
+]

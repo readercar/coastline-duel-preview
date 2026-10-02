@@ -1,0 +1,30 @@
+{
+  "version": "chapter1-2026-10-02",
+  "sources": [
+    {
+      "file": "ArtifactCostInfo.csv",
+      "url": "https://github.com/rawrzcookie/TT2_CSV/blob/main/csv/ArtifactCostInfo.csv",
+      "sha256": "1a4a86cd0be268bb8d9f41cdac1f4f4ae93c6171268bded6f257919ddecf82dc",
+      "classification": "community-extracted snapshot",
+      "use": "Exact discovery cost table, indexed by owned plus salvaged discoveries; current collection remains 30."
+    },
+    {
+      "file": "GemstoneRarityInfo.csv",
+      "url": "https://github.com/rawrzcookie/TT2_CSV/blob/main/csv/GemstoneRarityInfo.csv",
+      "sha256": "7d4ee358daf17d28325e79ebcf7b790ab0a87901e654a0b44f8f733c4913f01f",
+      "classification": "community-extracted snapshot",
+      "use": "Exact level thresholds and bonus slot counts."
+    }
+  ],
+  "independent": [
+    "24 gemstone ID-to-effect mappings and effect coefficients",
+    "12 monument, 120 soul, and 12-node research stat routing",
+    "Existing content counts, enemy HP, hero growth and prestige pacing"
+  ],
+  "notImplemented": [
+    "Full original content catalogs and unique effects",
+    "Original artifact upgrade and enchant formulas",
+    "Original gemstone names and fixed bonus mappings",
+    "Original hero, pet and skill-tree balance"
+  ]
+}

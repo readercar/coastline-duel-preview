@@ -1,0 +1,11 @@
+{
+  "source": "TT2 reverse-design v8.2.3 R4, supplied 2026-10-02",
+  "total": 202,
+  "statusCounts": {
+    "local-functional": 122,
+    "integration-required": 9,
+    "partial": 30,
+    "server-development": 41
+  },
+  "warning": "Functional coverage categories are not a percentage of gameplay parity or exhaustive QA. Per-screen five-path QA remains pending."
+}
