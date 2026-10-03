@@ -6,8 +6,15 @@ export function verifySignature(raw:string,keys:Record<string,string>):URLSearch
     const params=new URLSearchParams(match[1]);
     for(const key of params.keys())if(params.getAll(key).length!==1)throw Error('money.verification');
     const key=createPublicKey({key:Buffer.from(keys[match[3]],'base64'),format:'der',type:'spki'});
-    if(!verify('sha256',Buffer.from(match[1]),key,Buffer.from(decodeURIComponent(match[2]),'base64url')))throw Error('money.verification');
+    // AdMob signs the percent-decoded query (Google's URI.getQuery example),
+    // preserving its parameter order. Parse values from the original query.
+    if(!verify('sha256',Buffer.from(decodeURIComponent(match[1])),key,Buffer.from(decodeURIComponent(match[2]),'base64url')))throw Error('money.verification');
     return params;
+}
+export function isConsoleProbe(p:URLSearchParams):boolean {
+    // AdMob's console verifier uses these dummy identifiers. A probe checks
+    // reachability/signature only and must never enter the reward ledger.
+    return p.get('ad_unit')==='1234567890'&&p.get('transaction_id')==='123456789'&&p.get('ad_network')==='5450213213286189855';
 }
 export async function verifyGoogle(raw:string):Promise<URLSearchParams>{
     if(!cached||Date.now()-cached.at>12*3600000){

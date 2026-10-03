@@ -1,5 +1,5 @@
 const {generateKeyPairSync,sign}=require('node:crypto');const assert=require('node:assert/strict');
-const {verifySignature}=require('./lib/ssv');const {privateKey,publicKey}=generateKeyPairSync('ec',{namedCurve:'prime256v1'});
+const {verifySignature,isConsoleProbe}=require('./lib/ssv');const {privateKey,publicKey}=generateKeyPairSync('ec',{namedCurve:'prime256v1'});
 const keys={'7':publicKey.export({format:'der',type:'spki'}).toString('base64')};
 const payload='ad_unit=unit&custom_data=ticket&user_id=user&transaction_id=abc';
 const sig=sign('sha256',Buffer.from(payload),privateKey).toString('base64url');const raw=payload+'&signature='+sig+'&key_id=7';
@@ -9,4 +9,10 @@ assert.throws(()=>verifySignature(raw.replace('key_id=7','key_id=8'),keys));
 assert.throws(()=>verifySignature(raw+'&extra=1',keys));
 const duplicate=payload+'&user_id=attacker';const ds=sign('sha256',Buffer.from(duplicate),privateKey).toString('base64url');
 assert.throws(()=>verifySignature(duplicate+'&signature='+ds+'&key_id=7',keys));
-console.log('PASS SSV: genuine signature, tampering, unknown key, appended parameters, duplicate parameters.');
+const escaped='reward_item=Game%20reward&custom_data=a%26b%3Dc&user_id=user';
+const es=sign('sha256',Buffer.from(decodeURIComponent(escaped)),privateKey).toString('base64url');
+assert.equal(verifySignature(escaped+'&signature='+es+'&key_id=7',keys).get('custom_data'),'a&b=c');
+assert.throws(()=>verifySignature(escaped.replace('Game%20reward','Other%20reward')+'&signature='+es+'&key_id=7',keys));
+assert.equal(isConsoleProbe(new URLSearchParams('ad_unit=1234567890&transaction_id=123456789&ad_network=5450213213286189855')),true);
+assert.equal(isConsoleProbe(new URLSearchParams('ad_unit=9191178394&transaction_id=123456789&ad_network=5450213213286189855')),false);
+console.log('PASS SSV: signatures, percent escaping, tampering, unknown key, appended/duplicate parameters, console probe isolation.');

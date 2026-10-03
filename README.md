@@ -110,6 +110,12 @@ Firebase Anonymous Authentication과 서울 `asia-northeast3` Firestore를 생�
 
 공개 앱 설정은 `config/firebase-web.json`, `config/google-services.json`, `config/admob.json`입니다. 관리자 비밀키는 저장하지 않습니다. SDK는 `node scripts/build-firebase-sdk.mjs`로 Cocos용 ESM 번들을 생성합니다. 실제 프로젝트 검증은 `node scripts/firebase-smoke.mjs`로 게스트 인증·본인 저장/읽기·타인 접근 및 보상 위조 차단을 확인합니다.
 
-AdMob Android 앱과 보상형 광고 단위를 실제 등록했습니다. 네이티브 Java 브리지는 UMP 확인 후 광고를 표시하며 취소/실패/보상 콜백을 구분합니다. `firebase/functions`에는 ID 토큰 인증, 티켓 발급, 시청 한도·쿨다운, Google ECDSA 서명 검증, 중복 이벤트 원장, 지급/확인 큐가 있습니다. 검증: Functions TypeScript 컴파일 및 `node firebase/functions/test-ssv.cjs`. 실제 SSV 콜백은 아직 검증하지 않았습니다.
+AdMob Android 앱과 보상형 광고 단위를 실제 등록했습니다. 네이티브 Java 브리지는 UMP 확인 후 광고를 표시하며 취소/실패/보상 콜백을 구분합니다. `firebase/functions`에는 ID 토큰 인증, 티켓 발급, 시청 한도·쿨다운, Google ECDSA 서명 검증, 중복 이벤트 원장, 지급/확인 큐가 있습니다. 검증: Functions TypeScript 컴파일 및 `node firebase/functions/test-ssv.cjs`. AdMob 콘솔에서 실제 Google 서명 콜백을 검증했습니다. 퍼센트 인코딩을 포함한 서명 처리와 콘솔 전용 가짜 광고 ID를 지원하며, 콘솔 검사로 재화나 실제 티켓을 지급하지 않습니다. Android 기기의 광고 시청 → SSV → 지급 전체 흐름은 아직 검증하지 않았습니다.
 
-**광고 운영 배포 미완료:** Functions 배포가 Spark 요금제에서 차단됐습니다. Blaze 종량제 전환 승인, Functions 배포, AdMob SSV URL 등록·실제 콜백 검증 후 `FIREBASE_COMMERCE_ENABLED`와 Java `LIVE_ADS_VERIFIED`를 활성화해야 합니다. 현재는 테스트 광고 ID 및 서버 미연결 상태이며 시청했다고 보상을 임의 지급하지 않습니다. AdMob 스토어 연결·앱 심사·개인정보 메시지 운영 설정도 출시 전에 필요합니다. 실제 결제 SDK/영수증 검증은 이번 Firebase·AdMob 연결에 포함하지 않습니다.
+**서버 배포 완료, 광고 실기기 검증 대기:** Blaze 전환과 `commerce`·`admobReward` Functions 서울 배포를 완료했습니다. 월 1만원 예산 알림 및 Functions 서비스 지출 한도를 설정했습니다. 예산은 알림만 제공하며 미리보기 지출 한도는 집계 지연으로 초과할 수 있고 다른 서비스 비용을 막지 않습니다. 컨테이너 이미지는 1일 후 자동 정리합니다. AdMob SSV URL 등록과 콘솔 콜백 검증을 완료했습니다. Android 실기기 흐름을 확인한 뒤 `FIREBASE_COMMERCE_ENABLED`와 Java `LIVE_ADS_VERIFIED`를 활성화해야 합니다. 현재 Android 클라이언트는 테스트 광고 ID와 서버 연결 비활성 설정을 유지하며 시청했다고 보상을 임의 지급하지 않습니다. AdMob 스토어 연결·앱 심사·개인정보 메시지 운영 설정도 출시 전에 필요합니다. 실제 결제 SDK/영수증 검증은 이번 Firebase·AdMob 연결에 포함하지 않습니다.
+
+### 유틸 구현 상태 (역기획서 14.3 대조, 2026-10-03)
+
+- 구현: 한국어/영어, 효과음 토글, 과학 표기·전투 효과 설정, 기본 프로필 통계, 로컬 자동 저장·JSON 내보내기/가져오기·복구, Firebase 게스트 클라우드 백업.
+- 부분 구현: 프로필·코스메틱·상세 통계, 알림(웹 탭 실행 중), 공지·우편·업데이트 화면(기존 `/operations` API 사용; 공개 웹에는 원격 운영 API 미연결).
+- 미구현: Google 연결·이메일 계정·로그아웃·기기 간 복구, BGM 별도 설정·그래픽 품질, 앱 종료 후 푸시, FAQ·문의 접수, 원격 우편 발송·관리자 화면, 이용약관·개인정보처리방침 연결, 실제 스토어 결제·구매 복원.

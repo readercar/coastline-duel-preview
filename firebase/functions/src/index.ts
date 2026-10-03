@@ -3,7 +3,7 @@ import {initializeApp} from 'firebase-admin/app';
 import {getAuth} from 'firebase-admin/auth';
 import {getFirestore} from 'firebase-admin/firestore';
 import {createHash} from 'node:crypto';
-import {verifyGoogle} from './ssv';
+import {isConsoleProbe,verifyGoogle} from './ssv';
 initializeApp();const db=getFirestore();
 const unit='ca-app-pub-5359581077506683/9191178394';
 const rules:Record<string,{group:string;limit:number;period:number;cooldown:number}>={
@@ -58,6 +58,7 @@ export const admobReward=onRequest(opts,async(req,res)=>{
   if(req.method!=='GET')throw Error('money.verification');
   const raw=req.originalUrl.split('?')[1]||'',p=await verifyGoogle(raw);
   const id=p.get('custom_data')||'',uid=p.get('user_id')||'',event=p.get('transaction_id')||'',timestamp=Number(p.get('timestamp'));
+  if(isConsoleProbe(p)&&Number.isFinite(timestamp)&&Math.abs(Date.now()-timestamp)<300000){res.status(200).send('Verified console probe; no reward');return;}
   if(!/^[a-f0-9]{64}$/.test(id)||!uid||uid.includes('/')||!event||event.length>256||!Number.isFinite(timestamp)||Math.abs(Date.now()-timestamp)>86400000||![unit,unit.split('/')[1]].includes(p.get('ad_unit')||'')||Number(p.get('reward_amount'))!==1||p.get('reward_item')!=='Game reward')throw Error('money.verification');
   const ref=db.doc('adTickets/'+id),root=db.doc('adAccounts/'+uid),eventRef=db.doc('adEvents/'+createHash('sha256').update(event).digest('hex'));
   await db.runTransaction(async t=>{
