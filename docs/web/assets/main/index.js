@@ -35806,7 +35806,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             this.notice = 'error.locked';
             return false;
           }
-          var multicast = r.spells[i] > 0 && r.master >= 500 && r.stacks[i] < 3;
+          var multicast = i !== 0 && r.spells[i] > 0 && r.master >= 500 && r.stacks[i] < 3;
           var cost = this.spellMana(i) * (multicast ? r.stacks[i] + 1 : 1);
           if (r.mana < cost || r.cooldowns[i] > 0 && !multicast) {
             this.notice = 'error.mana';

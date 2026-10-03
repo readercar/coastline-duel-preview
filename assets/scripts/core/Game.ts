@@ -442,7 +442,7 @@ export class Game {
     cast(i: number): boolean { const r = this.s.run, c = SPELLS[i]; if (!c || r.master < c.unlock) {
         this.notice = 'error.locked';
         return false;
-    } const multicast = r.spells[i] > 0 && r.master >= 500 && r.stacks[i] < 3; const cost = this.spellMana(i) * (multicast ? r.stacks[i] + 1 : 1); if (r.mana < cost || (r.cooldowns[i] > 0 && !multicast)) {
+    } const multicast = i !== 0 && r.spells[i] > 0 && r.master >= 500 && r.stacks[i] < 3; const cost = this.spellMana(i) * (multicast ? r.stacks[i] + 1 : 1); if (r.mana < cost || (r.cooldowns[i] > 0 && !multicast)) {
         this.notice = 'error.mana';
         return false;
     } r.mana -= cost; r.cooldowns[i] = c.cooldown; r.spells[i] = c.duration; r.stacks[i] = multicast ? r.stacks[i] + 1 : 1; if (i === 0)

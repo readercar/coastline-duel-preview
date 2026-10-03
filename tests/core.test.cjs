@@ -114,3 +114,6 @@ test('accelerated hero hits do not disappear at low frame rates',()=>{
  const build=()=>{const g=game();g.s.run.heroes[0]=1;g.s.run.spellLevels[4]=30;g.s.run.spells[4]=30;g.s.run.hp=A.amount(1e9);return g;};
  const slow=build(),fast=build();const hp=slow.s.run.hp;slow.tick(1);for(let i=0;i<100;i++)fast.tick(.01);assert.equal(slow.heroEvents.filter(e=>e.phase==='hit').length,14);assert.ok(Math.abs(slow.s.run.hp-fast.s.run.hp)<1e-10);assert.ok(slow.s.run.hp<hp);
 });
+test('Heavenly Strike three-second field cannot bypass cooldown through multicast',()=>{
+ const g=game();g.s.run.master=550;g.s.run.hp=A.amount(1e9);assert.ok(g.cast(0));assert.equal(g.s.run.mana,112);assert.equal(g.cast(0),false);assert.equal(g.s.run.mana,112);for(let i=0;i<3;i++)g.tick(1);assert.ok(g.cast(0));
+});
