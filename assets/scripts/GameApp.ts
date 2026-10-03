@@ -37,8 +37,6 @@ export class GameApp extends Component {
     enemyTransition = 0;
     allies!: Node;
     allySignature = '';
-    allyClock = 0;
-    allyTurn = 0;
 
     competitionId = 0;
     extensions!:ExpansionUI;
@@ -239,6 +237,7 @@ export class GameApp extends Component {
     syncEnemyDeath():void {
         if(this.game.s.totalKills===this.seenKills)return;
         this.seenKills=this.game.s.totalKills;this.enemyTransition=.65;
+        for(const missile of [...this.particles.children])if(missile.name==='ally-projectile'){Tween.stopAllByTarget(missile);missile.destroy();}
         const defeated=this.enemy;Tween.stopAllByTarget(defeated);const opacity=defeated.getComponent(UIOpacity)!;Tween.stopAllByTarget(opacity);
         tween(defeated).to(.14,{scale:new Vec3(1.45,.55,1)}).call(()=>{if(defeated.isValid)defeated.active=false;}).start();
         tween(opacity).to(.14,{opacity:0}).start();
@@ -266,10 +265,11 @@ export class GameApp extends Component {
             body.setScale(-side,1,1);this.label(actor,this.tr(`hero.${id}`),0,-33,72,16,11,C.text);
         });
     }
-    animateAlly():void {
-        const actors=this.allies.children.filter(n=>n.name.startsWith('hero-'));if(!actors.length)return;const ally=actors[this.allyTurn++%actors.length],body=ally.getChildByName('body')!;
+    animateAlly(id:number):void {
+        const ally=this.allies.getChildByName('hero-'+id);if(!ally)return;const body=ally.getChildByName('body')!;
+        Tween.stopAllByTarget(body);body.angle=0;
         tween(body).to(.1,{angle:ally.position.x>0?18:-18}).to(.18,{angle:0}).start();
-        const role=Number(ally.name.slice(5))%3;const missile=this.rect(this.particles,ally.position.x,ally.position.y,role===2?9:16,role===2?9:3,role===2?C.violet:C.gold);tween(missile).to(.24,{position:new Vec3(0,100,0)}).call(()=>{missile.destroy();if(!this.enemyTransition)this.spark(0,100,C.ember);}).start();
+        const role=Number(ally.name.slice(5))%3;const missile=this.rect(this.particles,ally.position.x,ally.position.y,role===2?9:16,role===2?9:3,role===2?C.violet:C.gold);missile.name='ally-projectile';tween(missile).to(.24,{position:new Vec3(0,100,0)}).call(()=>missile.destroy()).start();
     }
     circle(parent:Node,x:number,y:number,radius:number,color:string):Node{const n=this.nodeAt(parent,'circle',x,y,radius*2,radius*2),g=n.addComponent(Graphics);g.fillColor=this.color(color);g.circle(0,0,radius);g.fill();g.strokeColor=this.color('#d5dedb');g.lineWidth=2;g.stroke();return n;}
     coin(parent:Node,x:number,y:number,r:number):void{const n=this.circle(parent,x,y,r,'#e9b82b');this.rect(n,0,0,2,r*1.25,'#fff2a2');}
@@ -820,11 +820,16 @@ export class GameApp extends Component {
         this.liveOps.tick(dt);if(this.liveOps.blocked)return;
         if(this.particles)this.particles.active=this.game.s.extra.effects;
         if(this.enemyTransition>0){const old=this.enemyTransition;this.enemyTransition=Math.max(0,old-dt);this.game.tick(0);if(old>.2&&this.enemyTransition<=.2)this.spawnEnemy();}
-        else {this.game.tick(dt);this.syncEnemyDeath();}
+        else {this.syncAllies();this.game.tick(dt);
+            for(const event of this.game.heroEvents){
+                if(event.phase==='attack')this.animateAlly(event.hero);
+                else {this.spark(0,100,C.ember);this.sound(120);const hit=this.label(this.particles,this.format(event.damage),0,140,180,30,20,C.gold).node;tween(hit).by(.45,{position:new Vec3(0,45,0)}).call(()=>hit.destroy()).start();}
+            }
+            this.syncEnemyDeath();}
         if(!this.enemyTransition){const look=this.enemyKey();if(this.enemyLook!==look)this.spawnEnemy();this.enemy.setScale(1+Math.sin(this.age*2)*.014,1+Math.sin(this.age*2)*.014,1);}
         if(this.worldKey!==Math.floor((this.game.s.run.stage-1)/25)%4)this.world();
         this.age+=dt;this.refresh+=dt;this.saveClock+=dt;this.actor.setPosition(-8,0+Math.sin(this.age*3)*1.4);
-        this.syncAllies();this.allyClock+=dt;if(this.allyClock>=1.15){this.allyClock=0;if(!this.enemyTransition)this.animateAlly();}
+        this.syncAllies();
         if(this.refresh>.15){this.refresh=0;this.updateHUD();if(this.modalRefresh)this.modalRefresh();this.flushNotice();}
         if(this.saveClock>=5){this.saveClock=0;this.extensions.notifyReady();this.game.persist();}
     }

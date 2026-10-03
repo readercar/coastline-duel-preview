@@ -74,3 +74,17 @@ const live=require('../.test-output/LiveOps.js');
 test('update policy normalizes versions, exact targets and safe URLs',()=>{const p={notices:[],minimumVersion:{web:'1.2',android:'0',ios:'0'},storeUrls:{web:'https://example.com/update',android:'',ios:''}};assert.equal(live.compareVersions('1.2','1.2.0'),0);assert.equal(live.requiresUpdate(p,'web','1.1'),true);assert.equal(live.requiresUpdate(p,'web','1.3'),false);p.requiredVersion={web:'1.2'};assert.equal(live.requiresUpdate(p,'web','1.3'),true);assert.equal(live.requiresUpdate(p,'web','1.2.0'),false);assert.equal(live.validatePolicy(p),p);p.storeUrls.web='javascript:alert(1)';assert.throws(()=>live.validatePolicy(p));assert.throws(()=>live.compareVersions('1.bad','1'));});
 test('mail expires at exact boundary in both inboxes and keeps old shorter expiry',()=>{let now=2000000000000;const g=new Game(undefined,()=>now),e=new Expansion(g);const mail=g.s.extra.mails[0];assert.equal(mail.expires-now,30*86400000);assert.ok(e.claimMail(mail.id,'new-mail-claim'));now=mail.expires;e.sync();assert.equal(g.s.extra.mails.some(m=>m.id===mail.id),false);assert.equal(e.claimMail(mail.id,'expired-mail'),false);assert.equal(live.mailExpiry({expires:10}),10);assert.equal(live.mailExpiry({created:0,expires:100*86400000}),30*86400000);});
 test('mail receipt storage failure rolls back reward and confirmed state',()=>{const store=memory(),g=new Game(store),e=new Expansion(g),before=g.s.gems;store.setItem=()=>{throw Error('quota');};assert.equal(e.claimMail('welcome','mail-storage-failure'),false);assert.equal(g.s.gems,before);assert.equal(g.s.extra.mails[0].claimed,false);});
+test('heroes wind up before a discrete hit and retain average DPS',()=>{
+ const g=game();g.s.run.heroes[0]=1;g.s.run.hp=A.amount(100000);const initial=g.s.run.hp;
+ g.tick(.9);assert.equal(g.s.run.hp,initial);assert.deepEqual(g.heroEvents,[]);
+ g.tick(.01);assert.equal(g.s.run.hp,initial);assert.equal(g.heroEvents[0].phase,'attack');assert.equal(g.heroEvents[0].hero,0);
+ g.tick(.23);assert.equal(g.s.run.hp,initial);
+ g.tick(.01);assert.equal(g.heroEvents[0].phase,'hit');assert.equal(g.heroEvents[0].damage,A.mul(g.heroDPS(0),1.15));assert.equal(g.s.run.hp,A.sub(initial,g.heroEvents[0].damage));
+ const hp=g.s.run.hp;g.tick(.5);assert.equal(g.s.run.hp,hp);
+});
+test('each recruited hero emits its own hit and rebirth clears attack clocks',()=>{
+ const g=game();g.s.run.hp=A.amount(1000000);g.s.run.heroes[0]=g.s.run.heroes[1]=1;
+ g.tick(1);g.tick(.15);assert.deepEqual(g.heroEvents.filter(e=>e.phase==='hit').map(e=>e.hero),[0,1]);
+ g.tick(.9);g.s.run.stage=60;assert.ok(g.prestige('attack-reset'));g.s.run.heroes[0]=1;const hp=g.s.run.hp;
+ g.tick(.2);assert.equal(g.s.run.hp,hp);assert.deepEqual(g.heroEvents,[]);
+});

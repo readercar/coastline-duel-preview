@@ -113,6 +113,11 @@ export class Game {
     notice = '';
     revision = 0;
     saveError = false;
+    readonly heroAttackInterval = 1.15;
+    readonly heroAttackWindup = .24;
+    heroEvents: {hero:number; phase:'attack'|'hit'; damage:number}[] = [];
+    private heroClocks = Array(24).fill(0);
+    private combatRun: Run | null = null;
     constructor(public storage?: Storage, public now = () => Date.now()) {
         this.s = this.fresh();
         const raw = storage?.getItem('ember-ascent-v1');
@@ -279,8 +284,9 @@ export class Game {
     ];}
     tapDamage(): number { return amount(4) + this.s.run.master * .055 + this.bonus(1) + this.spellBonus(3, 10) + this.spellBonus(7, 3); }
     heroDamage(i: number): number { const l = this.s.run.heroes[i]; return l ? amount(HEROES[i].damage) + Math.log10(l) + Math.floor(l / 25) * Math.log10(2) + this.bonus(2) + this.s.extra.ascensions[i]*16 + this.s.extra.heroSkills[i]*Math.log10(1.5) + Math.log10(1 + this.s.weapons[i] + this.s.scrolls[i] * .5) : ZERO; }
-    dps(): number { let result = this.s.run.heroes.reduce((sum, _, i) => add(sum, this.heroDamage(i)), ZERO); if (this.s.run.spells[4] > 0)
-        result += this.spellBonus(4, 5); if (this.s.run.spells[6] > 0)
+    heroDPS(i:number):number { const damage=this.heroDamage(i);return damage===ZERO?ZERO:damage+this.spellBonus(4,5); }
+    dps():number {return add(this.s.run.heroes.reduce((sum,_,i)=>add(sum,this.heroDPS(i)),ZERO),this.spellDPS());}
+    spellDPS(): number { let result=ZERO; if (this.s.run.spells[6] > 0)
         result = add(result, mul(this.tapDamage(), 6)); if (this.s.run.spells[8] > 0)
         result = add(result, mul(this.tapDamage(), 8)); if (this.s.run.spells[5] > 0)
         result = add(result, mul(this.tapDamage(), 12)); return result; }
@@ -290,6 +296,8 @@ export class Game {
             return;
         dt = Math.min(dt, 1);
         const r = this.s.run;
+        this.heroEvents=[];
+        if(this.combatRun!==r){this.combatRun=r;this.heroClocks.fill(0);}
         r.elapsed += dt;
         r.mana = Math.min(CONFIG.manaMax, r.mana + CONFIG.manaRegen * dt);
         for (let i = 0; i < 10; i++) {
@@ -308,7 +316,22 @@ export class Game {
                 this.revision++;
             }
         }
-        this.damage(mul(this.dps(), dt));
+        // Hero DPS is converted to one hit per cooldown; only spells remain continuous.
+        const kills=this.s.totalKills;
+        for(let i=0;i<r.heroes.length;i++){
+            if(!r.heroes[i]){this.heroClocks[i]=0;continue;}
+            const before=this.heroClocks[i],after=before+dt;
+            if(before<this.heroAttackInterval-this.heroAttackWindup&&after>=this.heroAttackInterval-this.heroAttackWindup)
+                this.heroEvents.push({hero:i,phase:'attack',damage:ZERO});
+            this.heroClocks[i]=after;
+            if(after+1e-9>=this.heroAttackInterval){
+                this.heroClocks[i]=Math.max(0,after-this.heroAttackInterval);
+                const damage=mul(this.heroDPS(i),this.heroAttackInterval);
+                this.heroEvents.push({hero:i,phase:'hit',damage});this.damage(damage);
+                if(this.s.totalKills!==kills)break;
+            }
+        }
+        if(this.s.totalKills===kills)this.damage(mul(this.spellDPS(),dt));
         if (this.raid && !this.raid.ended) {
             this.raid.seconds = Math.max(0, Math.min(this.raid.seconds - dt,(this.raid.expiresAt-this.now())/1000));
             if (this.raid.seconds <= 0)
@@ -327,6 +350,7 @@ export class Game {
             r.hp = sub(r.hp, value);
             return;
         }
+        this.heroClocks.fill(0); // A new enemy starts a fresh attack cycle.
         r.gold = add(r.gold, this.goldReward());
         this.s.totalKills++;this.s.extra.eventEarned++;
         this.s.dayKills++;
