@@ -1,8 +1,9 @@
+import {mailExpiry,MAIL_LIFETIME} from './LiveOps';
 import { gemstoneRarity } from './Balance';
 import type { Game, Raid } from './Game';
 import { CommerceState, newCommerce } from './Monetization';
 import { ZERO, amount, add, sub, mul } from './Amount';
-export interface Mail { id:string; title:string; expires:number; gems:number; shards:number; claimed:boolean; }
+export interface Mail { id:string; title:string; created?:number; body?:string; expires:number; gems:number; shards:number; claimed:boolean; }
 export interface ExpansionState {
   commerce:CommerceState;
   rewardNotices:{kind:string;value:number;count:number}[];
@@ -24,7 +25,7 @@ export function newExpansion(now:number):ExpansionState {
  petBoard:[0,3,5,1,7,2,6,4,3,6,1,7,4,0,2,5],petMatched:[],petFace:[],petEnergy:16,petMilestones:[],
  monumentInvested:Array(12).fill(ZERO),monumentEnchanted:Array(12).fill(0),season:seasonAt(now),seasonBest:0,
  crystal:[-1,-1,-1],summonCount:0,titanLevels:Array(120).fill(0),banner:0,geodesOpened:0,mysticResearch:Array(12).fill(0),gemMilestones:[],
- mails:[{id:'welcome',title:'extra.mail.welcome',expires:now+7*86400000,gems:25,shards:5,claimed:false}],cosmetics:[0,0,0],scientific:false,effects:true,notifications:Array(6).fill(false),
+ mails:[{id:'welcome',title:'extra.mail.welcome',created:now,expires:now+MAIL_LIFETIME,gems:25,shards:5,claimed:false}],cosmetics:[0,0,0],scientific:false,effects:true,notifications:Array(6).fill(false),
  dailyFairies:0,dailyEquipment:0,dailyEggs:0,day:Math.floor(now/86400000),eventEarned:0,eventSeason:seasonAt(now),eventEndClaims:[],recipes:[],towerFloor:1,towerKeys:5,dropHistory:[],collectionClaims:[]};
 }
 export class Expansion {
@@ -34,10 +35,11 @@ export class Expansion {
  sync():void {
   const g=this.g,x=this.x,now=g.now(),day=Math.floor(now/86400000),season=seasonAt(now);
   if(day>x.day){x.day=day;x.soloCleared=[];x.dailyFairies=x.dailyEquipment=x.dailyEggs=0;x.petEnergy=16;x.towerKeys=5;x.petMatched=[];x.petFace=[];x.collectionClaims=[];}
+  x.mails=x.mails.filter(m=>mailExpiry(m)>now);
   x.eventEarned=Math.max(x.eventEarned,g.s.eventTokens);
   x.seasonBest=Math.max(x.seasonBest,g.s.run.stage);
-  if(season>x.season){const old=x.season;const reward=Math.floor(x.seasonBest/1000);x.mails.push({id:`season-${old}`,title:'extra.mail.season',expires:now+7*86400000,gems:reward,shards:Math.min(100,reward),claimed:false});x.season=season;x.seasonBest=0;g.s.monuments.fill(0);g.s.mementos=ZERO;x.monumentInvested.fill(ZERO);x.monumentEnchanted.fill(0);}
-  if(season>x.eventSeason){const old=x.eventSeason,unclaimed=Array.from({length:10},(_,i)=>i).filter(i=>x.eventEarned>=(i+1)*100&&!g.s.claims.includes(`event.${i}`)).length;x.mails.push({id:`event-${old}`,title:'extra.mail.event',expires:now+3*86400000,gems:Math.floor(g.s.eventTokens/100)+15*unclaimed,shards:5*unclaimed,claimed:false});x.eventSeason=season;x.eventEarned=0;g.s.eventTokens=0;g.s.board.fill(0);g.s.claims=g.s.claims.filter(k=>!k.startsWith('event.'));}
+  if(season>x.season){const old=x.season;const reward=Math.floor(x.seasonBest/1000);x.mails.push({id:`season-${old}`,title:'extra.mail.season',created:now,expires:now+MAIL_LIFETIME,gems:reward,shards:Math.min(100,reward),claimed:false});x.season=season;x.seasonBest=0;g.s.monuments.fill(0);g.s.mementos=ZERO;x.monumentInvested.fill(ZERO);x.monumentEnchanted.fill(0);}
+  if(season>x.eventSeason){const old=x.eventSeason,unclaimed=Array.from({length:10},(_,i)=>i).filter(i=>x.eventEarned>=(i+1)*100&&!g.s.claims.includes(`event.${i}`)).length;x.mails.push({id:`event-${old}`,title:'extra.mail.event',created:now,expires:now+MAIL_LIFETIME,gems:Math.floor(g.s.eventTokens/100)+15*unclaimed,shards:5*unclaimed,claimed:false});x.eventSeason=season;x.eventEarned=0;g.s.eventTokens=0;g.s.board.fill(0);g.s.claims=g.s.claims.filter(k=>!k.startsWith('event.'));}
  }
  discoverMonument(key:string):boolean{return this.tx(key,()=>{this.g.require(this.g.s.maxStage>=180000,'error.locked');const candidates=this.g.s.monuments.map((level,i)=>level? -1:i).filter(i=>i>=0);this.g.require(candidates.length>0,'error.full');const cost=amount(Math.pow(2,12-candidates.length));this.g.require(this.g.s.mementos>=cost);const i=candidates[Math.floor(this.g.random()*candidates.length)];this.g.s.mementos=sub(this.g.s.mementos,cost);this.g.s.monuments[i]=1;this.x.monumentInvested[i]=cost;});}
  saveDeck(slot:number,key:string):boolean{return this.tx(key,()=>{this.g.require(Number.isInteger(slot)&&slot>=0&&slot<3,'error.invalid');this.x.deckPresets[slot]=this.g.s.deck.slice();});}
@@ -65,7 +67,7 @@ export class Expansion {
  mysticNode(i:number,key:string):boolean{return this.tx(key,()=>{this.g.require(Number.isInteger(i)&&i>=0&&i<this.x.mysticResearch.length,'error.invalid');const cost=this.x.mysticResearch[i]+1,spent=this.x.mysticResearch.reduce((a,l)=>a+l*(l+1)/2,0);this.g.require(this.x.geodesOpened-spent>=cost);if(i%3)this.g.require(this.x.mysticResearch[i-1]>=3,'error.prerequisite');this.x.mysticResearch[i]++;});}
  gemMilestone(i:number,level:number,key:string):boolean{return this.tx(key,()=>{this.g.require(Number.isInteger(i)&&i>=0&&i<this.g.s.stones.length,'error.invalid');const id=`${i}:${level}`;this.g.require([100,200,400,500].includes(level),'error.invalid');this.g.require(this.g.s.stones[i]>=level,'error.locked');this.g.require(!this.x.gemMilestones.includes(id),'error.claimed');this.x.gemMilestones.push(id);this.g.s.shards+=5;});}
  collectible(i:number,key:string):boolean{return this.tx(key,()=>{const progress=[this.x.dailyFairies,this.x.dailyEquipment,this.x.dailyEggs][i],goal=[3,3,1][i];this.g.require(progress>=goal,'error.locked');this.g.require(!this.x.collectionClaims.includes(String(i)),'error.claimed');this.x.collectionClaims.push(String(i));this.g.s.gems+=10;if(i===1)this.g.s.geodes++;});}
- claimMail(id:string,key:string):boolean{return this.tx(key,()=>{const mail=this.x.mails.find(m=>m.id===id);this.g.require(!!mail&&!mail.claimed&&mail.expires>this.g.now(),'error.claimed');if(!mail)return;mail.claimed=true;this.g.s.gems+=mail.gems;this.g.s.shards+=mail.shards;});}
+ claimMail(id:string,key:string):boolean{return this.tx(key,()=>{const mail=this.x.mails.find(m=>m.id===id);this.g.require(!!mail&&!mail.claimed&&mailExpiry(mail)>this.g.now(),'error.claimed');if(!mail)return;mail.claimed=true;this.g.s.gems+=mail.gems;this.g.s.shards+=mail.shards;});}
  deleteMail(id:string,key:string):boolean{return this.tx(key,()=>{const mail=this.x.mails.find(m=>m.id===id);this.g.require(!!mail&&(mail.claimed||mail.expires<=this.g.now()),'error.protected');this.x.mails=this.x.mails.filter(m=>m.id!==id);});}
  cosmetic(slot:number,value:number,key:string):boolean{return this.tx(key,()=>{this.g.require(slot>=0&&slot<3&&value>=0&&value<6,'error.invalid');this.g.require(this.g.s.maxStage>=value*50,'error.locked');this.x.cosmetics[slot]=value;});}
  eventShop(item:number,key:string):boolean{return this.tx(key,()=>{const cost=[50,100,75][item];this.g.require(!!cost,'error.invalid');this.g.require(this.g.s.eventTokens>=cost);this.g.s.eventTokens-=cost;if(item===0)this.g.s.shards+=5;if(item===1)this.g.s.pets[this.g.s.activePet]+=3;if(item===2)this.g.s.geodes++;});}

@@ -1,4 +1,4 @@
-# Ember Ascent
+# tapWar
 
 Cocos Creator 3.8.8 / TypeScript로 만든 세로형 레트로 방치형 RPG 개발 빌드입니다. 사용자 제공 TT2 역기획서의 전투와 성장 구조를 독립 구현합니다. **원작의 100% 복제 또는 202개 화면 완성본이 아닙니다.**
 
@@ -89,3 +89,27 @@ GitHub Pages는 커밋된 `docs/web` 웹 빌드를 정적으로 제공합니다.
 백업: `node scripts/backup-server.cjs`. SQLite 온라인 백업 API를 사용하며 기본 `.server-backups` 아래 비공개 파일로 생성합니다. 복구할 때 서버를 중지하고 현재 DB를 별도 보관한 후 검증된 백업을 데이터 디렉터리의 development.sqlite로 복원해야 합니다. 운영 TLS·인증 사업자·모니터링·신고 처리 담당자는 별도 연결 대상입니다. 이 구성만으로 운영 출시 검증을 완료한 것은 아닙니다.
 
 대회/길드 보상은 서버 지급 원장에 남으며 계정 화면의 미수령 서버 보상 복구에서 다시 반영합니다. 로컬 저장에 반영한 뒤에만 서버 수령 확인을 기록합니다. 길드 채팅 차단은 차단한 계정에만 적용하며 신고는 해당 길드 메시지에 한해 기록합니다. 신고를 자동으로 처리하거나 운영자에게 외부 전송하지 않습니다.
+
+### 인마이포켓 운영 흐름 반영 (2026-10-02)
+
+설정 → 소식·공지·업데이트에서 공지, 우편, 알림 설정과 업데이트 확인을 엽니다. 공지 확인은 저장 데이터의 읽음 기록만 남기며 우편 생성이나 보상 수령을 하지 않습니다. 공지는 시작 시 및 60초 간격으로 `/api/operations`에서 확인합니다. 서버가 없거나 조회에 실패하면 로컬 플레이를 유지하며, 이미 확인된 필수 업데이트 차단은 조회 실패로 해제하지 않습니다.
+
+서버 운영 설정은 `config/operations.json`입니다. `EMBER_OPERATIONS_FILE`로 외부 파일을 지정할 수 있고 GET 요청마다 다시 읽으므로 재시작 없이 반영됩니다. 공지는 `id`, `title`, `body`와 선택적 `localizations.ko/en`을 사용합니다. 같은 ID는 확인 후 다시 자동 표시하지 않습니다. 운영 삭제는 해당 공지를 배열에서 제거합니다. 설정에는 계정 정보나 비밀값을 넣지 않습니다. 별도 운영 관리자 웹 화면이나 원격 우편 발송 API는 이번 변경에 포함하지 않습니다.
+
+`minimumVersion`, `requiredVersion`, `storeUrls`는 `web/android/ios`별 설정입니다. 필수 일치 버전이 있으면 해당 버전과 다를 때, 없으면 최소 버전보다 낮을 때 차단합니다. `1.2`와 `1.2.0`은 동일하며 업데이트 주소는 HTTPS만 허용합니다. 현재 앱 버전은 `assets/scripts/core/LiveOps.ts`의 `APP_VERSION`이며 출시 시 `package.json`과 함께 갱신해야 합니다. 정책 기본값은 공지 없음·업데이트 강제 없음이며 실제 스토어 URL을 임의로 만들지 않았습니다.
+
+신규 우편은 생성 후 30일에 만료되고 기존 저장의 더 짧은 만료일은 유지합니다. 받은함과 확인함 모두에서 만료 우편을 제거하며 열린 화면에서도 반영합니다. 수령과 재화 반영은 기존 저장 트랜잭션을 사용하고 저장 실패 시 함께 롤백합니다. 확인한 우편만 삭제할 수 있습니다. 읽음·우편·수령 기록은 현재 메인 저장 및 기존 계정 저장/복원 범위를 따르며 서버 권위 우편 시스템은 아닙니다.
+
+알림은 명시적 선택 후 브라우저 권한을 요청하며, 권한 거부/미지원 시 선택을 해제합니다. 우편 알림 클릭은 우편함을 엽니다. 탭 종료 후 푸시·Android FCM·iOS 푸시는 연결하지 않았습니다. 검증: `scripts/test.cjs`, `scripts/liveops-visual-test.cjs`, Cocos 웹 빌드.
+
+### tapWar Firebase / AdMob (2026-10-03)
+
+프로젝트 표시명·웹 빌드명·Android 앱 이름은 tapWar입니다. 기존 저장 키는 진행 보존을 위해 유지합니다. Firebase 프로젝트는 `ttsofts-tapwar`, 계정은 미정 프로필의 `admin.ttsoft@gmail.com`, Android 패키지는 `com.ttsofts.tapwar`입니다.
+
+Firebase Anonymous Authentication과 서울 `asia-northeast3` Firestore를 생성하고 소유자 전용 백업 규칙을 배포했습니다. 설정 → 계정·클라우드 저장은 웹에서 Firebase를 사용하며 Android에는 네이티브 Firebase Auth/Firestore 브리지를 연결했습니다. 버전 트랜잭션으로 오래된 저장의 덮어쓰기를 거부합니다. 게스트 계정은 해당 브라우저/앱 데이터에 종속되며 Google 계정 연결·기기 간 복구는 아직 지원하지 않습니다. 개인 백업은 경쟁 점수나 결제 원장을 인증하는 근거로 사용하지 않습니다. 기존 길드·대회는 SQLite 서비스이며 Firebase로 이전되지 않았습니다.
+
+공개 앱 설정은 `config/firebase-web.json`, `config/google-services.json`, `config/admob.json`입니다. 관리자 비밀키는 저장하지 않습니다. SDK는 `node scripts/build-firebase-sdk.mjs`로 Cocos용 ESM 번들을 생성합니다. 실제 프로젝트 검증은 `node scripts/firebase-smoke.mjs`로 게스트 인증·본인 저장/읽기·타인 접근 및 보상 위조 차단을 확인합니다.
+
+AdMob Android 앱과 보상형 광고 단위를 실제 등록했습니다. 네이티브 Java 브리지는 UMP 확인 후 광고를 표시하며 취소/실패/보상 콜백을 구분합니다. `firebase/functions`에는 ID 토큰 인증, 티켓 발급, 시청 한도·쿨다운, Google ECDSA 서명 검증, 중복 이벤트 원장, 지급/확인 큐가 있습니다. 검증: Functions TypeScript 컴파일 및 `node firebase/functions/test-ssv.cjs`. 실제 SSV 콜백은 아직 검증하지 않았습니다.
+
+**광고 운영 배포 미완료:** Functions 배포가 Spark 요금제에서 차단됐습니다. Blaze 종량제 전환 승인, Functions 배포, AdMob SSV URL 등록·실제 콜백 검증 후 `FIREBASE_COMMERCE_ENABLED`와 Java `LIVE_ADS_VERIFIED`를 활성화해야 합니다. 현재는 테스트 광고 ID 및 서버 미연결 상태이며 시청했다고 보상을 임의 지급하지 않습니다. AdMob 스토어 연결·앱 심사·개인정보 메시지 운영 설정도 출시 전에 필요합니다. 실제 결제 SDK/영수증 검증은 이번 Firebase·AdMob 연결에 포함하지 않습니다.

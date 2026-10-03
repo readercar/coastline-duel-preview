@@ -1,3 +1,4 @@
+import {validatePolicy} from '../assets/scripts/core/LiveOps';
 import { createServer, IncomingMessage, ServerResponse } from 'node:http';
 import { readFileSync, existsSync, mkdirSync } from 'node:fs';
 import { resolve, extname, join } from 'node:path';
@@ -70,6 +71,7 @@ createServer(async (req, res) => {
             });
             return;
         }
+        if(path==='/api/operations'&&req.method==='GET'){send(res,200,validatePolicy(JSON.parse(readFileSync(resolve(process.env.EMBER_OPERATIONS_FILE||join(root,'config/operations.json')),'utf8'))));return;}
         if(process.env.EMBER_MAINTENANCE==='1')throw new ServiceError(503,'online.maintenance');
         const data = req.method === 'POST' ? await body(req) : {};
         const rateKey = String(req.socket.remoteAddress) + (path === '/api/competition/action' ? ':battle' : ':api'), now = Date.now(), window = windows.get(rateKey);
@@ -171,4 +173,4 @@ createServer(async (req, res) => {
             error: e instanceof ServiceError ? e.message : 'online.serverError'
         });
     }
-}).listen(port,host,()=>console.log(`Ember Ascent server listening on ${host}:${port}`));
+}).listen(port,host,()=>console.log(`tapWar server listening on ${host}:${port}`));

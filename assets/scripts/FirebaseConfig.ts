@@ -1,0 +1,11 @@
+/* Public Firebase app identifiers; no administrator credentials. */
+export const FIREBASE_CONFIG = {
+  "projectId": "ttsofts-tapwar",
+  "appId": "1:721865585447:web:2a2500e2f89c1a59a6af02",
+  "storageBucket": "ttsofts-tapwar.firebasestorage.app",
+  "apiKey": "AIzaSyBTdEYX_9dJ3F8-cAkJjFQhGDE_Lg96Twc",
+  "authDomain": "ttsofts-tapwar.firebaseapp.com",
+  "messagingSenderId": "721865585447",
+  "projectNumber": "721865585447",
+  "version": "2"
+};

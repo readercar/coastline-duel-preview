@@ -7,16 +7,22 @@ System.register("chunks:///_virtual/rollupPluginModLoBabelHelpers.js", [], funct
         arrayLikeToArray: _arrayLikeToArray,
         assertThisInitialized: _assertThisInitialized,
         asyncToGenerator: _asyncToGenerator,
+        construct: _construct,
         createClass: _createClass,
         createForOfIteratorHelperLoose: _createForOfIteratorHelperLoose,
         extends: _extends,
+        getPrototypeOf: _getPrototypeOf,
         inheritsLoose: _inheritsLoose,
         initializerDefineProperty: _initializerDefineProperty,
+        isNativeFunction: _isNativeFunction,
+        isNativeReflectConstruct: _isNativeReflectConstruct,
+        objectWithoutPropertiesLoose: _objectWithoutPropertiesLoose,
         regeneratorRuntime: _regeneratorRuntime,
         setPrototypeOf: _setPrototypeOf,
         toPrimitive: _toPrimitive,
         toPropertyKey: _toPropertyKey,
-        unsupportedIterableToArray: _unsupportedIterableToArray
+        unsupportedIterableToArray: _unsupportedIterableToArray,
+        wrapNativeSuper: _wrapNativeSuper
       });
       function _regeneratorRuntime() {
         /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */
@@ -386,12 +392,85 @@ System.register("chunks:///_virtual/rollupPluginModLoBabelHelpers.js", [], funct
         subClass.prototype.constructor = subClass;
         _setPrototypeOf(subClass, superClass);
       }
+      function _getPrototypeOf(o) {
+        _getPrototypeOf = exports('getPrototypeOf', Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) {
+          return o.__proto__ || Object.getPrototypeOf(o);
+        });
+        return _getPrototypeOf(o);
+      }
       function _setPrototypeOf(o, p) {
         _setPrototypeOf = exports('setPrototypeOf', Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) {
           o.__proto__ = p;
           return o;
         });
         return _setPrototypeOf(o, p);
+      }
+      function _isNativeReflectConstruct() {
+        if (typeof Reflect === "undefined" || !Reflect.construct) return false;
+        if (Reflect.construct.sham) return false;
+        if (typeof Proxy === "function") return true;
+        try {
+          Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {}));
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+      function _construct(Parent, args, Class) {
+        if (_isNativeReflectConstruct()) {
+          _construct = exports('construct', Reflect.construct.bind());
+        } else {
+          _construct = exports('construct', function _construct(Parent, args, Class) {
+            var a = [null];
+            a.push.apply(a, args);
+            var Constructor = Function.bind.apply(Parent, a);
+            var instance = new Constructor();
+            if (Class) _setPrototypeOf(instance, Class.prototype);
+            return instance;
+          });
+        }
+        return _construct.apply(null, arguments);
+      }
+      function _isNativeFunction(fn) {
+        return Function.toString.call(fn).indexOf("[native code]") !== -1;
+      }
+      function _wrapNativeSuper(Class) {
+        var _cache = typeof Map === "function" ? new Map() : undefined;
+        _wrapNativeSuper = exports('wrapNativeSuper', function _wrapNativeSuper(Class) {
+          if (Class === null || !_isNativeFunction(Class)) return Class;
+          if (typeof Class !== "function") {
+            throw new TypeError("Super expression must either be null or a function");
+          }
+          if (typeof _cache !== "undefined") {
+            if (_cache.has(Class)) return _cache.get(Class);
+            _cache.set(Class, Wrapper);
+          }
+          function Wrapper() {
+            return _construct(Class, arguments, _getPrototypeOf(this).constructor);
+          }
+          Wrapper.prototype = Object.create(Class.prototype, {
+            constructor: {
+              value: Wrapper,
+              enumerable: false,
+              writable: true,
+              configurable: true
+            }
+          });
+          return _setPrototypeOf(Wrapper, Class);
+        });
+        return _wrapNativeSuper(Class);
+      }
+      function _objectWithoutPropertiesLoose(source, excluded) {
+        if (source == null) return {};
+        var target = {};
+        var sourceKeys = Object.keys(source);
+        var key, i;
+        for (i = 0; i < sourceKeys.length; i++) {
+          key = sourceKeys[i];
+          if (excluded.indexOf(key) >= 0) continue;
+          target[key] = source[key];
+        }
+        return target;
       }
       function _assertThisInitialized(self) {
         if (self === void 0) {

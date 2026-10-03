@@ -1,0 +1,10 @@
+const {spawnSync}=require('node:child_process');const fs=require('node:fs');const path=require('node:path');
+const editor='/Applications/CocosCreator/Creator/3.8.8/CocosCreator.app/Contents/MacOS/CocosCreator';
+const result=spawnSync(editor,['--project',process.cwd(),'--build','configPath='+path.resolve('config/build-android.json')],{stdio:'inherit'});
+if(![0,36].includes(result.status))process.exit(result.status||1);
+const sdk=process.env.ANDROID_HOME||'/opt/homebrew/share/android-commandlinetools';
+if(!fs.existsSync(path.join(sdk,'platform-tools/adb')))throw Error('Android SDK missing');
+const jdk=process.env.JAVA_HOME||'/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home';
+const apk=spawnSync('./gradlew',[':tapWar:assembleDebug','--no-daemon'],{cwd:'build/android/proj',stdio:'inherit',env:{...process.env,ANDROID_HOME:sdk,JAVA_HOME:jdk}});
+if(apk.status)process.exit(apk.status||1);
+console.log('Built '+path.resolve('build/android/proj/build/tapWar/outputs/apk/debug/tapWar-debug.apk'));

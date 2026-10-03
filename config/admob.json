@@ -1,0 +1,9 @@
+{
+  "appName": "tapWar",
+  "platform": "android",
+  "packageName": "com.ttsofts.tapwar",
+  "appId": "ca-app-pub-5359581077506683~6636243802",
+  "rewardedAdUnitId": "ca-app-pub-5359581077506683/9191178394",
+  "testRewardedAdUnitId": "ca-app-pub-3940256099942544/5224354917",
+  "productionEnabled": false
+}

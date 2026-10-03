@@ -1,6 +1,6 @@
 {
-  "name": "ember-ascent",
-  "displayName": "Ember Ascent",
+  "name": "tapwar",
+  "displayName": "tapWar",
   "version": "0.1.0",
   "uuid": "178848f4-f389-417c-937e-0f03a9cd28c4",
   "creator": {
@@ -12,6 +12,16 @@
     "build": "node scripts/build.cjs",
     "server": "node scripts/server.cjs",
     "test:visual": "node scripts/visual-test.cjs",
-    "test:online": "node scripts/online-visual-test.cjs"
+    "test:online": "node scripts/online-visual-test.cjs",
+    "build:firebase-sdk": "node scripts/build-firebase-sdk.mjs"
+  },
+  "dependencies": {
+    "firebase": "12.19.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "1.14.5"
   }
 }

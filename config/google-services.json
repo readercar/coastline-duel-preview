@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "721865585447",
+    "project_id": "ttsofts-tapwar",
+    "storage_bucket": "ttsofts-tapwar.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:721865585447:android:ff69e920f98bb3e2a6af02",
+        "android_client_info": {
+          "package_name": "com.ttsofts.tapwar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB0M3fm_M1v_iNynkE5VkPXSrAfNcj9ohU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

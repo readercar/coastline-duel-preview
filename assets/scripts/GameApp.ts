@@ -6,7 +6,10 @@ import { t } from './core/I18n';
 import { ExpansionUI } from './ExpansionUI';
 import { Monetization } from './core/Monetization';
 import { MonetizationUI } from './MonetizationUI';
+import { LiveOpsUI } from './LiveOpsUI';
 import { Online } from './core/Online';
+import { FirebaseCloud } from './FirebaseCloud';
+import { FirebaseCommerce, AdMobRewarded } from './NativeServices';
 const { ccclass } = _decorator;
 const C = {
     bg: '#101b28', panel: '#192838', raised: '#24384a', line: '#3c5362', text: '#f2e6cf', muted: '#a3b7bb', gold: '#ecc071', ember: '#f48960', mint: '#8bd3b8', violet: '#b99ee9', blue: '#82bcdd'
@@ -22,6 +25,8 @@ interface Row {
 }
 @ccclass('GameApp')
 export class GameApp extends Component {
+    cloud = new FirebaseCloud();
+    liveOps!: LiveOpsUI;
     onlineService!: Online;
     payments!:MonetizationUI;
     remoteBusy = false;
@@ -77,8 +82,10 @@ export class GameApp extends Component {
         view.setDesignResolutionSize(480, 960, ResolutionPolicy.SHOW_ALL);
         profiler.hideStats();
         this.game = new Game(sys.localStorage);this.extensions=new ExpansionUI(this);
-        this.onlineService = new Online(sys.localStorage);this.payments=new MonetizationUI(this,new Monetization(this.game,this.onlineService));
-        this.draw();
+        this.onlineService = new Online(sys.localStorage);this.payments=new MonetizationUI(this,new Monetization(this.game,sys.isNative&&sys.os===sys.OS.ANDROID?new FirebaseCommerce(sys.localStorage):this.onlineService));
+        if(sys.isNative&&sys.os===sys.OS.ANDROID)this.payments.model.ads=new AdMobRewarded(this.payments.model.online as FirebaseCommerce);
+        this.liveOps=new LiveOpsUI(this);
+        this.draw();void this.liveOps.refresh();
         input.on(Input.EventType.KEY_DOWN, this.key, this);
         if (this.game.s.offline > ZERO)
             this.offline();
@@ -439,7 +446,7 @@ export class GameApp extends Component {
     itemName(e: Item): string { return this.tr('equipment.item', {
         slot: this.tr(`slot.${e.slot}`), rarity: this.tr(`rarity.${e.rarity}`), level: e.level
     }); }
-    open(title: string, height = 600): Node {
+    open(title: string, height = 600, closable = true): Node {
         this.close();
         this.modal = this.nodeAt(this.root, 'modal', 0, 0, 480, 960);
         this.modal.addComponent(BlockInputEvents);
@@ -448,10 +455,10 @@ export class GameApp extends Component {
         box.name = 'modal-panel';
         this.rect(box, 0, height / 2 - 4, 432, 6, C.gold);
         this.label(box, title, -17, height / 2 - 38, 350, 44, 23, C.gold);
-        this.button(box, '×', 181, height / 2 - 36, 42, 38, () => this.close());
+        if(closable)this.button(box, '×', 181, height / 2 - 36, 42, 38, () => this.close());
         return box;
     }
-    close(): void { this.modalRefresh = null; if (this.modal) {
+    close(): void { if(this.liveOps?.blocked)return; this.modalRefresh = null; if (this.modal) {
         this.modal.removeFromParent();
         this.modal.destroy();
         this.modal = null;
@@ -552,7 +559,7 @@ export class GameApp extends Component {
     }), 0, 60, 365, 48, () => { this.game.s.audio = !this.game.s.audio; this.game.persist(); this.settings(); }); this.button(p, this.tr('settings.saveButton'), 0, -4, 365, 48, () => { if (this.game.persist())
         this.toast(this.tr('settings.save'));
     else
-        this.flushNotice(); }); this.button(p,this.tr('menu.title'),0,-66,365,40,()=>this.menu());this.button(p,this.tr('complete.display'),-124,-290,116,48,()=>this.extensions.displaySettings());this.button(p,this.tr('complete.account'),0,-290,116,48,()=>this.extensions.account());this.button(p,this.tr('complete.support'),124,-290,116,48,()=>this.extensions.support());this.label(p, this.tr('settings.about'), 0, -132, 375, 64, 15, C.muted); resources.load('branding/tt-softs-ci/texture', Texture2D, (err, texture) => { if (err || !p.isValid)
+        this.flushNotice(); }); this.button(p,this.tr('live.17'),0,-66,365,40,()=>this.liveOps.hub());this.button(p,this.tr('complete.display'),-124,-290,116,48,()=>this.extensions.displaySettings());this.button(p,this.tr('complete.account'),0,-290,116,48,()=>this.extensions.account());this.button(p,this.tr('complete.support'),124,-290,116,48,()=>this.extensions.support());this.label(p, this.tr('settings.about'), 0, -132, 375, 64, 15, C.muted); resources.load('branding/tt-softs-ci/texture', Texture2D, (err, texture) => { if (err || !p.isValid)
         return; const n = this.nodeAt(p, 'company-ci', 0, -203, 120, 120 * texture.height / texture.width); const sp = n.addComponent(Sprite); const frame = new SpriteFrame(); frame.texture = texture; sp.spriteFrame = frame; sp.sizeMode = Sprite.SizeMode.CUSTOM; n.getComponent(UITransform)!.setContentSize(120,120 * texture.height / texture.width); }); }
     cards(): void { const s = this.game.s, p = this.open(this.tr('menu.cards'), 720); this.label(p, this.tr('raid.deck', {
         a: this.tr(`card.${s.deck[0]}`), b: this.tr(`card.${s.deck[1]}`), c: this.tr(`card.${s.deck[2]}`)
@@ -810,6 +817,7 @@ export class GameApp extends Component {
     } }
     update(dt:number):void {
         if(!this.game)return;
+        this.liveOps.tick(dt);if(this.liveOps.blocked)return;
         if(this.particles)this.particles.active=this.game.s.extra.effects;
         if(this.enemyTransition>0){const old=this.enemyTransition;this.enemyTransition=Math.max(0,old-dt);this.game.tick(0);if(old>.2&&this.enemyTransition<=.2)this.spawnEnemy();}
         else {this.game.tick(dt);this.syncEnemyDeath();}

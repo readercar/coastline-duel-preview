@@ -7,4 +7,4 @@ fs.rmSync('docs/web',{recursive:true,force:true});
 fs.cpSync('build/web-mobile','docs/web',{recursive:true});
 fs.writeFileSync('docs/web/runtime-config.js','window.EMBER_API_BASE='+JSON.stringify(api)+';\n');
 const path='docs/web/index.html';fs.writeFileSync(path,fs.readFileSync(path,'utf8').replace('<head>','<head>\n<script src="runtime-config.js"></script>'));
-console.log('Updated docs/web for GitHub Pages; online service '+(api?'configured':'disabled'));
+console.log('Updated docs/web for GitHub Pages; online service '+(api?'configured':'disabled; Firebase backups use the registered app configuration'));

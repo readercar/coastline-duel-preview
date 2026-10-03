@@ -1,0 +1,46 @@
+{
+  "platform": "android",
+  "name": "tapWar",
+  "buildPath": "project://build",
+  "outputName": "android",
+  "debug": true,
+  "startScene": "894e8b13-3ca3-42c5-9fc6-49e807e1335e",
+  "scenes": [
+    {
+      "url": "db://assets/scenes/Main.scene",
+      "uuid": "894e8b13-3ca3-42c5-9fc6-49e807e1335e"
+    }
+  ],
+  "md5Cache": false,
+  "sourceMaps": true,
+  "packages": {
+    "android": {
+      "packageName": "com.ttsofts.tapwar",
+      "apiLevel": 36,
+      "appABIs": [
+        "arm64-v8a"
+      ],
+      "orientation": {
+        "portrait": true,
+        "upsideDown": false,
+        "landscapeLeft": false,
+        "landscapeRight": false
+      },
+      "useDebugKeystore": true,
+      "appBundle": false,
+      "androidInstant": false,
+      "inputSDK": false,
+      "isSoFileCompressed": false,
+      "resizeableActivity": true,
+      "renderBackEnd": {
+        "vulkan": false,
+        "gles3": true,
+        "gles2": true
+      }
+    },
+    "native": {
+      "runAfterMake": false
+    }
+  },
+  "nextStages": []
+}

@@ -1,0 +1,12 @@
+const {generateKeyPairSync,sign}=require('node:crypto');const assert=require('node:assert/strict');
+const {verifySignature}=require('./lib/ssv');const {privateKey,publicKey}=generateKeyPairSync('ec',{namedCurve:'prime256v1'});
+const keys={'7':publicKey.export({format:'der',type:'spki'}).toString('base64')};
+const payload='ad_unit=unit&custom_data=ticket&user_id=user&transaction_id=abc';
+const sig=sign('sha256',Buffer.from(payload),privateKey).toString('base64url');const raw=payload+'&signature='+sig+'&key_id=7';
+assert.equal(verifySignature(raw,keys).get('user_id'),'user');
+assert.throws(()=>verifySignature(raw.replace('user_id=user','user_id=attacker'),keys));
+assert.throws(()=>verifySignature(raw.replace('key_id=7','key_id=8'),keys));
+assert.throws(()=>verifySignature(raw+'&extra=1',keys));
+const duplicate=payload+'&user_id=attacker';const ds=sign('sha256',Buffer.from(duplicate),privateKey).toString('base64url');
+assert.throws(()=>verifySignature(duplicate+'&signature='+ds+'&key_id=7',keys));
+console.log('PASS SSV: genuine signature, tampering, unknown key, appended parameters, duplicate parameters.');

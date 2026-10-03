@@ -1,6 +1,6 @@
 {
   "platform": "web-mobile",
-  "name": "EmberAscent",
+  "name": "tapWar",
   "buildPath": "project://build",
   "outputName": "web-mobile",
   "debug": true,
