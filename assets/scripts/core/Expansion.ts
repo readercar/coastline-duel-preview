@@ -1,4 +1,5 @@
 import {mailExpiry,MAIL_LIFETIME} from './LiveOps';
+import { CRYSTAL_THRESHOLDS } from './ReferenceRules';
 import { gemstoneRarity } from './Balance';
 import type { Game, Raid } from './Game';
 import { CommerceState, newCommerce } from './Monetization';
@@ -24,7 +25,7 @@ export function newExpansion(now:number):ExpansionState {
  return {commerce:newCommerce(),rewardNotices:[],unseenEquipment:[],unlockNotices:[],unlocked:[],soloRaid:null,soloCleared:[],soloRewardDay:-1,deckPresets:[[0,1,2],[3,4,5],[6,7,8]],lastEquipmentStage:0,perkSlots:[0,1,2,3,4,5],extraPerks:[2,2,2,2],ascensions:Array(24).fill(0),heroSkills:Array(24).fill(0),
  petBoard:[0,3,5,1,7,2,6,4,3,6,1,7,4,0,2,5],petMatched:[],petFace:[],petEnergy:16,petMilestones:[],
  monumentInvested:Array(12).fill(ZERO),monumentEnchanted:Array(12).fill(0),season:seasonAt(now),seasonBest:0,
- crystal:[-1,-1,-1],summonCount:0,titanLevels:Array(120).fill(0),banner:0,geodesOpened:0,mysticResearch:Array(12).fill(0),gemMilestones:[],
+ crystal:Array(15).fill(-1),summonCount:0,titanLevels:Array(120).fill(0),banner:0,geodesOpened:0,mysticResearch:Array(12).fill(0),gemMilestones:[],
  mails:[{id:'welcome',title:'extra.mail.welcome',created:now,expires:now+MAIL_LIFETIME,gems:25,shards:5,claimed:false}],cosmetics:[0,0,0],scientific:false,effects:true,notifications:Array(6).fill(false),
  dailyFairies:0,dailyEquipment:0,dailyEggs:0,day:Math.floor(now/86400000),eventEarned:0,eventSeason:seasonAt(now),eventEndClaims:[],recipes:[],towerFloor:1,towerKeys:5,dropHistory:[],collectionClaims:[]};
 }
@@ -57,8 +58,11 @@ export class Expansion {
  enchantMonument(i:number,key:string):boolean{return this.tx(key,()=>{this.g.require(this.g.s.monuments.every(l=>l>0)&&this.enchantCandidates().includes(i),'error.locked');this.g.require(this.g.s.mementos>=amount(1000));this.g.s.mementos=sub(this.g.s.mementos,amount(1000));this.x.monumentEnchanted[i]=1;});}
  dustOffers():number[]{const cycle=Math.floor(this.g.now()/21600000);return [cycle%18,(cycle+7)%18,(cycle+13)%18];}
  dustBuy(i:number,key:string):boolean{return this.tx(key,()=>{this.g.require(this.dustOffers().includes(i),'error.invalid');this.g.require(this.g.s.dust>=20);this.g.s.dust-=20;this.g.s.fragments[i]+=5;});}
- crystal(slot:number,card:number,key:string):boolean{return this.tx(key,()=>{this.g.require(this.g.s.cards.reduce((a,b)=>a+b,0)>=1000,'error.locked');this.g.require(!this.g.raid||this.g.raid.ended,'error.protected');this.g.require(card%3===slot,'error.invalid');this.x.crystal[slot]=card;});}
- boostedLevel(card:number):number {if(!this.x.crystal.includes(card))return this.g.s.cards[card];const levels=this.g.s.cards.slice().sort((a,b)=>b-a);return Math.max(this.g.s.cards[card],levels[5]||1);}
+ crystalSlots(type:number):number {const total=this.g.s.cards.reduce((a,b)=>a+b,0);return CRYSTAL_THRESHOLDS.filter(row=>total>=row[0]).slice(-1)[0][type+1];}
+ crystalUnlock(type:number,index:number):number {return CRYSTAL_THRESHOLDS.find(row=>row[type+1]>index)?.[0]||7000;}
+ crystalLevel(type:number):number {const levels=this.g.s.cards.filter((_,i)=>i%3===type).sort((a,b)=>b-a);return levels[5]||0;}
+ crystal(slot:number,card:number,key:string):boolean{return this.tx(key,()=>{this.g.require(Number.isInteger(slot)&&slot>=0&&slot<15&&Number.isInteger(card)&&card>=0&&card<this.g.s.cards.length,'error.invalid');const type=Math.floor(slot/5);this.g.require(slot%5<this.crystalSlots(type),'error.locked');this.g.require(!this.g.raid||this.g.raid.ended,'error.protected');this.g.require(card%3===type&&!this.x.crystal.includes(card),'error.invalid');this.x.crystal[slot]=card;});}
+ boostedLevel(card:number,solo=false):number {const type=card%3,slot=this.x.crystal.indexOf(card),enabled=solo?this.crystalSlots(type)>0:slot>=0&&slot%5<this.crystalSlots(type);return enabled?Math.max(this.g.s.cards[card],this.crystalLevel(type)):this.g.s.cards[card];}
  fortune(count:number):void{for(let n=0;n<count;n++){const weights=this.g.s.cards.map((l,i)=>l*100000+this.g.s.fragments[i]),min=Math.min(...weights),i=weights.indexOf(min);this.g.s.fragments[i]++;}}
  summon(count:number,banner:number,key:string):boolean{return this.tx(key,()=>{this.g.require([1,10].includes(count)&&banner>=0&&banner<7,'error.invalid');this.g.require(this.g.s.maxStage>=100000||this.g.now()-this.g.s.created>=30*86400000,'error.locked');this.g.require(this.g.s.souls>=10*count);this.g.s.souls-=10*count;this.x.banner=banner;for(let n=0;n<count;n++){let i=Math.floor(this.g.random()*120);if(banner&&this.g.random()<.7)i=(i%20)*6+(banner-1);this.g.s.titans[i]++;this.x.summonCount++;}});}
  titanCost(i:number):number{return Math.pow(2,Math.min(20,this.x.titanLevels[i]));}

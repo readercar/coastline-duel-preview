@@ -113,9 +113,10 @@ export class Game {
     notice = '';
     revision = 0;
     saveError = false;
+    // Unverified prototype fallback; the reference document/CSV does not specify base hero intervals.
     readonly heroAttackInterval = 1.15;
     readonly heroAttackWindup = .24;
-    heroEvents: {hero:number; phase:'attack'|'hit'; damage:number}[] = [];
+    heroEvents: {hero:number; phase:'attack'|'hit'; damage:number; windup?:number}[] = [];
     private heroClocks = Array(24).fill(0);
     private combatRun: Run | null = null;
     constructor(public storage?: Storage, public now = () => Date.now()) {
@@ -172,6 +173,7 @@ export class Game {
         if(s.extra.unlocked===undefined)s.extra.unlocked=[8,15,60,100,1000,100000,180000].filter(stage=>s.maxStage>=stage);
         if(s.extra.lastEquipmentStage===undefined)s.extra.lastEquipmentStage=Math.floor(s.maxStage/5)*5;
         for(const key of Object.keys(defaults.extra))if(!(key in s.extra))(s.extra as any)[key]=(defaults.extra as any)[key];
+        if(s.extra.crystal.length===3){const old=s.extra.crystal;s.extra.crystal=Array(15).fill(-1);old.forEach((card,type)=>s.extra.crystal[type*5]=card);}
         if(s.extra.soloRaid&&!s.extra.soloRaid.expiresAt)s.extra.soloRaid.expiresAt=s.lastSeen+s.extra.soloRaid.seconds*1000;
         for (const key of ['fairyAt', 'spellSlots', 'artifactInvested', 'salvaged', 'enchanted', 'achievements', 'appearance'] as const)
             if (!(key in s))
@@ -197,9 +199,10 @@ export class Game {
             if (!Array.isArray(a) || a.length !== length || a.some((v: unknown) => typeof v !== 'number' || !Number.isFinite(v)))
                 throw Error(key);
         }
-        for(const [key,length] of Object.entries({perkSlots:6,extraPerks:4,ascensions:24,heroSkills:24,petBoard:16,monumentInvested:12,monumentEnchanted:12,crystal:3,titanLevels:120,mysticResearch:12,cosmetics:3,notifications:6})){
+        for(const [key,length] of Object.entries({perkSlots:6,extraPerks:4,ascensions:24,heroSkills:24,petBoard:16,monumentInvested:12,monumentEnchanted:12,crystal:15,titanLevels:120,mysticResearch:12,cosmetics:3,notifications:6})){
             if(!Array.isArray((s.extra as any)[key])||(s.extra as any)[key].length!==length)throw Error('extra.'+key);
         }
+        if(s.extra.crystal.some((card,slot)=>!Number.isInteger(card)||card< -1||card>=s.cards.length||(card>=0&&card%3!==Math.floor(slot/5)))||new Set(s.extra.crystal.filter(card=>card>=0)).size!==s.extra.crystal.filter(card=>card>=0).length)throw Error('crystal');
         const validDeck=(d:any)=>Array.isArray(d)&&d.length===3&&new Set(d).size===3&&d.every((n:any)=>Number.isInteger(n)&&n>=0&&n<18);
         if(!validDeck(s.deck)||!Array.isArray(s.extra.deckPresets)||s.extra.deckPresets.length!==3||!s.extra.deckPresets.every(validDeck))throw Error('deck');
         if(!Array.isArray(s.extra.rewardNotices)||s.extra.rewardNotices.some(r=>!['milestone','weapon','scroll','weaponSet','equipmentSet'].includes(r.kind)||!Number.isInteger(r.value)||r.value<0||!Number.isInteger(r.count)||r.count<1))throw Error('rewardNotices');
@@ -318,18 +321,20 @@ export class Game {
         }
         // Hero DPS is converted to one hit per cooldown; only spells remain continuous.
         const kills=this.s.totalKills;
+        const speed=this.heroAttackRate();
+        const scheduled: {time:number;hero:number;phase:'attack'|'hit';damage:number;windup?:number}[]=[];
         for(let i=0;i<r.heroes.length;i++){
             if(!r.heroes[i]){this.heroClocks[i]=0;continue;}
-            const before=this.heroClocks[i],after=before+dt;
-            if(before<this.heroAttackInterval-this.heroAttackWindup&&after>=this.heroAttackInterval-this.heroAttackWindup)
-                this.heroEvents.push({hero:i,phase:'attack',damage:ZERO});
-            this.heroClocks[i]=after;
-            if(after+1e-9>=this.heroAttackInterval){
-                this.heroClocks[i]=Math.max(0,after-this.heroAttackInterval);
-                const damage=mul(this.heroDPS(i),this.heroAttackInterval);
-                this.heroEvents.push({hero:i,phase:'hit',damage});this.damage(damage);
-                if(this.s.totalKills!==kills)break;
+            const before=this.heroClocks[i],after=before+dt*speed,interval=this.heroAttackInterval,attackAt=interval-this.heroAttackWindup;
+            for(let offset=0;offset<=after;offset+=interval){
+                if(before<offset+attackAt&&after+1e-9>=offset+attackAt)scheduled.push({time:(offset+attackAt-before)/speed,hero:i,phase:'attack',damage:ZERO,windup:this.heroAttackWindup/speed});
+                if(before<offset+interval&&after+1e-9>=offset+interval)scheduled.push({time:(offset+interval-before)/speed,hero:i,phase:'hit',damage:mul(this.heroDPS(i),interval/speed)});
             }
+            this.heroClocks[i]=Math.max(0,after-Math.floor((after+1e-9)/interval)*interval);
+        }
+        for(const {time,...event} of scheduled.sort((a,b)=>a.time-b.time||a.hero-b.hero)){
+            this.heroEvents.push(event);
+            if(event.phase==='hit'){this.damage(event.damage);if(this.s.totalKills!==kills)break;}
         }
         if(this.s.totalKills===kills)this.damage(mul(this.spellDPS(),dt));
         if (this.raid && !this.raid.ended) {
@@ -423,16 +428,26 @@ export class Game {
         this.revision++;
         return true;
     }
-    spellBonus(i: number, base: number): number { return this.s.run.spells[i] > 0 ? Math.log10(base * (1 + (this.s.run.spellLevels[i] - 1) * .15) * Math.max(1, this.s.run.stacks[i])) : 0; }
+    spellIndex(i:number):number { return Math.min(SPELLS[i].cap-1,Math.max(0,this.s.run.spellLevels[i]-1)); }
+    spellMana(i:number):number { return SPELLS[i].manaByLevel[this.spellIndex(i)]; }
+    spellUpgradeCost(i:number):number { const c=SPELLS[i],level=this.s.run.spellLevels[i];return level>=c.cap?Infinity:amount(c.goldByLevel[level]); }
+    heroAttackRate():number { return this.s.run.spells[4]>0?SPELLS[4].secondary[this.spellIndex(4)]:1; }
+    spellBonus(i: number, base: number): number {
+        if(this.s.run.spells[i]<=0)return 0;
+        // Only these already-routed channels correspond to the source primary effects.
+        // Blade/Twilight still use prototype channels until their separate attack sources exist.
+        const primary=[2,3,4].includes(i)?SPELLS[i].primary[this.spellIndex(i)]:base*(1+(this.s.run.spellLevels[i]-1)*.15);
+        return Math.log10(primary*Math.max(1,this.s.run.stacks[i]));
+    }
     cast(i: number): boolean { const r = this.s.run, c = SPELLS[i]; if (!c || r.master < c.unlock) {
         this.notice = 'error.locked';
         return false;
-    } const multicast = r.spells[i] > 0 && r.master >= 500 && r.stacks[i] < 3; const cost = c.mana * (multicast ? r.stacks[i] + 1 : 1); if (r.mana < cost || (r.cooldowns[i] > 0 && !multicast)) {
+    } const multicast = r.spells[i] > 0 && r.master >= 500 && r.stacks[i] < 3; const cost = this.spellMana(i) * (multicast ? r.stacks[i] + 1 : 1); if (r.mana < cost || (r.cooldowns[i] > 0 && !multicast)) {
         this.notice = 'error.mana';
         return false;
     } r.mana -= cost; r.cooldowns[i] = c.cooldown; r.spells[i] = c.duration; r.stacks[i] = multicast ? r.stacks[i] + 1 : 1; if (i === 0)
-        this.damage(mul(this.tapDamage(), 100 * r.spellLevels[i])); this.revision++; return true; }
-    upgradeSpell(i: number): boolean { const r = this.s.run, cost = amount(100) + r.spellLevels[i] * Math.log10(2); if (r.master < SPELLS[i].unlock) {
+        this.damage(mul(this.tapDamage(), c.primary[this.spellIndex(i)])); this.revision++; return true; }
+    upgradeSpell(i: number): boolean { const r = this.s.run; if(!SPELLS[i]||r.spellLevels[i]>=SPELLS[i].cap){this.notice='error.locked';return false;} const cost=this.spellUpgradeCost(i); if (r.master < SPELLS[i].unlock) {
         this.notice = 'error.locked';
         return false;
     } if (r.gold < cost) {
@@ -531,7 +546,7 @@ export class Game {
         });
     }
     raidTap(part: number): void { const r = this.raid;if(r&&this.now()>=r.expiresAt){r.seconds=0;r.ended=true;} if (!r || r.ended || part < 0 || part > 7 || r.hp[part] <= 0)
-        return; let damage = 12; r.hits++; r.deck.forEach((card, i) => { const level = new Expansion(this).boostedLevel(card); let proc = card % 3 === 0 ? (r.hits % 4 === 0 ? 30 * level : 0) : card % 3 === 1 ? level * Math.min(20, r.hits) : 5 * level; damage += proc; r.cardDamage[i] += proc; }); const armor = Math.min(r.armor[part], damage); r.armor[part] -= armor; damage -= armor; const dealt = Math.min(r.hp[part], damage); r.hp[part] -= dealt; r.damage += dealt + armor; if (r.hp.every(h => h === 0))
+        return; let damage = 12; r.hits++; r.deck.forEach((card, i) => { const level = new Expansion(this).boostedLevel(card,true); let proc = card % 3 === 0 ? (r.hits % 4 === 0 ? 30 * level : 0) : card % 3 === 1 ? level * Math.min(20, r.hits) : 5 * level; damage += proc; r.cardDamage[i] += proc; }); const armor = Math.min(r.armor[part], damage); r.armor[part] -= armor; damage -= armor; const dealt = Math.min(r.hp[part], damage); r.hp[part] -= dealt; r.damage += dealt + armor; if (r.hp.every(h => h === 0))
         r.ended = true; }
     claimRaid(id:string):boolean{return this.transaction(id,()=>{
         const r=this.raid;this.require(!!r&&r.ended&&!r.claimed,'error.claimed');if(!r)return;

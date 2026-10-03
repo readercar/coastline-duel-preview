@@ -12,7 +12,7 @@ test('failed transactions restore currency and RNG',()=>{const g=game();g.s.shar
 test('persistent write failures roll back permanent spend',()=>{const store=memory(),g=new Game(store);g.s.shards=100;const before=JSON.stringify(g.s);store.setItem=()=>{throw Error('quota');};assert.equal(g.craft('quota'),false);assert.equal(JSON.stringify(g.s),before);assert.equal(g.notice,'error.storage');});
 test('pet hatch uses persisted readiness and blocks duplicate claims',()=>{let now=2000000000000;const store=memory(),g=new Game(store,()=>now);g.s.maxStage=8;assert.ok(g.hatch('egg1'));assert.equal(g.hatch('egg2'),false);const reopened=new Game(store,()=>now);assert.equal(reopened.hatch('egg3'),false);now+=14400000;assert.ok(reopened.hatch('egg4'));});
 test('skill drafts validate prerequisites and do not apply on failure',()=>{const g=game();g.s.sp=20;const draft=Array(18).fill(0);draft[1]=1;assert.equal(g.applySkills(draft,'bad'),false);assert.equal(g.s.sp,20);draft[0]=3;assert.ok(g.applySkills(draft,'good'));assert.equal(g.s.sp,13);assert.ok(g.applySkills(Array(18).fill(0),'reset'));assert.equal(g.s.sp,20);});
-test('spells enforce level, mana and cooldown',()=>{const g=game();assert.equal(g.cast(0),false);g.s.run.master=350;assert.ok(g.cast(5));assert.equal(g.s.run.mana,85);assert.equal(g.cast(5),false);g.tick(1);assert.equal(g.s.run.spells[5],59);assert.equal(g.s.run.cooldowns[5],19);});
+test('spells enforce level, mana and cooldown',()=>{const g=game();assert.equal(g.cast(0),false);g.s.run.master=350;assert.ok(g.cast(5));assert.equal(g.s.run.mana,76);assert.equal(g.cast(5),false);g.tick(1);assert.equal(g.s.run.spells[5],59);assert.equal(g.s.run.cooldowns[5],19);});
 test('daily claim can be received once per day, including after reload',()=>{let now=2000000000000;const store=memory(),g=new Game(store,()=>now);assert.ok(g.claimDaily(0));assert.equal(g.claimDaily(0),false);const reopened=new Game(store,()=>now);assert.equal(reopened.claimDaily(0),false);now+=86400000;reopened.tick(.1);assert.ok(reopened.claimDaily(0));});
 test('offline reward cannot be collected twice and is capped',()=>{let now=2000000000000;const store=memory(),g=new Game(store,()=>now);g.s.run.heroes[0]=10;g.persist();now+=100*86400000;const resumed=new Game(store,()=>now);assert.ok(resumed.s.offline>A.ZERO);const reward=resumed.s.offline;assert.ok(resumed.collectOffline('offline1'));assert.equal(resumed.s.offline,A.ZERO);assert.equal(resumed.collectOffline('offline2'),false);assert.ok(reward<10);assert.equal(new Game(store,()=>now).s.offline,A.ZERO);});
 test('artifact discovery and upgrades debit relics atomically',()=>{const g=game();g.s.relics=A.amount(100);assert.ok(g.discover('d1'));const i=g.s.artifacts.findIndex(Boolean);assert.ok(g.upgradeArtifact(i,'a1'));assert.equal(g.s.artifacts[i],2);assert.equal(g.discover('d1'),false);});
@@ -87,4 +87,30 @@ test('each recruited hero emits its own hit and rebirth clears attack clocks',()
  g.tick(1);g.tick(.15);assert.deepEqual(g.heroEvents.filter(e=>e.phase==='hit').map(e=>e.hero),[0,1]);
  g.tick(.9);g.s.run.stage=60;assert.ok(g.prestige('attack-reset'));g.s.run.heroes[0]=1;const hp=g.s.run.hp;
  g.tick(.2);assert.equal(g.s.run.hp,hp);assert.deepEqual(g.heroEvents,[]);
+});
+test('reference spell costs use level tables and stop at the source cap',()=>{
+ const g=game();g.s.run.master=550;assert.equal(g.spellMana(0),8);assert.equal(g.spellMana(4),44);assert.equal(g.spellUpgradeCost(4),A.amount(533));
+ g.s.run.gold=A.amount(1e100);assert.ok(g.upgradeSpell(4));assert.equal(g.spellMana(4),45);g.s.run.spellLevels[4]=30;const gold=g.s.run.gold;assert.equal(g.upgradeSpell(4),false);assert.equal(g.s.run.gold,gold);assert.equal(g.spellMana(4),186);
+});
+test('War Cry speeds hit cadence and keeps damage tied to individual hits',()=>{
+ const g=game();g.s.run.heroes[0]=1;g.s.run.master=300;g.s.run.hp=A.amount(1e6);assert.ok(g.cast(4));assert.equal(g.heroAttackRate(),2);const initial=g.s.run.hp;
+ g.tick(.46);assert.equal(g.s.run.hp,initial);assert.equal(g.heroEvents[0].phase,'attack');assert.equal(g.heroEvents[0].windup,.12);
+ g.tick(.115);assert.equal(g.heroEvents[0].phase,'hit');assert.equal(g.heroEvents[0].damage,A.mul(g.heroDPS(0),1.15/2));
+ g.s.run.spellLevels[4]=30;assert.equal(g.heroAttackRate(),16.2);g.s.run.spells[4]=0;assert.equal(g.heroAttackRate(),1);
+});
+test('Crystal gates all type slots at reference thresholds and migrates old slots',()=>{
+ const store=memory(),g=new Game(store);g.s.extra.crystal=[0,1,2];g.persist();const restored=new Game(store);assert.deepEqual(restored.s.extra.crystal,[0,-1,-1,-1,-1,1,-1,-1,-1,-1,2,-1,-1,-1,-1]);
+ const e=new Expansion(restored);restored.s.cards.fill(0);restored.s.cards[0]=999;assert.equal(e.crystalSlots(0),0);assert.equal(e.crystal(0,3,'locked'),false);
+ for(const [total,expected] of [[1000,[1,1,1]],[1200,[1,1,2]],[1400,[2,1,2]],[1600,[2,2,2]],[7000,[5,5,5]]]){restored.s.cards[0]=total;assert.deepEqual([0,1,2].map(t=>e.crystalSlots(t)),expected);}
+ restored.s.cards[0]=1000;assert.ok(e.crystal(10,5,'support'));assert.equal(e.crystal(11,8,'locked-support'),false);assert.equal(e.crystal(1,3,'locked-burst'),false);assert.equal(e.crystal(0,1,'wrong-type'),false);
+});
+test('Crystal sixth-highest level is type-specific; Solo boosts unassigned cards',()=>{
+ const g=game(),e=new Expansion(g);g.s.cards.fill(200);[0,3,6,9,12,15].forEach((c,i)=>g.s.cards[c]=[150,140,130,120,110,7][i]);assert.equal(e.crystalLevel(0),7);assert.equal(e.crystalLevel(1),200);assert.equal(e.boostedLevel(15,true),7);
+ // Extend the fixture with a seventh same-type card to distinguish the sixth from the minimum.
+ g.s.cards.push(1);assert.equal(e.boostedLevel(18),1);assert.equal(e.boostedLevel(18,true),7);
+ g.s.extra.crystal[0]=18;assert.equal(e.boostedLevel(18),7);
+});
+test('accelerated hero hits do not disappear at low frame rates',()=>{
+ const build=()=>{const g=game();g.s.run.heroes[0]=1;g.s.run.spellLevels[4]=30;g.s.run.spells[4]=30;g.s.run.hp=A.amount(1e9);return g;};
+ const slow=build(),fast=build();const hp=slow.s.run.hp;slow.tick(1);for(let i=0;i<100;i++)fast.tick(.01);assert.equal(slow.heroEvents.filter(e=>e.phase==='hit').length,14);assert.ok(Math.abs(slow.s.run.hp-fast.s.run.hp)<1e-10);assert.ok(slow.s.run.hp<hp);
 });

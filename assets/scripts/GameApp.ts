@@ -265,11 +265,11 @@ export class GameApp extends Component {
             body.setScale(-side,1,1);this.label(actor,this.tr(`hero.${id}`),0,-33,72,16,11,C.text);
         });
     }
-    animateAlly(id:number):void {
+    animateAlly(id:number,duration=.24):void {
         const ally=this.allies.getChildByName('hero-'+id);if(!ally)return;const body=ally.getChildByName('body')!;
         Tween.stopAllByTarget(body);body.angle=0;
-        tween(body).to(.1,{angle:ally.position.x>0?18:-18}).to(.18,{angle:0}).start();
-        const role=Number(ally.name.slice(5))%3;const missile=this.rect(this.particles,ally.position.x,ally.position.y,role===2?9:16,role===2?9:3,role===2?C.violet:C.gold);missile.name='ally-projectile';tween(missile).to(.24,{position:new Vec3(0,100,0)}).call(()=>missile.destroy()).start();
+        tween(body).to(duration*.4,{angle:ally.position.x>0?18:-18}).to(duration*.6,{angle:0}).start();
+        const role=Number(ally.name.slice(5))%3;const missile=this.rect(this.particles,ally.position.x,ally.position.y,role===2?9:16,role===2?9:3,role===2?C.violet:C.gold);missile.name='ally-projectile';tween(missile).to(duration,{position:new Vec3(0,100,0)}).call(()=>missile.destroy()).start();
     }
     circle(parent:Node,x:number,y:number,radius:number,color:string):Node{const n=this.nodeAt(parent,'circle',x,y,radius*2,radius*2),g=n.addComponent(Graphics);g.fillColor=this.color(color);g.circle(0,0,radius);g.fill();g.strokeColor=this.color('#d5dedb');g.lineWidth=2;g.stroke();return n;}
     coin(parent:Node,x:number,y:number,r:number):void{const n=this.circle(parent,x,y,r,'#e9b82b');this.rect(n,0,0,2,r*1.25,'#fff2a2');}
@@ -349,7 +349,7 @@ export class GameApp extends Component {
             this.label(this.panel,this.tr('layout.prestigeDesc'),-64,13,228,60,13,C.text,Label.HorizontalAlign.LEFT);
             this.button(this.panel,this.tr(r.stage>=60?'prestige.reward':'prestige.locked',{value:this.format(g.prestigeReward())}),164,13,135,60,()=>this.prestige(),r.stage>=60);
             this.rect(this.panel,0,-36,470,26,'#292a37');this.label(this.panel,this.tr('spell.title'),0,-36,430,24,18);
-            this.scroll(this.panel,0,-100,474,99,SPELLS.map(sp=>({title:this.tr(`spell.${sp.id}`),sub:this.tr('spell.detail',{level:r.spellLevels[sp.id],unlock:sp.unlock,mana:sp.mana}),icon:sp.id,action:this.tr(r.master<sp.unlock?'action.level':'action.details',{level:sp.unlock}),click:()=>this.spells(this.game.s.spellSlots.indexOf(sp.id)<0?0:this.game.s.spellSlots.indexOf(sp.id))})));
+            this.scroll(this.panel,0,-100,474,99,SPELLS.map(sp=>({title:this.tr(`spell.${sp.id}`),sub:this.tr('spell.detail',{level:r.spellLevels[sp.id],unlock:sp.unlock,mana:this.game.spellMana(sp.id)}),icon:sp.id,action:this.tr(r.master<sp.unlock?'action.level':'action.details',{level:sp.unlock}),click:()=>this.spells(this.game.s.spellSlots.indexOf(sp.id)<0?0:this.game.s.spellSlots.indexOf(sp.id))})));
         }
         else if (this.tab === 1) {
             this.label(this.panel, this.tr('hero.title'), -133, 127, 190, 29, 21, C.gold, Label.HorizontalAlign.LEFT);
@@ -565,11 +565,14 @@ export class GameApp extends Component {
         a: this.tr(`card.${s.deck[0]}`), b: this.tr(`card.${s.deck[1]}`), c: this.tr(`card.${s.deck[2]}`)
     }), 0, 270, 385, 50, 16, C.mint); this.label(p, this.tr('raid.dust', {
         dust: s.dust
-    }), 0, 225, 385, 26, 15, C.gold); this.scroll(p, 0, -47, 400, 505, CARDS.map(c => ({
+    }), 0, 225, 385, 26, 15, C.gold); this.scroll(p, 0, -25, 400, 450, CARDS.map(c => ({
         title: this.tr(c.name), sub: this.tr('raid.card', {
             level: s.cards[c.id], fragments: s.fragments[c.id]
         }), icon: c.id, tint: [C.ember, C.violet, C.mint][c.type], action: this.tr(s.deck.includes(c.id) ? 'action.selected' : 'action.select'), click: () => { this.game.setDeck(c.id); this.cardDetail(c.id); }
-    }))); }
+    })));
+        this.button(p,this.tr('extra.dustShop'),-101,-306,190,44,()=>this.extensions.dustShop());
+        this.button(p,this.tr('extra.crystal'),101,-306,190,44,()=>this.extensions.crystal());
+    }
     cardDetail(i: number): void { const s = this.game.s, p = this.open(this.tr(`card.${i}`), 490);this.label(p,this.tr('complete.cardProc.'+i%3),0,140,370,85,18); this.label(p, this.tr('raid.card', {
         level: s.cards[i], fragments: s.fragments[i]
     }), 0, 40, 360, 60, 22); this.button(p, this.tr('raid.upgrade', {
@@ -714,11 +717,11 @@ export class GameApp extends Component {
     spells(slot = 0): void { const s = this.game.s, p = this.open(this.tr('spell.title'), 715); for (let j = 0; j < 6; j++)
         this.button(p, String(j + 1), -165 + j * 66, 260, 60, 40, () => this.spells(j), j === slot); this.scroll(p, 0, -24, 400, 490, SPELLS.map(c => ({
         title: this.tr(`spell.${c.id}`), sub: this.tr('spell.detail', {
-            level: s.run.spellLevels[c.id], unlock: c.unlock, mana: c.mana
+            level: s.run.spellLevels[c.id], unlock: c.unlock, mana: this.game.spellMana(c.id)
         }), icon: c.id, tint: C.violet, action: this.tr(s.spellSlots.includes(c.id) ? 'action.details' : 'action.select'), click: () => { if (s.spellSlots.includes(c.id)) {
             const box = this.open(this.tr(`spell.${c.id}`), 400);
             this.label(box, this.tr('spell.detail', {
-                level: s.run.spellLevels[c.id], unlock: c.unlock, mana: c.mana
+                level: s.run.spellLevels[c.id], unlock: c.unlock, mana: this.game.spellMana(c.id)
             }), 0, 70, 375, 70, 20);
             this.label(box, this.tr('spell.multicast'), 0, 0, 375, 60, 16, C.muted);
             this.button(box, this.tr('action.upgrade'), 0, -106, 360, 50, () => { if (this.game.upgradeSpell(c.id)) {
@@ -822,7 +825,7 @@ export class GameApp extends Component {
         if(this.enemyTransition>0){const old=this.enemyTransition;this.enemyTransition=Math.max(0,old-dt);this.game.tick(0);if(old>.2&&this.enemyTransition<=.2)this.spawnEnemy();}
         else {this.syncAllies();this.game.tick(dt);
             for(const event of this.game.heroEvents){
-                if(event.phase==='attack')this.animateAlly(event.hero);
+                if(event.phase==='attack')this.animateAlly(event.hero,event.windup);
                 else {this.spark(0,100,C.ember);this.sound(120);const hit=this.label(this.particles,this.format(event.damage),0,140,180,30,20,C.gold).node;tween(hit).by(.45,{position:new Vec3(0,45,0)}).call(()=>hit.destroy()).start();}
             }
             this.syncEnemyDeath();}
