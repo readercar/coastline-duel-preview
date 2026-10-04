@@ -502,6 +502,7 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
           var label = a.label(content, body, 0, -14, 362, bodyH - 20, 20, UI.text, Label.HorizontalAlign.LEFT);
           label.useSystemFont = true;
           label.fontFamily = 'sans-serif';
+          label.isBold = false;
           label.lineHeight = 29;
           label.verticalAlign = Label.VerticalAlign.TOP;
           label.overflow = Label.Overflow.RESIZE_HEIGHT;
@@ -529,6 +530,7 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
             if (sv.getMaxScrollOffset().y <= 1 || sv.getScrollOffset().y >= sv.getMaxScrollOffset().y - 18) {
               end = true;
               caption.string = a.tr('entry.documentAgree');
+              caption.color = a.color(UI.ink);
               a.ui.paint(action, 'popup/primary', true);
             }
           };
