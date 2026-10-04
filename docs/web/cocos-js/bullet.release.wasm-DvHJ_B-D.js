@@ -8,4 +8,3 @@ System.register([], (function (exports, module) {
 		})
 	};
 }));
-//# sourceMappingURL=bullet.release.wasm-DvHJ_B-D.js.map

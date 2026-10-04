@@ -1237,4 +1237,3 @@ System.register(['./_virtual_cc-0OximA6Z.js'], (function (exports) {
     })
   };
 }));
-//# sourceMappingURL=spine.wasm-lP6dHK4O.js.map

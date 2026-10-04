@@ -11,4 +11,3 @@ System.register(['./_virtual_cc-0OximA6Z.js'], (function (exports) {
 		})
 	};
 }));
-//# sourceMappingURL=cc.js.map

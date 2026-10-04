@@ -22,4 +22,3 @@ System.register("chunks:///_virtual/resources", [], function () {
     };
     });
 });
-//# sourceMappingURL=index.js.map
