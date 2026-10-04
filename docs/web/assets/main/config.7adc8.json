@@ -32,7 +32,12 @@
     },
     "packs": {},
     "versions": {
-        "import": [],
+        "import": [
+            "894e8b13-3ca3-42c5-9fc6-49e807e1335e",
+            "b3f28",
+            "fd8ec536-a354-4a17-9c74-4f3883c378c8",
+            "731f4"
+        ],
         "native": []
     },
     "redirect": [

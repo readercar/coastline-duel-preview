@@ -37935,12 +37935,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.bossButton = this.button(hud, this.tr('battle.fight'), 180, 442, 111, 44, function () {
             return _this5.game.toggleBoss();
           });
-          this.rect(hud, 0, 405, 284, 20, '#14202b');
-          this.hpFill = this.nodeAt(hud, 'health', -140, 405, 280, 16);
+          this.rect(hud, 0, 400, 284, 12, '#14202b');
+          this.hpFill = this.nodeAt(hud, 'health', -140, 400, 280, 8);
           this.hpFill.getComponent(UITransform).setAnchorPoint(0, .5);
-          this.rect(this.hpFill, 140, 0, 280, 16, '#ee762e');
-          this.enemyLabel = this.label(hud, '', -30, 405, 206, 19, 13, UI.light, Label.HorizontalAlign.LEFT);
-          this.hpLabel = this.label(hud, '', 116, 405, 74, 19, 12, UI.light);
+          this.rect(this.hpFill, 140, 0, 280, 8, '#ee762e');
+          this.enemyLabel = this.label(hud, '', -30, 415, 206, 18, 14, C.text, Label.HorizontalAlign.LEFT);
+          this.hpLabel = this.label(hud, '', 116, 415, 74, 18, 14, C.text);
           this.progressLabel = this.label(hud, '', -113, 381, 110, 20, 12, C.text);
           this.goldLabel = this.label(hud, '', 15, 375, 180, 32, 27, UI.brightGold);
           this.coin(hud, -35, 375, 11);
