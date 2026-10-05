@@ -112,6 +112,51 @@ System.register("chunks:///_virtual/Balance.ts", ['cc'], function (exports) {
   };
 });
 
+System.register("chunks:///_virtual/BattleFormation.ts", ['cc'], function (exports) {
+  var cclegacy;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+    }],
+    execute: function () {
+      exports({
+        allyPosition: allyPosition,
+        enemyPosition: enemyPosition,
+        survivingEnemies: survivingEnemies,
+        waveSize: waveSize
+      });
+      cclegacy._RF.push({}, "f06b59oNv5FNK8jmW3Mqgpy", "BattleFormation", undefined);
+      /** Compact formations in the 480-wide battlefield. All coordinates denote feet. */
+      var SOLDIER_SIZE = exports('SOLDIER_SIZE', 64);
+      function allyPosition(index) {
+        return {
+          x: -64 - index % 3 * 72,
+          y: 12 + Math.floor(index / 3) * 82
+        };
+      }
+      function waveSize(stage, boss) {
+        if (boss === void 0) {
+          boss = false;
+        }
+        if (boss) return 1;
+        return stage >= 400 ? 30 : stage >= 200 ? 20 : stage >= 100 ? 15 : stage >= 60 ? 10 : stage >= 30 ? 6 : stage >= 15 ? 4 : stage >= 5 ? 2 : 1;
+      }
+      function enemyPosition(index, count) {
+        var columns = Math.min(5, count),
+          rows = Math.ceil(count / columns);
+        return {
+          x: count === 1 ? 138 : 48 + index % columns * 37,
+          y: 24 + Math.floor(index / columns) * 47 + (6 - rows) * 9
+        };
+      }
+      function survivingEnemies(count, healthRatio) {
+        return Math.max(0, Math.min(count, Math.ceil(count * Math.max(0, Math.min(1, healthRatio)))));
+      }
+      cclegacy._RF.pop();
+    }
+  };
+});
+
 System.register("chunks:///_virtual/Config.ts", ['cc', './ReferenceRules.ts'], function (exports) {
   var cclegacy, REFERENCE_SPELLS;
   return {
@@ -37987,8 +38032,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
   };
 });
 
-System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './FeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _extends, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, FeedbackUI, Game, display, fmt, ratio, HEROES, SPELLS, PETS, ARTIFACTS, CARDS, SKILLS, t, ExpansionUI, Monetization, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, UI, UITheme;
+System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './BattleFormation.ts', './FeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
+  var _inheritsLoose, _extends, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, SOLDIER_SIZE, waveSize, survivingEnemies, enemyPosition, allyPosition, FeedbackUI, Game, display, ratio, fmt, HEROES, SPELLS, PETS, ARTIFACTS, CARDS, SKILLS, t, ExpansionUI, Monetization, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, UI, UITheme;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
@@ -38030,13 +38075,19 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       Component = module.Component;
       profiler = module.profiler;
     }, function (module) {
+      SOLDIER_SIZE = module.SOLDIER_SIZE;
+      waveSize = module.waveSize;
+      survivingEnemies = module.survivingEnemies;
+      enemyPosition = module.enemyPosition;
+      allyPosition = module.allyPosition;
+    }, function (module) {
       FeedbackUI = module.FeedbackUI;
     }, function (module) {
       Game = module.Game;
     }, function (module) {
       display = module.display;
-      fmt = module.fmt;
       ratio = module.ratio;
+      fmt = module.fmt;
     }, function (module) {
       HEROES = module.HEROES;
       SPELLS = module.SPELLS;
@@ -38371,8 +38422,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               return _this2.tr(key) === text;
             }),
             icon = options.icon || (text === '×' ? 'symbol:close' : key ? symbols[key] : undefined),
-            iconOnly = (_options$iconOnly = options.iconOnly) != null ? _options$iconOnly : !!(key || text === '×');
-          var claimable = text === this.tr('action.claim') && style !== 'disabled';
+            iconOnly = (_options$iconOnly = options.iconOnly) != null ? _options$iconOnly : text === '×' || key === 'layout.collapse' || key === 'layout.expand';
+          var claimable = text === this.tr('action.claim');
           if (claimable) options = _extends({}, options, {
             tone: C.gold
           });
@@ -38381,11 +38432,20 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.ui.paint(n, 'popup/' + style, true, 255, options.tone);
           var ink = options.tone ? [C.ember, C.mint, C.violet, C.danger, C.bg, C.panel, C.sand].includes(options.tone) ? C.text : C.ink : style === 'disabled' ? C.muted : C.text;
           if (style === 'secondary') this.polygon(n, -w / 2 + 6, 0, 3, h - 12, [[-.5, -.5], [.5, -.35], [.5, .5], [-.5, .35]], this.tabTone);
-          var stacked = !!icon && !iconOnly && w < 140 && h >= 60,
-            iconSize = iconOnly ? Math.min(36, h - 12) : 28;
-          if (icon) this.ui.icon(this.nodeAt(n, 'button-art-icon', iconOnly || stacked ? 0 : -w / 2 + 24, stacked ? 14 : 0, iconSize, iconSize), icon, ink);
-          var label = this.label(n, iconOnly ? '' : text, icon && !iconOnly && !stacked ? 17 : 0, stacked ? -18 : 0, w - (icon && !iconOnly && !stacked ? 60 : 20), stacked ? 25 : h - 10, options.fontSize || (stacked ? 14 : 18), ink);
+          var stacked = !!icon && !iconOnly && w < 140 && h >= 48,
+            iconSize = iconOnly ? Math.min(36, h - 12) : stacked ? 20 : 24;
+          if (icon) this.ui.icon(this.nodeAt(n, 'button-art-icon', iconOnly || stacked ? 0 : -w / 2 + 24, stacked ? 10 : 0, iconSize, iconSize), icon, ink);
+          var label = this.label(n, iconOnly ? '' : text === this.tr('action.claim') ? this.tr('action.claimReady') : text, icon && !iconOnly && !stacked ? 17 : 0, stacked ? -13 : 0, w - (icon && !iconOnly && !stacked ? 60 : 20), stacked ? 23 : h - 10, stacked ? 14 : options.fontSize || 18, ink);
           label.node.name = 'button-label';
+          var edge = this.nodeAt(n, 'button-outline', 0, 0, w, h).addComponent(Graphics);
+          edge.lineWidth = 1.5;
+          edge.strokeColor = this.color(claimable ? C.gold : '#929889');
+          edge.moveTo(-w / 2 + 8, -h / 2 + 2);
+          edge.lineTo(w / 2 - 2, -h / 2 + 2);
+          edge.lineTo(w / 2 - 8, h / 2 - 2);
+          edge.lineTo(-w / 2 + 2, h / 2 - 2);
+          edge.close();
+          edge.stroke();
           var unavailable = options.unavailable || (text === this.tr('action.claimed') ? function () {
             return _this2.tr('action.alreadyClaimed');
           } : style === 'disabled' ? function () {
@@ -38398,6 +38458,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               if (last === blocked) return;
               last = blocked;
               _this2.ui.paint(n, 'popup/' + (blocked ? 'disabled' : style === 'disabled' && options.unavailable ? 'primary' : style), true, 255, blocked ? '#444852' : options.tone);
+              if (text === _this2.tr('action.claim')) label.string = _this2.tr(blocked ? 'action.notReady' : 'action.claimReady');
               label.color = _this2.color(blocked ? '#c2c5cc' : style === 'disabled' ? C.text : ink);
               var art = n.getChildByName('button-art-icon');
               if (art) {
@@ -38615,16 +38676,16 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.coin(hud, 34, 375, 11);
           this.battleCast = this.nodeAt(this.root, 'battle-cast', 0, (this.folded ? -300 : 0) - this.heightExtra + this.safeBottom, 480, 600);
           this.battleCast.setSiblingIndex(2);
-          this.enemy = this.nodeAt(this.battleCast, 'sentinel', 138, 20, 160, 160);
-          this.sentinel(this.nodeAt(this.enemy, 'enemy-art', 0, 0, 272, 224));
+          this.enemy = this.nodeAt(this.battleCast, 'sentinel', 0, 0, 480, 350);
           this.enemy.addComponent(UIOpacity);
+          this.populateEnemies();
           this.footholds = this.nodeAt(this.battleCast, 'ally-footholds', 0, 30, 480, 500);
           this.footholds.getComponent(UITransform).setAnchorPoint(.5, 53 / 500);
           this.footholds.addComponent(Mask);
           this.footholds.setSiblingIndex(0);
-          this.allies = this.nodeAt(this.battleCast, 'allies', 0, 30, 480, 500);
+          this.allies = this.nodeAt(this.battleCast, 'allies', 0, 0, 480, 500);
           this.syncAllies();
-          this.actor = this.nodeAt(this.battleCast, 'guardian', -136, 4, 150, 150);
+          this.actor = this.nodeAt(this.battleCast, 'guardian', -64, 12, SOLDIER_SIZE, SOLDIER_SIZE);
           this.guardian(this.actor);
           this.actor.getComponent(UITransform).setAnchorPoint(.5, 6 / 192);
           this.actor.setScale(1, 1, 1);
@@ -38633,12 +38694,17 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           target.on(Node.EventType.TOUCH_END, function () {
             if (!_this5.modal) _this5.attack();
           });
-          this.fairy = this.button(lower, '', -211, 135, 40, 40, function () {
+          this.fairy = this.button(lower, this.tr('action.claimReady'), -172, 308, 120, 34, function () {
             return _this5.payments.fairy();
-          }, true);
-          this.ui.actor(this.nodeAt(this.fairy, 'fairy-art', 0, 0, 38, 38), 'fairy');
-          this.equipmentPile = this.button(lower, '', -206, 76, 58, 40, function () {
+          }, true, {
+            icon: 'chest',
+            fontSize: 14,
+            tone: C.gold
+          });
+          this.equipmentPile = this.button(lower, '', -172, 264, 120, 34, function () {
             return _this5.extensions.equipmentDrops();
+          }, true, {
+            tone: C.gold
           });
           var edge = this.folded ? -337 : -39;
           this.polygon(lower, 0, edge, 480, 32, [[-.5, .15], [.2, .15], [.24, .5], [.5, .5], [.5, -.5], [-.5, -.5]], C.bg);
@@ -38799,16 +38865,16 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           });
         };
         _proto.enemyArt = function enemyArt() {
-          var keys = this.game.s.run.boss ? ['tree-boss', 'ice-boss', 'crystal-boss', 'golem'] : ['golem', 'forest-wolf', 'spectral-knight', 'flame-spirit', 'skeleton'];
+          var keys = this.game.s.run.boss ? ['tree-boss', 'ice-boss', 'crystal-boss', 'golem'] : ['forest-wolf', 'spectral-knight', 'skeleton', 'flame-spirit'];
           return keys[this.game.s.totalKills % keys.length];
         };
         _proto.sentinel = function sentinel(parent) {
-          this.ui.resize(parent, 154, 154);
+          this.ui.resize(parent, this.game.s.run.boss ? 76 : 40, this.game.s.run.boss ? 76 : 40);
           parent.getComponent(UITransform).setAnchorPoint(.5, 6 / 192);
           this.ui.actor(parent, this.enemyArt());
         };
         _proto.guardian = function guardian(parent) {
-          this.ui.resize(parent, 158, 158);
+          this.ui.resize(parent, SOLDIER_SIZE, SOLDIER_SIZE);
           this.ui.actor(parent, 'guardian');
         };
         _proto.appearanceTint = function appearanceTint(slot, fallback) {
@@ -38834,95 +38900,140 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           Tween.stopAllByTarget(defeated);
           var opacity = defeated.getComponent(UIOpacity);
           Tween.stopAllByTarget(opacity);
-          tween(defeated).to(.14, {
-            scale: new Vec3(1.45, .55, 1)
-          }).call(function () {
+          tween(defeated).delay(.14).call(function () {
             if (defeated.isValid) defeated.active = false;
           }).start();
           tween(opacity).to(.14, {
             opacity: 0
           }).start();
-          this.burst('defeat', 138, 95, 120, .34);
-          var _loop = function _loop() {
-            var angle = i * Math.PI * 2 / 12,
-              n = _this7.combatSprite(i % 3 ? 'shard' : 'sparkle', 'defeat-particle', 138, 95, 16 + i % 3 * 5);
-            if (!n) return 1; // continue
-            var opacity = n.addComponent(UIOpacity);
-            tween(n).to(.36, {
-              position: new Vec3(138 + Math.cos(angle) * (70 + i % 4 * 12), 95 + Math.sin(angle) * 82, 0),
-              scale: new Vec3(.25, .25, 1),
-              angle: i * 30
-            }).call(function () {
-              if (isValid(n, true)) n.destroy();
-            }).start();
-            tween(opacity).to(.36, {
-              opacity: 0
-            }).start();
-          };
-          for (var i = 0; i < 12; i++) {
-            if (_loop()) continue;
-          }
+          this.enemy.children.filter(function (n) {
+            return n.active;
+          }).forEach(function (n) {
+            return _this7.bulletImpact(n.position.x, n.position.y + 20);
+          });
           this.sound(95);
           this.updateHUD();
+        };
+        _proto.populateEnemies = function populateEnemies() {
+          var count = waveSize(this.game.s.run.stage, this.game.s.run.boss);
+          // A wave shares the existing combat HP/reward budget; no extra currency is minted by the visuals.
+          for (var i = count - 1; i >= 0; i--) {
+            var pos = enemyPosition(i, count),
+              unit = this.nodeAt(this.enemy, 'hostile-' + i, pos.x, pos.y, 40, 40);
+            this.sentinel(unit);
+          }
+        };
+        _proto.syncWave = function syncWave() {
+          var _this8 = this;
+          if (this.enemyTransition) return;
+          var count = waveSize(this.game.s.run.stage, this.game.s.run.boss),
+            alive = survivingEnemies(count, ratio(this.game.s.run.hp, this.game.maxHP()));
+          this.enemy.children.forEach(function (unit) {
+            var index = Number(unit.name.split('-')[1]);
+            if (index < alive || !unit.active) return;
+            if (_this8.game.s.extra.effects) {
+              _this8.bulletImpact(unit.position.x, unit.position.y + 20);
+            }
+            unit.active = false;
+          });
+        };
+        _proto.shotTarget = function shotTarget() {
+          var units = this.enemy.children.filter(function (n) {
+            return n.active;
+          });
+          var unit = units[Math.floor(Math.random() * units.length)];
+          return unit ? new Vec3(unit.position.x, unit.position.y + 24, 0) : new Vec3(138, 48, 0);
         };
         _proto.spawnEnemy = function spawnEnemy() {
           Tween.stopAllByTarget(this.enemy);
           this.clear(this.enemy);
           this.enemy.active = true;
-          this.enemy.setPosition(270, 20);
+          this.enemy.setPosition(0, 0);
           var opacity = this.enemy.getComponent(UIOpacity);
           Tween.stopAllByTarget(opacity);
           opacity.opacity = 255;
-          this.sentinel(this.nodeAt(this.enemy, 'enemy-art', 0, 0, 272, 224));
+          this.populateEnemies();
           this.enemyLook = this.enemyKey();
           this.enemy.setScale(1, 1, 1);
-          if (this.game.s.extra.effects) tween(this.enemy).to(.45, {
-            position: new Vec3(138, 20, 0)
-          }, {
-            easing: 'quadOut'
-          }).start();else this.enemy.setPosition(138, 20);
+          if (this.game.s.extra.effects) this.enemy.children.forEach(function (unit, i) {
+            var rest = unit.position.clone();
+            unit.setPosition(rest.x + 220, rest.y);
+            tween(unit).delay(i * .012).to(.35, {
+              position: rest
+            }, {
+              easing: 'quadOut'
+            }).start();
+          });
         };
         _proto.syncAllies = function syncAllies() {
-          var _this8 = this;
+          var _this9 = this;
           var ids = this.game.s.run.heroes.map(function (level, i) {
               return level > 0 ? i : -1;
             }).filter(function (i) {
               return i >= 0;
             }),
-            biome = Math.floor((this.game.s.run.stage - 1) / 25) % 4,
-            key = biome + ':' + ids.join(',');
+            key = ids.join(',');
           if (this.allySignature === key) return;
           this.allySignature = key;
           this.clear(this.allies);
           this.clear(this.footholds);
-          // All squad members fire from the left; the right lane stays reserved for hostiles.
           ids.slice(0, 8).forEach(function (id, index) {
-            var x = -195 + index % 2 * 54,
-              y = 75 + Math.floor(index / 2) * 53;
-            var actor = _this8.nodeAt(_this8.allies, "hero-" + id, x, y, 76, 80),
-              body = _this8.nodeAt(actor, 'body', 0, -31, 78, 78);
+            var _allyPosition = allyPosition(index + 1),
+              x = _allyPosition.x,
+              y = _allyPosition.y,
+              actor = _this9.nodeAt(_this9.allies, "hero-" + id, x, y, SOLDIER_SIZE, SOLDIER_SIZE),
+              body = _this9.nodeAt(actor, 'body', 0, 0, SOLDIER_SIZE, SOLDIER_SIZE);
             body.getComponent(UITransform).setAnchorPoint(.5, 6 / 192);
-            _this8.ui.actor(body, ['rowen', 'kael', 'sera'][id % 3]);
+            _this9.ui.actor(body, ['rowen', 'kael', 'sera'][id % 3]);
           });
         };
         _proto.gunshot = function gunshot(x, y) {
-          var _this9 = this;
-          if (!this.game.s.extra.effects) return;
-          var muzzle = this.nodeAt(this.particles, 'muzzle-flash', x + 32, y, 26, 20);
-          this.ui.polygon(muzzle, [[-12, 0], [-3, 4], [3, 10], [6, 3], [17, 0], [5, -3], [1, -9], [-3, -3]], '#ffe04c');
-          tween(muzzle).to(.08, {
+          var _this10 = this;
+          if (!this.game.s.extra.effects || !isValid(this.particles, true)) return;
+          var target = this.shotTarget(),
+            muzzle = this.nodeAt(this.particles, 'muzzle-flash', x + 24, y, 18, 14);
+          this.ui.polygon(muzzle, [[-8, 0], [-2, 3], [2, 7], [4, 2], [12, 0], [3, -2], [1, -6], [-2, -2]], '#ffe04c');
+          tween(muzzle).to(.07, {
             scale: new Vec3(.1, .1, 1)
           }).call(function () {
             if (isValid(muzzle, true)) muzzle.destroy();
           }).start();
-          var tracer = this.nodeAt(this.particles, 'bullet-tracer', x + 35, y, 24, 3);
-          this.rect(tracer, 0, 0, 24, 3, '#fff4bc');
+          var tracer = this.nodeAt(this.particles, 'bullet-tracer', x + 25, y, 18, 2);
+          this.rect(tracer, 0, 0, 18, 2, '#fff4bc');
+          tracer.angle = Math.atan2(target.y - y, target.x - x - 25) * 180 / Math.PI;
           tween(tracer).to(.1, {
-            position: new Vec3(138, 95, 0)
+            position: target
           }).call(function () {
             if (isValid(tracer, true)) tracer.destroy();
-            _this9.spark(138, 95, C.gold);
+            if (isValid(_this10.particles, true)) _this10.bulletImpact(target.x, target.y);
           }).start();
+        };
+        _proto.bulletImpact = function bulletImpact(x, y) {
+          var _this11 = this;
+          if (!this.game.s.extra.effects || !isValid(this.particles, true) || this.particles.children.length > 180) return;
+          var _loop = function _loop() {
+            var p = _this11.nodeAt(_this11.particles, 'bullet-impact', x, y, 3, 3);
+            _this11.rect(p, 0, 0, 3, 3, i === 0 ? '#ffffff' : '#ffd83d');
+            var angle = i * 2.1;
+            tween(p).to(.14, {
+              position: new Vec3(x + Math.cos(angle) * 10, y + Math.sin(angle) * 10, 0),
+              scale: new Vec3(.15, .15, 1)
+            }).call(function () {
+              if (isValid(p, true)) p.destroy();
+            }).start();
+          };
+          for (var i = 0; i < 3; i++) {
+            _loop();
+          }
+        };
+        _proto.fireBurst = function fireBurst(x, y) {
+          var _this12 = this;
+          var layer = this.particles;
+          [0, .065, .13].forEach(function (delay) {
+            return _this12.scheduleOnce(function () {
+              if (_this12.particles === layer && isValid(layer, true) && !_this12.enemyTransition) _this12.gunshot(x, y);
+            }, delay);
+          });
         };
         _proto.animateAlly = function animateAlly(id, duration) {
           if (duration === void 0) {
@@ -38933,13 +39044,13 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           if (!ally) return;
           var body = ally.getChildByName('body');
           Tween.stopAllByTarget(body);
-          body.setPosition(0, -31);
+          body.setPosition(0, 0);
           tween(body).by(.05, {
-            position: new Vec3(-5, 0, 0)
+            position: new Vec3(-3, 0, 0)
           }).to(duration, {
-            position: new Vec3(0, -31, 0)
+            position: new Vec3(0, 0, 0)
           }).start();
-          this.gunshot(ally.position.x, ally.position.y + 48);
+          this.fireBurst(ally.position.x, ally.position.y + 39);
         };
         _proto.circle = function circle(parent, x, y, radius, color) {
           var n = this.nodeAt(parent, 'circle', x, y, radius * 2, radius * 2),
@@ -39032,7 +39143,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
         };
         _proto.drawNav = function drawNav() {
-          var _this10 = this;
+          var _this13 = this;
           var old = this.root.getChildByName('navigation');
           if (old) {
             old.removeFromParent();
@@ -39042,29 +39153,29 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.rect(nav, 0, 0, 480, 56, C.bg);
           this.rect(nav, 0, 27, 480, 2, '#9da3af');
           var _loop2 = function _loop2(i) {
-            var unlocked = tabUnlocked(_this10.game.s, i),
-              n = _this10.nodeAt(nav, 'tab-' + i, -200 + i * 80, 0, 80, 56),
-              title = _this10.tr(['nav.master', 'nav.heroes', 'nav.equipment', 'nav.pets', 'nav.artifacts', 'nav.shop'][i]);
-            if (i > 0) _this10.rect(n, -40, 0, 1, 40, '#626978');
-            if (i === _this10.tab) {
-              var selected = _this10.nodeAt(n, 'selected-tab', 0, 3, 76, 62);
-              _this10.ui.surface(selected, _this10.tabTone, 'slant');
+            var unlocked = tabUnlocked(_this13.game.s, i),
+              n = _this13.nodeAt(nav, 'tab-' + i, -200 + i * 80, 0, 80, 56),
+              title = _this13.tr(['nav.master', 'nav.heroes', 'nav.equipment', 'nav.pets', 'nav.artifacts', 'nav.shop'][i]);
+            if (i > 0) _this13.rect(n, -40, 0, 1, 40, '#626978');
+            if (i === _this13.tab) {
+              var selected = _this13.nodeAt(n, 'selected-tab', 0, 3, 76, 62);
+              _this13.ui.surface(selected, _this13.tabTone, 'slant');
             }
-            _this10.touchAction(n, function () {
-              return _this10.tutorial.tab(i);
+            _this13.touchAction(n, function () {
+              return _this13.tutorial.tab(i);
             }, title);
-            var icon = _this10.nodeAt(n, 'tab-icon', 0, i === _this10.tab ? 5 : 1, i === _this10.tab ? 44 : 37, i === _this10.tab ? 44 : 37);
-            _this10.hudIcon(icon, i, C.text);
-            if (i !== _this10.tab) icon.addComponent(UIOpacity).opacity = unlocked ? 210 : 60;
-            if (!unlocked) _this10.lockIcon(n, 23, 12);
-            if (i === 3 && unlocked && Date.now() >= _this10.game.s.eggAt) _this10.rect(n, 25, 18, 6, 6, C.danger);
+            var icon = _this13.nodeAt(n, 'tab-icon', 0, i === _this13.tab ? 5 : 1, i === _this13.tab ? 44 : 37, i === _this13.tab ? 44 : 37);
+            _this13.hudIcon(icon, i, C.text);
+            if (i !== _this13.tab) icon.addComponent(UIOpacity).opacity = unlocked ? 210 : 60;
+            if (!unlocked) _this13.lockIcon(n, 23, 12);
+            if (i === 3 && unlocked && Date.now() >= _this13.game.s.eggAt) _this13.rect(n, 25, 18, 6, 6, C.danger);
           };
           for (var i = 0; i < 6; i++) {
             _loop2(i);
           }
         };
         _proto.scroll = function scroll(parent, x, y, w, h, rows) {
-          var _this11 = this;
+          var _this14 = this;
           var viewport = this.nodeAt(parent, 'scroll', x, y, w, h);
           viewport.addComponent(Mask);
           var sv = viewport.addComponent(ScrollView);
@@ -39077,46 +39188,46 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           sv.content = content;
           rows.forEach(function (r, i) {
             var yy = -39 - i * 77;
-            var card = _this11.nodeAt(content, 'list-row', 0, yy, w - 8, 70);
-            if (r.action === _this11.tr('action.claim') && !r.locked && !(r.unavailable != null && r.unavailable())) _this11.rect(card, -w / 2 + 9, 0, 4, 54, C.gold);
-            _this11.rect(card, 0, -36, w - 24, 1, _this11.ui.inPopup(card) ? '#777e8c' : '#a4a8b1');
+            var card = _this14.nodeAt(content, 'list-row', 0, yy, w - 8, 70);
+            if (r.action === _this14.tr('action.claim') && !r.locked && !(r.unavailable != null && r.unavailable())) _this14.rect(card, -w / 2 + 9, 0, 4, 54, C.gold);
+            _this14.rect(card, 0, -36, w - 24, 1, _this14.ui.inPopup(card) ? '#777e8c' : '#a4a8b1');
             if (r.locked) {
               card.addComponent(UIOpacity).opacity = 155;
-              _this11.lockIcon(card, -w / 2 + 35, 0);
+              _this14.lockIcon(card, -w / 2 + 35, 0);
             }
-            if (r.tint && !r.locked) _this11.polygon(card, -w / 2 + 33, 0, 48, 48, [[0, -.5], [.5, 0], [0, .5], [-.5, 0]], r.tint, 90);
-            if (r.icon !== undefined && !r.locked) _this11.glyph(card, -w / 2 + 35, 0, r.icon, r.tint || C.gold, r.art);
+            if (r.tint && !r.locked) _this14.polygon(card, -w / 2 + 33, 0, 48, 48, [[0, -.5], [.5, 0], [0, .5], [-.5, 0]], r.tint, 90);
+            if (r.icon !== undefined && !r.locked) _this14.glyph(card, -w / 2 + 35, 0, r.icon, r.tint || C.gold, r.art);
             var hasIcon = r.icon !== undefined,
               hasAction = !!r.action;
             var left = -w / 2 + (hasIcon ? 66 : 16),
               right = w / 2 - (hasAction ? 106 : 16),
               width = right - left;
-            _this11.label(card, r.title, left + width / 2, r.sub || r.metrics ? 15 : 0, width, 28, 17, C.text, Label.HorizontalAlign.LEFT);
+            _this14.label(card, r.title, left + width / 2, r.sub || r.metrics ? 15 : 0, width, 28, 17, C.text, Label.HorizontalAlign.LEFT);
             if (r.metrics) r.metrics.forEach(function (m, j) {
-              return _this11.metric(card, m.icon, m.value, left + (j + .5) * width / r.metrics.length, -16, width / r.metrics.length, m.hint);
-            });else if (r.sub) _this11.label(card, r.sub, left + width / 2, -16, width, 31, 14, C.muted, Label.HorizontalAlign.LEFT);
+              return _this14.metric(card, m.icon, m.value, left + (j + .5) * width / r.metrics.length, -16, width / r.metrics.length, m.hint);
+            });else if (r.sub) _this14.label(card, r.sub, left + width / 2, -16, width, 31, 14, C.muted, Label.HorizontalAlign.LEFT);
             if (r.detail) {
-              var target = _this11.nodeAt(card, "details", -w / 2 + 120, 0, 210, 65);
+              var target = _this14.nodeAt(card, "details", -w / 2 + 120, 0, 210, 65);
               target.on(Node.EventType.TOUCH_END, r.detail);
             }
             if (r.action) {
-              var settled = [_this11.tr('action.equipped'), _this11.tr('action.claimed'), _this11.tr('action.selected')].includes(r.action);
+              var settled = [_this14.tr('action.equipped'), _this14.tr('action.claimed'), _this14.tr('action.selected')].includes(r.action);
               var browse = ['action.details', 'action.open', 'action.back'].some(function (key) {
-                return r.action === _this11.tr(key);
+                return r.action === _this14.tr(key);
               });
-              _this11.button(card, r.action, w / 2 - 54, 0, 90, 50, r.click || function () {}, !settled && (!_this11.ui.inPopup(card) || !browse), {
+              _this14.button(card, r.action, w / 2 - 54, 0, 90, 50, r.click || function () {}, !settled && (!_this14.ui.inPopup(card) || !browse), {
                 style: r.buttonStyle || (r.locked ? 'disabled' : settled ? 'selected' : browse ? 'secondary' : 'primary'),
                 fontSize: 18,
                 icon: r.actionIcon,
-                iconOnly: r.actionIcon ? true : undefined,
+                iconOnly: false,
                 hint: r.actionHint,
-                unavailable: r.unavailable || (r.action === _this11.tr('action.claimed') ? function () {
-                  return _this11.tr('action.alreadyClaimed');
+                unavailable: r.unavailable || (r.action === _this14.tr('action.claimed') ? function () {
+                  return _this14.tr('action.alreadyClaimed');
                 } : r.locked ? function () {
                   var _r$metrics;
                   return r.sub || ((_r$metrics = r.metrics) == null || (_r$metrics = _r$metrics.find(function (m) {
                     return m.hint;
-                  })) == null ? void 0 : _r$metrics.hint) || _this11.tr('error.locked');
+                  })) == null ? void 0 : _r$metrics.hint) || _this14.tr('error.locked');
                 } : undefined)
               });
             } else if (r.click) card.on(Node.EventType.TOUCH_END, r.click);
@@ -39152,7 +39263,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
         };
         _proto.drawPanel = function drawPanel() {
-          var _this12 = this;
+          var _this15 = this;
           this.clear(this.panel);
           if (!tabUnlocked(this.game.s, this.tab)) {
             this.tab = 0;
@@ -39177,15 +39288,15 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               value: this.format(g.tapDamage())
             }));
             this.button(this.panel, this.format(g.upgradeCost(-1, this.mode === -1 ? 1 : this.mode)), 164, 112, 135, 60, function () {
-              g.buy(-1, _this12.mode);
-              _this12.drawPanel();
-              _this12.flushNotice();
+              g.buy(-1, _this15.mode);
+              _this15.drawPanel();
+              _this15.flushNotice();
             }, true, {
               icon: 'symbol:plus',
               iconOnly: false,
               hint: this.tr('layout.upgrade'),
               unavailable: function unavailable() {
-                return _this12.levelReason(-1);
+                return _this15.levelReason(-1);
               }
             });
             this.polygon(this.panel, -6, 62, 468, 26, [[-.5, -.5], [.48, -.5], [.5, .5], [-.5, .5]], C.paperMuted);
@@ -39200,15 +39311,15 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               this.lockIcon(this.panel, 164, 13);
             } else this.button(this.panel, r.stage >= 60 ? this.format(g.prestigeReward()) : '60', 164, 13, 135, 60, function () {
               if (r.stage < 60) {
-                _this12.info(_this12.tr('unlock.title'), _this12.tr('prestige.locked'));
+                _this15.info(_this15.tr('unlock.title'), _this15.tr('prestige.locked'));
                 return;
               }
-              _this12.prestige();
+              _this15.prestige();
             }, r.stage >= 60, {
               icon: r.stage >= 60 ? 'rebirth' : 'lock',
               hint: this.tr('prestige.title'),
               unavailable: function unavailable() {
-                return _this12.game.s.run.stage < 60 ? _this12.tr('prestige.locked') : null;
+                return _this15.game.s.run.stage < 60 ? _this15.tr('prestige.locked') : null;
               }
             });
             this.polygon(this.panel, -6, -36, 468, 26, [[-.5, -.5], [.48, -.5], [.5, .5], [-.5, .5]], C.paperMuted);
@@ -39221,39 +39332,39 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }).map(function (sp) {
               return {
                 locked: r.master < sp.unlock,
-                title: _this12.tr("spell." + sp.id),
+                title: _this15.tr("spell." + sp.id),
                 metrics: [{
                   icon: r.master < sp.unlock ? 'lock' : 'symbol:up',
                   value: String(r.master < sp.unlock ? sp.unlock : r.spellLevels[sp.id]),
-                  hint: _this12.tr('spell.detail', {
+                  hint: _this15.tr('spell.detail', {
                     level: r.spellLevels[sp.id],
                     unlock: sp.unlock,
-                    mana: _this12.game.spellMana(sp.id)
+                    mana: _this15.game.spellMana(sp.id)
                   })
                 }, {
                   icon: 'lightning',
-                  value: String(_this12.game.spellMana(sp.id)),
-                  hint: _this12.tr('hud.mana', {
-                    value: _this12.game.spellMana(sp.id)
+                  value: String(_this15.game.spellMana(sp.id)),
+                  hint: _this15.tr('hud.mana', {
+                    value: _this15.game.spellMana(sp.id)
                   })
                 }],
                 icon: sp.id,
-                action: _this12.tr(r.master < sp.unlock ? 'action.level' : 'action.details', {
+                action: _this15.tr(r.master < sp.unlock ? 'action.level' : 'action.details', {
                   level: sp.unlock
                 }),
                 click: function click() {
-                  return _this12.spells(_this12.game.s.spellSlots.indexOf(sp.id) < 0 ? 0 : _this12.game.s.spellSlots.indexOf(sp.id));
+                  return _this15.spells(_this15.game.s.spellSlots.indexOf(sp.id) < 0 ? 0 : _this15.game.s.spellSlots.indexOf(sp.id));
                 }
               };
             }));
           } else if (this.tab === 1) {
             this.label(this.panel, this.tr('hero.title'), -133, 127, 190, 29, 21, C.gold, Label.HorizontalAlign.LEFT);
             this.button(this.panel, '×' + (this.mode === -1 ? '∞' : this.mode), 80, 127, 127, 34, function () {
-              _this12.mode = [1, 10, 100, -1][([1, 10, 100, -1].indexOf(_this12.mode) + 1) % 4];
-              _this12.drawPanel();
+              _this15.mode = [1, 10, 100, -1][([1, 10, 100, -1].indexOf(_this15.mode) + 1) % 4];
+              _this15.drawPanel();
             });
             if (s.maxStage >= 15) this.button(this.panel, '◈', 200, 127, 49, 34, function () {
-              return _this12.mastery();
+              return _this15.mastery();
             });
             this.scroll(this.panel, 0, -24, 458, 244, HEROES.filter(function (h) {
               var _HEROES$find;
@@ -39264,50 +39375,50 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               return {
                 locked: s.maxStage < h.unlock,
                 unavailable: function unavailable() {
-                  return _this12.levelReason(h.id);
+                  return _this15.levelReason(h.id);
                 },
-                title: _this12.tr(h.name),
-                sub: s.maxStage < h.unlock ? _this12.tr('hero.locked', {
+                title: _this15.tr(h.name),
+                sub: s.maxStage < h.unlock ? _this15.tr('hero.locked', {
                   stage: h.unlock
                 }) : undefined,
                 metrics: s.maxStage < h.unlock ? [{
                   icon: 'flag',
                   value: String(h.unlock),
-                  hint: _this12.tr('hero.locked', {
+                  hint: _this15.tr('hero.locked', {
                     stage: h.unlock
                   })
                 }] : [{
                   icon: 'symbol:up',
                   value: String(r.heroes[h.id]),
-                  hint: _this12.tr('action.level', {
+                  hint: _this15.tr('action.level', {
                     level: r.heroes[h.id]
                   })
                 }, {
                   icon: 'sword',
-                  value: _this12.format(g.heroDamage(h.id)),
-                  hint: _this12.tr('hero.stats', {
+                  value: _this15.format(g.heroDamage(h.id)),
+                  hint: _this15.tr('hero.stats', {
                     level: r.heroes[h.id],
-                    damage: _this12.format(g.heroDamage(h.id))
+                    damage: _this15.format(g.heroDamage(h.id))
                   })
                 }],
                 detail: function detail() {
-                  return _this12.extensions.hero(h.id);
+                  return _this15.extensions.hero(h.id);
                 },
                 icon: h.id,
                 art: 'face:' + ['rowen', 'kael', 'sera', 'guardian'][h.id % 4],
                 tint: [C.ember, C.mint, C.blue, C.violet][h.id % 4],
-                action: s.maxStage < h.unlock ? _this12.tr('action.locked') : _this12.format(g.upgradeCost(h.id, _this12.mode === -1 ? 1 : _this12.mode)),
+                action: s.maxStage < h.unlock ? _this15.tr('action.locked') : _this15.format(g.upgradeCost(h.id, _this15.mode === -1 ? 1 : _this15.mode)),
                 click: function click() {
                   if (s.maxStage < h.unlock) {
-                    _this12.info(_this12.tr('unlock.title'), _this12.tr('hero.locked', {
+                    _this15.info(_this15.tr('unlock.title'), _this15.tr('hero.locked', {
                       stage: h.unlock
                     }));
                     return;
                   }
-                  g.buy(h.id, _this12.mode);
-                  _this12.drawPanel();
-                  _this12.tutorial.event('progress');
-                  _this12.flushNotice();
+                  g.buy(h.id, _this15.mode);
+                  _this15.drawPanel();
+                  _this15.tutorial.event('progress');
+                  _this15.flushNotice();
                 }
               };
             }));
@@ -39315,22 +39426,22 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             this.metric(this.panel, 'face:compass', String(s.shards), -158, 127, 130, this.tr('equipment.craft'));
             this.metric(this.panel, 'symbol:bag', s.equipment.length + '/100', -25, 127, 120, this.tr('equipment.title'));
             this.button(this.panel, '⋯', 73, 127, 40, 34, function () {
-              return _this12.equipmentTools();
+              return _this15.equipmentTools();
             });
             this.button(this.panel, this.tr('equipment.craft'), 172, 127, 110, 34, function () {
-              return _this12.craft();
+              return _this15.craft();
             }, false, {
               unavailable: function unavailable() {
-                return s.equipment.length >= 100 ? _this12.tr('error.full') : _this12.costReason('shards', g.craftCost());
+                return s.equipment.length >= 100 ? _this15.tr('error.full') : _this15.costReason('shards', g.craftCost());
               }
             });
             var _loop3 = function _loop3(i) {
-              _this12.button(_this12.panel, _this12.tr("slot." + i), -180 + i * 90, 80, 84, 40, function () {
-                _this12.filter = _this12.filter === i ? -1 : i;
-                _this12.drawPanel();
-              }, _this12.filter === i, {
-                style: _this12.filter === i ? 'selected' : 'quiet',
-                tone: _this12.filter === i ? C.violet : C.paperMuted,
+              _this15.button(_this15.panel, _this15.tr("slot." + i), -180 + i * 90, 80, 84, 40, function () {
+                _this15.filter = _this15.filter === i ? -1 : i;
+                _this15.drawPanel();
+              }, _this15.filter === i, {
+                style: _this15.filter === i ? 'selected' : 'quiet',
+                tone: _this15.filter === i ? C.violet : C.paperMuted,
                 icon: 'face:' + ['blade', 'helmet', 'breastplate', 'aura', 'compass'][i],
                 iconOnly: true
               });
@@ -39339,7 +39450,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               _loop3(i);
             }
             var items = s.equipment.filter(function (e) {
-              return _this12.filter < 0 || e.slot === _this12.filter;
+              return _this15.filter < 0 || e.slot === _this15.filter;
             }).sort(function (a, b) {
               return b.power - a.power;
             });
@@ -39349,17 +39460,17 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                 metrics: [{
                   icon: 'sword',
                   value: '×' + e.power.toFixed(2),
-                  hint: _this12.tr('equipment.power', {
+                  hint: _this15.tr('equipment.power', {
                     power: e.power.toFixed(2)
                   })
                 }],
-                actionHint: _this12.itemName(e),
-                action: s.equipped.includes(e.id) ? _this12.tr('action.equipped') : _this12.tr('action.details'),
+                actionHint: _this15.itemName(e),
+                action: s.equipped.includes(e.id) ? _this15.tr('action.equipped') : _this15.tr('action.details'),
                 icon: e.slot,
                 art: 'face:' + ['blade', 'helmet', 'breastplate', 'aura', 'compass'][e.slot],
                 tint: e.rarity > 1 ? C.gold : C.blue,
                 click: function click() {
-                  return _this12.item(e);
+                  return _this15.item(e);
                 }
               };
             }));
@@ -39369,46 +39480,46 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             this.button(this.panel, Date.now() >= s.eggAt ? this.tr('pet.hatch') : this.tr('action.remaining', {
               seconds: Math.ceil((s.eggAt - Date.now()) / 1000)
             }), 143, 127, 164, 36, function () {
-              return _this12.act(function () {
-                return g.hatch(_this12.id('egg'));
+              return _this15.act(function () {
+                return g.hatch(_this15.id('egg'));
               }, function () {
-                return _this12.drawPanel();
+                return _this15.drawPanel();
               });
             }, false, {
               unavailable: function unavailable() {
-                return _this12.game.now() < _this12.game.s.eggAt ? _this12.tr('action.waitSeconds', {
-                  seconds: Math.ceil((_this12.game.s.eggAt - _this12.game.now()) / 1000)
+                return _this15.game.now() < _this15.game.s.eggAt ? _this15.tr('action.waitSeconds', {
+                  seconds: Math.ceil((_this15.game.s.eggAt - _this15.game.now()) / 1000)
                 }) : null;
               }
             });
             this.scroll(this.panel, 0, -24, 458, 244, PETS.map(function (p) {
               return {
                 locked: s.pets[p.id] === 0,
-                title: _this12.tr(p.name),
+                title: _this15.tr(p.name),
                 metrics: [{
                   icon: 'symbol:up',
                   value: String(s.pets[p.id]),
-                  hint: _this12.tr('action.level', {
+                  hint: _this15.tr('action.level', {
                     level: s.pets[p.id]
                   })
                 }, {
                   icon: ['sword', 'symbol:hand', 'face:gems'][p.effect],
                   value: '×' + (1 + s.pets[p.id] * .025).toFixed(2),
-                  hint: _this12.tr('effect.' + p.effect)
+                  hint: _this15.tr('effect.' + p.effect)
                 }],
                 detail: function detail() {
-                  return _this12.extensions.petDetail(p.id);
+                  return _this15.extensions.petDetail(p.id);
                 },
                 icon: p.id,
                 art: 'face:' + ['ember-fox', 'stone-hawk', 'shade-wolf'][p.id % 3],
                 tint: C.mint,
-                action: !s.pets[p.id] ? _this12.tr('action.locked') : s.activePet === p.id ? _this12.tr('action.equipped') : _this12.tr('action.equip'),
+                action: !s.pets[p.id] ? _this15.tr('action.locked') : s.activePet === p.id ? _this15.tr('action.equipped') : _this15.tr('action.equip'),
                 click: function click() {
-                  if (!s.pets[p.id]) _this12.toast(_this12.tr('error.locked'));else {
+                  if (!s.pets[p.id]) _this15.toast(_this15.tr('error.locked'));else {
                     s.activePet = p.id;
-                    _this12.tutorial.complete('first:pet');
+                    _this15.tutorial.complete('first:pet');
                     g.persist();
-                    _this12.drawPanel();
+                    _this15.drawPanel();
                   }
                 }
               };
@@ -39418,10 +39529,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               value: this.format(s.relics)
             }));
             this.button(this.panel, this.format(g.discoverCost()), 149, 127, 154, 36, function () {
-              return _this12.act(function () {
-                return g.discover(_this12.id('discover'));
+              return _this15.act(function () {
+                return g.discover(_this15.id('discover'));
               }, function () {
-                return _this12.drawPanel();
+                return _this15.drawPanel();
               });
             }, true, {
               icon: 'chest',
@@ -39431,35 +39542,35 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               unavailable: function unavailable() {
                 return s.artifacts.every(function (v) {
                   return v > 0;
-                }) ? _this12.tr('error.complete') : _this12.costReason('relics', g.discoverCost());
+                }) ? _this15.tr('error.complete') : _this15.costReason('relics', g.discoverCost());
               }
             });
             var owned = ARTIFACTS.filter(function (a) {
               return s.artifacts[a.id];
             });
             this.button(this.panel, '⋯', -208, 89, 40, 26, function () {
-              return _this12.salvaged();
+              return _this15.salvaged();
             });
             this.scroll(this.panel, 0, -37, 458, 221, owned.map(function (a) {
               return {
-                title: _this12.tr(a.name),
+                title: _this15.tr(a.name),
                 metrics: [{
                   icon: 'symbol:up',
                   value: String(s.artifacts[a.id]),
-                  hint: _this12.tr('action.level', {
+                  hint: _this15.tr('action.level', {
                     level: s.artifacts[a.id]
                   })
                 }, {
                   icon: ['sword', 'symbol:hand', 'adventurer', 'symbol:coin'][a.effect],
-                  value: _this12.artifactMultiplier(a.id),
-                  hint: _this12.tr('effect.' + a.effect)
+                  value: _this15.artifactMultiplier(a.id),
+                  hint: _this15.tr('effect.' + a.effect)
                 }],
                 icon: a.id,
                 art: 'face:' + ['blade', 'crown', 'compass', 'aura', 'gems', 'supplies'][a.id % 6],
                 tint: C.violet,
-                action: _this12.tr('action.details'),
+                action: _this15.tr('action.details'),
                 click: function click() {
-                  return _this12.artifactDetail(a.id);
+                  return _this15.artifactDetail(a.id);
                 }
               };
             }));
@@ -39469,12 +39580,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }
           } else {
             [0, 1, 2].forEach(function (i) {
-              return _this12.button(_this12.panel, _this12.tr(['shop.regular', 'shop.progression', 'shop.limited'][i]), -151 + i * 151, 127, 142, 38, function () {
-                _this12.shopTab = i;
-                _this12.drawPanel();
-              }, _this12.shopTab === i, {
-                style: _this12.shopTab === i ? 'selected' : 'quiet',
-                tone: _this12.shopTab === i ? C.gold : C.paperMuted,
+              return _this15.button(_this15.panel, _this15.tr(['shop.regular', 'shop.progression', 'shop.limited'][i]), -151 + i * 151, 127, 142, 38, function () {
+                _this15.shopTab = i;
+                _this15.drawPanel();
+              }, _this15.shopTab === i, {
+                style: _this15.shopTab === i ? 'selected' : 'quiet',
+                tone: _this15.shopTab === i ? C.gold : C.paperMuted,
                 icon: ['chest', 'symbol:up', 'symbol:clock'][i],
                 iconOnly: true
               });
@@ -39491,37 +39602,37 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               }],
               action: this.tr(s.claims.includes('daily.0') ? 'action.claimed' : 'action.claim'),
               click: function click() {
-                return _this12.act(function () {
+                return _this15.act(function () {
                   return g.claimDaily(0);
                 }, function () {
-                  return _this12.drawPanel();
+                  return _this15.drawPanel();
                 });
               }
             }].concat([0, 1, 2].map(function (i) {
               return {
                 unavailable: function unavailable() {
-                  return _this12.costReason('gems', [30, 60, 100][i]) || (i === 2 && s.equipment.length >= 100 ? _this12.tr('error.full') : null);
+                  return _this15.costReason('gems', [30, 60, 100][i]) || (i === 2 && s.equipment.length >= 100 ? _this15.tr('error.full') : null);
                 },
-                title: _this12.tr(['shop.pet', 'shop.shards', 'shop.chest'][i]),
+                title: _this15.tr(['shop.pet', 'shop.shards', 'shop.chest'][i]),
                 metrics: [{
                   icon: 'face:gems',
                   value: String([30, 60, 100][i]),
-                  hint: _this12.tr('action.cost', {
+                  hint: _this15.tr('action.cost', {
                     cost: [30, 60, 100][i]
                   })
                 }],
                 icon: i,
                 tint: C.gold,
-                action: _this12.tr('action.buy'),
+                action: _this15.tr('action.buy'),
                 click: function click() {
-                  return _this12.confirm(_this12.tr(['shop.pet', 'shop.shards', 'shop.chest'][i]), _this12.tr('shop.confirm', {
+                  return _this15.confirm(_this15.tr(['shop.pet', 'shop.shards', 'shop.chest'][i]), _this15.tr('shop.confirm', {
                     cost: [30, 60, 100][i]
-                  }) + (i === 2 ? '\n' + _this12.tr('shop.chestInfo') : ''), function () {
-                    return _this12.act(function () {
-                      return g.buyDeal(i, _this12.id('deal'));
+                  }) + (i === 2 ? '\n' + _this15.tr('shop.chestInfo') : ''), function () {
+                    return _this15.act(function () {
+                      return g.buyDeal(i, _this15.id('deal'));
                     }, function () {
-                      _this12.close();
-                      _this12.drawPanel();
+                      _this15.close();
+                      _this15.drawPanel();
                     });
                   });
                 }
@@ -39533,15 +39644,15 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }).map(function (stage) {
               return {
                 locked: s.maxStage < stage,
-                title: _this12.tr('milestone.row', {
+                title: _this15.tr('milestone.row', {
                   stage: stage
                 }),
-                action: _this12.tr(s.maxStage < stage ? 'action.locked' : s.claims.includes("milestone." + stage) ? 'action.claimed' : 'action.claim'),
+                action: _this15.tr(s.maxStage < stage ? 'action.locked' : s.claims.includes("milestone." + stage) ? 'action.claimed' : 'action.claim'),
                 click: function click() {
-                  return _this12.act(function () {
+                  return _this15.act(function () {
                     return g.claimMilestone(stage);
                   }, function () {
-                    return _this12.drawPanel();
+                    return _this15.drawPanel();
                   });
                 }
               };
@@ -39550,7 +39661,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               sub: this.tr('extra.limitedInfo'),
               action: this.tr('action.open'),
               click: function click() {
-                return _this12.extensions.limited();
+                return _this15.extensions.limited();
               }
             }];
             rows.unshift({
@@ -39564,7 +39675,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               }],
               action: this.tr('action.open'),
               click: function click() {
-                return _this12.payments.store();
+                return _this15.payments.store();
               }
             });
             if (this.shopTab === 0) rows.splice(1, 0, {
@@ -39580,14 +39691,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               }],
               action: this.tr('money.watch'),
               click: function click() {
-                return _this12.payments.ads('shop');
+                return _this15.payments.ads('shop');
               }
             });
             if (this.shopTab === 2) rows.unshift({
               title: this.tr('money.pass'),
               action: this.payments.price('season_pass'),
               click: function click() {
-                return _this12.payments.product('season_pass');
+                return _this15.payments.product('season_pass');
               }
             });
             this.scroll(this.panel, 0, -24, 458, 244, rows);
@@ -39602,7 +39713,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         };
         _proto.open = function open(title, height, closable, surface) {
           var _this$tutorial2,
-            _this13 = this;
+            _this16 = this;
           if (height === void 0) {
             height = 600;
           }
@@ -39624,7 +39735,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.polygon(box, -199, height / 2 - 38, 34, 60, [[-.5, -.5], [.15, -.5], [.5, .5], [-.5, .5]], panelAccent);
           if (!((_this$tutorial2 = this.tutorial) != null && _this$tutorial2.popup(title, heading))) this.label(heading, title, 0, 0, 322, 44, 23, C.ink);
           if (closable) this.button(box, '×', 181, height / 2 - 36, 38, 36, function () {
-            return _this13.close();
+            return _this16.close();
           }, false, {
             style: 'quiet',
             tone: panelAccent,
@@ -39643,20 +39754,20 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
         };
         _proto.confirm = function confirm(title, body, yes) {
-          var _this14 = this;
+          var _this17 = this;
           var p = this.open(title, 370);
           this.label(p, body, 0, 10, 372, 195, 19, C.text);
           this.button(p, this.tr('action.cancel'), -103, -132, 178, 48, function () {
-            return _this14.close();
+            return _this17.close();
           });
           this.button(p, this.tr('action.confirm'), 103, -132, 178, 48, yes, true);
         };
         _proto.info = function info(title, body) {
-          var _this15 = this;
+          var _this18 = this;
           var p = this.open(title, 390);
           this.label(p, body, 0, 0, 375, 245, 18, C.text);
           this.button(p, this.tr('action.close'), 0, -145, 260, 45, function () {
-            return _this15.close();
+            return _this18.close();
           });
         };
         _proto.act = function act(action, done) {
@@ -39668,77 +39779,77 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           } else this.flushNotice();
         };
         _proto.menu = function menu() {
-          var _this16 = this;
+          var _this19 = this;
           for (var _i3 = 0, _arr3 = [15, 50, 60, 100, 1000, 100000, 180000]; _i3 < _arr3.length; _i3++) {
             var stage = _arr3[_i3];
             if (this.game.s.maxStage >= stage) this.tutorial.complete('feature:' + stage);
           }
           var p = this.open(this.tr('menu.title'), 706);
           var actions = [['daily', function () {
-            return _this16.daily();
+            return _this19.daily();
           }], ['milestones', function () {
-            return _this16.milestones();
+            return _this19.milestones();
           }], ['raid', function () {
-            return _this16.raidLobby();
+            return _this19.raidLobby();
           }], ['cards', function () {
-            return _this16.cards();
+            return _this19.cards();
           }], ['event', function () {
-            return _this16.events();
+            return _this19.events();
           }], ['meta', function () {
-            return _this16.meta();
+            return _this19.meta();
           }], ['clan', function () {
-            return _this16.guild();
+            return _this19.guild();
           }], ['tournament', function () {
-            return _this16.competition();
+            return _this19.competition();
           }], ['profile', function () {
-            return _this16.profile();
+            return _this19.profile();
           }], ['settings', function () {
-            return _this16.settings();
+            return _this19.settings();
           }], ['inbox', function () {
-            return _this16.extensions.inbox();
+            return _this19.extensions.inbox();
           }], ['achievements', function () {
-            return _this16.achievements();
+            return _this19.achievements();
           }]];
           var icons = ['chest', 'flag', 'sword', 'cards', 'trophy', 'scroll', 'flag', 'trophy', 'adventurer', 'settings', 'mail', 'trophy'];
           actions.filter(function (_ref3) {
             var key = _ref3[0];
-            return featureUnlocked(_this16.game.s, 'menu.' + key);
+            return featureUnlocked(_this19.game.s, 'menu.' + key);
           }).forEach(function (_ref4, i) {
             var key = _ref4[0],
               f = _ref4[1];
-            return _this16.button(p, _this16.tr("menu." + key), i % 2 ? 101 : -101, 245 - Math.floor(i / 2) * 91, 184, 70, f, false, {
+            return _this19.button(p, _this19.tr("menu." + key), i % 2 ? 101 : -101, 245 - Math.floor(i / 2) * 91, 184, 70, f, false, {
               style: 'secondary',
               icon: icons[i],
-              iconOnly: true,
+              iconOnly: false,
               fontSize: 15
             });
           });
           this.button(p, this.tr('extra.hub'), 0, -304, 380, 44, function () {
-            return _this16.extensions.hub();
+            return _this19.extensions.hub();
           }, false, {
             style: 'quiet'
           });
         };
         _proto.prestige = function prestige() {
-          var _this17 = this;
+          var _this20 = this;
           var g = this.game;
           this.confirm(this.tr('prestige.title'), this.tr('prestige.desc') + '\n\n' + this.tr('prestige.reward', {
             value: this.format(g.prestigeReward())
           }) + '\n' + this.tr('prestige.start', {
             stage: Math.max(1, Math.floor(g.s.maxStage * .05))
           }), function () {
-            if (g.prestige(_this17.id('prestige'))) {
-              _this17.close();
-              _this17.drawPanel();
-              _this17.toast(_this17.tr('prestige.done'));
-            } else _this17.flushNotice();
+            if (g.prestige(_this20.id('prestige'))) {
+              _this20.close();
+              _this20.drawPanel();
+              _this20.toast(_this20.tr('prestige.done'));
+            } else _this20.flushNotice();
           });
         };
         _proto.item = function item(e) {
-          var _this18 = this;
+          var _this21 = this;
           this.tutorial.complete('first:gear');
           var current = this.game.s.equipment.find(function (x) {
-              return x.id === _this18.game.s.equipped[e.slot];
+              return x.id === _this21.game.s.equipped[e.slot];
             }),
             equipped = (current == null ? void 0 : current.id) === e.id,
             p = this.open(this.tr("slot." + e.slot), 480, true, 'slate');
@@ -39756,29 +39867,29 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var gain = (e.power / ((current == null ? void 0 : current.power) || 1) - 1) * 100;
           this.label(p, (gain >= 0 ? '+' : '') + gain.toFixed(1) + '%', 0, -47, 230, 26, 20, gain >= 0 ? C.mint : C.danger);
           this.button(p, this.tr(equipped ? 'action.equipped' : 'action.equip'), -128, -103, 112, 58, function () {
-            _this18.game.equip(e.id);
-            _this18.close();
-            _this18.drawPanel();
+            _this21.game.equip(e.id);
+            _this21.close();
+            _this21.drawPanel();
           }, true, {
             style: equipped ? 'selected' : 'primary'
           });
           this.button(p, this.tr('action.lock'), 0, -103, 112, 58, function () {
-            _this18.game.lock(e.id);
-            _this18.item(e);
+            _this21.game.lock(e.id);
+            _this21.item(e);
           }, false, {
             style: e.locked ? 'selected' : 'secondary'
           });
           this.button(p, this.tr('action.sell'), 128, -103, 112, 58, function () {
             if (e.locked || equipped) {
-              _this18.toast(_this18.tr('equipment.protected'));
+              _this21.toast(_this21.tr('equipment.protected'));
               return;
             }
-            _this18.confirm(_this18.itemName(e), _this18.tr('equipment.sellConfirm'), function () {
-              return _this18.act(function () {
-                return _this18.game.sell([e.id], _this18.id('sell'));
+            _this21.confirm(_this21.itemName(e), _this21.tr('equipment.sellConfirm'), function () {
+              return _this21.act(function () {
+                return _this21.game.sell([e.id], _this21.id('sell'));
               }, function () {
-                _this18.close();
-                _this18.drawPanel();
+                _this21.close();
+                _this21.drawPanel();
               });
             });
           }, false, {
@@ -39786,28 +39897,28 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             hint: this.tr('action.sell') + ' · ' + (e.rarity + 1)
           });
           this.button(p, this.tr('equipment.sets'), -98, -186, 174, 44, function () {
-            return _this18.sets();
+            return _this21.sets();
           });
           this.button(p, this.tr('ui.iconHelp'), 98, -186, 174, 44, function () {
-            return _this18.info(_this18.itemName(e), _this18.tr('ui.equipmentHelp'));
+            return _this21.info(_this21.itemName(e), _this21.tr('ui.equipmentHelp'));
           }, false, {
             icon: 'symbol:info',
             iconOnly: true
           });
         };
         _proto.craft = function craft() {
-          var _this19 = this;
+          var _this22 = this;
           this.confirm(this.tr('equipment.craft'), this.tr('equipment.craftDesc', {
             cost: this.game.craftCost(),
             shards: this.game.s.shards
           }), function () {
-            return _this19.act(function () {
-              return _this19.game.craft(_this19.id('craft'));
+            return _this22.act(function () {
+              return _this22.game.craft(_this22.id('craft'));
             }, function () {
-              _this19.close();
-              _this19.drawPanel();
-              var last = _this19.game.s.equipment[_this19.game.s.equipment.length - 1];
-              _this19.item(last);
+              _this22.close();
+              _this22.drawPanel();
+              var last = _this22.game.s.equipment[_this22.game.s.equipment.length - 1];
+              _this22.item(last);
             });
           });
         };
@@ -39823,7 +39934,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.skills = function skills(fresh) {
-          var _this20 = this;
+          var _this23 = this;
           if (fresh === void 0) {
             fresh = true;
           }
@@ -39849,14 +39960,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             this.label(group, this.tr("branch." + branch), 0, 69, 114, 24, 16, '#175960');
             var _loop4 = function _loop4() {
               var i = branch * 3 + tier;
-              if (tier < 2) _this20.rect(group, 0, 14 - tier * 45, 2, 14, '#8fbfb5');
-              var unlocked = tier === 0 || _this20.draft[i - 1] >= 3;
-              _this20.button(group, _this20.tr('action.level', {
-                level: _this20.draft[i]
+              if (tier < 2) _this23.rect(group, 0, 14 - tier * 45, 2, 14, '#8fbfb5');
+              var unlocked = tier === 0 || _this23.draft[i - 1] >= 3;
+              _this23.button(group, _this23.tr('action.level', {
+                level: _this23.draft[i]
               }), 0, 36 - tier * 45, 112, 38, function () {
-                return _this20.skillNode(i);
+                return _this23.skillNode(i);
               }, false, {
-                style: _this20.draft[i] > 0 ? 'selected' : unlocked ? 'secondary' : 'disabled',
+                style: _this23.draft[i] > 0 ? 'selected' : unlocked ? 'secondary' : 'disabled',
                 icon: icons[branch],
                 fontSize: 13
               });
@@ -39866,42 +39977,42 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }
           }
           this.button(p, this.tr('action.revert'), -137, -285, 124, 46, function () {
-            return _this20.skills();
+            return _this23.skills();
           });
           this.button(p, this.tr('action.reset'), 0, -285, 124, 46, function () {
-            _this20.draft = Array(18).fill(0);
-            _this20.skills(false);
+            _this23.draft = Array(18).fill(0);
+            _this23.skills(false);
           });
           this.button(p, this.tr('action.apply'), 137, -285, 124, 46, function () {
-            return _this20.act(function () {
-              return _this20.game.applySkills(_this20.draft, _this20.id('skills'));
+            return _this23.act(function () {
+              return _this23.game.applySkills(_this23.draft, _this23.id('skills'));
             }, function () {
-              return _this20.skills();
+              return _this23.skills();
             });
           }, true);
         };
         _proto.perks = function perks() {
-          var _this21 = this;
+          var _this24 = this;
           var p = this.open(this.tr('perks.title'), 650);
           this.label(p, this.tr('perks.info'), 0, 242, 370, 50, 16, C.muted);
           this.scroll(p, 0, -25, 400, 450, Array.from({
             length: 6
           }, function (_, i) {
             return {
-              title: _this21.tr('perks.row', {
-                name: _this21.tr("branch." + i),
-                count: _this21.game.s.perks[i]
+              title: _this24.tr('perks.row', {
+                name: _this24.tr("branch." + i),
+                count: _this24.game.s.perks[i]
               }),
-              sub: Date.now() < _this21.game.s.perkUntil[i] ? _this21.tr('action.remaining', {
-                seconds: Math.ceil((_this21.game.s.perkUntil[i] - Date.now()) / 1000)
+              sub: Date.now() < _this24.game.s.perkUntil[i] ? _this24.tr('action.remaining', {
+                seconds: Math.ceil((_this24.game.s.perkUntil[i] - Date.now()) / 1000)
               }) : '',
               icon: i,
-              action: _this21.tr('action.apply'),
+              action: _this24.tr('action.apply'),
               click: function click() {
-                return _this21.act(function () {
-                  return _this21.game.usePerk(i, _this21.id('perk'));
+                return _this24.act(function () {
+                  return _this24.game.usePerk(i, _this24.id('perk'));
                 }, function () {
-                  return _this21.extensions.perks();
+                  return _this24.extensions.perks();
                 });
               }
             };
@@ -39922,64 +40033,64 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.daily = function daily() {
-          var _this22 = this;
+          var _this25 = this;
           var p = this.open(this.tr('daily.title'), 570);
           this.scroll(p, 0, -24, 400, 450, [0, 1, 2, 3].map(function (i) {
             return {
-              title: _this22.tr("daily." + i),
-              sub: _this22.tr('daily.progress', {
-                current: _this22.game.dailyProgress(i),
-                goal: _this22.game.dailyGoal(i)
+              title: _this25.tr("daily." + i),
+              sub: _this25.tr('daily.progress', {
+                current: _this25.game.dailyProgress(i),
+                goal: _this25.game.dailyGoal(i)
               }),
-              locked: _this22.game.dailyProgress(i) < _this22.game.dailyGoal(i),
+              locked: _this25.game.dailyProgress(i) < _this25.game.dailyGoal(i),
               icon: i,
               tint: C.mint,
-              action: _this22.tr(_this22.game.s.claims.includes("daily." + i) ? 'action.claimed' : 'action.claim'),
+              action: _this25.tr(_this25.game.s.claims.includes("daily." + i) ? 'action.claimed' : 'action.claim'),
               click: function click() {
-                return _this22.act(function () {
-                  return _this22.game.claimDaily(i);
+                return _this25.act(function () {
+                  return _this25.game.claimDaily(i);
                 }, function () {
-                  return _this22.daily();
+                  return _this25.daily();
                 });
               }
             };
           }));
         };
         _proto.milestones = function milestones() {
-          var _this23 = this;
+          var _this26 = this;
           var p = this.open(this.tr('milestone.title'), 630);
           this.scroll(p, 0, -28, 400, 514, [8, 15, 60, 100, 500, 1000, 100000, 180000].map(function (stage) {
             return {
-              title: _this23.tr('hud.stage', {
+              title: _this26.tr('hud.stage', {
                 stage: stage
               }),
-              sub: _this23.tr('milestone.row', {
+              sub: _this26.tr('milestone.row', {
                 stage: stage
               }),
-              locked: _this23.game.s.maxStage < stage,
-              action: _this23.tr(_this23.game.s.claims.includes("milestone." + stage) ? 'action.claimed' : 'action.claim'),
+              locked: _this26.game.s.maxStage < stage,
+              action: _this26.tr(_this26.game.s.claims.includes("milestone." + stage) ? 'action.claimed' : 'action.claim'),
               click: function click() {
-                return _this23.act(function () {
-                  return _this23.game.claimMilestone(stage);
+                return _this26.act(function () {
+                  return _this26.game.claimMilestone(stage);
                 }, function () {
-                  return _this23.milestones();
+                  return _this26.milestones();
                 });
               }
             };
           }));
         };
         _proto.offline = function offline() {
-          var _this24 = this;
+          var _this27 = this;
           var p = this.open(this.tr('offline.title'), 380);
           this.label(p, this.tr('offline.reward', {
             gold: this.format(this.game.s.offline)
           }), 0, 40, 370, 65, 24, C.gold);
           this.label(p, this.tr('offline.info'), 0, -26, 370, 56, 17, C.muted);
           this.button(p, this.tr('action.claim'), 0, -126, 310, 50, function () {
-            return _this24.act(function () {
-              return _this24.game.collectOffline(_this24.id('offline'));
+            return _this27.act(function () {
+              return _this27.game.collectOffline(_this27.id('offline'));
             }, function () {
-              return _this24.close();
+              return _this27.close();
             });
           }, true);
         };
@@ -40000,18 +40111,18 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.settings = function settings() {
-          var _this25 = this;
+          var _this28 = this;
           var p = this.open(this.tr('menu.settings'), 700);
           this.label(p, this.tr('settings.language'), 0, 239, 340, 30, 16, '#38696b');
           var language = function language(locale) {
-            _this25.game.s.locale = locale;
-            _this25.game.persist();
-            if (_this25.liveOps.push.supported && _this25.liveOps.push.choice === 'on') void _this25.liveOps.push.set(true, locale)["catch"](function (e) {
-              return _this25.operations.report('push.locale', e);
+            _this28.game.s.locale = locale;
+            _this28.game.persist();
+            if (_this28.liveOps.push.supported && _this28.liveOps.push.choice === 'on') void _this28.liveOps.push.set(true, locale)["catch"](function (e) {
+              return _this28.operations.report('push.locale', e);
             });
-            _this25.close();
-            _this25.draw();
-            _this25.settings();
+            _this28.close();
+            _this28.draw();
+            _this28.settings();
           };
           this.button(p, this.tr('locale.ko'), -94, 192, 175, 46, function () {
             return language('ko');
@@ -40026,46 +40137,46 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.button(p, this.tr('settings.audio', {
             state: this.tr(this.game.s.audio ? 'settings.on' : 'settings.off')
           }), 0, 120, 365, 48, function () {
-            _this25.game.s.audio = !_this25.game.s.audio;
-            _this25.game.persist();
-            _this25.settings();
+            _this28.game.s.audio = !_this28.game.s.audio;
+            _this28.game.persist();
+            _this28.settings();
           }, false, {
             icon: 'heart'
           });
           this.button(p, this.tr('settings.saveButton'), 0, 57, 365, 48, function () {
-            if (_this25.game.persist()) void _this25.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
+            if (_this28.game.persist()) void _this28.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
               return _regeneratorRuntime().wrap(function _callee2$(_context2) {
                 while (1) switch (_context2.prev = _context2.next) {
                   case 0:
                     _context2.next = 2;
-                    return _this25.operations.save();
+                    return _this28.operations.save();
                   case 2:
-                    _this25.toast(_this25.tr('settings.save'));
+                    _this28.toast(_this28.tr('settings.save'));
                   case 3:
                   case "end":
                     return _context2.stop();
                 }
               }, _callee2);
-            })));else _this25.flushNotice();
+            })));else _this28.flushNotice();
           }, true, {
             icon: 'scroll'
           });
           this.button(p, this.tr('live.17'), 0, -6, 365, 46, function () {
-            return _this25.liveOps.hub();
+            return _this28.liveOps.hub();
           }, false, {
             icon: 'mail'
           });
           this.button(p, this.tr('tutorial.replay'), 0, -66, 365, 38, function () {
-            return _this25.confirm(_this25.tr('tutorial.replay'), _this25.tr('tutorial.replayBody'), function () {
-              replayTutorial(_this25.game.s);
-              _this25.game.revision++;
-              _this25.game.persist();
-              void _this25.operations.save()["catch"](function (e) {
-                return _this25.operations.report('tutorial.replay', e);
+            return _this28.confirm(_this28.tr('tutorial.replay'), _this28.tr('tutorial.replayBody'), function () {
+              replayTutorial(_this28.game.s);
+              _this28.game.revision++;
+              _this28.game.persist();
+              void _this28.operations.save()["catch"](function (e) {
+                return _this28.operations.report('tutorial.replay', e);
               });
-              _this25.tab = 0;
-              _this25.folded = false;
-              _this25.draw();
+              _this28.tab = 0;
+              _this28.folded = false;
+              _this28.draw();
             });
           }, false, {
             style: 'quiet',
@@ -40074,7 +40185,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.label(p, this.tr('settings.about'), 0, -120, 375, 54, 14, C.muted);
           resources.load('branding/tt-softs-ci/texture', Texture2D, function (err, texture) {
             if (err || !p.isValid) return;
-            var n = _this25.nodeAt(p, 'company-ci', 0, -188, 120, 120 * texture.height / texture.width),
+            var n = _this28.nodeAt(p, 'company-ci', 0, -188, 120, 120 * texture.height / texture.width),
               sp = n.addComponent(Sprite),
               frame = new SpriteFrame();
             frame.texture = texture;
@@ -40083,26 +40194,26 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             n.getComponent(UITransform).setContentSize(120, 120 * texture.height / texture.width);
           });
           this.button(p, this.tr('complete.display'), -124, -270, 116, 68, function () {
-            return _this25.extensions.displaySettings();
+            return _this28.extensions.displaySettings();
           }, false, {
             style: 'quiet',
             icon: 'settings'
           });
           this.button(p, this.tr('complete.account'), 0, -270, 116, 68, function () {
-            return _this25.extensions.account();
+            return _this28.extensions.account();
           }, false, {
             style: 'quiet',
             icon: 'adventurer'
           });
           this.button(p, this.tr('complete.support'), 124, -270, 116, 68, function () {
-            return _this25.extensions.support();
+            return _this28.extensions.support();
           }, false, {
             style: 'quiet',
             icon: 'mail'
           });
         };
         _proto.cards = function cards() {
-          var _this26 = this;
+          var _this29 = this;
           var s = this.game.s,
             p = this.open(this.tr('menu.cards'), 720);
           this.label(p, this.tr('raid.deck', {
@@ -40115,29 +40226,29 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }), 0, 225, 385, 26, 15, C.gold);
           this.scroll(p, 0, -25, 400, 450, CARDS.map(function (c) {
             return {
-              title: _this26.tr(c.name),
-              sub: _this26.tr('raid.card', {
+              title: _this29.tr(c.name),
+              sub: _this29.tr('raid.card', {
                 level: s.cards[c.id],
                 fragments: s.fragments[c.id]
               }),
               icon: c.id,
               tint: [C.ember, C.violet, C.mint][c.type],
-              action: _this26.tr(s.deck.includes(c.id) ? 'action.selected' : 'action.select'),
+              action: _this29.tr(s.deck.includes(c.id) ? 'action.selected' : 'action.select'),
               click: function click() {
-                _this26.game.setDeck(c.id);
-                _this26.cardDetail(c.id);
+                _this29.game.setDeck(c.id);
+                _this29.cardDetail(c.id);
               }
             };
           }));
           this.button(p, this.tr('extra.dustShop'), -101, -306, 190, 44, function () {
-            return _this26.extensions.dustShop();
+            return _this29.extensions.dustShop();
           });
           this.button(p, this.tr('extra.crystal'), 101, -306, 190, 44, function () {
-            return _this26.extensions.crystal();
+            return _this29.extensions.crystal();
           });
         };
         _proto.cardDetail = function cardDetail(i) {
-          var _this27 = this;
+          var _this30 = this;
           var s = this.game.s,
             p = this.open(this.tr("card." + i), 490);
           this.label(p, this.tr('complete.cardProc.' + i % 3), 0, 140, 370, 85, 18);
@@ -40148,20 +40259,20 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.button(p, this.tr('raid.upgrade', {
             cost: s.cards[i] * 10
           }), 0, -33, 360, 48, function () {
-            return _this27.act(function () {
-              return _this27.game.upgradeCard(i, _this27.id('card'));
+            return _this30.act(function () {
+              return _this30.game.upgradeCard(i, _this30.id('card'));
             }, function () {
-              return _this27.cardDetail(i);
+              return _this30.cardDetail(i);
             });
           }, true, {
             unavailable: function unavailable() {
-              return _this27.game.raid && !_this27.game.raid.claimed ? _this27.tr('error.protected') : _this27.costReason('dust', s.cards[i] * 10) || _this27.needReason(_this27.tr('feedback.fragments', {
+              return _this30.game.raid && !_this30.game.raid.claimed ? _this30.tr('error.protected') : _this30.costReason('dust', s.cards[i] * 10) || _this30.needReason(_this30.tr('feedback.fragments', {
                 index: i + 1
               }), s.fragments[i], s.cards[i]);
             }
           });
           this.button(p, this.tr('action.back'), 0, -112, 360, 44, function () {
-            return _this27.cards();
+            return _this30.cards();
           });
         };
         _proto.format = function format(value) {
@@ -40171,7 +40282,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.extensions.solo();
         };
         _proto.raidView = function raidView() {
-          var _this28 = this;
+          var _this31 = this;
           var p = this.open(this.tr('raid.title'), 700),
             r = this.game.raid;
           var status = this.label(p, '', 0, 266, 375, 32, 20, C.gold);
@@ -40179,33 +40290,33 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var _loop5 = function _loop5(i) {
             var x = i % 2 ? -94 : 94,
               y = 178 - Math.floor(i / 2) * 88;
-            var b = _this28.button(p, '', x, y, 170, 70, function () {
-              _this28.game.raidTap(i);
-              _this28.sound(170 + i * 30);
+            var b = _this31.button(p, '', x, y, 170, 70, function () {
+              _this31.game.raidTap(i);
+              _this31.sound(170 + i * 30);
             });
-            parts.push(_this28.label(b, '', 0, 0, 156, 61, 16, C.text));
+            parts.push(_this31.label(b, '', 0, 0, 156, 61, 16, C.text));
           };
           for (var i = 0; i < 8; i++) {
             _loop5(i);
           }
           var done = this.button(p, this.tr('action.claim'), 0, -243, 365, 51, function () {
             if (!r.ended) return;
-            _this28.act(function () {
-              return _this28.game.claimRaid(_this28.id('raid'));
+            _this31.act(function () {
+              return _this31.game.claimRaid(_this31.id('raid'));
             }, function () {
-              return _this28.info(_this28.tr('raid.result'), _this28.tr('raid.reward', {
+              return _this31.info(_this31.tr('raid.result'), _this31.tr('raid.reward', {
                 damage: display(r.damage),
                 dust: Math.floor(r.damage / 100)
               }));
             });
           }, true);
           this.modalRefresh = function () {
-            status.string = _this28.tr('raid.damage', {
+            status.string = _this31.tr('raid.damage', {
               damage: display(r.damage),
               seconds: Math.ceil(r.seconds)
             });
             parts.forEach(function (l, i) {
-              return l.string = _this28.tr('raid.part', {
+              return l.string = _this31.tr('raid.part', {
                 part: i + 1
               }) + '\n' + display(r.hp[i] + r.armor[i]);
             });
@@ -40214,54 +40325,54 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.modalRefresh();
         };
         _proto.events = function events() {
-          var _this29 = this;
+          var _this32 = this;
           var p = this.open(this.tr('event.title'), 670);
           this.label(p, this.tr('event.balance', {
             tokens: this.game.s.eventTokens
           }), 0, 246, 380, 35, 22, C.gold);
           this.label(p, this.tr('event.rule'), 0, 158, 380, 116, 17, C.muted);
           this.button(p, this.tr('event.board'), -99, 57, 182, 50, function () {
-            return _this29.board();
+            return _this32.board();
           });
           this.button(p, this.tr('extra.eventModes'), 99, 57, 182, 50, function () {
-            return _this29.extensions.eventHub();
+            return _this32.extensions.eventHub();
           });
           this.scroll(p, 0, -140, 400, 270, Array.from({
             length: 10
           }, function (_, i) {
             return {
-              title: _this29.tr('event.reward', {
+              title: _this32.tr('event.reward', {
                 tokens: (i + 1) * 100
               }),
-              locked: Math.max(_this29.game.s.extra.eventEarned, _this29.game.s.eventTokens) < (i + 1) * 100,
-              action: _this29.tr(_this29.game.s.claims.includes("event." + i) ? 'action.claimed' : 'action.claim'),
+              locked: Math.max(_this32.game.s.extra.eventEarned, _this32.game.s.eventTokens) < (i + 1) * 100,
+              action: _this32.tr(_this32.game.s.claims.includes("event." + i) ? 'action.claimed' : 'action.claim'),
               click: function click() {
-                return _this29.act(function () {
-                  return _this29.game.claimEvent(i);
+                return _this32.act(function () {
+                  return _this32.game.claimEvent(i);
                 }, function () {
-                  return _this29.events();
+                  return _this32.events();
                 });
               }
             };
           }));
         };
         _proto.board = function board() {
-          var _this30 = this;
+          var _this33 = this;
           var p = this.open(this.tr('event.board'), 610);
           this.label(p, this.tr('event.balance', {
             tokens: this.game.s.eventTokens
           }), 0, 215, 375, 40, 20, C.gold);
           var _loop6 = function _loop6(i) {
-            var v = _this30.game.s.board[i];
-            _this30.button(p, v ? _this30.tr('event.found', {
+            var v = _this33.game.s.board[i];
+            _this33.button(p, v ? _this33.tr('event.found', {
               gems: v * 5
-            }) : _this30.tr('event.tile', {
+            }) : _this33.tr('event.tile', {
               index: i + 1
             }), -147 + i % 4 * 98, 123 - Math.floor(i / 4) * 85, 88, 70, function () {
-              return _this30.act(function () {
-                return _this30.game.revealTile(i, _this30.id('tile'));
+              return _this33.act(function () {
+                return _this33.game.revealTile(i, _this33.id('tile'));
               }, function () {
-                return _this30.board();
+                return _this33.board();
               });
             }, !!v);
           };
@@ -40269,26 +40380,26 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             _loop6(i);
           }
           this.button(p, this.tr('action.back'), 0, -244, 365, 43, function () {
-            return _this30.events();
+            return _this33.events();
           });
         };
         _proto.meta = function meta() {
-          var _this31 = this;
+          var _this34 = this;
           var p = this.open(this.tr('meta.title'), 540);
           [['meta.souls', function () {
-            return _this31.extensions.souls();
+            return _this34.extensions.souls();
           }], ['meta.gems', function () {
-            return _this31.extensions.gems();
+            return _this34.extensions.gems();
           }], ['meta.research', function () {
-            return _this31.research();
+            return _this34.research();
           }], ['meta.monuments', function () {
-            return _this31.extensions.monuments();
+            return _this34.extensions.monuments();
           }]].forEach(function (v, i) {
-            return _this31.button(p, _this31.tr(v[0]), 0, 139 - i * 91, 372, 70, v[1]);
+            return _this34.button(p, _this34.tr(v[0]), 0, 139 - i * 91, 372, 70, v[1]);
           });
         };
         _proto.souls = function souls() {
-          var _this32 = this;
+          var _this35 = this;
           var s = this.game.s,
             p = this.open(this.tr('meta.souls'), 440);
           this.label(p, this.tr('meta.soulInfo', {
@@ -40296,15 +40407,15 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             count: s.titans.filter(Boolean).length
           }), 0, 60, 380, 160, 20);
           this.button(p, this.tr('meta.summon'), 0, -105, 370, 55, function () {
-            return _this32.act(function () {
-              return _this32.game.summon(_this32.id('summon'));
+            return _this35.act(function () {
+              return _this35.game.summon(_this35.id('summon'));
             }, function () {
-              return _this32.souls();
+              return _this35.souls();
             });
           }, true);
         };
         _proto.stones = function stones() {
-          var _this33 = this;
+          var _this36 = this;
           var s = this.game.s,
             p = this.open(this.tr('meta.gems'), 680);
           this.label(p, this.tr('meta.gemInfo', {
@@ -40312,15 +40423,15 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             count: s.stones.filter(Boolean).length
           }), 0, 251, 375, 42, 19, C.gold);
           this.button(p, this.tr('meta.crack'), 0, 190, 375, 46, function () {
-            return _this33.act(function () {
-              return _this33.game.crack(_this33.id('geode'));
+            return _this36.act(function () {
+              return _this36.game.crack(_this36.id('geode'));
             }, function () {
-              return _this33.stones();
+              return _this36.stones();
             });
           }, true);
           this.scroll(p, 0, -74, 400, 440, s.stones.map(function (level, i) {
             return {
-              title: _this33.tr('meta.stone', {
+              title: _this36.tr('meta.stone', {
                 index: i + 1,
                 level: level
               }),
@@ -40330,28 +40441,28 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.research = function research() {
-          var _this34 = this;
+          var _this37 = this;
           var s = this.game.s,
             p = this.open(this.tr('meta.research'), 650);
           this.scroll(p, 0, -25, 400, 520, s.research.map(function (level, i) {
             return {
-              title: _this34.tr('meta.researchNode', {
+              title: _this37.tr('meta.researchNode', {
                 index: i + 1,
                 level: level
               }),
-              action: _this34.tr('action.upgrade'),
+              action: _this37.tr('action.upgrade'),
               click: function click() {
-                return _this34.act(function () {
-                  return _this34.game.upgradeResearch(i, _this34.id('research'));
+                return _this37.act(function () {
+                  return _this37.game.upgradeResearch(i, _this37.id('research'));
                 }, function () {
-                  return _this34.research();
+                  return _this37.research();
                 });
               }
             };
           }));
         };
         _proto.monuments = function monuments() {
-          var _this35 = this;
+          var _this38 = this;
           var s = this.game.s,
             p = this.open(this.tr('meta.monuments'), 670);
           this.label(p, this.tr('meta.monumentInfo', {
@@ -40359,17 +40470,17 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }), 0, 225, 380, 80, 19, C.gold);
           this.scroll(p, 0, -66, 400, 460, s.monuments.map(function (level, i) {
             return {
-              title: _this35.tr('meta.monument', {
+              title: _this38.tr('meta.monument', {
                 index: i + 1,
                 level: level
               }),
-              action: _this35.tr('action.upgrade'),
+              action: _this38.tr('action.upgrade'),
               icon: i,
               click: function click() {
-                return _this35.act(function () {
-                  return _this35.game.monument(i, _this35.id('monument'));
+                return _this38.act(function () {
+                  return _this38.game.monument(i, _this38.id('monument'));
                 }, function () {
-                  return _this35.monuments();
+                  return _this38.monuments();
                 });
               }
             };
@@ -40378,7 +40489,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         _proto.remote = /*#__PURE__*/function () {
           var _remote = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(work) {
             var _this$tutorial3,
-              _this36 = this;
+              _this39 = this;
             var firstUseKey, before, _this$operations3, key;
             return _regeneratorRuntime().wrap(function _callee3$(_context3) {
               while (1) switch (_context3.prev = _context3.next) {
@@ -40406,7 +40517,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                   key = _context3.t0.message;
                   if (key === 'online.unreachable') {
                     this.confirm(this.tr('extra.retry'), this.tr(key), function () {
-                      void _this36.remote(work);
+                      void _this39.remote(work);
                     });
                   } else this.toast(this.tr(key.startsWith('online.') || key.startsWith('error.') || key.startsWith('extra.') ? key : 'online.serverError'));
                 case 16:
@@ -40439,14 +40550,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           return field;
         };
         _proto.guild = function guild() {
-          var _this37 = this;
+          var _this40 = this;
           void this.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
             var boot, guilds, _p, name, data, p, message;
             return _regeneratorRuntime().wrap(function _callee7$(_context7) {
               while (1) switch (_context7.prev = _context7.next) {
                 case 0:
                   _context7.next = 2;
-                  return _this37.onlineService.connect(_this37.tr('online.defaultName'));
+                  return _this40.onlineService.connect(_this40.tr('online.defaultName'));
                 case 2:
                   boot = _context7.sent;
                   if (boot.membership) {
@@ -40454,25 +40565,25 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                     break;
                   }
                   _context7.next = 6;
-                  return _this37.onlineService.request('/guilds');
+                  return _this40.onlineService.request('/guilds');
                 case 6:
                   guilds = _context7.sent;
-                  _p = _this37.open(_this37.tr('menu.clan'), 690);
-                  name = _this37.edit(_p, 0, 230, 375, 48, _this37.tr('online.guildName'));
+                  _p = _this40.open(_this40.tr('menu.clan'), 690);
+                  name = _this40.edit(_p, 0, 230, 375, 48, _this40.tr('online.guildName'));
                   name.maxLength = 24;
-                  _this37.button(_p, _this37.tr('online.create'), 0, 163, 375, 46, function () {
+                  _this40.button(_p, _this40.tr('online.create'), 0, 163, 375, 46, function () {
                     var value = name.string;
-                    void _this37.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+                    void _this40.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
                       return _regeneratorRuntime().wrap(function _callee4$(_context4) {
                         while (1) switch (_context4.prev = _context4.next) {
                           case 0:
                             _context4.next = 2;
-                            return _this37.onlineService.command('/guild/create', {
+                            return _this40.onlineService.command('/guild/create', {
                               name: value
                             });
                           case 2:
-                            _this37.remoteBusy = false;
-                            _this37.guild();
+                            _this40.remoteBusy = false;
+                            _this40.guild();
                           case 4:
                           case "end":
                             return _context4.stop();
@@ -40480,57 +40591,57 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                       }, _callee4);
                     })));
                   }, true);
-                  _this37.scroll(_p, 0, -80, 400, 400, guilds.map(function (g) {
+                  _this40.scroll(_p, 0, -80, 400, 400, guilds.map(function (g) {
                     return {
                       title: g.name,
-                      sub: _this37.tr('online.members', {
+                      sub: _this40.tr('online.members', {
                         count: g.members
                       }),
-                      action: _this37.tr('online.join'),
+                      action: _this40.tr('online.join'),
                       click: function click() {
-                        return _this37.extensions.joinGuild(g.id, g.name);
+                        return _this40.extensions.joinGuild(g.id, g.name);
                       }
                     };
                   }));
                   return _context7.abrupt("return");
                 case 13:
                   _context7.next = 15;
-                  return _this37.onlineService.request('/guild');
+                  return _this40.onlineService.request('/guild');
                 case 15:
                   data = _context7.sent;
-                  p = _this37.open(data.guild.name, 710);
-                  _this37.label(p, _this37.tr('online.members', {
+                  p = _this40.open(data.guild.name, 710);
+                  _this40.label(p, _this40.tr('online.members', {
                     count: data.members.length
                   }), -60, 271, 250, 30, 18, C.gold);
-                  _this37.button(p, '⋯', 164, 271, 55, 34, function () {
-                    return _this37.extensions.guildTools();
+                  _this40.button(p, '⋯', 164, 271, 55, 34, function () {
+                    return _this40.extensions.guildTools();
                   });
-                  _this37.button(p, _this37.tr('online.roster'), -101, 221, 185, 43, function () {
-                    return _this37.guildMembers(data);
+                  _this40.button(p, _this40.tr('online.roster'), -101, 221, 185, 43, function () {
+                    return _this40.guildMembers(data);
                   });
-                  _this37.button(p, _this37.tr('online.guildRaid'), 101, 221, 185, 43, function () {
-                    return _this37.guildRaid(data);
+                  _this40.button(p, _this40.tr('online.guildRaid'), 101, 221, 185, 43, function () {
+                    return _this40.guildRaid(data);
                   });
-                  _this37.scroll(p, 0, 10, 400, 355, data.messages.map(function (m) {
+                  _this40.scroll(p, 0, 10, 400, 355, data.messages.map(function (m) {
                     return {
                       title: m.name,
-                      sub: /^\[sticker:[0-5]\]$/.test(m.body) ? _this37.tr('extra.sticker.' + m.body[9]) : m.body
+                      sub: /^\[sticker:[0-5]\]$/.test(m.body) ? _this40.tr('extra.sticker.' + m.body[9]) : m.body
                     };
                   }));
-                  message = _this37.edit(p, -35, -216, 303, 46, _this37.tr('online.message'));
-                  _this37.button(p, _this37.tr('online.send'), 161, -216, 70, 46, function () {
+                  message = _this40.edit(p, -35, -216, 303, 46, _this40.tr('online.message'));
+                  _this40.button(p, _this40.tr('online.send'), 161, -216, 70, 46, function () {
                     var value = message.string;
-                    void _this37.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+                    void _this40.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
                       return _regeneratorRuntime().wrap(function _callee5$(_context5) {
                         while (1) switch (_context5.prev = _context5.next) {
                           case 0:
                             _context5.next = 2;
-                            return _this37.onlineService.command('/guild/chat', {
+                            return _this40.onlineService.command('/guild/chat', {
                               body: value
                             });
                           case 2:
-                            _this37.remoteBusy = false;
-                            _this37.guild();
+                            _this40.remoteBusy = false;
+                            _this40.guild();
                           case 4:
                           case "end":
                             return _context5.stop();
@@ -40538,20 +40649,20 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                       }, _callee5);
                     })));
                   }, true);
-                  _this37.button(p, _this37.tr('online.refresh'), -101, -281, 185, 44, function () {
-                    return _this37.guild();
+                  _this40.button(p, _this40.tr('online.refresh'), -101, -281, 185, 44, function () {
+                    return _this40.guild();
                   });
-                  _this37.button(p, _this37.tr('online.leave'), 101, -281, 185, 44, function () {
-                    return _this37.confirm(_this37.tr('online.leave'), _this37.tr('online.leaveConfirm'), function () {
-                      void _this37.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+                  _this40.button(p, _this40.tr('online.leave'), 101, -281, 185, 44, function () {
+                    return _this40.confirm(_this40.tr('online.leave'), _this40.tr('online.leaveConfirm'), function () {
+                      void _this40.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
                         return _regeneratorRuntime().wrap(function _callee6$(_context6) {
                           while (1) switch (_context6.prev = _context6.next) {
                             case 0:
                               _context6.next = 2;
-                              return _this37.onlineService.command('/guild/leave');
+                              return _this40.onlineService.command('/guild/leave');
                             case 2:
-                              _this37.remoteBusy = false;
-                              _this37.guild();
+                              _this40.remoteBusy = false;
+                              _this40.guild();
                             case 4:
                             case "end":
                               return _context6.stop();
@@ -40568,34 +40679,34 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           })));
         };
         _proto.guildMembers = function guildMembers(data) {
-          var _this38 = this;
+          var _this41 = this;
           var p = this.open(this.tr('online.roster'), 650);
           this.scroll(p, 0, -28, 400, 520, data.members.map(function (m) {
             return {
               title: m.name,
               detail: function detail() {
-                return _this38.extensions.member(m.id);
+                return _this41.extensions.member(m.id);
               },
-              sub: _this38.tr(m.role === 'leader' ? 'online.leader' : 'online.member'),
-              action: data.role === 'leader' && m.id !== _this38.onlineService.accountId ? _this38.tr('action.details') : undefined,
+              sub: _this41.tr(m.role === 'leader' ? 'online.leader' : 'online.member'),
+              action: data.role === 'leader' && m.id !== _this41.onlineService.accountId ? _this41.tr('action.details') : undefined,
               click: function click() {
-                if (data.role !== 'leader' || m.id === _this38.onlineService.accountId) return;
-                var box = _this38.open(m.name, 350);
+                if (data.role !== 'leader' || m.id === _this41.onlineService.accountId) return;
+                var box = _this41.open(m.name, 350);
                 ['transfer', 'kick'].forEach(function (action, i) {
-                  return _this38.button(box, _this38.tr("online." + action), 0, 30 - i * 86, 360, 55, function () {
-                    return _this38.confirm(_this38.tr("online." + action), m.name, function () {
-                      void _this38.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
+                  return _this41.button(box, _this41.tr("online." + action), 0, 30 - i * 86, 360, 55, function () {
+                    return _this41.confirm(_this41.tr("online." + action), m.name, function () {
+                      void _this41.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
                         return _regeneratorRuntime().wrap(function _callee8$(_context8) {
                           while (1) switch (_context8.prev = _context8.next) {
                             case 0:
                               _context8.next = 2;
-                              return _this38.onlineService.command('/guild/role', {
+                              return _this41.onlineService.command('/guild/role', {
                                 target: m.id,
                                 action: action
                               });
                             case 2:
-                              _this38.remoteBusy = false;
-                              _this38.guild();
+                              _this41.remoteBusy = false;
+                              _this41.guild();
                             case 4:
                             case "end":
                               return _context8.stop();
@@ -40610,21 +40721,21 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.guildRaid = function guildRaid(data) {
-          var _this39 = this;
+          var _this42 = this;
           var p = this.open(this.tr('online.guildRaid'), 440);
           this.label(p, this.tr('online.guildHP', {
             hp: display(data.guild.raid_hp)
           }), 0, 90, 380, 60, 24, C.ember);
           this.label(p, this.tr('online.guildRaidInfo'), 0, 9, 380, 90, 18, C.muted);
           this.button(p, this.tr('action.attack'), 0, -124, 370, 55, function () {
-            _this39.extensions.guildBattle();
+            _this42.extensions.guildBattle();
           }, true);
         };
         _proto.competition = function competition() {
           this.extensions.tournaments();
         };
         _proto.competitionBattle = function competitionBattle(state) {
-          var _this40 = this;
+          var _this43 = this;
           var p = this.open(this.tr(this.competitionId < 0 ? 'complete.regular' : 'online.abyss'), 680);
           this.label(p, this.tr('hud.stage', {
             stage: state.run.stage
@@ -40637,20 +40748,20 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             if (hero === void 0) {
               hero = -1;
             }
-            void _this40.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
+            void _this43.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
               var result;
               return _regeneratorRuntime().wrap(function _callee9$(_context9) {
                 while (1) switch (_context9.prev = _context9.next) {
                   case 0:
                     _context9.next = 2;
-                    return _this40.onlineService.command('/competition/action', {
-                      id: _this40.competitionId,
+                    return _this43.onlineService.command('/competition/action', {
+                      id: _this43.competitionId,
                       action: action,
                       hero: hero
                     });
                   case 2:
                     result = _context9.sent;
-                    _this40.competitionBattle(result.state);
+                    _this43.competitionBattle(result.state);
                   case 4:
                   case "end":
                     return _context9.stop();
@@ -40676,20 +40787,20 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return command('boss');
           });
           this.button(p, this.tr('online.backMain'), 0, -270, 375, 50, function () {
-            _this40.close();
-            _this40.drawPanel();
+            _this43.close();
+            _this43.drawPanel();
           });
         };
         _proto.spells = function spells(slot) {
-          var _this41 = this;
+          var _this44 = this;
           if (slot === void 0) {
             slot = 0;
           }
           var s = this.game.s,
             p = this.open(this.tr('spell.title'), 715);
           var _loop7 = function _loop7(j) {
-            _this41.button(p, String(j + 1), -165 + j * 66, 260, 60, 40, function () {
-              return _this41.spells(j);
+            _this44.button(p, String(j + 1), -165 + j * 66, 260, 60, 40, function () {
+              return _this44.spells(j);
             }, j === slot);
           };
           for (var j = 0; j < 6; j++) {
@@ -40703,50 +40814,50 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }).map(function (c) {
             return {
               locked: s.run.master < c.unlock,
-              title: _this41.tr("spell." + c.id),
-              sub: _this41.tr('spell.detail', {
+              title: _this44.tr("spell." + c.id),
+              sub: _this44.tr('spell.detail', {
                 level: s.run.spellLevels[c.id],
                 unlock: c.unlock,
-                mana: _this41.game.spellMana(c.id)
+                mana: _this44.game.spellMana(c.id)
               }),
               icon: c.id,
               tint: C.violet,
-              action: _this41.tr(s.spellSlots.includes(c.id) ? 'action.details' : 'action.select'),
+              action: _this44.tr(s.spellSlots.includes(c.id) ? 'action.details' : 'action.select'),
               click: function click() {
                 if (s.spellSlots.includes(c.id)) {
-                  var box = _this41.open(_this41.tr("spell." + c.id), 400);
-                  _this41.label(box, _this41.tr('spell.detail', {
+                  var box = _this44.open(_this44.tr("spell." + c.id), 400);
+                  _this44.label(box, _this44.tr('spell.detail', {
                     level: s.run.spellLevels[c.id],
                     unlock: c.unlock,
-                    mana: _this41.game.spellMana(c.id)
+                    mana: _this44.game.spellMana(c.id)
                   }), 0, 70, 375, 70, 20);
-                  _this41.label(box, _this41.tr('spell.multicast'), 0, 0, 375, 60, 16, C.muted);
-                  _this41.button(box, _this41.tr('action.upgrade'), 0, -106, 360, 50, function () {
-                    if (_this41.game.upgradeSpell(c.id)) {
-                      _this41.close();
-                      _this41.drawPanel();
-                      _this41.spells(slot);
-                    } else _this41.flushNotice();
+                  _this44.label(box, _this44.tr('spell.multicast'), 0, 0, 375, 60, 16, C.muted);
+                  _this44.button(box, _this44.tr('action.upgrade'), 0, -106, 360, 50, function () {
+                    if (_this44.game.upgradeSpell(c.id)) {
+                      _this44.close();
+                      _this44.drawPanel();
+                      _this44.spells(slot);
+                    } else _this44.flushNotice();
                   }, true, {
                     unavailable: function unavailable() {
-                      return s.run.spellLevels[c.id] >= c.cap ? _this41.tr('action.maxReached') : s.run.master < c.unlock ? _this41.tr('action.needLevel', {
+                      return s.run.spellLevels[c.id] >= c.cap ? _this44.tr('action.maxReached') : s.run.master < c.unlock ? _this44.tr('action.needLevel', {
                         level: c.unlock
-                      }) : _this41.costReason('gold', _this41.game.spellUpgradeCost(c.id));
+                      }) : _this44.costReason('gold', _this44.game.spellUpgradeCost(c.id));
                     }
                   });
-                } else _this41.confirm(_this41.tr('spell.title'), _this41.tr('spell.swap'), function () {
-                  if (_this41.game.selectSpell(slot, c.id)) {
-                    _this41.close();
-                    _this41.draw();
-                    _this41.spells(slot);
-                  } else _this41.flushNotice();
+                } else _this44.confirm(_this44.tr('spell.title'), _this44.tr('spell.swap'), function () {
+                  if (_this44.game.selectSpell(slot, c.id)) {
+                    _this44.close();
+                    _this44.draw();
+                    _this44.spells(slot);
+                  } else _this44.flushNotice();
                 });
               }
             };
           }));
         };
         _proto.skillNode = function skillNode(i) {
-          var _this42 = this;
+          var _this45 = this;
           var branch = Math.floor(i / 3),
             p = this.open(this.tr('skills.node', {
               branch: this.tr("branch." + branch),
@@ -40757,24 +40868,24 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.ui.icon(this.nodeAt(card, 'skill-art', -136, 0, 64, 64), ['sword', 'fox', 'flag', 'lightning', 'adventurer', 'scroll'][branch]);
           this.label(card, this.tr('skills.info'), 39, 0, 254, 100, 14, '#38696b');
           this.button(p, '−', -90, -57, 160, 54, function () {
-            _this42.draft[i] = Math.max(0, _this42.draft[i] - 1);
-            _this42.skillNode(i);
+            _this45.draft[i] = Math.max(0, _this45.draft[i] - 1);
+            _this45.skillNode(i);
           }, false, {
             style: 'quiet',
             fontSize: 23
           });
           this.button(p, '+', 90, -57, 160, 54, function () {
-            _this42.draft[i] = Math.min(SKILLS[i].max, _this42.draft[i] + 1);
-            _this42.skillNode(i);
+            _this45.draft[i] = Math.min(SKILLS[i].max, _this45.draft[i] + 1);
+            _this45.skillNode(i);
           }, true, {
             fontSize: 23
           });
           this.button(p, this.tr('action.back'), 0, -157, 350, 44, function () {
-            return _this42.skills(false);
+            return _this45.skills(false);
           });
         };
         _proto.artifactDetail = function artifactDetail(i) {
-          var _this43 = this;
+          var _this46 = this;
           this.tutorial.complete('first:artifact');
           var s = this.game.s,
             p = this.open(this.tr("artifact." + i), 530);
@@ -40784,162 +40895,162 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
           this.metric(p, ['sword', 'symbol:hand', 'adventurer', 'symbol:coin'][i % 4], this.artifactMultiplier(i), 96, 69, 164, this.tr("effect." + i % 4));
           this.button(p, this.format(this.game.artifactCost(i)), 0, -9, 370, 54, function () {
-            return _this43.act(function () {
-              return _this43.game.upgradeArtifact(i, _this43.id('artifact'));
+            return _this46.act(function () {
+              return _this46.game.upgradeArtifact(i, _this46.id('artifact'));
             }, function () {
-              _this43.drawPanel();
-              _this43.artifactDetail(i);
+              _this46.drawPanel();
+              _this46.artifactDetail(i);
             });
           }, true, {
             icon: 'symbol:plus',
             hint: this.tr('action.upgrade'),
             unavailable: function unavailable() {
-              return _this43.costReason('relics', _this43.game.artifactCost(i));
+              return _this46.costReason('relics', _this46.game.artifactCost(i));
             }
           });
           this.button(p, this.tr('artifact.salvage'), -96, -91, 178, 54, function () {
-            return _this43.confirm(_this43.tr('artifact.salvage'), _this43.tr('artifact.salvageInfo'), function () {
-              return _this43.act(function () {
-                return _this43.game.salvageArtifact(i, _this43.id('salvage'));
+            return _this46.confirm(_this46.tr('artifact.salvage'), _this46.tr('artifact.salvageInfo'), function () {
+              return _this46.act(function () {
+                return _this46.game.salvageArtifact(i, _this46.id('salvage'));
               }, function () {
-                _this43.close();
-                _this43.drawPanel();
+                _this46.close();
+                _this46.drawPanel();
               });
             });
           }, false, {
             style: 'danger',
             unavailable: function unavailable() {
-              return s.enchanted[i] ? _this43.tr('error.protected') : _this43.costReason('gems', 20);
+              return s.enchanted[i] ? _this46.tr('error.protected') : _this46.costReason('gems', 20);
             }
           });
           this.button(p, this.tr('ui.enchantCost', {
             cost: 1000
           }), 96, -91, 178, 54, function () {
-            return _this43.act(function () {
-              return _this43.game.enchantArtifact(i, _this43.id('enchant'));
+            return _this46.act(function () {
+              return _this46.game.enchantArtifact(i, _this46.id('enchant'));
             }, function () {
-              return _this43.artifactDetail(i);
+              return _this46.artifactDetail(i);
             });
           }, false, {
             icon: 'lightning',
             hint: this.tr('artifact.enchantInfo'),
             unavailable: function unavailable() {
-              return s.enchanted[i] ? _this43.tr('action.alreadyApplied') : !s.artifacts.every(function (v) {
+              return s.enchanted[i] ? _this46.tr('action.alreadyApplied') : !s.artifacts.every(function (v) {
                 return v > 0;
-              }) ? _this43.tr('artifact.enchantInfo') : _this43.costReason('relics', 3);
+              }) ? _this46.tr('artifact.enchantInfo') : _this46.costReason('relics', 3);
             }
           });
           this.button(p, this.tr('ui.iconHelp'), 0, -193, 370, 44, function () {
-            return _this43.info(_this43.tr("artifact." + i), _this43.tr("effect." + i % 4) + '\n' + _this43.tr('artifact.enchantInfo'));
+            return _this46.info(_this46.tr("artifact." + i), _this46.tr("effect." + i % 4) + '\n' + _this46.tr('artifact.enchantInfo'));
           }, false, {
             icon: 'symbol:info',
             iconOnly: true
           });
         };
         _proto.salvaged = function salvaged() {
-          var _this44 = this;
+          var _this47 = this;
           var p = this.open(this.tr('artifact.salvaged'), 600);
           this.scroll(p, 0, -24, 400, 480, this.game.s.salvaged.map(function (i) {
             return {
-              title: _this44.tr("artifact." + i),
-              sub: _this44.tr('artifact.rebuyInfo'),
+              title: _this47.tr("artifact." + i),
+              sub: _this47.tr('artifact.rebuyInfo'),
               unavailable: function unavailable() {
-                return _this44.costReason('gems', 25);
+                return _this47.costReason('gems', 25);
               },
               icon: i,
-              action: _this44.tr('action.buy'),
+              action: _this47.tr('action.buy'),
               click: function click() {
-                return _this44.act(function () {
-                  return _this44.game.rebuyArtifact(i, _this44.id('rebuy'));
+                return _this47.act(function () {
+                  return _this47.game.rebuyArtifact(i, _this47.id('rebuy'));
                 }, function () {
-                  _this44.drawPanel();
-                  _this44.salvaged();
+                  _this47.drawPanel();
+                  _this47.salvaged();
                 });
               }
             };
           }));
         };
         _proto.equipmentTools = function equipmentTools() {
-          var _this45 = this;
+          var _this48 = this;
           var p = this.open(this.tr('nav.equipment'), 460);
           [['equipment.sets', function () {
-            return _this45.sets();
+            return _this48.sets();
           }], ['equipment.bulk', function () {
-            return _this45.confirm(_this45.tr('equipment.bulk'), _this45.tr('equipment.bulkInfo'), function () {
-              return _this45.act(function () {
-                return _this45.game.sell(_this45.game.s.equipment.filter(function (e) {
-                  return !e.locked && !_this45.game.s.equipped.includes(e.id);
+            return _this48.confirm(_this48.tr('equipment.bulk'), _this48.tr('equipment.bulkInfo'), function () {
+              return _this48.act(function () {
+                return _this48.game.sell(_this48.game.s.equipment.filter(function (e) {
+                  return !e.locked && !_this48.game.s.equipped.includes(e.id);
                 }).map(function (e) {
                   return e.id;
-                }), _this45.id('bulk'));
+                }), _this48.id('bulk'));
               }, function () {
-                _this45.close();
-                _this45.drawPanel();
+                _this48.close();
+                _this48.drawPanel();
               });
             });
           }], ['equipment.transmog', function () {
-            return _this45.transmog();
+            return _this48.transmog();
           }]].forEach(function (v, i) {
-            return _this45.button(p, _this45.tr(v[0]), 0, 114 - i * 96, 375, 60, v[1]);
+            return _this48.button(p, _this48.tr(v[0]), 0, 114 - i * 96, 375, 60, v[1]);
           });
         };
         _proto.transmog = function transmog() {
-          var _this46 = this;
+          var _this49 = this;
           var p = this.open(this.tr('equipment.transmog'), 650);
           this.scroll(p, 0, -24, 400, 520, this.game.s.equipment.map(function (e) {
             return {
-              title: _this46.itemName(e),
+              title: _this49.itemName(e),
               icon: e.slot,
-              action: _this46.tr('action.apply'),
+              action: _this49.tr('action.apply'),
               click: function click() {
-                return _this46.act(function () {
-                  return _this46.game.transmog(e.slot, e.id, _this46.id('transmog'));
+                return _this49.act(function () {
+                  return _this49.game.transmog(e.slot, e.id, _this49.id('transmog'));
                 }, function () {
-                  _this46.close();
-                  _this46.draw();
+                  _this49.close();
+                  _this49.draw();
                 });
               }
             };
           }));
         };
         _proto.achievements = function achievements() {
-          var _this47 = this;
+          var _this50 = this;
           var p = this.open(this.tr('achievement.title'), 570);
           this.scroll(p, 0, -24, 400, 450, [0, 1, 2, 3].map(function (i) {
             return {
-              title: _this47.tr("achievement." + i),
-              sub: _this47.tr('daily.progress', {
-                current: _this47.game.achievementProgress(i),
-                goal: _this47.game.achievementGoal(i)
+              title: _this50.tr("achievement." + i),
+              sub: _this50.tr('daily.progress', {
+                current: _this50.game.achievementProgress(i),
+                goal: _this50.game.achievementGoal(i)
               }),
               icon: i,
               tint: C.gold,
-              action: _this47.tr('action.claim'),
+              action: _this50.tr('action.claim'),
               click: function click() {
-                return _this47.act(function () {
-                  return _this47.game.claimAchievement(i, _this47.id('achievement'));
+                return _this50.act(function () {
+                  return _this50.game.claimAchievement(i, _this50.id('achievement'));
                 }, function () {
-                  return _this47.achievements();
+                  return _this50.achievements();
                 });
               }
             };
           }));
         };
         _proto.globalRaid = function globalRaid() {
-          var _this48 = this;
+          var _this51 = this;
           void this.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10() {
             var data;
             return _regeneratorRuntime().wrap(function _callee10$(_context10) {
               while (1) switch (_context10.prev = _context10.next) {
                 case 0:
                   _context10.next = 2;
-                  return _this48.onlineService.connect(_this48.tr('online.defaultName'));
+                  return _this51.onlineService.connect(_this51.tr('online.defaultName'));
                 case 2:
                   _context10.next = 4;
-                  return _this48.onlineService.request('/global');
+                  return _this51.onlineService.request('/global');
                 case 4:
                   data = _context10.sent;
-                  _this48.globalRaidPanel(data);
+                  _this51.globalRaidPanel(data);
                 case 6:
                 case "end":
                   return _context10.stop();
@@ -40948,22 +41059,22 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           })));
         };
         _proto.globalRaidPanel = function globalRaidPanel(data) {
-          var _this49 = this;
+          var _this52 = this;
           var p = this.open(this.tr('extra.globalRaid'), 450);
           this.label(p, this.tr('online.guildHP', {
             hp: display(data.hp)
           }), 0, 90, 375, 70, 24);
           this.button(p, this.tr('action.attack'), 0, -65, 375, 60, function () {
-            void _this49.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
+            void _this52.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
               var next;
               return _regeneratorRuntime().wrap(function _callee11$(_context11) {
                 while (1) switch (_context11.prev = _context11.next) {
                   case 0:
                     _context11.next = 2;
-                    return _this49.onlineService.command('/global/attack');
+                    return _this52.onlineService.command('/global/attack');
                   case 2:
                     next = _context11.sent;
-                    _this49.globalRaidPanel(next);
+                    _this52.globalRaidPanel(next);
                   case 4:
                   case "end":
                     return _context11.stop();
@@ -40973,27 +41084,27 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }, true);
         };
         _proto.eventRanks = function eventRanks() {
-          var _this50 = this;
+          var _this53 = this;
           void this.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12() {
             var rows, p;
             return _regeneratorRuntime().wrap(function _callee12$(_context12) {
               while (1) switch (_context12.prev = _context12.next) {
                 case 0:
                   _context12.next = 2;
-                  return _this50.onlineService.connect(_this50.tr('online.defaultName'));
+                  return _this53.onlineService.connect(_this53.tr('online.defaultName'));
                 case 2:
                   _context12.next = 4;
-                  return _this50.onlineService.request('/global/ranks');
+                  return _this53.onlineService.request('/global/ranks');
                 case 4:
                   rows = _context12.sent;
-                  p = _this50.open(_this50.tr('extra.eventRanks'), 660);
-                  _this50.scroll(p, 0, -25, 400, 530, rows.map(function (r, i) {
+                  p = _this53.open(_this53.tr('extra.eventRanks'), 660);
+                  _this53.scroll(p, 0, -25, 400, 530, rows.map(function (r, i) {
                     return {
-                      title: _this50.tr('online.rank', {
+                      title: _this53.tr('online.rank', {
                         rank: i + 1,
                         name: r.name
                       }),
-                      sub: _this50.tr('extra.contribution', {
+                      sub: _this53.tr('extra.contribution', {
                         value: r.damage
                       })
                     };
@@ -41006,7 +41117,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           })));
         };
         _proto.updateHUD = function updateHUD() {
-          var _this51 = this;
+          var _this54 = this;
           this.buttonStates = this.buttonStates.filter(function (b) {
             return isValid(b.node, true);
           });
@@ -41024,7 +41135,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.stageNeighbors.forEach(function (l, i) {
             return l.string = String(Math.max(1, r.stage + (i ? 1 : -1)));
           });
-          this.enemyLabel.string = this.tr('art.enemy.' + this.enemyArt());
+          this.enemyLabel.string = this.tr('battle.wave', {
+            count: survivingEnemies(waveSize(r.stage, r.boss), ratio(r.hp, g.maxHP()))
+          });
           this.goldLabel.string = this.format(r.gold);
           this.gemsLabel.string = String(g.s.gems);
           this.damageLabel.string = this.format(g.tapDamage());
@@ -41039,7 +41152,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var l = this.bossButton.getComponentInChildren(Label);
           if (l) l.string = this.tr(r.boss ? 'battle.leave' : 'battle.fight');
           this.spellLabels.forEach(function (l, slot) {
-            var i = _this51.spellShown[slot];
+            var i = _this54.spellShown[slot];
             l.string = r.master < SPELLS[i].unlock ? String(SPELLS[i].unlock) : r.cooldowns[i] > 0 ? String(Math.ceil(r.cooldowns[i])) : '✓';
           });
         };
@@ -41052,11 +41165,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return;
           }
           Tween.stopAllByTarget(this.actor);
-          this.actor.setPosition(-142, 4);
+          this.actor.setPosition(-67, 12);
           tween(this.actor).to(.12, {
-            position: new Vec3(-136, 4, 0)
+            position: new Vec3(-64, 12, 0)
           }).start();
-          this.gunshot(-100, 95);
+          this.fireBurst(-64, 51);
           var damage = this.game.tap();
           this.sound(170 + Math.random() * 50);
           var n = this.label(this.particles, this.format(damage), 138 + (Math.random() - .5) * 40, 155, 180, 40, 25, UI.brightGold).node;
@@ -41066,10 +41179,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }).call(function () {
             if (isValid(n, true)) n.destroy();
           }).start();
-          this.spark(138, 95, C.gold);
-          this.enemy.setPosition(142, 20);
+          this.bulletImpact(138, 48);
+          this.enemy.setPosition(2, 0);
           tween(this.enemy).to(.08, {
-            position: new Vec3(138, 20, 0)
+            position: new Vec3(0, 0, 0)
           }).start();
           this.syncEnemyDeath();
           this.updateHUD();
@@ -41112,11 +41225,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }).start();
         };
         _proto.spark = function spark(x, y, color) {
-          var _this52 = this;
+          var _this55 = this;
           var magic = color === C.violet;
           this.burst(magic ? 'ring' : 'impact', x, y, magic ? 92 : 66, magic ? .3 : .2);
           var _loop8 = function _loop8() {
-            var n = _this52.combatSprite(magic ? 'shard' : 'sparkle', 'hit-particle', x, y, 12 + i % 3 * 3);
+            var n = _this55.combatSprite(magic ? 'shard' : 'sparkle', 'hit-particle', x, y, 12 + i % 3 * 3);
             if (!n) return 1; // continue
             var angle = i * Math.PI / 3 + Math.random() * .3,
               opacity = n.addComponent(UIOpacity);
@@ -41156,7 +41269,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           } catch (_unused) {}
         };
         _proto.toast = function toast(text) {
-          var _this53 = this;
+          var _this56 = this;
           if (this.toastNode && isValid(this.toastNode, true)) {
             this.toastNode.removeFromParent();
             this.toastNode.destroy();
@@ -41166,7 +41279,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.label(n, text, 0, 0, 404, 72, 16, C.text);
           tween(n).delay(3.2).call(function () {
             if (isValid(n, true)) n.destroy();
-            if (_this53.toastNode === n) _this53.toastNode = null;
+            if (_this56.toastNode === n) _this56.toastNode = null;
           }).start();
         };
         _proto.flushNotice = function flushNotice() {
@@ -41192,8 +41305,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
         };
         _proto.update = function update(dt) {
-          var _this$entry,
-            _this54 = this;
+          var _this$entry;
           if (!this.game || !((_this$entry = this.entry) != null && _this$entry.playing)) return;
           this.feedback.tick();
           this.tutorial.tick();
@@ -41208,28 +41320,20 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           } else {
             this.syncAllies();
             this.game.tick(dt);
-            var _loop9 = function _loop9() {
-              var event = _step2.value;
-              if (event.phase === 'attack') _this54.animateAlly(event.hero, event.windup);else {
-                _this54.spark(138, 95, C.ember);
-                _this54.sound(120);
-                var hit = _this54.label(_this54.particles, _this54.format(event.damage), 138, 150, 180, 30, 20, C.gold).node;
-                tween(hit).by(.45, {
-                  position: new Vec3(0, 45, 0)
-                }).call(function () {
-                  if (isValid(hit, true)) hit.destroy();
-                }).start();
-              }
-            };
             for (var _iterator2 = _createForOfIteratorHelperLoose(this.game.heroEvents), _step2; !(_step2 = _iterator2()).done;) {
-              _loop9();
+              var event = _step2.value;
+              if (event.phase === 'attack') this.animateAlly(event.hero, event.windup);else {
+                var target = this.shotTarget();
+                this.bulletImpact(target.x, target.y);
+                this.sound(120);
+              }
             }
             this.syncEnemyDeath();
           }
           if (!this.enemyTransition) {
             var look = this.enemyKey();
             if (this.enemyLook !== look) this.spawnEnemy();
-            this.enemy.setScale(1 + Math.sin(this.age * 2) * .014, 1 + Math.sin(this.age * 2) * .014, 1);
+            this.syncWave();
           }
           if (this.worldKey !== Math.floor((this.game.s.run.stage - 1) / 25) % 4) this.world();
           this.age += dt;
@@ -43053,6 +43157,16 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './MilitaryTheme.ts'], func
         'action.alreadyClaimed': 'This reward has already been claimed.',
         'action.alreadyApplied': 'Already applied.'
       });
+      Object.assign(translations.ko, {
+        'action.claimReady': '수령 가능',
+        'action.notReady': '미충족',
+        'battle.wave': '적 부대 · {count}명'
+      });
+      Object.assign(translations.en, {
+        'action.claimReady': 'Claim now',
+        'action.notReady': 'Not ready',
+        'battle.wave': 'Hostiles · {count}'
+      });
       applyMilitaryTheme(translations);
       cclegacy._RF.pop();
     }
@@ -43600,9 +43714,9 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/main", ['./EntryUI.ts', './ExpansionUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './TutorialUI.ts', './UITheme.ts', './Amount.ts', './Balance.ts', './Config.ts', './EntryPolicy.ts', './Expansion.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './MilitaryTheme.ts', './Monetization.ts', './Online.ts', './Operations.ts', './ReferenceRules.ts', './firebase-sdk.js'], function () {
+System.register("chunks:///_virtual/main", ['./EntryUI.ts', './ExpansionUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './TutorialUI.ts', './UITheme.ts', './Amount.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './EntryPolicy.ts', './Expansion.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './MilitaryTheme.ts', './Monetization.ts', './Online.ts', './Operations.ts', './ReferenceRules.ts', './firebase-sdk.js'], function () {
   return {
-    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     execute: function () {}
   };
 });
