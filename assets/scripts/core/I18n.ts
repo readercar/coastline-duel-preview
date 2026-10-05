@@ -646,4 +646,7 @@ Object.assign(translations.en,{'action.heroLevel':'Hero level','action.petTotal'
 Object.assign(translations.ko,{'action.alreadyClaimed':'이미 수령한 보상이에요.','action.alreadyApplied':'이미 적용되어 있어요.'});
 Object.assign(translations.en,{'action.alreadyClaimed':'This reward has already been claimed.','action.alreadyApplied':'Already applied.'});
 
+Object.assign(translations.ko,{'action.claimReady':'수령 가능','action.notReady':'미충족','battle.wave':'적 부대 · {count}명'});
+Object.assign(translations.en,{'action.claimReady':'Claim now','action.notReady':'Not ready','battle.wave':'Hostiles · {count}'});
+
 applyMilitaryTheme(translations);

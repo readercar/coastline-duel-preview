@@ -1,4 +1,5 @@
 import { _decorator, Component, Node, UITransform, Graphics, Color, Label, isValid, Vec3, Layers, Mask, ScrollView, EventTouch, tween, Tween, UIOpacity, sys, view, screen, ResolutionPolicy, resources, Sprite, SpriteFrame, BlockInputEvents, Input, input, EventKeyboard, KeyCode, profiler, EditBox, Texture2D } from 'cc';
+import {allyPosition,enemyPosition,waveSize,survivingEnemies,SOLDIER_SIZE} from './core/BattleFormation';
 import {FeedbackUI} from './FeedbackUI';
 import { Game, Item } from './core/Game';
 import { fmt, display, ratio, ZERO, add, mul } from './core/Amount';
@@ -147,22 +148,23 @@ export class GameApp extends Component {
         const quiet = ['action.cancel','action.back','action.close','action.reset','action.revert'].some(key => text === this.tr(key)) || text === '×';
         const style = options.style || (quiet ? 'quiet' : accent ? 'primary' : 'secondary');
         const symbols:Record<string,string>={'action.confirm':'symbol:check','action.cancel':'symbol:close','action.close':'symbol:close','action.back':'symbol:back','action.next':'symbol:next','action.previous':'symbol:back','action.upgrade':'symbol:plus','action.equip':'symbol:check','action.equipped':'symbol:check','action.selected':'symbol:check','action.select':'symbol:check','action.sell':'face:gems','action.lock':'lock','action.locked':'lock','action.claim':'chest','action.claimed':'symbol:check','action.open':'symbol:next','action.details':'symbol:info','action.apply':'symbol:check','action.buy':'symbol:bag','action.attack':'sword','equipment.craft':'symbol:hammer','equipment.sets':'armor','equipment.bulk':'face:gems','equipment.transmog':'symbol:eye','pet.hatch':'egg','artifact.salvage':'symbol:hammer','extra.heroSkill':'lightning','extra.ascend':'symbol:up','layout.collapse':'symbol:down','layout.expand':'symbol:up','layout.upgrade':'symbol:plus','money.watch':'symbol:play'};
-        const key=Object.keys(symbols).find(key=>this.tr(key)===text),icon=options.icon||(text==='×'?'symbol:close':key?symbols[key]:undefined),iconOnly=options.iconOnly??!!(key||text==='×');
-        const claimable=text===this.tr('action.claim')&&style!=='disabled';
+        const key=Object.keys(symbols).find(key=>this.tr(key)===text),icon=options.icon||(text==='×'?'symbol:close':key?symbols[key]:undefined),iconOnly=options.iconOnly??(text==='×'||key==='layout.collapse'||key==='layout.expand');
+        const claimable=text===this.tr('action.claim');
         if(claimable)options={...options,tone:C.gold};
         const n = this.nodeAt(parent,'ui-button',x,y,w,h);
         n.name = 'ui-button';
         this.ui.paint(n,'popup/' + style,true,255,options.tone);
         const bright=['primary','selected','danger'].includes(style),ink=options.tone?[C.ember,C.mint,C.violet,C.danger,C.bg,C.panel,C.sand].includes(options.tone)?C.text:C.ink:style==='disabled'?C.muted:C.text;
         if(style==='secondary')this.polygon(n,-w/2+6,0,3,h-12,[[-.5,-.5],[.5,-.35],[.5,.5],[-.5,.35]],this.tabTone);
-        const stacked=!!icon&&!iconOnly&&w<140&&h>=60,iconSize=iconOnly?Math.min(36,h-12):28;
-        if(icon)this.ui.icon(this.nodeAt(n,'button-art-icon',iconOnly||stacked?0:-w/2+24,stacked?14:0,iconSize,iconSize),icon,ink);
-        const label = this.label(n,iconOnly?'':text,icon&&!iconOnly&&!stacked?17:0,stacked?-18:0,
-            w-(icon&&!iconOnly&&!stacked?60:20),stacked?25:h-10,options.fontSize||(stacked?14:18),ink);
+        const stacked=!!icon&&!iconOnly&&w<140&&h>=48,iconSize=iconOnly?Math.min(36,h-12):stacked?20:24;
+        if(icon)this.ui.icon(this.nodeAt(n,'button-art-icon',iconOnly||stacked?0:-w/2+24,stacked?10:0,iconSize,iconSize),icon,ink);
+        const label = this.label(n,iconOnly?'':text===this.tr('action.claim')?this.tr('action.claimReady'):text,icon&&!iconOnly&&!stacked?17:0,stacked?-13:0,
+            w-(icon&&!iconOnly&&!stacked?60:20),stacked?23:h-10,stacked?14:(options.fontSize||18),ink);
         label.node.name = 'button-label';
+        const edge=this.nodeAt(n,'button-outline',0,0,w,h).addComponent(Graphics);edge.lineWidth=1.5;edge.strokeColor=this.color(claimable?C.gold:'#929889');edge.moveTo(-w/2+8,-h/2+2);edge.lineTo(w/2-2,-h/2+2);edge.lineTo(w/2-8,h/2-2);edge.lineTo(-w/2+2,h/2-2);edge.close();edge.stroke();
         const unavailable=options.unavailable||(text===this.tr('action.claimed')?()=>this.tr('action.alreadyClaimed'):style==='disabled'?()=>text===this.tr('action.sell')?this.tr('equipment.protected'):options.hint||this.tr('error.locked'):null);
         if(unavailable){
-            let last:boolean|null=null;const refresh=()=>{const blocked=!!unavailable();if(last===blocked)return;last=blocked;this.ui.paint(n,'popup/'+(blocked?'disabled':style==='disabled'&&options.unavailable?'primary':style),true,255,blocked?'#444852':options.tone);label.color=this.color(blocked?'#c2c5cc':style==='disabled'?C.text:ink);const art=n.getChildByName('button-art-icon');if(art){const opacity=art.getComponent(UIOpacity)||art.addComponent(UIOpacity);opacity.opacity=blocked?115:255;}};
+            let last:boolean|null=null;const refresh=()=>{const blocked=!!unavailable();if(last===blocked)return;last=blocked;this.ui.paint(n,'popup/'+(blocked?'disabled':style==='disabled'&&options.unavailable?'primary':style),true,255,blocked?'#444852':options.tone);if(text===this.tr('action.claim'))label.string=this.tr(blocked?'action.notReady':'action.claimReady');label.color=this.color(blocked?'#c2c5cc':style==='disabled'?C.text:ink);const art=n.getChildByName('button-art-icon');if(art){const opacity=art.getComponent(UIOpacity)||art.addComponent(UIOpacity);opacity.opacity=blocked?115:255;}};
             this.buttonStates.push({node:n,refresh});refresh();
         }
         this.touchAction(n,()=>{const reason=unavailable?.();if(reason){this.denied(n,reason);return;}action();},options.hint||(iconOnly?text:''));
@@ -220,15 +222,15 @@ export class GameApp extends Component {
         this.progressLabel=this.label(hud,'',-113,381,110,20,12,C.text);
         this.goldLabel=this.label(hud,'',118,375,148,30,24,UI.brightGold);this.coin(hud,34,375,11);
         this.battleCast=this.nodeAt(this.root,'battle-cast',0,(this.folded?-300:0)-this.heightExtra+this.safeBottom,480,600);this.battleCast.setSiblingIndex(2);
-        this.enemy=this.nodeAt(this.battleCast,'sentinel',138,20,160,160);this.sentinel(this.nodeAt(this.enemy,'enemy-art',0,0,272,224));this.enemy.addComponent(UIOpacity);
+        this.enemy=this.nodeAt(this.battleCast,'sentinel',0,0,480,350);this.enemy.addComponent(UIOpacity);this.populateEnemies();
         this.footholds=this.nodeAt(this.battleCast,'ally-footholds',0,30,480,500);
         this.footholds.getComponent(UITransform)!.setAnchorPoint(.5,53/500);this.footholds.addComponent(Mask);this.footholds.setSiblingIndex(0);
-        this.allies=this.nodeAt(this.battleCast,'allies',0,30,480,500);this.syncAllies();
-        this.actor=this.nodeAt(this.battleCast,'guardian',-136,4,150,150);this.guardian(this.actor);this.actor.getComponent(UITransform)!.setAnchorPoint(.5,6/192);this.actor.setScale(1,1,1);
+        this.allies=this.nodeAt(this.battleCast,'allies',0,0,480,500);this.syncAllies();
+        this.actor=this.nodeAt(this.battleCast,'guardian',-64,12,SOLDIER_SIZE,SOLDIER_SIZE);this.guardian(this.actor);this.actor.getComponent(UITransform)!.setAnchorPoint(.5,6/192);this.actor.setScale(1,1,1);
         const battleBottom=(this.folded?-337:-39)-this.heightExtra+this.safeBottom+16;
         const target=this.nodeAt(this.root,'battle-input',0,(this.designH/2-120+battleBottom)/2,470,this.designH/2-battleBottom-120);target.on(Node.EventType.TOUCH_END,()=>{if(!this.modal)this.attack();});
-        this.fairy=this.button(lower,'',-211,135,40,40,()=>this.payments.fairy(),true);this.ui.actor(this.nodeAt(this.fairy,'fairy-art',0,0,38,38),'fairy');
-        this.equipmentPile=this.button(lower,'',-206,76,58,40,()=>this.extensions.equipmentDrops());
+        this.fairy=this.button(lower,this.tr('action.claimReady'),-172,308,120,34,()=>this.payments.fairy(),true,{icon:'chest',fontSize:14,tone:C.gold});
+        this.equipmentPile=this.button(lower,'',-172,264,120,34,()=>this.extensions.equipmentDrops(),true,{tone:C.gold});
         const edge=this.folded?-337:-39;
         this.polygon(lower,0,edge,480,32,[[-.5,.15],[.2,.15],[.24,.5],[.5,.5],[.5,-.5],[-.5,-.5]],C.bg);this.button(lower,this.tr(this.folded?'layout.expand':'layout.collapse'),171,edge,128,30,()=>this.setFolded(!this.folded),false,{fontSize:12,style:'secondary',tone:C.paper});
         this.rect(lower,0,edge-26,480,28,C.bg);this.ui.icon(this.nodeAt(lower,'tap-icon',-216,edge-26,22,22),'symbol:hand',C.mint);this.damageLabel=this.label(lower,'',-130,edge-26,139,24,18,C.text,Label.HorizontalAlign.LEFT);this.gemsLabel=this.label(lower,'',199,edge-26,67,24,18,C.violet);this.ui.face(this.nodeAt(lower,'gems-icon',157,edge-26,24,24),'gems');
@@ -254,9 +256,9 @@ export class GameApp extends Component {
         g.rect((x - w / 2) * scale, (h - y) * scale - h * scale / 2, scale, scale);
         g.fill();
     } })); }
-    enemyArt():string {const keys=this.game.s.run.boss?['tree-boss','ice-boss','crystal-boss','golem']:['golem','forest-wolf','spectral-knight','flame-spirit','skeleton'];return keys[this.game.s.totalKills%keys.length];}
-    sentinel(parent:Node):void {this.ui.resize(parent,154,154);parent.getComponent(UITransform)!.setAnchorPoint(.5,6/192);this.ui.actor(parent,this.enemyArt());}
-    guardian(parent:Node):void {this.ui.resize(parent,158,158);this.ui.actor(parent,'guardian');}
+    enemyArt():string {const keys=this.game.s.run.boss?['tree-boss','ice-boss','crystal-boss','golem']:['forest-wolf','spectral-knight','skeleton','flame-spirit'];return keys[this.game.s.totalKills%keys.length];}
+    sentinel(parent:Node):void {this.ui.resize(parent,this.game.s.run.boss?76:40,this.game.s.run.boss?76:40);parent.getComponent(UITransform)!.setAnchorPoint(.5,6/192);this.ui.actor(parent,this.enemyArt());}
+    guardian(parent:Node):void {this.ui.resize(parent,SOLDIER_SIZE,SOLDIER_SIZE);this.ui.actor(parent,'guardian');}
     appearanceTint(slot:number,fallback:string):string{const value=this.game.s.appearance[slot];return value<0?fallback:[C.gold,C.ember,C.blue,C.violet,C.mint][value%5];}
     enemyKey():string{return `${this.game.s.totalKills}:${this.game.s.run.boss}:${Math.floor((this.game.s.run.stage-1)/25)}`;}
     syncEnemyDeath():void {
@@ -264,43 +266,58 @@ export class GameApp extends Component {
         this.seenKills=this.game.s.totalKills;this.enemyTransition=.65;
         for(const missile of [...this.particles.children])if(missile.name==='ally-projectile'){Tween.stopAllByTarget(missile);if(isValid(missile,true))missile.destroy();}
         const defeated=this.enemy;Tween.stopAllByTarget(defeated);const opacity=defeated.getComponent(UIOpacity)!;Tween.stopAllByTarget(opacity);
-        tween(defeated).to(.14,{scale:new Vec3(1.45,.55,1)}).call(()=>{if(defeated.isValid)defeated.active=false;}).start();
+        tween(defeated).delay(.14).call(()=>{if(defeated.isValid)defeated.active=false;}).start();
         tween(opacity).to(.14,{opacity:0}).start();
-        this.burst('defeat',138,95,120,.34);
-        for(let i=0;i<12;i++){const angle=i*Math.PI*2/12,n=this.combatSprite(i%3?'shard':'sparkle','defeat-particle',138,95,16+i%3*5);if(!n)continue;const opacity=n.addComponent(UIOpacity);tween(n).to(.36,{position:new Vec3(138+Math.cos(angle)*(70+i%4*12),95+Math.sin(angle)*82,0),scale:new Vec3(.25,.25,1),angle:i*30}).call(()=>{if(isValid(n,true))n.destroy();}).start();tween(opacity).to(.36,{opacity:0}).start();}
+        this.enemy.children.filter(n=>n.active).forEach(n=>this.bulletImpact(n.position.x,n.position.y+20));
         this.sound(95);this.updateHUD();
     }
+    populateEnemies():void {
+        const count=waveSize(this.game.s.run.stage,this.game.s.run.boss);
+        // A wave shares the existing combat HP/reward budget; no extra currency is minted by the visuals.
+        for(let i=count-1;i>=0;i--){const pos=enemyPosition(i,count),unit=this.nodeAt(this.enemy,'hostile-'+i,pos.x,pos.y,40,40);this.sentinel(unit);}
+    }
+    syncWave():void {
+        if(this.enemyTransition)return;
+        const count=waveSize(this.game.s.run.stage,this.game.s.run.boss),alive=survivingEnemies(count,ratio(this.game.s.run.hp,this.game.maxHP()));
+        this.enemy.children.forEach(unit=>{const index=Number(unit.name.split('-')[1]);if(index<alive||!unit.active)return;
+            if(this.game.s.extra.effects){this.bulletImpact(unit.position.x,unit.position.y+20);}
+            unit.active=false;
+        });
+    }
+    shotTarget():Vec3 {const units=this.enemy.children.filter(n=>n.active);const unit=units[Math.floor(Math.random()*units.length)];return unit?new Vec3(unit.position.x,unit.position.y+24,0):new Vec3(138,48,0);}
     spawnEnemy():void {
-        Tween.stopAllByTarget(this.enemy);this.clear(this.enemy);this.enemy.active=true;this.enemy.setPosition(270,20);
+        Tween.stopAllByTarget(this.enemy);this.clear(this.enemy);this.enemy.active=true;this.enemy.setPosition(0,0);
         const opacity=this.enemy.getComponent(UIOpacity)!;Tween.stopAllByTarget(opacity);opacity.opacity=255;
-        this.sentinel(this.nodeAt(this.enemy,'enemy-art',0,0,272,224));this.enemyLook=this.enemyKey();
-        this.enemy.setScale(1,1,1);if(this.game.s.extra.effects)tween(this.enemy).to(.45,{position:new Vec3(138,20,0)},{easing:'quadOut'}).start();else this.enemy.setPosition(138,20);
+        this.populateEnemies();this.enemyLook=this.enemyKey();this.enemy.setScale(1,1,1);
+        if(this.game.s.extra.effects)this.enemy.children.forEach((unit,i)=>{const rest=unit.position.clone();unit.setPosition(rest.x+220,rest.y);tween(unit).delay(i*.012).to(.35,{position:rest},{easing:'quadOut'}).start();});
     }
     syncAllies():void {
-        const ids=this.game.s.run.heroes.map((level,i)=>level>0?i:-1).filter(i=>i>=0),biome=Math.floor((this.game.s.run.stage-1)/25)%4,key=biome+':'+ids.join(',');
+        const ids=this.game.s.run.heroes.map((level,i)=>level>0?i:-1).filter(i=>i>=0),key=ids.join(',');
         if(this.allySignature===key)return;this.allySignature=key;this.clear(this.allies);this.clear(this.footholds);
-        // All squad members fire from the left; the right lane stays reserved for hostiles.
         ids.slice(0,8).forEach((id,index)=>{
-            const x=-195+(index%2)*54,y=75+Math.floor(index/2)*53;
-            const actor=this.nodeAt(this.allies,`hero-${id}`,x,y,76,80),body=this.nodeAt(actor,'body',0,-31,78,78);
-            body.getComponent(UITransform)!.setAnchorPoint(.5,6/192);
-            this.ui.actor(body,['rowen','kael','sera'][id%3]);
+            const {x,y}=allyPosition(index+1),actor=this.nodeAt(this.allies,`hero-${id}`,x,y,SOLDIER_SIZE,SOLDIER_SIZE),body=this.nodeAt(actor,'body',0,0,SOLDIER_SIZE,SOLDIER_SIZE);
+            body.getComponent(UITransform)!.setAnchorPoint(.5,6/192);this.ui.actor(body,['rowen','kael','sera'][id%3]);
         });
     }
     gunshot(x:number,y:number):void {
-        if(!this.game.s.extra.effects)return;
-        const muzzle=this.nodeAt(this.particles,'muzzle-flash',x+32,y,26,20);
-        this.ui.polygon(muzzle,[[-12,0],[-3,4],[3,10],[6,3],[17,0],[5,-3],[1,-9],[-3,-3]],'#ffe04c');
-        tween(muzzle).to(.08,{scale:new Vec3(.1,.1,1)}).call(()=>{if(isValid(muzzle,true))muzzle.destroy();}).start();
-        const tracer=this.nodeAt(this.particles,'bullet-tracer',x+35,y,24,3);this.rect(tracer,0,0,24,3,'#fff4bc');
-        tween(tracer).to(.1,{position:new Vec3(138,95,0)}).call(()=>{if(isValid(tracer,true))tracer.destroy();this.spark(138,95,C.gold);}).start();
+        if(!this.game.s.extra.effects||!isValid(this.particles,true))return;
+        const target=this.shotTarget(),muzzle=this.nodeAt(this.particles,'muzzle-flash',x+24,y,18,14);
+        this.ui.polygon(muzzle,[[-8,0],[-2,3],[2,7],[4,2],[12,0],[3,-2],[1,-6],[-2,-2]],'#ffe04c');
+        tween(muzzle).to(.07,{scale:new Vec3(.1,.1,1)}).call(()=>{if(isValid(muzzle,true))muzzle.destroy();}).start();
+        const tracer=this.nodeAt(this.particles,'bullet-tracer',x+25,y,18,2);this.rect(tracer,0,0,18,2,'#fff4bc');
+        tracer.angle=Math.atan2(target.y-y,target.x-x-25)*180/Math.PI;
+        tween(tracer).to(.1,{position:target}).call(()=>{if(isValid(tracer,true))tracer.destroy();if(isValid(this.particles,true))this.bulletImpact(target.x,target.y);}).start();
     }
+    bulletImpact(x:number,y:number):void {
+        if(!this.game.s.extra.effects||!isValid(this.particles,true)||this.particles.children.length>180)return;
+        for(let i=0;i<3;i++){const p=this.nodeAt(this.particles,'bullet-impact',x,y,3,3);this.rect(p,0,0,3,3,i===0?'#ffffff':'#ffd83d');const angle=i*2.1;tween(p).to(.14,{position:new Vec3(x+Math.cos(angle)*10,y+Math.sin(angle)*10,0),scale:new Vec3(.15,.15,1)}).call(()=>{if(isValid(p,true))p.destroy();}).start();}
+    }
+    fireBurst(x:number,y:number):void {const layer=this.particles;[0,.065,.13].forEach(delay=>this.scheduleOnce(()=>{if(this.particles===layer&&isValid(layer,true)&&!this.enemyTransition)this.gunshot(x,y);},delay));}
     animateAlly(id:number,duration=.24):void {
         if(!this.game.s.extra.effects)return;
         const ally=this.allies.getChildByName('hero-'+id);if(!ally)return;
-        const body=ally.getChildByName('body')!;Tween.stopAllByTarget(body);body.setPosition(0,-31);
-        tween(body).by(.05,{position:new Vec3(-5,0,0)}).to(duration,{position:new Vec3(0,-31,0)}).start();
-        this.gunshot(ally.position.x,ally.position.y+48);
+        const body=ally.getChildByName('body')!;Tween.stopAllByTarget(body);body.setPosition(0,0);
+        tween(body).by(.05,{position:new Vec3(-3,0,0)}).to(duration,{position:new Vec3(0,0,0)}).start();this.fireBurst(ally.position.x,ally.position.y+39);
     }
     circle(parent:Node,x:number,y:number,radius:number,color:string):Node{const n=this.nodeAt(parent,'circle',x,y,radius*2,radius*2),g=n.addComponent(Graphics);g.fillColor=this.color(color);g.circle(0,0,radius);g.fill();g.strokeColor=this.color('#d5dedb');g.lineWidth=2;g.stroke();return n;}
     coin(parent:Node,x:number,y:number,r:number):void{this.ui.icon(this.nodeAt(parent,'gold-art',x,y,r*2,r*2),'symbol:coin',C.gold);}
@@ -361,7 +378,7 @@ export class GameApp extends Component {
                 const settled = [this.tr('action.equipped'), this.tr('action.claimed'), this.tr('action.selected')].includes(r.action);
                 const browse = ['action.details','action.open','action.back'].some(key => r.action === this.tr(key));
                 this.button(card, r.action, w / 2 - 54, 0, 90, 50, r.click || (() => { }), !settled && (!this.ui.inPopup(card) || !browse),
-                    { style: r.buttonStyle || (r.locked?'disabled':settled ? 'selected' : browse ? 'secondary' : 'primary'), fontSize: 18,icon:r.actionIcon,iconOnly:r.actionIcon?true:undefined,hint:r.actionHint,unavailable:r.unavailable||(r.action===this.tr('action.claimed')?()=>this.tr('action.alreadyClaimed'):r.locked?()=>r.sub||r.metrics?.find(m=>m.hint)?.hint||this.tr('error.locked'):undefined) });
+                    { style: r.buttonStyle || (r.locked?'disabled':settled ? 'selected' : browse ? 'secondary' : 'primary'), fontSize: 18,icon:r.actionIcon,iconOnly:false,hint:r.actionHint,unavailable:r.unavailable||(r.action===this.tr('action.claimed')?()=>this.tr('action.alreadyClaimed'):r.locked?()=>r.sub||r.metrics?.find(m=>m.hint)?.hint||this.tr('error.locked'):undefined) });
             }
             else if (r.click)
                 card.on(Node.EventType.TOUCH_END, r.click);
@@ -520,7 +537,7 @@ export class GameApp extends Component {
         () => void
     ][] = [['daily', () => this.daily()], ['milestones', () => this.milestones()], ['raid', () => this.raidLobby()], ['cards', () => this.cards()], ['event', () => this.events()], ['meta', () => this.meta()], ['clan', () => this.guild()], ['tournament', () => this.competition()], ['profile', () => this.profile()], ['settings', () => this.settings()], ['inbox', () => this.extensions.inbox()], ['achievements', () => this.achievements()]];
         const icons = ['chest','flag','sword','cards','trophy','scroll','flag','trophy','adventurer','settings','mail','trophy'];
-        actions.filter(([key])=>featureUnlocked(this.game.s,'menu.'+key)).forEach(([key,f],i) => this.button(p,this.tr(`menu.${key}`),i % 2 ? 101 : -101,245-Math.floor(i/2)*91,184,70,f,false,{style:'secondary',icon:icons[i],iconOnly:true,fontSize:15}));
+        actions.filter(([key])=>featureUnlocked(this.game.s,'menu.'+key)).forEach(([key,f],i) => this.button(p,this.tr(`menu.${key}`),i % 2 ? 101 : -101,245-Math.floor(i/2)*91,184,70,f,false,{style:'secondary',icon:icons[i],iconOnly:false,fontSize:15}));
         this.button(p,this.tr('extra.hub'),0,-304,380,44,()=>this.extensions.hub(),false,{style:'quiet'});
     }
     prestige(): void { const g = this.game; this.confirm(this.tr('prestige.title'), this.tr('prestige.desc') + '\n\n' + this.tr('prestige.reward', {
@@ -854,14 +871,14 @@ export class GameApp extends Component {
     globalRaid():void {void this.remote(async()=>{await this.onlineService.connect(this.tr('online.defaultName'));const data=await this.onlineService.request('/global');this.globalRaidPanel(data);});}
     globalRaidPanel(data:any):void {const p=this.open(this.tr('extra.globalRaid'),450);this.label(p,this.tr('online.guildHP',{hp:display(data.hp)}),0,90,375,70,24);this.button(p,this.tr('action.attack'),0,-65,375,60,()=>{void this.remote(async()=>{const next=await this.onlineService.command('/global/attack');this.globalRaidPanel(next);});},true);}
     eventRanks():void {void this.remote(async()=>{await this.onlineService.connect(this.tr('online.defaultName'));const rows=await this.onlineService.request('/global/ranks');const p=this.open(this.tr('extra.eventRanks'),660);this.scroll(p,0,-25,400,530,rows.map((r:any,i:number)=>({title:this.tr('online.rank',{rank:i+1,name:r.name}),sub:this.tr('extra.contribution',{value:r.damage})})));});}
-    updateHUD(): void { this.buttonStates=this.buttonStates.filter(b=>isValid(b.node,true));this.buttonStates.forEach(b=>b.refresh());const g = this.game, r = g.s.run;this.equipmentPile.active=g.s.extra.unseenEquipment.length>0;this.equipmentPile.getComponentInChildren(Label)!.string=this.tr('complete.pile',{count:g.s.extra.unseenEquipment.length}); this.fairy.active = g.s.maxStage>=3&&Date.now()>=g.s.fairyAt; this.stageLabel.string = String(r.stage);this.stageNeighbors.forEach((l,i)=>l.string=String(Math.max(1,r.stage+(i?1:-1)))); this.enemyLabel.string = this.tr('art.enemy.'+this.enemyArt()); this.goldLabel.string = this.format(r.gold); this.gemsLabel.string = String(g.s.gems); this.damageLabel.string = this.format(g.tapDamage()); this.manaLabel.string = Math.floor(r.mana)+'/120'; this.hpFill.setScale(this.enemyTransition>.2?0:Math.max(.001,ratio(r.hp,g.maxHP())),1,1);this.hpLabel.string=this.enemyTransition>.2?this.tr('battle.defeated'):this.format(r.hp); this.progressLabel.string = this.tr(r.boss ? 'hud.timer' : 'hud.progress', {
+    updateHUD(): void { this.buttonStates=this.buttonStates.filter(b=>isValid(b.node,true));this.buttonStates.forEach(b=>b.refresh());const g = this.game, r = g.s.run;this.equipmentPile.active=g.s.extra.unseenEquipment.length>0;this.equipmentPile.getComponentInChildren(Label)!.string=this.tr('complete.pile',{count:g.s.extra.unseenEquipment.length}); this.fairy.active = g.s.maxStage>=3&&Date.now()>=g.s.fairyAt; this.stageLabel.string = String(r.stage);this.stageNeighbors.forEach((l,i)=>l.string=String(Math.max(1,r.stage+(i?1:-1)))); this.enemyLabel.string = this.tr('battle.wave',{count:survivingEnemies(waveSize(r.stage,r.boss),ratio(r.hp,g.maxHP()))}); this.goldLabel.string = this.format(r.gold); this.gemsLabel.string = String(g.s.gems); this.damageLabel.string = this.format(g.tapDamage()); this.manaLabel.string = Math.floor(r.mana)+'/120'; this.hpFill.setScale(this.enemyTransition>.2?0:Math.max(.001,ratio(r.hp,g.maxHP())),1,1);this.hpLabel.string=this.enemyTransition>.2?this.tr('battle.defeated'):this.format(r.hp); this.progressLabel.string = this.tr(r.boss ? 'hud.timer' : 'hud.progress', {
         seconds: Math.ceil(r.bossLeft), count: r.kills
     }); this.bossButton.active = r.kills >= 5; const l = this.bossButton.getComponentInChildren(Label); if (l)
         l.string = this.tr(r.boss ? 'battle.leave' : 'battle.fight'); this.spellLabels.forEach((l, slot) => { const i = this.spellShown[slot]; l.string = r.master<SPELLS[i].unlock?String(SPELLS[i].unlock):r.cooldowns[i]>0?String(Math.ceil(r.cooldowns[i])):'✓'; }); }
-    attack(): void { if(!this.entry.playing||this.liveOps.blocked||this.enemyTransition>0||!this.operations.ready||this.operations.busy||this.operations.conflict||this.remoteBusy||this.feedback.asyncPending||this.feedback.showing)return;if(!this.game.s.extra.effects){this.game.tap();this.syncEnemyDeath();this.sound(180);return;}Tween.stopAllByTarget(this.actor);this.actor.setPosition(-142,4);tween(this.actor).to(.12,{position:new Vec3(-136,4,0)}).start();this.gunshot(-100,95);const damage = this.game.tap(); this.sound(170 + Math.random() * 50); const n = this.label(this.particles, this.format(damage), 138+(Math.random() - .5) * 40, 155, 180, 40, 25, UI.brightGold).node; n.addComponent(UIOpacity); tween(n).by(.6, {
+    attack(): void { if(!this.entry.playing||this.liveOps.blocked||this.enemyTransition>0||!this.operations.ready||this.operations.busy||this.operations.conflict||this.remoteBusy||this.feedback.asyncPending||this.feedback.showing)return;if(!this.game.s.extra.effects){this.game.tap();this.syncEnemyDeath();this.sound(180);return;}Tween.stopAllByTarget(this.actor);this.actor.setPosition(-67,12);tween(this.actor).to(.12,{position:new Vec3(-64,12,0)}).start();this.fireBurst(-64,51);const damage = this.game.tap(); this.sound(170 + Math.random() * 50); const n = this.label(this.particles, this.format(damage), 138+(Math.random() - .5) * 40, 155, 180, 40, 25, UI.brightGold).node; n.addComponent(UIOpacity); tween(n).by(.6, {
         position: new Vec3(0, 70, 0)
-    }).call(() => {if(isValid(n,true))n.destroy();}).start(); this.spark(138, 95, C.gold); this.enemy.setPosition(142, 20); tween(this.enemy).to(.08, {
-        position: new Vec3(138, 20, 0)
+    }).call(() => {if(isValid(n,true))n.destroy();}).start(); this.bulletImpact(138,48); this.enemy.setPosition(2, 0); tween(this.enemy).to(.08, {
+        position: new Vec3(0, 0, 0)
     }).start(); this.syncEnemyDeath();this.updateHUD(); }
     combatSprite(key:CombatEffect,name:string,x:number,y:number,size:number):Node|null {
         if(!this.game.s.extra.effects||!this.particles||!isValid(this.particles,true))return null;
@@ -929,10 +946,10 @@ export class GameApp extends Component {
         else {this.syncAllies();this.game.tick(dt);
             for(const event of this.game.heroEvents){
                 if(event.phase==='attack')this.animateAlly(event.hero,event.windup);
-                else {this.spark(138,95,C.ember);this.sound(120);const hit=this.label(this.particles,this.format(event.damage),138,150,180,30,20,C.gold).node;tween(hit).by(.45,{position:new Vec3(0,45,0)}).call(()=>{if(isValid(hit,true))hit.destroy();}).start();}
+                else {const target=this.shotTarget();this.bulletImpact(target.x,target.y);this.sound(120);}
             }
             this.syncEnemyDeath();}
-        if(!this.enemyTransition){const look=this.enemyKey();if(this.enemyLook!==look)this.spawnEnemy();this.enemy.setScale(1+Math.sin(this.age*2)*.014,1+Math.sin(this.age*2)*.014,1);}
+        if(!this.enemyTransition){const look=this.enemyKey();if(this.enemyLook!==look)this.spawnEnemy();this.syncWave();}
         if(this.worldKey!==Math.floor((this.game.s.run.stage-1)/25)%4)this.world();
         this.age+=dt;this.refresh+=dt;this.saveClock+=dt;
         this.syncAllies();

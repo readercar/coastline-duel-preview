@@ -1,0 +1,27 @@
+{
+  "tests": 116,
+  "locales": [
+    "ko",
+    "en"
+  ],
+  "checked": [
+    "9 equally sized allies, separated formation",
+    "30 normal hostiles at stage 400",
+    "15 remaining at half wave HP",
+    "claimable, unavailable, claimed states",
+    "reward confirmation text",
+    "burst fire without large hit overlays"
+  ],
+  "fixture": "Temporary isolated in-memory Cocos QA build; fixture removed before production build",
+  "waveStages": {
+    "1": 1,
+    "5": 2,
+    "15": 4,
+    "30": 6,
+    "60": 10,
+    "100": 15,
+    "200": 20,
+    "400": 30
+  },
+  "combatModel": "Wave shares HP and existing rewards; presentation count decreases with remaining HP"
+}

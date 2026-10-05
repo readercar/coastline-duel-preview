@@ -132,3 +132,12 @@ test('malformed first-use receipts are rejected without rejecting older saves',(
 const {feedbackSnapshot,feedbackDiff}=require('../.test-output/Feedback.js');
 test('feedback only reports actual gains and never a failed or duplicate claim',()=>{const g=game();g.s.run.gold=A.ZERO;let before=feedbackSnapshot(g);assert.equal(g.buy(-1,1),false);assert.deepEqual(feedbackDiff(before,feedbackSnapshot(g)).rewards,[]);assert.equal(feedbackDiff(before,feedbackSnapshot(g)).growth.length,0);before=feedbackSnapshot(g);g.claimDaily(0);const diff=feedbackDiff(before,feedbackSnapshot(g));assert.equal(diff.rewards.find(e=>e.key==='feedback.gems').value,25);before=feedbackSnapshot(g);g.claimDaily(0);assert.equal(feedbackDiff(before,feedbackSnapshot(g)).rewards.length,0);});
 test('feedback reports batched levels and exact log-space reward quantities',()=>{const g=game();g.s.run.gold=A.amount(1e6);let before=feedbackSnapshot(g);g.buy(-1,10);let diff=feedbackDiff(before,feedbackSnapshot(g));assert.equal(diff.growth.find(e=>e.key==='master.title').value,10);assert.ok(diff.tap);assert.equal(diff.rewards.length,0);g.s.offline=A.amount(250);before=feedbackSnapshot(g);g.collectOffline('feedback-offline');diff=feedbackDiff(before,feedbackSnapshot(g));assert.ok(Math.abs(Math.pow(10,diff.rewards.find(e=>e.key==='feedback.gold').value)-250)<.001);assert.equal(feedbackDiff(before,feedbackSnapshot(g),false).rewards.length,0);});
+
+const formation=require('../.test-output/BattleFormation.js');
+test('military formation stays separated and wave count grows to thirty',()=>{
+ const units=Array.from({length:9},(_,i)=>formation.allyPosition(i));
+ for(let i=0;i<units.length;i++)for(let j=i+1;j<units.length;j++)assert.ok(Math.abs(units[i].x-units[j].x)>=formation.SOLDIER_SIZE||Math.abs(units[i].y-units[j].y)>=formation.SOLDIER_SIZE);
+ let last=0;for(let stage=1;stage<=600;stage++){const n=formation.waveSize(stage);assert.ok(n>=last&&n<=30);last=n;for(let i=0;i<n;i++){const p=formation.enemyPosition(i,n);assert.ok(p.x>=40&&p.x+20<=240&&p.y+40<350);}}
+ assert.equal(formation.waveSize(1),1);assert.equal(formation.waveSize(400),30);assert.equal(formation.waveSize(400,true),1);
+ assert.equal(formation.survivingEnemies(30,.5),15);assert.equal(formation.survivingEnemies(30,0),0);assert.equal(formation.survivingEnemies(30,1),30);
+});
