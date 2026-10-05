@@ -1,0 +1,21 @@
+{
+  "build": "8ff9bfc",
+  "source": "e9bdf1b",
+  "tests": 119,
+  "locales": [
+    "ko",
+    "en"
+  ],
+  "verified": [
+    "Reset current guest progress via public cheat panel",
+    "Complete six boot-camp actions in order",
+    "Claim daily reward and confirm via animated guides",
+    "Undo reset restores pre-reset funds and squad",
+    "English cheat panel and tutorial replay",
+    "Zone 400 and eight-soldier presets",
+    "No bullet tracer; muzzle and hit fragments",
+    "Reset again after QA",
+    "Reload and guest re-entry retain stage 1, captain level 1, no recruits, starting funds 25, tutorial step 0"
+  ],
+  "resetScope": "Current browser guest account progress, including versioned server save. Account, consent and operational mail receipts retained. No other accounts reset."
+}
