@@ -46909,16 +46909,16 @@ System.register("chunks:///_virtual/ReferenceRules.ts", ['cc'], function (export
 });
 
 System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './EntryPolicy.ts', './UITheme.ts', './I18n.ts', './Config.ts'], function (exports) {
-  var _createClass, _createForOfIteratorHelperLoose, cclegacy, UITransform, Mask, isValid, Label, Vec3, Graphics, UIOpacity, tween, tutorialComplete, tutorialSeen, tutorialAdvance, TUTORIAL_DONE, tabUnlocked, TAB_STAGES, UI, translations, SPELLS;
+  var _createForOfIteratorHelperLoose, _createClass, cclegacy, isValid, UITransform, Mask, Label, Vec3, Graphics, UIOpacity, tween, tutorialComplete, tutorialSeen, tutorialAdvance, TUTORIAL_DONE, tabUnlocked, TAB_STAGES, UI, translations, SPELLS;
   return {
     setters: [function (module) {
-      _createClass = module.createClass;
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
+      _createClass = module.createClass;
     }, function (module) {
       cclegacy = module.cclegacy;
+      isValid = module.isValid;
       UITransform = module.UITransform;
       Mask = module.Mask;
-      isValid = module.isValid;
       Label = module.Label;
       Vec3 = module.Vec3;
       Graphics = module.Graphics;
@@ -46942,6 +46942,25 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
       cclegacy._RF.push({}, "8c6d8ZZlZNLeKYCjDMDvIF5", "TutorialUI", undefined);
       var TutorialUI = exports('TutorialUI', /*#__PURE__*/function () {
         var _proto = TutorialUI.prototype;
+        _proto.shapeKey = function shapeKey(node) {
+          return JSON.stringify(this.a.ui.contours.get(node.getChildByName('selected-tab') || node));
+        };
+        _proto.refreshFocus = function refreshFocus() {
+          for (var _iterator = _createForOfIteratorHelperLoose(this.focusTargets), _step; !(_step = _iterator()).done;) {
+            var _step$value = _step.value,
+              node = _step$value[0],
+              record = _step$value[1];
+            if (!isValid(node, true) || !isValid(record.guide, true)) {
+              this.focusTargets["delete"](node);
+              continue;
+            }
+            if (record.key !== this.shapeKey(node)) {
+              this.a.stopTweens(record.guide);
+              record.guide.destroy();
+              this.focus(node, record.x, record.y, record.w, record.h, record.arrow);
+            }
+          }
+        };
         _proto.complete = function complete(key) {
           if (tutorialComplete(this.a.game.s, key)) {
             this.a.game.revision++;
@@ -47025,6 +47044,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
         };
         function TutorialUI(a) {
           this.shown = '';
+          this.focusTargets = new Map();
           this.popupTitle = '';
           this.popupCandidates = [];
           this.popupHint = null;
@@ -47049,6 +47069,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
         };
         _proto.tick = function tick() {
           var _this3 = this;
+          this.refreshFocus();
           this.event('progress');
           this.popupTick();
           if (this.deferredSave && !this.a.operations.busy) {
@@ -47155,8 +47176,8 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           var target = null,
             best = Infinity;
           var search = function search(parent) {
-            for (var _iterator = _createForOfIteratorHelperLoose(parent.children), _step; !(_step = _iterator()).done;) {
-              var child = _step.value;
+            for (var _iterator2 = _createForOfIteratorHelperLoose(parent.children), _step2; !(_step2 = _iterator2()).done;) {
+              var child = _step2.value;
               if (!child.activeInHierarchy || child.name.startsWith('guide-') || child.name === 'tutorial-guide-root') continue;
               if (child.name === 'ui-button' || /^tab-\d+$/.test(child.name)) {
                 var pos = rootTransform.convertToNodeSpaceAR(child.worldPosition),
@@ -47187,6 +47208,15 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           }) : [[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]];
           var n = a.nodeAt(parent, 'guide-focus', x, y, w, h),
             animated = a.game.s.extra.effects;
+          if (parent !== a.root) this.focusTargets.set(parent, {
+            guide: n,
+            key: this.shapeKey(parent),
+            x: x,
+            y: y,
+            w: w,
+            h: h,
+            arrow: arrowVisible
+          });
           // The guide reuses the rendered surface vertices; no rectangular bounding-box brackets.
           var line = a.nodeAt(n, 'guide-contour', 0, 0, w, h),
             g = line.addComponent(Graphics);
