@@ -1,5 +1,5 @@
 import { _decorator, Component, Node, UITransform, Graphics, Color, Label, isValid, Vec3, Layers, Mask, ScrollView, EventTouch, tween, Tween, UIOpacity, sys, view, screen, ResolutionPolicy, resources, Sprite, SpriteFrame, BlockInputEvents, Input, input, EventKeyboard, KeyCode, profiler, EditBox, Texture2D } from 'cc';
-import {allyPosition,enemyPosition,waveSize,survivingEnemies,SOLDIER_SIZE} from './core/BattleFormation';
+import {allyPosition,enemyPosition,waveSize,SOLDIER_SIZE} from './core/BattleFormation';
 import {CheatUI} from './CheatUI';
 import {FeedbackUI} from './FeedbackUI';
 import { Game, Item } from './core/Game';
@@ -276,18 +276,18 @@ export class GameApp extends Component {
     }
     populateEnemies():void {
         const count=waveSize(this.game.s.run.stage,this.game.s.run.boss);
-        // A wave shares the existing combat HP/reward budget; no extra currency is minted by the visuals.
-        for(let i=count-1;i>=0;i--){const pos=enemyPosition(i,count),unit=this.nodeAt(this.enemy,'hostile-'+i,pos.x,pos.y,40,40);this.sentinel(unit);}
+        // Each stable slot has independent saved health; the HUD displays their sum.
+        for(let i=count-1;i>=0;i--){const pos=enemyPosition(i,count),unit=this.nodeAt(this.enemy,'hostile-'+i,pos.x,pos.y,40,40);this.sentinel(unit);const bar=this.nodeAt(unit,'health',0,51,32,4);this.rect(bar,0,0,32,4,'#111820');this.rect(bar,0,0,30,2,'#ffdb48').name='fill';}
     }
     syncWave():void {
         if(this.enemyTransition)return;
-        const count=waveSize(this.game.s.run.stage,this.game.s.run.boss),alive=survivingEnemies(count,ratio(this.game.s.run.hp,this.game.maxHP()));
-        this.enemy.children.forEach(unit=>{const index=Number(unit.name.split('-')[1]);if(index<alive||!unit.active)return;
-            if(this.game.s.extra.effects){this.bulletImpact(unit.position.x,unit.position.y+20);}
-            unit.active=false;
+        const hp=this.game.enemyHealth();
+        this.enemy.children.forEach(unit=>{const index=Number(unit.name.split('-')[1]),alive=hp[index]!==ZERO;
+            if(!alive&&unit.active&&this.game.s.extra.effects)this.bulletImpact(unit.position.x,unit.position.y+20);
+            unit.active=alive;const bar=unit.getChildByName('health');if(bar){bar.active=alive;bar.getChildByName('fill')?.setScale(Math.max(.001,ratio(hp[index],this.game.enemyMaxHP())),1,1);}
         });
     }
-    shotTarget():Vec3 {const units=this.enemy.children.filter(n=>n.active);const unit=units[Math.floor(Math.random()*units.length)];return unit?new Vec3(unit.position.x,unit.position.y+24,0):new Vec3(138,48,0);}
+    shotTarget(id=this.game.targetEnemy()):Vec3 {const unit=this.enemy.getChildByName('hostile-'+id);return unit?new Vec3(unit.position.x,unit.position.y+24,0):new Vec3(138,48,0);}
     spawnEnemy():void {
         Tween.stopAllByTarget(this.enemy);this.clear(this.enemy);this.enemy.active=true;this.enemy.setPosition(0,0);
         const opacity=this.enemy.getComponent(UIOpacity)!;Tween.stopAllByTarget(opacity);opacity.opacity=255;
@@ -304,10 +304,10 @@ export class GameApp extends Component {
     }
     gunshot(x:number,y:number):void {
         if(!this.game.s.extra.effects||!isValid(this.particles,true))return;
-        const target=this.shotTarget(),muzzle=this.nodeAt(this.particles,'muzzle-flash',x+24,y,18,14);
+        const muzzle=this.nodeAt(this.particles,'muzzle-flash',x+24,y,18,14);
         this.ui.polygon(muzzle,[[-8,0],[-2,3],[2,7],[4,2],[12,0],[3,-2],[1,-6],[-2,-2]],'#ffe04c');
         tween(muzzle).to(.07,{scale:new Vec3(.1,.1,1)}).call(()=>{if(isValid(muzzle,true))muzzle.destroy();}).start();
-        this.scheduleOnce(()=>{if(isValid(this.particles,true))this.bulletImpact(target.x,target.y);},.06);
+
     }
     bulletImpact(x:number,y:number):void {
         if(!this.game.s.extra.effects||!isValid(this.particles,true)||this.particles.children.length>180)return;
@@ -872,13 +872,13 @@ export class GameApp extends Component {
     globalRaid():void {void this.remote(async()=>{await this.onlineService.connect(this.tr('online.defaultName'));const data=await this.onlineService.request('/global');this.globalRaidPanel(data);});}
     globalRaidPanel(data:any):void {const p=this.open(this.tr('extra.globalRaid'),450);this.label(p,this.tr('online.guildHP',{hp:display(data.hp)}),0,90,375,70,24);this.button(p,this.tr('action.attack'),0,-65,375,60,()=>{void this.remote(async()=>{const next=await this.onlineService.command('/global/attack');this.globalRaidPanel(next);});},true);}
     eventRanks():void {void this.remote(async()=>{await this.onlineService.connect(this.tr('online.defaultName'));const rows=await this.onlineService.request('/global/ranks');const p=this.open(this.tr('extra.eventRanks'),660);this.scroll(p,0,-25,400,530,rows.map((r:any,i:number)=>({title:this.tr('online.rank',{rank:i+1,name:r.name}),sub:this.tr('extra.contribution',{value:r.damage})})));});}
-    updateHUD(): void { this.buttonStates=this.buttonStates.filter(b=>isValid(b.node,true));this.buttonStates.forEach(b=>b.refresh());const g = this.game, r = g.s.run;this.equipmentPile.active=g.s.extra.unseenEquipment.length>0;this.equipmentPile.getComponentInChildren(Label)!.string=this.tr('complete.pile',{count:g.s.extra.unseenEquipment.length}); this.fairy.active = g.s.maxStage>=3&&Date.now()>=g.s.fairyAt; this.stageLabel.string = String(r.stage);this.stageNeighbors.forEach((l,i)=>l.string=String(Math.max(1,r.stage+(i?1:-1)))); this.enemyLabel.string = this.tr('battle.wave',{count:survivingEnemies(waveSize(r.stage,r.boss),ratio(r.hp,g.maxHP()))}); this.goldLabel.string = this.format(r.gold); this.gemsLabel.string = String(g.s.gems); this.damageLabel.string = this.format(g.tapDamage()); this.manaLabel.string = Math.floor(r.mana)+'/120'; this.hpFill.setScale(this.enemyTransition>.2?0:Math.max(.001,ratio(r.hp,g.maxHP())),1,1);this.hpLabel.string=this.enemyTransition>.2?this.tr('battle.defeated'):this.format(r.hp); this.progressLabel.string = this.tr(r.boss ? 'hud.timer' : 'hud.progress', {
+    updateHUD(): void { this.buttonStates=this.buttonStates.filter(b=>isValid(b.node,true));this.buttonStates.forEach(b=>b.refresh());const g = this.game, r = g.s.run;this.equipmentPile.active=g.s.extra.unseenEquipment.length>0;this.equipmentPile.getComponentInChildren(Label)!.string=this.tr('complete.pile',{count:g.s.extra.unseenEquipment.length}); this.fairy.active = g.s.maxStage>=3&&Date.now()>=g.s.fairyAt; this.stageLabel.string = String(r.stage);this.stageNeighbors.forEach((l,i)=>l.string=String(Math.max(1,r.stage+(i?1:-1)))); this.enemyLabel.string = this.tr('battle.wave',{count:g.enemyHealth().filter(h=>h!==ZERO).length}); this.goldLabel.string = this.format(r.gold); this.gemsLabel.string = String(g.s.gems); this.damageLabel.string = this.format(g.tapDamage()); this.manaLabel.string = Math.floor(r.mana)+'/120'; this.hpFill.setScale(this.enemyTransition>.2?0:Math.max(.001,ratio(r.hp,g.maxHP())),1,1);this.hpLabel.string=this.enemyTransition>.2?this.tr('battle.defeated'):this.format(r.hp); this.progressLabel.string = this.tr(r.boss ? 'hud.timer' : 'hud.progress', {
         seconds: Math.ceil(r.bossLeft), count: r.kills
     }); this.bossButton.active = r.kills >= 5; const l = this.bossButton.getComponentInChildren(Label); if (l)
         l.string = this.tr(r.boss ? 'battle.leave' : 'battle.fight'); this.spellLabels.forEach((l, slot) => { const i = this.spellShown[slot]; l.string = r.master<SPELLS[i].unlock?String(SPELLS[i].unlock):r.cooldowns[i]>0?String(Math.ceil(r.cooldowns[i])):'✓'; }); }
-    attack(): void { if(!this.entry.playing||this.liveOps.blocked||this.enemyTransition>0||!this.operations.ready||this.operations.busy||this.operations.conflict||this.remoteBusy||this.feedback.asyncPending||this.feedback.showing)return;if(!this.game.s.extra.effects){this.game.tap();this.syncEnemyDeath();this.sound(180);return;}Tween.stopAllByTarget(this.actor);this.actor.setPosition(-67,12);tween(this.actor).to(.12,{position:new Vec3(-64,12,0)}).start();this.fireBurst(-64,51);const damage = this.game.tap(); this.sound(170 + Math.random() * 50); const n = this.label(this.particles, this.format(damage), 138+(Math.random() - .5) * 40, 155, 180, 40, 25, UI.brightGold).node; n.addComponent(UIOpacity); tween(n).by(.6, {
+    attack(): void { if(!this.entry.playing||this.liveOps.blocked||this.enemyTransition>0||!this.operations.ready||this.operations.busy||this.operations.conflict||this.remoteBusy||this.feedback.asyncPending||this.feedback.showing)return;if(!this.game.s.extra.effects){this.game.tap();this.syncEnemyDeath();this.sound(180);return;}Tween.stopAllByTarget(this.actor);this.actor.setPosition(-67,12);tween(this.actor).to(.12,{position:new Vec3(-64,12,0)}).start();this.fireBurst(-64,51);const target=this.shotTarget();const damage = this.game.tap(); this.sound(170 + Math.random() * 50); const n = this.label(this.particles, this.format(damage), target.x+(Math.random() - .5) * 12, target.y+28, 180, 40, 25, UI.brightGold).node; n.addComponent(UIOpacity); tween(n).by(.6, {
         position: new Vec3(0, 70, 0)
-    }).call(() => {if(isValid(n,true))n.destroy();}).start(); this.bulletImpact(138,48); this.enemy.setPosition(2, 0); tween(this.enemy).to(.08, {
+    }).call(() => {if(isValid(n,true))n.destroy();}).start(); this.bulletImpact(target.x,target.y); this.enemy.setPosition(2, 0); tween(this.enemy).to(.08, {
         position: new Vec3(0, 0, 0)
     }).start(); this.syncEnemyDeath();this.updateHUD(); }
     combatSprite(key:CombatEffect,name:string,x:number,y:number,size:number):Node|null {
@@ -947,7 +947,7 @@ export class GameApp extends Component {
         else {this.syncAllies();this.game.tick(dt);
             for(const event of this.game.heroEvents){
                 if(event.phase==='attack')this.animateAlly(event.hero,event.windup);
-                else {const target=this.shotTarget();this.bulletImpact(target.x,target.y);this.sound(120);}
+                else {const target=this.shotTarget(event.target);this.bulletImpact(target.x,target.y);this.sound(120);}
             }
             this.syncEnemyDeath();}
         if(!this.enemyTransition){const look=this.enemyKey();if(this.enemyLook!==look)this.spawnEnemy();this.syncWave();}

@@ -1,4 +1,5 @@
 import { ARTIFACT_DISCOVERY_COSTS, GrowthStat, GrowthContribution, gemstoneBonus, routedBonus } from './Balance';
+import {waveSize} from './BattleFormation';
 import { ZERO, amount, add, sub, mul } from './Amount';
 import { Expansion, ExpansionState, newExpansion } from './Expansion';
 import { CONFIG, HEROES, SPELLS, SKILLS } from './Config';
@@ -19,6 +20,8 @@ export interface Run {
     bossLeft: number;
     bossFailed: boolean;
     hp: number;
+    enemies?:number[];
+    enemyWave?:string;
     gold: number;
     master: number;
     heroes: number[];
@@ -118,7 +121,7 @@ export class Game {
     // Unverified prototype fallback; the reference document/CSV does not specify base hero intervals.
     readonly heroAttackInterval = 1.15;
     readonly heroAttackWindup = .24;
-    heroEvents: {hero:number; phase:'attack'|'hit'; damage:number; windup?:number}[] = [];
+    heroEvents: {hero:number; phase:'attack'|'hit'; damage:number; windup?:number; target?:number}[] = [];
     private heroClocks = Array(24).fill(0);
     private combatRun: Run | null = null;
     constructor(public storage?: Storage, public now = () => Date.now()) {
@@ -213,6 +216,7 @@ export class Game {
         if(!Array.isArray(s.extra.rewardNotices)||s.extra.rewardNotices.some(r=>!['milestone','weapon','scroll','weaponSet','equipmentSet'].includes(r.kind)||!Number.isInteger(r.value)||r.value<0||!Number.isInteger(r.count)||r.count<1))throw Error('rewardNotices');
         const raid=s.extra.soloRaid;
         if(raid&&(!validDeck(raid.deck)||!Number.isInteger(raid.portal)||raid.portal<1||raid.portal>1000||raid.hp.length!==8||raid.armor.length!==8||raid.cardDamage.length!==3||raid.seconds<0||raid.seconds>30))throw Error('raid');
+        if(s.run.enemies!==undefined&&(!Array.isArray(s.run.enemies)||s.run.enemies.length!==waveSize(s.run.stage,s.run.boss)||s.run.enemies.some(h=>typeof h!=='number'||!Number.isFinite(h)||h!==ZERO&&h>mul(this.maxHP(s.run.stage,s.run.boss),1/waveSize(s.run.stage,s.run.boss))+1e-8)))throw Error('enemyHealth');
         const scan = (o: any): void => { for (const v of Object.values(o)) {
             if (typeof v === 'number' && !Number.isFinite(v))
                 throw Error('number');
@@ -319,7 +323,7 @@ export class Game {
             if (r.bossLeft <= 0) {
                 r.boss = false;
                 r.bossFailed = true;
-                r.hp = this.maxHP();
+                r.hp = this.maxHP();this.resetEnemies();
                 this.notice = 'battle.failed';
                 this.revision++;
             }
@@ -327,7 +331,7 @@ export class Game {
         // Hero DPS is converted to one hit per cooldown; only spells remain continuous.
         const kills=this.s.totalKills;
         const speed=this.heroAttackRate();
-        const scheduled: {time:number;hero:number;phase:'attack'|'hit';damage:number;windup?:number}[]=[];
+        const scheduled: {time:number;hero:number;phase:'attack'|'hit';damage:number;windup?:number;target?:number}[]=[];
         for(let i=0;i<r.heroes.length;i++){
             if(!r.heroes[i]){this.heroClocks[i]=0;continue;}
             const before=this.heroClocks[i],after=before+dt*speed,interval=this.heroAttackInterval,attackAt=interval-this.heroAttackWindup;
@@ -339,7 +343,7 @@ export class Game {
         }
         for(const {time,...event} of scheduled.sort((a,b)=>a.time-b.time||a.hero-b.hero)){
             this.heroEvents.push(event);
-            if(event.phase==='hit'){this.damage(event.damage);if(this.s.totalKills!==kills)break;}
+            if(event.phase==='hit'){this.damage(event.damage,event.hero);event.target=this.lastHit;if(this.s.totalKills!==kills)break;}
         }
         if(this.s.totalKills===kills)this.damage(mul(this.spellDPS(),dt));
         if (this.raid && !this.raid.ended) {
@@ -351,15 +355,30 @@ export class Game {
         this.dailyReset();
         new Expansion(this).sync();
     }
+    lastHit=-1;
+    private waveKey(){const r=this.s.run;return `${r.stage}:${r.boss}:${r.kills}`;}
+    enemyHealth():number[]{
+        const r=this.s.run,count=waveSize(r.stage,r.boss),key=this.waveKey();
+        if(!r.enemies||r.enemyWave!==key||r.enemies.length!==count){
+            r.enemies=Array(count).fill(mul(r.hp,1/count));r.enemyWave=key;
+        }
+        return r.enemies;
+    }
+    enemyMaxHP():number{return mul(this.maxHP(),1/waveSize(this.s.run.stage,this.s.run.boss));}
+    targetEnemy(preferred=0):number{const hp=this.enemyHealth();for(let i=0;i<hp.length;i++){const id=(Math.max(0,preferred)+i)%hp.length;if(hp[id]!==ZERO)return id;}return -1;}
+    resetEnemies():void{delete this.s.run.enemies;delete this.s.run.enemyWave;this.enemyHealth();}
     tap(): number { this.s.totalTaps++; this.s.dayTaps++; const crit = this.random() < (this.s.run.spells[1] > 0 ? .7 : .06); const damage = mul(this.tapDamage(), crit ? 5 : 1); this.damage(damage); return damage; }
-    damage(value: number): void {
+    damage(value: number,preferred=0): void {
+        this.lastHit=-1;
         if (value === ZERO)
             return;
         const r = this.s.run;
-        if (value < r.hp - 1e-10) {
-            r.hp = sub(r.hp, value);
-            return;
-        }
+        const hp=this.enemyHealth(),target=this.targetEnemy(preferred);if(target<0)return;
+        this.lastHit=target;
+        // A rifle hit only damages its chosen enemy. Excess damage never kills an untouched unit.
+        hp[target]=sub(hp[target],value);r.hp=hp.reduce((sum,h)=>add(sum,h),ZERO);
+        this.revision++;
+        if(hp.some(h=>h!==ZERO))return;
         this.heroClocks.fill(0); // A new enemy starts a fresh attack cycle.
         r.gold = add(r.gold, this.goldReward());
         this.s.totalKills++;this.s.extra.eventEarned++;
@@ -380,7 +399,7 @@ export class Game {
                 r.bossLeft = CONFIG.bossSeconds;
             }
         }
-        r.hp = this.maxHP();
+        r.hp = this.maxHP();this.resetEnemies();
         this.revision++;
     }
     unlock(): void {
@@ -408,7 +427,7 @@ export class Game {
         r.boss = true;
         r.bossFailed = false;
         r.bossLeft = 30;
-    } r.hp = this.maxHP(); this.revision++; }
+    } r.hp = this.maxHP();this.resetEnemies(); this.revision++; }
     upgradeCost(hero: number, count = 1): number { const level = hero < 0 ? this.s.run.master : this.s.run.heroes[hero]; const growth = hero < 0 ? 1.072 : 1.075; const base = hero < 0 ? 4 : HEROES[hero].cost; return (this.s.extra.commerce.discountUntil>this.now()?-1:0) + amount(base) + level * Math.log10(growth) + Math.log10((Math.pow(growth, count) - 1) / (growth - 1)); }
     buy(hero: number, requested: number): boolean {
         if (hero >= 0 && this.s.maxStage < HEROES[hero].unlock) {

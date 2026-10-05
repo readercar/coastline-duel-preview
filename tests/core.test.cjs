@@ -153,3 +153,18 @@ test('cheat presets clone progress, validate zones and replay uses fresh action 
  const advanced=cheats.prototypeCheat(g.s,'stage',400);assert.equal(advanced.run.stage,400);assert.equal(advanced.run.boss,false);assert.equal(advanced.run.hp,g.maxHP(400,false));assert.equal(advanced.tutorial.step,Entry.TUTORIAL_DONE);assert.throws(()=>cheats.prototypeCheat(g.s,'stage',999),/error.invalid/);
  advanced.totalTaps=100;const replay=cheats.prototypeCheat(advanced,'tutorial');assert.equal(replay.tutorial.step,0);assert.equal(replay.tutorial.tapBaseline,100);assert.equal(JSON.stringify(g.s),original);
 });
+test('independent hostile HP damages only the chosen slot and survives reload',()=>{
+ const store=memory(),g=new Game(store);g.s.run.stage=30;g.s.run.hp=g.maxHP();g.resetEnemies();const before=[...g.enemyHealth()];
+ g.damage(A.mul(before[3],.25),3);assert.ok(g.enemyHealth()[3]<before[3]);for(let i=0;i<6;i++)if(i!==3)assert.equal(g.enemyHealth()[i],before[i]);
+ g.damage(100,3);assert.equal(g.enemyHealth()[3],A.ZERO);assert.equal(g.enemyHealth().filter(h=>h!==A.ZERO).length,5);assert.equal(g.s.totalKills,0);
+ assert.ok(g.persist());const loaded=new Game(store);assert.deepEqual(loaded.enemyHealth(),g.enemyHealth());assert.equal(loaded.lastHit,-1);
+});
+test('wave rewards occur once after all independent enemies die; boss resets to one slot',()=>{
+ const g=game();g.s.run.stage=400;g.s.run.kills=4;g.s.run.hp=g.maxHP();g.resetEnemies();const gold=g.s.run.gold;
+ for(let i=0;i<29;i++){g.damage(1000,i);assert.equal(g.s.totalKills,0);assert.equal(g.s.run.gold,gold);}
+ g.damage(1000,29);assert.equal(g.s.totalKills,1);assert.equal(g.s.run.boss,true);assert.equal(g.enemyHealth().length,1);assert.ok(g.s.run.gold>gold);
+ g.s.run.bossLeft=.01;g.tick(.02);assert.equal(g.enemyHealth().length,30);assert.ok(g.enemyHealth().every(h=>h!==A.ZERO));
+});
+test('overkill retargets a dead slot without changing another living slot in the same hit',()=>{
+ const g=game();g.s.run.stage=5;g.s.run.hp=g.maxHP();g.resetEnemies();const second=g.enemyHealth()[1];g.damage(100,0);assert.equal(g.lastHit,0);assert.equal(g.enemyHealth()[1],second);g.damage(A.mul(second,.1),0);assert.equal(g.lastHit,1);assert.ok(g.enemyHealth()[1]<second);
+});

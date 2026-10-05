@@ -9,7 +9,7 @@ export function prototypeCheat(current:Save,action:'funds'|'squad'|'stage'|'tuto
  if(action==='squad'){for(let i=0;i<8;i++)g.s.run.heroes[i]=Math.max(10,g.s.run.heroes[i]);g.s.maxStage=Math.max(g.s.maxStage,HEROES[7].unlock);}
  if(action==='stage'){
   if(![1,30,200,400].includes(stage))throw Error('error.invalid');
-  const r=g.s.run;r.stage=stage;r.boss=false;r.kills=0;r.bossLeft=30;r.bossFailed=false;r.hp=g.maxHP(stage,false);g.s.maxStage=Math.max(g.s.maxStage,stage);g.s.tutorial.step=TUTORIAL_DONE;
+  const r=g.s.run;r.stage=stage;r.boss=false;r.kills=0;r.bossLeft=30;r.bossFailed=false;r.hp=g.maxHP(stage,false);g.resetEnemies();g.s.maxStage=Math.max(g.s.maxStage,stage);g.s.tutorial.step=TUTORIAL_DONE;
  }
  if(action==='tutorial')replayTutorial(g.s);
  g.s.lastSeen=now;g.s.offline=ZERO;g.validate(g.s);return g.s;
