@@ -6,6 +6,9 @@ import {translations} from './core/I18n';
 import {SPELLS} from './core/Config';
 export class TutorialUI {
  private shown='';
+ private focusTargets=new Map<Node,{guide:Node;key:string;x:number;y:number;w:number;h:number;arrow:boolean}>();
+ private shapeKey(node:Node){return JSON.stringify(this.a.ui.contours.get(node.getChildByName('selected-tab')||node));}
+ private refreshFocus(){for(const [node,record] of this.focusTargets){if(!isValid(node,true)||!isValid(record.guide,true)){this.focusTargets.delete(node);continue;}if(record.key!==this.shapeKey(node)){this.a.stopTweens(record.guide);record.guide.destroy();this.focus(node,record.x,record.y,record.w,record.h,record.arrow);}}}
  private popupTitle='';
  private popupCandidates:{node:Node;key:string;caption:string}[]=[];
  private popupHint:Label|null=null;
@@ -52,7 +55,7 @@ export class TutorialUI {
  event(kind:string){if(tutorialAdvance(this.a.game.s,kind)){this.a.game.revision++;this.a.game.persist();this.a.draw();void this.a.operations.save().catch(e=>this.a.operations.report('tutorial.save',e));if(!this.active)this.a.toast(this.a.tr('tutorial.complete'));}}
  get firstBoss(){return !this.active&&this.a.game.s.maxStage<2&&(this.a.game.s.run.boss||this.a.game.s.run.bossFailed);}
  get signature(){return this.a.game.s.tutorial.step+':'+this.firstBoss+':'+this.a.tab+':'+this.a.folded+':'+this.followup()?.id;}
- tick(){this.event('progress');this.popupTick();if(this.deferredSave&&!this.a.operations.busy){this.deferredSave=false;void this.a.operations.save().catch(e=>this.a.operations.report('tutorial.save',e));}if(this.shown!==this.signature&&!this.a.modal)this.a.draw();}
+ tick(){this.refreshFocus();this.event('progress');this.popupTick();if(this.deferredSave&&!this.a.operations.busy){this.deferredSave=false;void this.a.operations.save().catch(e=>this.a.operations.report('tutorial.save',e));}if(this.shown!==this.signature&&!this.a.modal)this.a.draw();}
 
  skip(){const a=this.a;a.confirm(a.tr('tutorial.skipTitle'),a.tr('tutorial.skipBody'),()=>{a.game.s.tutorial.step=TUTORIAL_DONE;a.game.revision++;a.game.persist();a.draw();void a.operations.save().catch(e=>a.operations.report('tutorial.save',e));});}
  draw(){const a=this.a,step=a.game.s.tutorial.step;this.shown=this.signature;if(step>=TUTORIAL_DONE){const next=this.followup();if(next){this.guide(a.tr(next.body),'!',true);if(next.target)this.outline(...next.target);const p=a.root.children.find(n=>n.name==='tutorial-guide-root');if(p)a.button(p,'×',70,32,30,26,()=>{this.postponed.add(next.id);a.draw();},false,{style:'quiet',hint:a.tr('guide.later')});}return;}if(step<1){this.guide(a.tr('guide.begin'),'0/6',true);const p=a.root.getChildByName('tutorial-guide-root');if(p)a.button(p,a.tr('tutorial.begin'),53,32,65,26,()=>this.event('begin'),true,{hint:a.tr('tutorial.begin')});return;}
@@ -95,6 +98,7 @@ export class TutorialUI {
   const contour=a.ui.contours.get(shape);
   const points=contour?contour.map(p=>[p[0]+(selected?.position.x||0),p[1]+(selected?.position.y||0)]):[[-w/2,-h/2],[w/2,-h/2],[w/2,h/2],[-w/2,h/2]];
   const n=a.nodeAt(parent,'guide-focus',x,y,w,h),animated=a.game.s.extra.effects;
+  if(parent!==a.root)this.focusTargets.set(parent,{guide:n,key:this.shapeKey(parent),x,y,w,h,arrow:arrowVisible});
   // The guide reuses the rendered surface vertices; no rectangular bounding-box brackets.
   const line=a.nodeAt(n,'guide-contour',0,0,w,h),g=line.addComponent(Graphics);
   g.strokeColor=a.color('#ffe000');g.lineWidth=3;g.moveTo(points[0][0],points[0][1]);points.slice(1).forEach(p=>g.lineTo(p[0],p[1]));g.close();g.stroke();
