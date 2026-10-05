@@ -38894,10 +38894,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var edge = this.nodeAt(n, 'button-outline', 0, 0, w, h).addComponent(Graphics);
           edge.lineWidth = 1.5;
           edge.strokeColor = this.color(claimable ? C.gold : '#929889');
-          edge.moveTo(-w / 2 + 8, -h / 2 + 2);
-          edge.lineTo(w / 2 - 2, -h / 2 + 2);
-          edge.lineTo(w / 2 - 8, h / 2 - 2);
-          edge.lineTo(-w / 2 + 2, h / 2 - 2);
+          var outline = this.ui.contours.get(n);
+          edge.moveTo(outline[0][0], outline[0][1]);
+          outline.slice(1).forEach(function (p) {
+            return edge.lineTo(p[0], p[1]);
+          });
           edge.close();
           edge.stroke();
           var unavailable = options.unavailable || (text === this.tr('action.claimed') ? function () {
@@ -46908,19 +46909,21 @@ System.register("chunks:///_virtual/ReferenceRules.ts", ['cc'], function (export
 });
 
 System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './EntryPolicy.ts', './UITheme.ts', './I18n.ts', './Config.ts'], function (exports) {
-  var _createClass, cclegacy, UITransform, Mask, isValid, Label, Graphics, tween, Vec3, tutorialComplete, tutorialSeen, tutorialAdvance, TUTORIAL_DONE, tabUnlocked, TAB_STAGES, UI, translations, SPELLS;
+  var _createClass, _createForOfIteratorHelperLoose, cclegacy, UITransform, Mask, isValid, Label, Vec3, Graphics, UIOpacity, tween, tutorialComplete, tutorialSeen, tutorialAdvance, TUTORIAL_DONE, tabUnlocked, TAB_STAGES, UI, translations, SPELLS;
   return {
     setters: [function (module) {
       _createClass = module.createClass;
+      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
     }, function (module) {
       cclegacy = module.cclegacy;
       UITransform = module.UITransform;
       Mask = module.Mask;
       isValid = module.isValid;
       Label = module.Label;
-      Graphics = module.Graphics;
-      tween = module.tween;
       Vec3 = module.Vec3;
+      Graphics = module.Graphics;
+      UIOpacity = module.UIOpacity;
+      tween = module.tween;
     }, function (module) {
       tutorialComplete = module.tutorialComplete;
       tutorialSeen = module.tutorialSeen;
@@ -47118,7 +47121,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           if (step === 4) this.outline(164, -224 - a.heightExtra, 115, 52);
           if (step === 5 || step === 6) this.outline(171, (a.folded ? -337 : -39) - a.heightExtra, 128, 32);
         }
-        // A small left-edge caption leaves the central combat silhouettes and right-side controls clear.
+        // Keep the compact caption against the upper-right edge below the HUD.
         ;
 
         _proto.guide = function guide(body, progress, boss) {
@@ -47129,7 +47132,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           var a = this.a,
             w = 194,
             h = boss ? 116 : 106,
-            x = -240 + w / 2,
+            x = 240 - w / 2 - 8,
             y = 287 + a.heightExtra - a.safeTop;
           var wrap = a.nodeAt(a.root, 'tutorial-guide-root', x, y, w, h),
             p = a.nodeAt(wrap, 'ink-surface', 0, 0, w, h);
@@ -47146,56 +47149,83 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           });
         };
         _proto.outline = function outline(x, y, w, h) {
-          this.focus(this.a.root, x, y + this.a.safeBottom, w, h, true);
+          var a = this.a,
+            point = new Vec3(x, y + a.safeBottom, 0),
+            rootTransform = a.root.getComponent(UITransform);
+          var target = null,
+            best = Infinity;
+          var search = function search(parent) {
+            for (var _iterator = _createForOfIteratorHelperLoose(parent.children), _step; !(_step = _iterator()).done;) {
+              var child = _step.value;
+              if (!child.activeInHierarchy || child.name.startsWith('guide-') || child.name === 'tutorial-guide-root') continue;
+              if (child.name === 'ui-button' || /^tab-\d+$/.test(child.name)) {
+                var pos = rootTransform.convertToNodeSpaceAR(child.worldPosition),
+                  size = child.getComponent(UITransform);
+                var distance = Math.hypot(pos.x - point.x, pos.y - point.y);
+                if (distance < Math.min(w, h) / 2 && size.width < w * 1.8 && size.height < h * 1.8 && distance < best) {
+                  target = child;
+                  best = distance;
+                }
+              }
+              search(child);
+            }
+          };
+          search(a.root);
+          if (target) {
+            var node = target,
+              size = node.getComponent(UITransform);
+            this.focus(node, 0, 0, size.width, size.height, true);
+          } else this.focus(a.root, point.x, point.y, w, h, true);
         };
         _proto.focus = function focus(parent, x, y, w, h, arrowVisible) {
           var a = this.a,
-            n = a.nodeAt(parent, 'guide-focus', x, y, w, h);
-          var animated = a.game.s.extra.effects,
-            arm = Math.min(22, w / 4, h / 3);
-          // Move the actual brackets, not only a faint halo: the target stays readable.
-          for (var _i = 0, _arr = [-1, 1]; _i < _arr.length; _i++) {
-            var sx = _arr[_i];
-            for (var _i2 = 0, _arr2 = [-1, 1]; _i2 < _arr2.length; _i2++) {
-              var sy = _arr2[_i2];
-              var corner = a.nodeAt(n, 'guide-bracket', sx * w / 2, sy * h / 2, arm, arm),
-                g = corner.addComponent(Graphics);
-              g.strokeColor = a.color('#ffe000');
-              g.lineWidth = 4;
-              g.moveTo(-sx * arm, 0);
-              g.lineTo(0, 0);
-              g.lineTo(0, -sy * arm);
-              g.stroke();
-              if (animated) tween(corner).by(.38, {
-                position: new Vec3(-sx * 6, -sy * 6, 0)
-              }, {
-                easing: 'sineInOut'
-              }).by(.38, {
-                position: new Vec3(sx * 6, sy * 6, 0)
-              }, {
-                easing: 'sineInOut'
-              }).union().repeatForever().start();
-            }
-          }
-          // Bright, travelling glints make even popup guides and top-edge targets visibly alive.
+            selected = parent.getChildByName('selected-tab'),
+            shape = selected || parent;
+          var contour = a.ui.contours.get(shape);
+          var points = contour ? contour.map(function (p) {
+            return [p[0] + ((selected == null ? void 0 : selected.position.x) || 0), p[1] + ((selected == null ? void 0 : selected.position.y) || 0)];
+          }) : [[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]];
+          var n = a.nodeAt(parent, 'guide-focus', x, y, w, h),
+            animated = a.game.s.extra.effects;
+          // The guide reuses the rendered surface vertices; no rectangular bounding-box brackets.
+          var line = a.nodeAt(n, 'guide-contour', 0, 0, w, h),
+            g = line.addComponent(Graphics);
+          g.strokeColor = a.color('#ffe000');
+          g.lineWidth = 3;
+          g.moveTo(points[0][0], points[0][1]);
+          points.slice(1).forEach(function (p) {
+            return g.lineTo(p[0], p[1]);
+          });
+          g.close();
+          g.stroke();
           if (animated) {
-            var perimeter = 2 * (w + h),
-              speed = perimeter / 1.8;
+            var opacity = line.addComponent(UIOpacity);
+            tween(opacity).to(.45, {
+              opacity: 120
+            }).to(.45, {
+              opacity: 255
+            }).union().repeatForever().start();
+            var lengths = points.map(function (p, i) {
+              return Math.hypot(points[(i + 1) % points.length][0] - p[0], points[(i + 1) % points.length][1] - p[1]);
+            });
+            var speed = lengths.reduce(function (sum, length) {
+              return sum + length;
+            }, 0) / 1.8;
             for (var i = 0; i < 2; i++) {
-              var glint = a.nodeAt(n, 'guide-running-glint', -w / 2, h / 2, 14, 14);
-              a.ui.polygon(glint, [[0, 7], [7, 0], [0, -7], [-7, 0]], i ? '#ffe000' : '#ffffff');
-              tween(glint).delay(i * .9).to(w / speed, {
-                position: new Vec3(w / 2, h / 2, 0)
-              }).to(h / speed, {
-                position: new Vec3(w / 2, -h / 2, 0)
-              }).to(w / speed, {
-                position: new Vec3(-w / 2, -h / 2, 0)
-              }).to(h / speed, {
-                position: new Vec3(-w / 2, h / 2, 0)
-              }).union().repeatForever().start();
+              var glint = a.nodeAt(n, 'guide-running-glint', points[0][0], points[0][1], 9, 9);
+              a.ui.polygon(glint, [[0, 4], [4, 0], [0, -4], [-4, 0]], i ? '#ffe000' : '#ffffff');
+              var motion = tween(glint).delay(i * .9);
+              for (var j = 0; j < points.length; j++) {
+                var next = points[(j + 1) % points.length];
+                motion = motion.to(lengths[j] / speed, {
+                  position: new Vec3(next[0], next[1], 0)
+                });
+              }
+              motion.union().repeatForever().start();
             }
           }
-          var above = parent !== a.root || y + h / 2 + 50 < a.designH / 2,
+          var rootY = a.root.getComponent(UITransform).convertToNodeSpaceAR(n.worldPosition).y;
+          var above = rootY + h / 2 + 50 < a.designH / 2,
             arrowY = above ? h / 2 + 20 : -h / 2 - 20;
           var arrow = a.nodeAt(n, 'guide-moving-arrow', 0, arrowY, 30, 30);
           arrow.active = arrowVisible;
@@ -47407,6 +47437,7 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
       var ACTORS = exports('ACTORS', ['guardian', 'rowen', 'kael', 'sera', 'golem', 'forest-wolf', 'spectral-knight', 'flame-spirit', 'ember-fox', 'stone-hawk', 'shade-wolf', 'fairy', 'skeleton', 'tree-boss', 'ice-boss', 'crystal-boss']);
       var UITheme = exports('UITheme', /*#__PURE__*/function () {
         function UITheme() {
+          this.contours = new WeakMap();
           this.font = null;
           this.frames = new Map();
           this.missing = [];
@@ -47604,6 +47635,7 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
           face.addComponent(UITransform).setContentSize(w, h);
           face.setSiblingIndex(0);
           var points = kind === 'slant' ? [[l + c, b], [r, b], [r - c, t], [l, t]] : kind === 'panel' ? [[l, b + c], [l + c, b], [r, b], [r, t - c], [r - c, t], [l, t]] : [[l, b], [r - c, b], [r, b + c], [r, t], [l + c, t], [l, t - c]];
+          this.contours.set(node, points);
           this.polygon(face, points, fill, alpha);
           var edge = face.getComponent(Graphics);
           edge.lineWidth = 1.5;
