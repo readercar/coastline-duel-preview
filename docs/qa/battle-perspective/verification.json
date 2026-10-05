@@ -1,0 +1,29 @@
+{
+  "source": "4b8ef7e",
+  "deployment": "2ca2f2d",
+  "tests": 130,
+  "changes": {
+    "soldierBase": 96,
+    "maleMultiplier": 1.08,
+    "captainFeet": [
+      -85,
+      65
+    ],
+    "rearDepthScale": "max(.64,1-(y-65)*.0015)"
+  },
+  "verified": [
+    "Public Pages built and source commit matches",
+    "Korean and English combat view",
+    "Captain moved up and left; same ground depth as first hostile",
+    "Larger hostile and captain silhouettes",
+    "No captured browser warnings/errors"
+  ],
+  "automated": [
+    "Maximum 30 enemies remain within battlefield bounds",
+    "Shared perspective and male scale",
+    "Existing independent HP and session regression suite"
+  ],
+  "limits": [
+    "Maximum crowd bounds tested mathematically; live screenshot is opening 1 vs 1 battle"
+  ]
+}
