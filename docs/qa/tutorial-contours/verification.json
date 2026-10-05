@@ -1,0 +1,7 @@
+{
+  "source": "ec30de8",
+  "deployment": "3cd2f03",
+  "capture": "upgrade-ko.png",
+  "captureDeployment": "fd17b36",
+  "note": "Primary contour geometry identical; ec30de8 additionally refreshes target shape after availability changes. Upper-right guide and shaped tab/button outlines also verified in mercenaries browser QA."
+}

@@ -1,0 +1,57 @@
+{
+  "source": "82e6e5e",
+  "deployment": "08cdabe",
+  "tests": {
+    "coreAndSession": 105,
+    "server": 29,
+    "failed": 0,
+    "checks": [
+      "24 weapon periods preserve DPS across full cycles",
+      "two-second growth bubble with rolling one-second quiet gate",
+      "independent enemy health and no spillover",
+      "left 50px/right 30px formation boundaries",
+      "unlock receipts persist and migrate",
+      "KO/EN translation keys and placeholders"
+    ]
+  },
+  "assets": {
+    "originals": "art/military/mercenary-provenance.json",
+    "sprites": 24,
+    "portraits": 24,
+    "cutins": 24,
+    "battlefields": 4,
+    "allSilhouettesInspected": "roster-assets.png"
+  },
+  "browserChecks": {
+    "d7034e9": [
+      "first unlock in English",
+      "three consecutive upgrades keep first bubble while captain reaches level 6",
+      "KO/EN Viking cut-ins and weapon cadence labels",
+      "sequential unlock queue through all 24 slots"
+    ],
+    "2bb9ce3": [
+      "existing guest session resumed without login choice",
+      "30 individual-health enemies and nine allied silhouettes in staggered formation",
+      "KO/EN soldier profile and dialogue on successful level-up",
+      "cut-in backdrop and comic layout",
+      "post reload unlock receipts prevent repeats"
+    ],
+    "08cdabe": [
+      "Pages built; public build-info confirms source 82e6e5e",
+      "Existing guest Start Game resumes session",
+      "KO/EN compact level-up stats and soldier dialogue captured",
+      "Korean Viking full-body cut-in, comic bubble, 2.4-second weapon label and olive backdrop verified",
+      "Fresh browser warning/error log empty after growth and cut-in interactions",
+      "Earlier QA tab closed after save-conflict protection; subsequent offline reward claim succeeded"
+    ]
+  },
+  "limitations": [
+    "Stationary sprites with code combat effects; no sprite animation sheets",
+    "Native mobile rendering not verified in this pass"
+  ],
+  "screenshotsFinal": [
+    "soldier-growth-en.png",
+    "soldier-growth-ko.png",
+    "cutin-final-ko.png"
+  ]
+}
