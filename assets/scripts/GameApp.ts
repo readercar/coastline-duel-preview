@@ -1,5 +1,5 @@
 import { _decorator, Component, Node, UITransform, Graphics, Color, Label, isValid, Vec3, Layers, Mask, ScrollView, EventTouch, tween, Tween, UIOpacity, sys, view, screen, ResolutionPolicy, resources, Sprite, SpriteFrame, BlockInputEvents, Input, input, EventKeyboard, KeyCode, profiler, EditBox, Texture2D } from 'cc';
-import {allyPosition,enemyPosition,waveSize,SOLDIER_SIZE} from './core/BattleFormation';
+import {allyPosition,enemyPosition,waveSize,SOLDIER_SIZE,soldierSize} from './core/BattleFormation';
 import {CheatUI} from './CheatUI';
 import {FeedbackUI} from './FeedbackUI';
 import { Game, Item } from './core/Game';
@@ -229,7 +229,7 @@ export class GameApp extends Component {
         this.footholds=this.nodeAt(this.battleCast,'ally-footholds',0,30,480,500);
         this.footholds.getComponent(UITransform)!.setAnchorPoint(.5,53/500);this.footholds.addComponent(Mask);this.footholds.setSiblingIndex(0);
         this.allies=this.nodeAt(this.battleCast,'allies',0,0,480,500);this.syncAllies();
-        this.actor=this.nodeAt(this.battleCast,'guardian',-64,12,SOLDIER_SIZE,SOLDIER_SIZE);this.guardian(this.actor);this.actor.getComponent(UITransform)!.setAnchorPoint(.5,6/192);this.actor.setScale(1,1,1);
+        const captain=allyPosition(0);this.actor=this.nodeAt(this.battleCast,'guardian',captain.x,captain.y,SOLDIER_SIZE,SOLDIER_SIZE);this.guardian(this.actor);this.actor.getComponent(UITransform)!.setAnchorPoint(.5,6/192);this.actor.setScale(1,1,1);
         const battleBottom=(this.folded?-337:-39)-this.heightExtra+this.safeBottom+16;
         const target=this.nodeAt(this.root,'battle-input',0,(this.designH/2-120+battleBottom)/2,470,this.designH/2-battleBottom-120);target.on(Node.EventType.TOUCH_END,()=>{if(!this.modal)this.attack();});
         this.fairy=this.button(lower,this.tr('action.claimReady'),-172,308,120,34,()=>this.payments.fairy(),true,{icon:'chest',fontSize:14,tone:C.gold});
@@ -260,7 +260,7 @@ export class GameApp extends Component {
         g.fill();
     } })); }
     enemyArt():string {const keys=this.game.s.run.boss?['tree-boss','ice-boss','crystal-boss','golem']:['forest-wolf','spectral-knight','skeleton','flame-spirit'];return keys[this.game.s.totalKills%keys.length];}
-    sentinel(parent:Node):void {this.ui.resize(parent,this.game.s.run.boss?76:40,this.game.s.run.boss?76:40);parent.getComponent(UITransform)!.setAnchorPoint(.5,6/192);this.ui.actor(parent,this.enemyArt());}
+    sentinel(parent:Node):void {const size=this.game.s.run.boss?128:soldierSize(parent.position.y,this.enemyArt()!=='flame-spirit');this.ui.resize(parent,size,size);parent.getComponent(UITransform)!.setAnchorPoint(.5,6/192);this.ui.actor(parent,this.enemyArt());}
     guardian(parent:Node):void {this.ui.resize(parent,SOLDIER_SIZE,SOLDIER_SIZE);this.ui.actor(parent,'guardian');}
     appearanceTint(slot:number,fallback:string):string{const value=this.game.s.appearance[slot];return value<0?fallback:[C.gold,C.ember,C.blue,C.violet,C.mint][value%5];}
     enemyKey():string{return `${this.game.s.totalKills}:${this.game.s.run.boss}:${Math.floor((this.game.s.run.stage-1)/25)}`;}
@@ -277,7 +277,7 @@ export class GameApp extends Component {
     populateEnemies():void {
         const count=waveSize(this.game.s.run.stage,this.game.s.run.boss);
         // Each stable slot has independent saved health; the HUD displays their sum.
-        for(let i=count-1;i>=0;i--){const pos=enemyPosition(i,count),unit=this.nodeAt(this.enemy,'hostile-'+i,pos.x,pos.y,40,40);this.sentinel(unit);const bar=this.nodeAt(unit,'health',0,51,32,4);this.rect(bar,0,0,32,4,'#111820');this.rect(bar,0,0,30,2,'#ffdb48').name='fill';}
+        for(let i=count-1;i>=0;i--){const pos=enemyPosition(i,count),unit=this.nodeAt(this.enemy,'hostile-'+i,pos.x,pos.y,40,40);this.sentinel(unit);const bar=this.nodeAt(unit,'health',0,unit.getComponent(UITransform)!.height+5,32,4);this.rect(bar,0,0,32,4,'#111820');this.rect(bar,0,0,30,2,'#ffdb48').name='fill';}
     }
     syncWave():void {
         if(this.enemyTransition)return;
@@ -287,7 +287,7 @@ export class GameApp extends Component {
             unit.active=alive;const bar=unit.getChildByName('health');if(bar){bar.active=alive;bar.getChildByName('fill')?.setScale(Math.max(.001,ratio(hp[index],this.game.enemyMaxHP())),1,1);}
         });
     }
-    shotTarget(id=this.game.targetEnemy()):Vec3 {const unit=this.enemy.getChildByName('hostile-'+id);return unit?new Vec3(unit.position.x,unit.position.y+24,0):new Vec3(138,48,0);}
+    shotTarget(id=this.game.targetEnemy()):Vec3 {const unit=this.enemy.getChildByName('hostile-'+id);return unit?new Vec3(unit.position.x,unit.position.y+unit.getComponent(UITransform)!.height*.52,0):new Vec3(138,48,0);}
     spawnEnemy():void {
         Tween.stopAllByTarget(this.enemy);this.clear(this.enemy);this.enemy.active=true;this.enemy.setPosition(0,0);
         const opacity=this.enemy.getComponent(UIOpacity)!;Tween.stopAllByTarget(opacity);opacity.opacity=255;
@@ -297,9 +297,9 @@ export class GameApp extends Component {
     syncAllies():void {
         const ids=this.game.s.run.heroes.map((level,i)=>level>0?i:-1).filter(i=>i>=0),key=ids.join(',');
         if(this.allySignature===key)return;this.allySignature=key;this.clear(this.allies);this.clear(this.footholds);
-        ids.slice(0,8).forEach((id,index)=>{
+        ids.slice(0,8).map((id,index)=>({id,index})).reverse().forEach(({id,index})=>{
             const {x,y}=allyPosition(index+1),actor=this.nodeAt(this.allies,`hero-${id}`,x,y,SOLDIER_SIZE,SOLDIER_SIZE),body=this.nodeAt(actor,'body',0,0,SOLDIER_SIZE,SOLDIER_SIZE);
-            body.getComponent(UITransform)!.setAnchorPoint(.5,6/192);this.ui.actor(body,['rowen','kael','sera'][id%3]);
+            body.setScale(soldierSize(y)/SOLDIER_SIZE,soldierSize(y)/SOLDIER_SIZE,1);body.getComponent(UITransform)!.setAnchorPoint(.5,6/192);this.ui.actor(body,['rowen','kael','sera'][id%3]);
         });
     }
     gunshot(x:number,y:number):void {
@@ -318,7 +318,7 @@ export class GameApp extends Component {
         if(!this.game.s.extra.effects)return;
         const ally=this.allies.getChildByName('hero-'+id);if(!ally)return;
         const body=ally.getChildByName('body')!;Tween.stopAllByTarget(body);body.setPosition(0,0);
-        tween(body).by(.05,{position:new Vec3(-3,0,0)}).to(duration,{position:new Vec3(0,0,0)}).start();this.fireBurst(ally.position.x,ally.position.y+39);
+        tween(body).by(.05,{position:new Vec3(-3,0,0)}).to(duration,{position:new Vec3(0,0,0)}).start();this.fireBurst(ally.position.x,ally.position.y+soldierSize(ally.position.y)*.61);
     }
     circle(parent:Node,x:number,y:number,radius:number,color:string):Node{const n=this.nodeAt(parent,'circle',x,y,radius*2,radius*2),g=n.addComponent(Graphics);g.fillColor=this.color(color);g.circle(0,0,radius);g.fill();g.strokeColor=this.color('#d5dedb');g.lineWidth=2;g.stroke();return n;}
     coin(parent:Node,x:number,y:number,r:number):void{this.ui.icon(this.nodeAt(parent,'gold-art',x,y,r*2,r*2),'symbol:coin',C.gold);}
@@ -876,7 +876,7 @@ export class GameApp extends Component {
         seconds: Math.ceil(r.bossLeft), count: r.kills
     }); this.bossButton.active = r.kills >= 5; const l = this.bossButton.getComponentInChildren(Label); if (l)
         l.string = this.tr(r.boss ? 'battle.leave' : 'battle.fight'); this.spellLabels.forEach((l, slot) => { const i = this.spellShown[slot]; l.string = r.master<SPELLS[i].unlock?String(SPELLS[i].unlock):r.cooldowns[i]>0?String(Math.ceil(r.cooldowns[i])):'✓'; }); }
-    attack(): void { if(!this.entry.playing||this.liveOps.blocked||this.enemyTransition>0||!this.operations.ready||this.operations.busy||this.operations.conflict||this.remoteBusy||this.feedback.asyncPending||this.feedback.showing)return;if(!this.game.s.extra.effects){this.game.tap();this.syncEnemyDeath();this.sound(180);return;}Tween.stopAllByTarget(this.actor);this.actor.setPosition(-67,12);tween(this.actor).to(.12,{position:new Vec3(-64,12,0)}).start();this.fireBurst(-64,51);const target=this.shotTarget();const damage = this.game.tap(); this.sound(170 + Math.random() * 50); const n = this.label(this.particles, this.format(damage), target.x+(Math.random() - .5) * 12, target.y+28, 180, 40, 25, UI.brightGold).node; n.addComponent(UIOpacity); tween(n).by(.6, {
+    attack(): void { if(!this.entry.playing||this.liveOps.blocked||this.enemyTransition>0||!this.operations.ready||this.operations.busy||this.operations.conflict||this.remoteBusy||this.feedback.asyncPending||this.feedback.showing)return;if(!this.game.s.extra.effects){this.game.tap();this.syncEnemyDeath();this.sound(180);return;}Tween.stopAllByTarget(this.actor);const captain=allyPosition(0);this.actor.setPosition(captain.x-3,captain.y);tween(this.actor).to(.12,{position:new Vec3(captain.x,captain.y,0)}).start();this.fireBurst(captain.x,captain.y+SOLDIER_SIZE*.61);const target=this.shotTarget();const damage = this.game.tap(); this.sound(170 + Math.random() * 50); const n = this.label(this.particles, this.format(damage), target.x+(Math.random() - .5) * 12, target.y+28, 180, 40, 25, UI.brightGold).node; n.addComponent(UIOpacity); tween(n).by(.6, {
         position: new Vec3(0, 70, 0)
     }).call(() => {if(isValid(n,true))n.destroy();}).start(); this.bulletImpact(target.x,target.y); this.enemy.setPosition(2, 0); tween(this.enemy).to(.08, {
         position: new Vec3(0, 0, 0)
