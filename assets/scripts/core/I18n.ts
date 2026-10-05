@@ -1,3 +1,4 @@
+import {applyMercenaryText} from './Mercenaries';
 import { applyMilitaryTheme } from './MilitaryTheme';
 export type Locale = 'ko' | 'en';
 export const translations: Record<Locale, Record<string, string>> = {
@@ -685,3 +686,4 @@ Object.assign(translations.en,{
 });
 
 applyMilitaryTheme(translations);
+applyMercenaryText(translations);

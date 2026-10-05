@@ -1,3 +1,4 @@
+import {attackSeconds} from './core/Mercenaries';
 import {featureUnlocked} from './core/EntryPolicy';
 import {mailExpiry} from './core/LiveOps';
 import { GROWTH_STATS, gemstoneSlots, gemstoneBonus } from './core/Balance';
@@ -64,7 +65,8 @@ export class ExpansionUI {
  perks(){this.list('extra.perks',[{title:this.tr('money.ad.mega_boost'),sub:this.tr('money.adReward.mega_boost'),action:this.tr('money.watch'),click:()=>this.a.payments.ads('boost')},...this.x.perkSlots.map((id,slot)=>({title:this.tr('extra.perk',{id:id+1}),sub:this.tr('extra.owned',{count:this.e.perkCount(id)}),icon:id,action:this.tr('action.details'),click:()=>this.perk(slot)}))]);}
  perk(slot:number){const id=this.x.perkSlots[slot],p=this.a.open(this.tr('extra.perk',{id:id+1}),420);this.a.label(p,this.tr('perks.info'),0,70,370,90,18);this.a.button(p,this.tr('action.apply'),0,-12,360,50,()=>this.action(()=>this.e.usePerk(slot,this.id('perk')),()=>this.perks()),true);this.a.button(p,this.tr('extra.replace'),0,-90,360,50,()=>this.list('extra.perks',Array.from({length:10},(_,i)=>({title:this.tr('extra.perk',{id:i+1}),sub:this.tr('extra.owned',{count:this.e.perkCount(i)}),action:this.tr('action.select'),click:()=>this.a.confirm(this.tr('extra.replace'),this.tr('extra.perkWarning'),()=>this.action(()=>this.e.swapPerk(slot,i,this.id('perk-swap')),()=>this.perks()))}))));}
  hero(i:number){
-  const a=this.a,p=a.open(this.tr(`hero.${i}`),540);a.ui.face(a.nodeAt(p,'hero-art',0,132,86,86),['rowen','kael','sera','guardian'][i%4]);
+  const a=this.a,p=a.open(this.tr(`hero.${i}`),540);a.ui.face(a.nodeAt(p,'hero-art',0,132,86,86),'merc-'+i);
+  a.label(p,this.tr('merc.cadence',{weapon:this.tr('merc.weapon.'+i),seconds:attackSeconds(i)}),0,85,370,28,13);
   const values=[this.g.s.run.heroes[i],this.x.ascensions[i],this.x.heroSkills[i],this.g.s.weapons[i],this.g.s.scrolls[i]],icons=['symbol:up','rebirth','lightning','sword','scroll'],hints=['action.level','extra.ascensions','extra.heroSkill','extra.weapons','extra.scrolls'];
   values.forEach((v,j)=>a.metric(p,icons[j],String(v),j<3?-125+j*125:-78+(j-3)*156,j<3?54:9,j<3?116:146,this.tr(hints[j],{level:v})));
   a.button(p,this.tr('extra.heroSkill'),-98,-78,178,56,()=>this.action(()=>this.e.heroSkill(i,this.id('hero-skill')),()=>this.hero(i)),true,{unavailable:()=>{const target=[10,25,50,100,200,400,800][this.x.heroSkills[i]];return !target?this.tr('action.maxReached'):a.needReason(this.tr('action.heroLevel'),this.g.s.run.heroes[i],target)||a.costReason('gold',this.g.upgradeCost(i,5));}});

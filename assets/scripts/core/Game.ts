@@ -1,3 +1,4 @@
+import {attackSeconds} from './Mercenaries';
 import { ARTIFACT_DISCOVERY_COSTS, GrowthStat, GrowthContribution, gemstoneBonus, routedBonus } from './Balance';
 import {waveSize} from './BattleFormation';
 import { ZERO, amount, add, sub, mul } from './Amount';
@@ -176,6 +177,7 @@ export class Game {
         const defaults = this.fresh();
         migrateTutorial(s);
         if(!s.extra){s.extra=defaults.extra;s.extra.summonCount=s.titans.reduce((a,b)=>a+b,0);}
+        if(s.extra.mercenarySeen===undefined)s.extra.mercenarySeen=HEROES.filter(h=>s.maxStage>=h.unlock&&s.run.heroes[h.id]>0).map(h=>h.id);
         if(s.extra.unlocked===undefined)s.extra.unlocked=[8,15,60,100,1000,100000,180000].filter(stage=>s.maxStage>=stage);
         if(s.extra.lastEquipmentStage===undefined)s.extra.lastEquipmentStage=Math.floor(s.maxStage/5)*5;
         for(const key of Object.keys(defaults.extra))if(!(key in s.extra))(s.extra as any)[key]=(defaults.extra as any)[key];
@@ -214,6 +216,7 @@ export class Game {
         const validDeck=(d:any)=>Array.isArray(d)&&d.length===3&&new Set(d).size===3&&d.every((n:any)=>Number.isInteger(n)&&n>=0&&n<18);
         if(!validDeck(s.deck)||!Array.isArray(s.extra.deckPresets)||s.extra.deckPresets.length!==3||!s.extra.deckPresets.every(validDeck))throw Error('deck');
         if(!Array.isArray(s.extra.rewardNotices)||s.extra.rewardNotices.some(r=>!['milestone','weapon','scroll','weaponSet','equipmentSet'].includes(r.kind)||!Number.isInteger(r.value)||r.value<0||!Number.isInteger(r.count)||r.count<1))throw Error('rewardNotices');
+        if(!Array.isArray(s.extra.mercenarySeen)||s.extra.mercenarySeen.length>24||new Set(s.extra.mercenarySeen).size!==s.extra.mercenarySeen.length||s.extra.mercenarySeen.some(i=>!Number.isInteger(i)||i<0||i>=24))throw Error('mercenarySeen');
         const raid=s.extra.soloRaid;
         if(raid&&(!validDeck(raid.deck)||!Number.isInteger(raid.portal)||raid.portal<1||raid.portal>1000||raid.hp.length!==8||raid.armor.length!==8||raid.cardDamage.length!==3||raid.seconds<0||raid.seconds>30))throw Error('raid');
         if(s.run.enemies!==undefined&&(!Array.isArray(s.run.enemies)||s.run.enemies.length!==waveSize(s.run.stage,s.run.boss)||s.run.enemies.some(h=>typeof h!=='number'||!Number.isFinite(h)||h!==ZERO&&h>mul(this.maxHP(s.run.stage,s.run.boss),1/waveSize(s.run.stage,s.run.boss))+1e-8)))throw Error('enemyHealth');
@@ -334,9 +337,9 @@ export class Game {
         const scheduled: {time:number;hero:number;phase:'attack'|'hit';damage:number;windup?:number;target?:number}[]=[];
         for(let i=0;i<r.heroes.length;i++){
             if(!r.heroes[i]){this.heroClocks[i]=0;continue;}
-            const before=this.heroClocks[i],after=before+dt*speed,interval=this.heroAttackInterval,attackAt=interval-this.heroAttackWindup;
+            const before=this.heroClocks[i],after=before+dt*speed,interval=attackSeconds(i),windup=Math.min(this.heroAttackWindup,interval*.45),attackAt=interval-windup;
             for(let offset=0;offset<=after;offset+=interval){
-                if(before<offset+attackAt&&after+1e-9>=offset+attackAt)scheduled.push({time:(offset+attackAt-before)/speed,hero:i,phase:'attack',damage:ZERO,windup:this.heroAttackWindup/speed});
+                if(before<offset+attackAt&&after+1e-9>=offset+attackAt)scheduled.push({time:(offset+attackAt-before)/speed,hero:i,phase:'attack',damage:ZERO,windup:windup/speed});
                 if(before<offset+interval&&after+1e-9>=offset+interval)scheduled.push({time:(offset+interval-before)/speed,hero:i,phase:'hit',damage:mul(this.heroDPS(i),interval/speed)});
             }
             this.heroClocks[i]=Math.max(0,after-Math.floor((after+1e-9)/interval)*interval);

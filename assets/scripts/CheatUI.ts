@@ -18,8 +18,9 @@ export class CheatUI {
   a.button(p,a.tr('tutorial.replay'),0,-70,366,48,()=>void this.change(prototypeCheat(a.game.s,'tutorial')),false,{icon:'symbol:play'});
   a.button(p,a.tr('cheat.reset'),0,-145,366,54,()=>a.confirm(a.tr('cheat.reset'),a.tr('cheat.resetBody'),()=>void this.reset()),true,{style:'danger'});
   a.button(p,a.tr('cheat.restore'),0,-214,366,45,()=>a.confirm(a.tr('cheat.restore'),a.tr('cheat.restoreBody'),()=>{const state=this.backup();if(state)void this.change(state);}),false,{style:'quiet',unavailable:()=>this.backup()?null:a.tr('cheat.noBackup')});
-  a.label(p,a.tr('cheat.scope'),0,-277,365,42,13,UI.muted);
+  a.button(p,a.tr('merc.gallery'),0,-277,365,42,()=>this.roster(),false);
  }
+ roster(){const a=this.a,p=a.open(a.tr('merc.gallery'),680);a.scroll(p,0,-15,390,540,Array.from({length:24},(_,i)=>({title:a.tr('hero.'+i),sub:a.tr('merc.weapon.'+i),art:'face:merc-'+i,icon:i,action:a.tr('merc.preview'),click:()=>a.feedback.showMercenary(i,true)})));}
  async reset(){const a=this.a;if(a.remoteBusy||a.operations.busy)return;
   try{sys.localStorage.setItem(this.backupKey,JSON.stringify(a.game.s));}catch{a.toast(a.tr('error.storage'));return;}
   await this.change(freshPrototype(a.game.s.locale,a.game.now()));

@@ -1,4 +1,5 @@
 import { _decorator, Component, Node, UITransform, Graphics, Color, Label, isValid, Vec3, Layers, Mask, ScrollView, EventTouch, tween, Tween, UIOpacity, sys, view, screen, ResolutionPolicy, resources, Sprite, SpriteFrame, BlockInputEvents, Input, input, EventKeyboard, KeyCode, profiler, EditBox, Texture2D } from 'cc';
+import {mercenaryArt,mercenaryWeapon,MELEE} from './core/Mercenaries';
 import {allyPosition,enemyPosition,waveSize,SOLDIER_SIZE,soldierSize} from './core/BattleFormation';
 import {CheatUI} from './CheatUI';
 import {FeedbackUI} from './FeedbackUI';
@@ -251,7 +252,7 @@ export class GameApp extends Component {
         this.drawPanel();this.drawNav();this.updateHUD();this.tutorial.draw();
     }
     worldKey = -1;
-    world():void {this.worldKey=Math.floor((this.game.s.run.stage-1)/25)%4;const old=this.root.getChildByName('world-art');if(old){old.removeFromParent();if(isValid(old,true))old.destroy();}const bottom=(this.folded?-337:-39)-this.heightExtra+this.safeBottom,h=this.designH/2-bottom,n=this.nodeAt(this.root,'world-art',0,(this.designH/2+bottom)/2,480,h);n.setSiblingIndex(1);n.addComponent(Mask);const size=Math.max(480,h);this.ui.paint(this.nodeAt(n,'world-cover',0,(size-h)/2,size,size),'world/'+this.worldKey);}
+    world():void {this.worldKey=Math.floor((this.game.s.run.stage-1)/25)%4;const old=this.root.getChildByName('world-art');if(old){old.removeFromParent();if(isValid(old,true))old.destroy();}const bottom=(this.folded?-337:-39)-this.heightExtra+this.safeBottom,h=this.designH/2-bottom,n=this.nodeAt(this.root,'world-art',0,(this.designH/2+bottom)/2,480,h);n.setSiblingIndex(1);n.addComponent(Mask);const size=Math.max(480,h);this.ui.paint(this.nodeAt(n,'world-cover',0,(size-h)/2,size,size),'battlefield/'+this.worldKey);}
     setFolded(value:boolean):void {if(value===this.folded)return;this.folded=value;this.draw();const end=this.battleCast.position.y;this.battleCast.setPosition(0,(value?0:-300)-this.heightExtra+this.safeBottom);tween(this.battleCast).to(.22,{position:new Vec3(0,end,0)}).start();this.tutorial.event(value?'fold':'unfold');}
     lockIcon(parent:Node,x=0,y=0):void {const n=this.nodeAt(parent,'lock',x,y,16,20),g=n.addComponent(Graphics);g.strokeColor=this.color(C.muted);g.fillColor=this.color(C.muted);g.lineWidth=2;g.rect(-4,2,8,7);g.stroke();g.rect(-7,-9,14,13);g.fill();g.fillColor=this.color(C.panel);g.rect(-1,-6,2,6);g.fill();}
     pixels(parent: Node, rows: string[], palette: Record<string, string>, scale: number): void { const g = parent.addComponent(Graphics), w = rows[0].length, h = rows.length; rows.forEach((row, y) => row.split('').forEach((c, x) => { if (palette[c]) {
@@ -277,7 +278,7 @@ export class GameApp extends Component {
     populateEnemies():void {
         const count=waveSize(this.game.s.run.stage,this.game.s.run.boss);
         // Each stable slot has independent saved health; the HUD displays their sum.
-        for(let i=count-1;i>=0;i--){const pos=enemyPosition(i,count),unit=this.nodeAt(this.enemy,'hostile-'+i,pos.x,pos.y,40,40);this.sentinel(unit);const bar=this.nodeAt(unit,'health',0,unit.getComponent(UITransform)!.height+5,32,4);this.rect(bar,0,0,32,4,'#111820');this.rect(bar,0,0,30,2,'#ffdb48').name='fill';}
+        for(let i=count-1;i>=0;i--){const pos=enemyPosition(i,count),unit=this.nodeAt(this.enemy,'hostile-'+i,pos.x,pos.y,40,40);this.sentinel(unit);unit.setPosition(Math.min(pos.x,210-unit.getComponent(UITransform)!.width/2),pos.y);const bar=this.nodeAt(unit,'health',0,unit.getComponent(UITransform)!.height+5,32,4);this.rect(bar,0,0,32,4,'#111820');this.rect(bar,0,0,30,2,'#ffdb48').name='fill';}
     }
     syncWave():void {
         if(this.enemyTransition)return;
@@ -297,9 +298,9 @@ export class GameApp extends Component {
     syncAllies():void {
         const ids=this.game.s.run.heroes.map((level,i)=>level>0?i:-1).filter(i=>i>=0),key=ids.join(',');
         if(this.allySignature===key)return;this.allySignature=key;this.clear(this.allies);this.clear(this.footholds);
-        ids.slice(0,8).map((id,index)=>({id,index})).reverse().forEach(({id,index})=>{
+        ids.slice(-8).map((id,index)=>({id,index})).reverse().forEach(({id,index})=>{
             const {x,y}=allyPosition(index+1),actor=this.nodeAt(this.allies,`hero-${id}`,x,y,SOLDIER_SIZE,SOLDIER_SIZE),body=this.nodeAt(actor,'body',0,0,SOLDIER_SIZE,SOLDIER_SIZE);
-            body.setScale(soldierSize(y)/SOLDIER_SIZE,soldierSize(y)/SOLDIER_SIZE,1);body.getComponent(UITransform)!.setAnchorPoint(.5,6/192);this.ui.actor(body,['rowen','kael','sera'][id%3]);
+            body.setScale(soldierSize(y)/SOLDIER_SIZE,soldierSize(y)/SOLDIER_SIZE,1);body.getComponent(UITransform)!.setAnchorPoint(.5,6/192);this.ui.actor(body,'merc-'+mercenaryArt(id));
         });
     }
     gunshot(x:number,y:number):void {
@@ -318,7 +319,28 @@ export class GameApp extends Component {
         if(!this.game.s.extra.effects)return;
         const ally=this.allies.getChildByName('hero-'+id);if(!ally)return;
         const body=ally.getChildByName('body')!;Tween.stopAllByTarget(body);body.setPosition(0,0);
-        tween(body).by(.05,{position:new Vec3(-3,0,0)}).to(duration,{position:new Vec3(0,0,0)}).start();this.fireBurst(ally.position.x,ally.position.y+soldierSize(ally.position.y)*.61);
+        tween(body).by(.05,{position:new Vec3(-3,0,0)}).to(duration,{position:new Vec3(0,0,0)}).start();if(!MELEE.includes(mercenaryWeapon(id))&&!['laser','railgun','plasma','rocket','grenade','flamer','bow','crossbow'].includes(mercenaryWeapon(id)))this.fireBurst(ally.position.x,ally.position.y+soldierSize(ally.position.y)*.61);
+    }
+    weaponImpact(id:number,target:Vec3):void {
+        this.bulletImpact(target.x,target.y);if(!this.game.s.extra.effects)return;
+        const weapon=mercenaryWeapon(id),ally=this.allies.getChildByName('hero-'+id);
+        if(['laser','railgun'].includes(weapon)&&ally){
+            const n=this.nodeAt(this.particles,'laser-beam',0,0,480,500),g=n.addComponent(Graphics);
+            for(const [width,color] of [[7,'#138aa5'],[3,'#80fff4'],[1,'#ffffff']] as [number,string][]){g.lineWidth=width;g.strokeColor=this.color(color);g.moveTo(ally.position.x+25,ally.position.y+soldierSize(ally.position.y)*.61);g.lineTo(target.x,target.y);g.stroke();}
+            tween(n.addComponent(UIOpacity)).to(.17,{opacity:0}).call(()=>n.destroy()).start();this.sound(720);
+        }else if(MELEE.includes(weapon)){
+            const n=this.nodeAt(this.particles,'katana-cut',target.x,target.y,76,90);
+            this.ui.polygon(n,[[-34,-40],[-5,-3],[36,43],[17,7],[-12,-20]],'#ffffff');
+            this.ui.polygon(n,[[-31,-37],[0,-9],[33,40],[8,3]],'#b2b8ff');
+            tween(n).to(.18,{scale:new Vec3(1.4,1.4,1)}).call(()=>n.destroy()).start();this.sound(440);
+        }else if(['rocket','grenade','plasma','bow','crossbow'].includes(weapon)&&ally){
+            const start=new Vec3(ally.position.x+25,ally.position.y+soldierSize(ally.position.y)*.6,0),n=this.nodeAt(this.particles,'weapon-trail',0,0,480,500),g=n.addComponent(Graphics);
+            g.lineWidth=weapon==='plasma'?6:2;g.strokeColor=this.color(weapon==='plasma'?'#db82ff':'#ffe6b0');g.moveTo(start.x,start.y);g.quadraticCurveTo((start.x+target.x)/2,Math.max(start.y,target.y)+48,target.x,target.y);g.stroke();
+            const impact=this.nodeAt(this.particles,'explosive-impact',target.x,target.y,48,48);this.ui.polygon(impact,[[0,27],[7,7],[25,0],[7,-7],[0,-25],[-7,-7],[-26,0],[-7,7]],weapon==='plasma'?'#db82ff':'#ffb843');
+            tween(n.addComponent(UIOpacity)).to(.2,{opacity:0}).call(()=>n.destroy()).start();tween(impact).to(.2,{scale:new Vec3(.1,.1,1)}).call(()=>impact.destroy()).start();this.sound(85);
+        }else if(weapon==='flamer'&&ally){
+            const n=this.nodeAt(this.particles,'flame-cone',target.x,target.y,42,45);this.ui.polygon(n,[[-22,0],[-8,17],[0,8],[8,23],[20,-3],[3,-16]],'#ff952f');tween(n).to(.16,{scale:new Vec3(.3,.3,1)}).call(()=>n.destroy()).start();
+        }else {if(weapon==='shotgun')for(let i=0;i<3;i++)this.bulletImpact(target.x+(i-1)*12,target.y+i*5);this.sound(weapon==='sniper'?85:120);}
     }
     circle(parent:Node,x:number,y:number,radius:number,color:string):Node{const n=this.nodeAt(parent,'circle',x,y,radius*2,radius*2),g=n.addComponent(Graphics);g.fillColor=this.color(color);g.circle(0,0,radius);g.fill();g.strokeColor=this.color('#d5dedb');g.lineWidth=2;g.stroke();return n;}
     coin(parent:Node,x:number,y:number,r:number):void{this.ui.icon(this.nodeAt(parent,'gold-art',x,y,r*2,r*2),'symbol:coin',C.gold);}
@@ -433,7 +455,7 @@ export class GameApp extends Component {
                 locked:s.maxStage<h.unlock,unavailable:()=>this.levelReason(h.id),
                 title: this.tr(h.name), sub: s.maxStage < h.unlock ? this.tr('hero.locked', {
                     stage: h.unlock
-                }) : undefined,metrics:s.maxStage<h.unlock?[{icon:'flag',value:String(h.unlock),hint:this.tr('hero.locked',{stage:h.unlock})}]:[{icon:'symbol:up',value:String(r.heroes[h.id]),hint:this.tr('action.level',{level:r.heroes[h.id]})},{icon:'sword',value:this.format(g.heroDamage(h.id)),hint:this.tr('hero.stats',{level:r.heroes[h.id],damage:this.format(g.heroDamage(h.id))})}], detail:()=>this.extensions.hero(h.id), icon: h.id, art:'face:'+['rowen','kael','sera','guardian'][h.id%4], tint: [C.ember, C.mint, C.blue, C.violet][h.id % 4], action:s.maxStage<h.unlock?this.tr('action.locked'):r.heroes[h.id]===0?this.tr('action.recruitCost',{cost:this.format(g.upgradeCost(h.id,1))}):this.format(g.upgradeCost(h.id, this.mode === -1 ? 1 : this.mode)), click: () => { if(s.maxStage<h.unlock){this.info(this.tr('unlock.title'),this.tr('hero.locked',{stage:h.unlock}));return;}g.buy(h.id, this.mode);this.drawPanel();this.tutorial.event('progress');this.flushNotice(); }
+                }) : undefined,metrics:s.maxStage<h.unlock?[{icon:'flag',value:String(h.unlock),hint:this.tr('hero.locked',{stage:h.unlock})}]:[{icon:'symbol:up',value:String(r.heroes[h.id]),hint:this.tr('action.level',{level:r.heroes[h.id]})},{icon:'sword',value:this.format(g.heroDamage(h.id)),hint:this.tr('hero.stats',{level:r.heroes[h.id],damage:this.format(g.heroDamage(h.id))})}], detail:()=>this.extensions.hero(h.id), icon: h.id, art:'face:merc-'+mercenaryArt(h.id), tint: [C.ember, C.mint, C.blue, C.violet][h.id % 4], action:s.maxStage<h.unlock?this.tr('action.locked'):r.heroes[h.id]===0?this.tr('action.recruitCost',{cost:this.format(g.upgradeCost(h.id,1))}):this.format(g.upgradeCost(h.id, this.mode === -1 ? 1 : this.mode)), click: () => { if(s.maxStage<h.unlock){this.info(this.tr('unlock.title'),this.tr('hero.locked',{stage:h.unlock}));return;}g.buy(h.id, this.mode);this.drawPanel();this.tutorial.event('progress');this.flushNotice(); }
             })));
         }
         else if (this.tab === 2) {
@@ -947,7 +969,7 @@ export class GameApp extends Component {
         else {this.syncAllies();this.game.tick(dt);
             for(const event of this.game.heroEvents){
                 if(event.phase==='attack')this.animateAlly(event.hero,event.windup);
-                else {const target=this.shotTarget(event.target);this.bulletImpact(target.x,target.y);this.sound(120);}
+                else {const target=this.shotTarget(event.target);this.weaponImpact(event.hero,target);}
             }
             this.syncEnemyDeath();}
         if(!this.enemyTransition){const look=this.enemyKey();if(this.enemyLook!==look)this.spawnEnemy();this.syncWave();}
