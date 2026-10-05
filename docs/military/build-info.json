@@ -1,8 +1,8 @@
 {
   "name": "Army Girl",
   "version": "0.1.0",
-  "builtAt": "2026-10-05T14:19:08.055Z",
+  "builtAt": "2026-10-05T14:25:22.110Z",
   "engine": "Cocos Creator 3.8.8",
-  "sourceCommit": "f420a4a4757a2b3e733d160dfed4a9d4808399cf",
+  "sourceCommit": "82e6e5e687a158c03c712d695351443fa9f768a7",
   "branch": "concept/military-idle"
 }

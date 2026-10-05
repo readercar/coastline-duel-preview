@@ -4603,7 +4603,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           var n = this.a.nodeAt(parent, 'comic-speech', x, y, w, h),
             points = [[-w / 2 + 10, h / 2 - 6], [-w / 2 + 35, h / 2 + 1], [-w / 2 + 48, h / 2 - 5], [w / 2 - 12, h / 2], [w / 2 - 2, h / 2 - 15], [w / 2, h / 2 - 30], [w / 2 - 7, -h / 2 + 8], [20, -h / 2], [0, -h / 2 - 16], [-4, -h / 2 + 2], [-w / 2 + 8, -h / 2 + 7], [-w / 2, -8]];
           this.a.ui.polygon(n, points, UI.paper);
-          var g = n.addComponent(Graphics);
+          var g = n.getComponent(Graphics);
           g.lineWidth = 2;
           g.strokeColor = this.a.color(UI.ink);
           g.moveTo(points[0][0], points[0][1]);
@@ -4691,7 +4691,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
             after: first.args.after
           }) : a.tr('feedback.power'), 29, 45, 150, 30, 17, UI.gold);
           var stats = diff.tap || diff.dps;
-          a.label(n, stats ? a.tr(diff.tap ? 'feedback.tap' : 'feedback.dps', {
+          a.label(n, stats ? a.tr('merc.statChange', {
             before: a.format(stats[0]),
             after: a.format(stats[1])
           }) : a.tr('feedback.improved'), 29, 16, 150, 28, 11, UI.text);
@@ -39698,7 +39698,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           } else if (MELEE.includes(weapon)) {
             var _n2 = this.nodeAt(this.particles, 'katana-cut', target.x, target.y, 76, 90);
             this.ui.polygon(_n2, [[-34, -40], [-5, -3], [36, 43], [17, 7], [-12, -20]], '#ffffff');
-            this.ui.polygon(_n2, [[-31, -37], [0, -9], [33, 40], [8, 3]], '#b2b8ff');
+            this.ui.polygon(this.nodeAt(_n2, 'blade-core', 0, 0, 76, 90), [[-31, -37], [0, -9], [33, 40], [8, 3]], '#b2b8ff');
             tween(_n2).to(.18, {
               scale: new Vec3(1.4, 1.4, 1)
             }).call(function () {
@@ -44536,6 +44536,7 @@ System.register("chunks:///_virtual/Mercenaries.ts", ['cc'], function (exports) 
           'merc.unlocked': '새 용병 해금',
           'merc.ready': '{name} · 합류 준비 완료',
           'merc.cadence': '{weapon} · {seconds}초마다 공격',
+          'merc.statChange': '{before} → {after}',
           'merc.level': 'Lv.{before} → {after}',
           'merc.captain': '좋아! 전선을 더 밀어붙이자!',
           'merc.gallery': '용병 도감',
@@ -44545,6 +44546,7 @@ System.register("chunks:///_virtual/Mercenaries.ts", ['cc'], function (exports) 
           'merc.unlocked': 'MERCENARY UNLOCKED',
           'merc.ready': '{name} · Ready to join',
           'merc.cadence': '{weapon} · Attack every {seconds}s',
+          'merc.statChange': '{before} → {after}',
           'merc.level': 'Lv.{before} → {after}',
           'merc.captain': 'Good! Let us push the front!',
           'merc.gallery': 'Mercenary Roster',
