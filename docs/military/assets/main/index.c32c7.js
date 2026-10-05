@@ -176,8 +176,8 @@ System.register("chunks:///_virtual/BattleFormation.ts", ['cc'], function (expor
   };
 });
 
-System.register("chunks:///_virtual/CheatUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './PrototypeCheats.ts', './FeedbackUI.ts', './TutorialUI.ts', './UITheme.ts'], function (exports) {
-  var _createClass, _asyncToGenerator, _regeneratorRuntime, cclegacy, sys, prototypeCheat, freshPrototype, FeedbackUI, TutorialUI, UI;
+System.register("chunks:///_virtual/CheatUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Mercenaries.ts', './PrototypeCheats.ts', './FeedbackUI.ts', './TutorialUI.ts', './UITheme.ts'], function (exports) {
+  var _createClass, _asyncToGenerator, _regeneratorRuntime, cclegacy, sys, MERCENARY_COUNT, prototypeCheat, freshPrototype, FeedbackUI, TutorialUI, UI;
   return {
     setters: [function (module) {
       _createClass = module.createClass;
@@ -186,6 +186,8 @@ System.register("chunks:///_virtual/CheatUI.ts", ['./rollupPluginModLoBabelHelpe
     }, function (module) {
       cclegacy = module.cclegacy;
       sys = module.sys;
+    }, function (module) {
+      MERCENARY_COUNT = module.MERCENARY_COUNT;
     }, function (module) {
       prototypeCheat = module.prototypeCheat;
       freshPrototype = module.freshPrototype;
@@ -209,6 +211,7 @@ System.register("chunks:///_virtual/CheatUI.ts", ['./rollupPluginModLoBabelHelpe
             var raw = sys.localStorage.getItem(this.backupKey);
             if (!raw) return null;
             var state = JSON.parse(raw);
+            this.a.game.migrate(state);
             this.a.game.validate(state);
             return state;
           } catch (_unused) {
@@ -269,9 +272,15 @@ System.register("chunks:///_virtual/CheatUI.ts", ['./rollupPluginModLoBabelHelpe
         _proto.roster = function roster() {
           var a = this.a,
             p = a.open(a.tr('merc.gallery'), 680);
-          a.scroll(p, 0, -15, 390, 540, Array.from({
+          a.scroll(p, 0, -15, 390, 540, [].concat(Array.from({
+            length: MERCENARY_COUNT - 24
+          }, function (_, i) {
+            return i + 24;
+          }), Array.from({
             length: 24
           }, function (_, i) {
+            return i;
+          })).map(function (i) {
             return {
               title: a.tr('hero.' + i),
               sub: a.tr('merc.weapon.' + i),
@@ -382,11 +391,13 @@ System.register("chunks:///_virtual/CheatUI.ts", ['./rollupPluginModLoBabelHelpe
   };
 });
 
-System.register("chunks:///_virtual/Config.ts", ['cc', './ReferenceRules.ts'], function (exports) {
-  var cclegacy, REFERENCE_SPELLS;
+System.register("chunks:///_virtual/Config.ts", ['cc', './Mercenaries.ts', './ReferenceRules.ts'], function (exports) {
+  var cclegacy, MERCENARY_COUNT, REFERENCE_SPELLS;
   return {
     setters: [function (module) {
       cclegacy = module.cclegacy;
+    }, function (module) {
+      MERCENARY_COUNT = module.MERCENARY_COUNT;
     }, function (module) {
       REFERENCE_SPELLS = module.REFERENCE_SPELLS;
     }],
@@ -414,7 +425,7 @@ System.register("chunks:///_virtual/Config.ts", ['cc', './ReferenceRules.ts'], f
         manaRegen: 1.5
       });
       var HEROES = exports('HEROES', Array.from({
-        length: 24
+        length: MERCENARY_COUNT
       }, function (_, i) {
         return {
           id: i,
@@ -1137,14 +1148,16 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
   };
 });
 
-System.register("chunks:///_virtual/Expansion.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './LiveOps.ts', './ReferenceRules.ts', './Balance.ts', './Monetization.ts', './Amount.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _createClass, cclegacy, MAIL_LIFETIME, mailExpiry, CRYSTAL_THRESHOLDS, gemstoneRarity, newCommerce, ZERO, amount, sub, add, mul;
+System.register("chunks:///_virtual/Expansion.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Mercenaries.ts', './LiveOps.ts', './ReferenceRules.ts', './Balance.ts', './Monetization.ts', './Amount.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _createClass, cclegacy, MERCENARY_COUNT, MAIL_LIFETIME, mailExpiry, CRYSTAL_THRESHOLDS, gemstoneRarity, newCommerce, ZERO, amount, sub, add, mul;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
       _createClass = module.createClass;
     }, function (module) {
       cclegacy = module.cclegacy;
+    }, function (module) {
+      MERCENARY_COUNT = module.MERCENARY_COUNT;
     }, function (module) {
       MAIL_LIFETIME = module.MAIL_LIFETIME;
       mailExpiry = module.mailExpiry;
@@ -1182,8 +1195,8 @@ System.register("chunks:///_virtual/Expansion.ts", ['./rollupPluginModLoBabelHel
           lastEquipmentStage: 0,
           perkSlots: [0, 1, 2, 3, 4, 5],
           extraPerks: [2, 2, 2, 2],
-          ascensions: Array(24).fill(0),
-          heroSkills: Array(24).fill(0),
+          ascensions: Array(MERCENARY_COUNT).fill(0),
+          heroSkills: Array(MERCENARY_COUNT).fill(0),
           petBoard: [0, 3, 5, 1, 7, 2, 6, 4, 3, 6, 1, 7, 4, 0, 2, 5],
           petMatched: [],
           petFace: [],
@@ -37378,7 +37391,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           this.heroAttackInterval = 1.15;
           this.heroAttackWindup = .24;
           this.heroEvents = [];
-          this.heroClocks = Array(24).fill(0);
+          this.heroClocks = Array(HEROES.length).fill(0);
           this.combatRun = null;
           this.lastHit = -1;
           this.storage = storage;
@@ -37472,8 +37485,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             board: Array(16).fill(0),
             perks: Array(6).fill(2),
             perkUntil: Array(6).fill(0),
-            weapons: Array(24).fill(0),
-            scrolls: Array(24).fill(0),
+            weapons: Array(HEROES.length).fill(0),
+            scrolls: Array(HEROES.length).fill(0),
             transactions: [],
             rng: now >>> 0 || 12345678,
             offline: ZERO,
@@ -37493,7 +37506,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             hp: this.maxHP(stage, false),
             gold: amount(25),
             master: 1,
-            heroes: Array(24).fill(0),
+            heroes: Array(HEROES.length).fill(0),
             mana: 120,
             spells: Array(10).fill(0),
             cooldowns: Array(10).fill(0),
@@ -37524,6 +37537,12 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             var _key = _Object$keys[_i];
             if (!(_key in s.extra)) s.extra[_key] = defaults.extra[_key];
           }
+          // Append new identities without reindexing any existing hero or equipment.
+          for (var _i2 = 0, _arr = [(_s$run = s.run) == null ? void 0 : _s$run.heroes, s.weapons, s.scrolls, s.extra.ascensions, s.extra.heroSkills]; _i2 < _arr.length; _i2++) {
+            var _s$run;
+            var values = _arr[_i2];
+            if (Array.isArray(values) && values.length === 24) values.push.apply(values, Array(HEROES.length - 24).fill(0));
+          }
           if (s.extra.crystal.length === 3) {
             var old = s.extra.crystal;
             s.extra.crystal = Array(15).fill(-1);
@@ -37552,7 +37571,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           if (s.tutorial.completed !== undefined && (!Array.isArray(s.tutorial.completed) || s.tutorial.completed.length > 1024 || new Set(s.tutorial.completed).size !== s.tutorial.completed.length || s.tutorial.completed.some(function (k) {
             return typeof k !== 'string' || !/^[a-zA-Z0-9_.:-]{1,120}$/.test(k);
           }))) throw Error('tutorial.completed');
-          for (var _i2 = 0, _Object$entries = Object.entries({
+          for (var _i3 = 0, _Object$entries = Object.entries({
               spellSlots: 6,
               artifactInvested: 30,
               enchanted: 30,
@@ -37572,10 +37591,10 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
               board: 16,
               perks: 6,
               perkUntil: 6,
-              weapons: 24,
-              scrolls: 24
-            }); _i2 < _Object$entries.length; _i2++) {
-            var _Object$entries$_i = _Object$entries[_i2],
+              weapons: HEROES.length,
+              scrolls: HEROES.length
+            }); _i3 < _Object$entries.length; _i3++) {
+            var _Object$entries$_i = _Object$entries[_i3],
               _key3 = _Object$entries$_i[0],
               length = _Object$entries$_i[1];
             var a = s[_key3];
@@ -37583,11 +37602,11 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
               return typeof v !== 'number' || !Number.isFinite(v);
             })) throw Error(_key3);
           }
-          for (var _i3 = 0, _Object$entries2 = Object.entries({
+          for (var _i4 = 0, _Object$entries2 = Object.entries({
               perkSlots: 6,
               extraPerks: 4,
-              ascensions: 24,
-              heroSkills: 24,
+              ascensions: HEROES.length,
+              heroSkills: HEROES.length,
               petBoard: 16,
               monumentInvested: 12,
               monumentEnchanted: 12,
@@ -37596,8 +37615,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
               mysticResearch: 12,
               cosmetics: 3,
               notifications: 6
-            }); _i3 < _Object$entries2.length; _i3++) {
-            var _Object$entries2$_i = _Object$entries2[_i3],
+            }); _i4 < _Object$entries2.length; _i4++) {
+            var _Object$entries2$_i = _Object$entries2[_i4],
               _key4 = _Object$entries2$_i[0],
               _length = _Object$entries2$_i[1];
             if (!Array.isArray(s.extra[_key4]) || s.extra[_key4].length !== _length) throw Error('extra.' + _key4);
@@ -37618,8 +37637,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           if (!Array.isArray(s.extra.rewardNotices) || s.extra.rewardNotices.some(function (r) {
             return !['milestone', 'weapon', 'scroll', 'weaponSet', 'equipmentSet'].includes(r.kind) || !Number.isInteger(r.value) || r.value < 0 || !Number.isInteger(r.count) || r.count < 1;
           })) throw Error('rewardNotices');
-          if (!Array.isArray(s.extra.mercenarySeen) || s.extra.mercenarySeen.length > 24 || new Set(s.extra.mercenarySeen).size !== s.extra.mercenarySeen.length || s.extra.mercenarySeen.some(function (i) {
-            return !Number.isInteger(i) || i < 0 || i >= 24;
+          if (!Array.isArray(s.extra.mercenarySeen) || s.extra.mercenarySeen.length > HEROES.length || new Set(s.extra.mercenarySeen).size !== s.extra.mercenarySeen.length || s.extra.mercenarySeen.some(function (i) {
+            return !Number.isInteger(i) || i < 0 || i >= HEROES.length;
           })) throw Error('mercenarySeen');
           var raid = s.extra.soloRaid;
           if (raid && (!validDeck(raid.deck) || !Number.isInteger(raid.portal) || raid.portal < 1 || raid.portal > 1000 || raid.hp.length !== 8 || raid.armor.length !== 8 || raid.cardDamage.length !== 3 || raid.seconds < 0 || raid.seconds > 30)) throw Error('raid');
@@ -37627,15 +37646,15 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             return typeof h !== 'number' || !Number.isFinite(h) || h !== ZERO && h > mul(_this.maxHP(s.run.stage, s.run.boss), 1 / waveSize(s.run.stage, s.run.boss)) + 1e-8;
           }))) throw Error('enemyHealth');
           var scan = function scan(o) {
-            for (var _i4 = 0, _Object$values = Object.values(o); _i4 < _Object$values.length; _i4++) {
-              var v = _Object$values[_i4];
+            for (var _i5 = 0, _Object$values = Object.values(o); _i5 < _Object$values.length; _i5++) {
+              var v = _Object$values[_i5];
               if (typeof v === 'number' && !Number.isFinite(v)) throw Error('number');
               if (v && typeof v === 'object') scan(v);
             }
           };
           scan(s);
           if (s.run.stage < 1 || s.run.stage > 1000000 || s.run.master < 1 || s.gems < 0 || s.shards < 0 || !Array.isArray(s.transactions) || !Array.isArray(s.equipment)) throw Error('range');
-          if (s.run.heroes.length !== 24 || s.run.spells.length !== 10 || s.run.cooldowns.length !== 10 || s.run.spellLevels.length !== 10 || s.run.stacks.length !== 10) throw Error('run');
+          if (s.run.heroes.length !== HEROES.length || s.run.spells.length !== 10 || s.run.cooldowns.length !== 10 || s.run.spellLevels.length !== 10 || s.run.stacks.length !== 10) throw Error('run');
         };
         _proto.persist = function persist() {
           if (!this.storage) return true;
@@ -37805,32 +37824,32 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           var kills = this.s.totalKills;
           var speed = this.heroAttackRate();
           var scheduled = [];
-          for (var _i5 = 0; _i5 < r.heroes.length; _i5++) {
-            if (!r.heroes[_i5]) {
-              this.heroClocks[_i5] = 0;
+          for (var _i6 = 0; _i6 < r.heroes.length; _i6++) {
+            if (!r.heroes[_i6]) {
+              this.heroClocks[_i6] = 0;
               continue;
             }
-            var before = this.heroClocks[_i5],
+            var before = this.heroClocks[_i6],
               after = before + dt * speed,
-              interval = attackSeconds(_i5),
+              interval = attackSeconds(_i6),
               windup = Math.min(this.heroAttackWindup, interval * .45),
               attackAt = interval - windup;
             for (var offset = 0; offset <= after; offset += interval) {
               if (before < offset + attackAt && after + 1e-9 >= offset + attackAt) scheduled.push({
                 time: (offset + attackAt - before) / speed,
-                hero: _i5,
+                hero: _i6,
                 phase: 'attack',
                 damage: ZERO,
                 windup: windup / speed
               });
               if (before < offset + interval && after + 1e-9 >= offset + interval) scheduled.push({
                 time: (offset + interval - before) / speed,
-                hero: _i5,
+                hero: _i6,
                 phase: 'hit',
-                damage: mul(this.heroDPS(_i5), interval / speed)
+                damage: mul(this.heroDPS(_i6), interval / speed)
               });
             }
-            this.heroClocks[_i5] = Math.max(0, after - Math.floor((after + 1e-9) / interval) * interval);
+            this.heroClocks[_i6] = Math.max(0, after - Math.floor((after + 1e-9) / interval) * interval);
           }
           for (var _iterator2 = _createForOfIteratorHelperLoose(scheduled.sort(function (a, b) {
               return a.time - b.time || a.hero - b.hero;
@@ -37941,8 +37960,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
         };
         _proto.unlock = function unlock() {
           var s = this.s;
-          for (var _i6 = 0, _arr = [8, 15, 60, 100, 1000, 100000, 180000]; _i6 < _arr.length; _i6++) {
-            var stage = _arr[_i6];
+          for (var _i7 = 0, _arr2 = [8, 15, 60, 100, 1000, 100000, 180000]; _i7 < _arr2.length; _i7++) {
+            var stage = _arr2[_i7];
             if (s.maxStage >= stage && !s.extra.unlocked.includes(stage)) {
               s.extra.unlocked.push(stage);
               s.extra.unlockNotices.push(stage);
@@ -38415,7 +38434,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             if (kind === 2) {
               _this21.s.shards += 10;
               _this21.s.geodes++;
-              var hero = Math.floor(_this21.random() * 24),
+              var hero = Math.floor(_this21.random() * HEROES.length),
                 before = Math.min.apply(Math, _this21.s.weapons);
               _this21.s.weapons[hero]++;
               _this21.rewardNotice('weapon', hero);
@@ -38584,7 +38603,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
               _this31.s.portal = Math.max(_this31.s.portal, Math.min(1000, r.portal + 1));
               if (!_this31.s.extra.soloCleared.includes(r.portal)) {
                 _this31.s.extra.soloCleared.push(r.portal);
-                var hero = Math.floor(_this31.random() * 24);
+                var hero = Math.floor(_this31.random() * HEROES.length);
                 _this31.s.scrolls[hero]++;
                 _this31.rewardNotice('scroll', hero);
               }
@@ -44490,10 +44509,11 @@ System.register("chunks:///_virtual/Mercenaries.ts", ['cc'], function (exports) 
       });
       cclegacy._RF.push({}, "24c22HE6ilKTr4sVpaw2zCZ", "Mercenaries", undefined);
       /** Stable identities: one distinct weapon/art/voice per saved hero slot. */
-      var WEAPONS = exports('WEAPONS', ['rifle', 'sniper', 'shotgun', 'pistols', 'revolver', 'smg', 'lmg', 'crossbow', 'bow', 'daggers', 'spear', 'axe', 'hammer', 'swordshield', 'katana', 'kusarigama', 'grenade', 'rocket', 'flamer', 'minigun', 'railgun', 'laser', 'plasma', 'gauntlets']);
-      var ATTACK_SECONDS = exports('ATTACK_SECONDS', [1.15, 2.8, 1.9, .45, 1.4, .24, .32, 2.1, 1.55, .5, 1.35, 2.4, 2.7, 1.2, 1.65, 1.7, 2.3, 3.2, .2, .12, 3, .16, 2.5, .38]);
+      var WEAPONS = exports('WEAPONS', ['rifle', 'sniper', 'shotgun', 'pistols', 'revolver', 'smg', 'lmg', 'crossbow', 'bow', 'daggers', 'spear', 'axe', 'hammer', 'swordshield', 'katana', 'kusarigama', 'grenade', 'rocket', 'flamer', 'minigun', 'railgun', 'laser', 'plasma', 'gauntlets', 'sniper', 'gauntlets', 'minigun', 'revolver', 'katana', 'hammer']);
+      var ATTACK_SECONDS = exports('ATTACK_SECONDS', [1.15, 2.8, 1.9, .45, 1.4, .24, .32, 2.1, 1.55, .5, 1.35, 2.4, 2.7, 1.2, 1.65, 1.7, 2.3, 3.2, .2, .12, 3, .16, 2.5, .38, 3.1, .28, .14, 1.6, 1.45, 2.9]);
+      var MERCENARY_COUNT = exports('MERCENARY_COUNT', WEAPONS.length);
       function mercenaryArt(id) {
-        return Math.max(0, id) % 24;
+        return Math.max(0, id) % MERCENARY_COUNT;
       }
       function mercenaryWeapon(id) {
         return WEAPONS[mercenaryArt(id)];
@@ -44519,12 +44539,12 @@ System.register("chunks:///_virtual/Mercenaries.ts", ['cc'], function (exports) 
         return GrowthGate;
       }());
       function applyMercenaryText(t) {
-        var names = [['레아', '블레어', '루비', '제트', '스칼렛', '네온', '브릭', '레이븐', '실바', '쉐이드', '사라', '프레야', '아이언', '발레리', '츠키', '카게', '파이퍼', '노바', '신더', '벌칸', '제로', '아이리스', '아스트라', '볼트'], ['Rhea', 'Blair', 'Ruby', 'Jett', 'Scarlet', 'Neon', 'Brick', 'Raven', 'Sylva', 'Shade', 'Sara', 'Freya', 'Iron', 'Valerie', 'Tsuki', 'Kage', 'Piper', 'Nova', 'Cinder', 'Vulcan', 'Zero', 'Iris', 'Astra', 'Volt']];
-        var weapons = [['돌격소총', '저격총', '펌프 산탄총', '쌍권총', '리볼버', '기관단총', '경기관총', '석궁', '장궁', '쌍단검', '장창', '양손 도끼', '전투 망치', '검·방패', '긴 카타나', '사슬낫', '유탄발사기', '로켓발사기', '화염방사기', '미니건', '레일건', '레이저 캐논', '플라즈마 런처', '전격 건틀릿'], ['Assault Rifle', 'Sniper Rifle', 'Pump Shotgun', 'Dual Pistols', 'Revolver', 'SMG', 'Light Machine Gun', 'Crossbow', 'Longbow', 'Twin Daggers', 'Spear', 'Battle Axe', 'War Hammer', 'Sword & Shield', 'Long Katana', 'Chain Sickle', 'Grenade Launcher', 'Rocket Launcher', 'Flamethrower', 'Minigun', 'Railgun', 'Laser Cannon', 'Plasma Launcher', 'Shock Gauntlets']];
-        var intro = [['선두는 내가 맡을게!', '한 발이면 충분해.', '길 좀 비켜줄래?', '둘 중 어느 총부터 볼래?', '승부는 한 발로 끝내지.', '시동 걸었어. 따라와!', '내 뒤에 있어. 엄호할게.', '발소리까지 숨겨.', '바람이 길을 알려줄 거야.', '벌써 네 뒤인데?', '흔들리지 마. 길은 내가 연다.', '하하! 오늘도 멋진 싸움이겠군!', '벽이라면 부수면 그만.', '이 방패 너머로는 못 지나간다.', '칼을 뽑았다. 끝내겠다.', '어디로 피할 생각이지?', '계산은 끝! 귀 막아!', '큰 문제엔 큰 한 방이지.', '식기 전에 시작하자!', '탄약? 충분히 가져왔지!', '오차는 허용하지 않는다.', '출력 안정. 전선을 지우겠어.', '미지의 힘, 시험해 볼까?', '한 판 붙자. 짜릿하게!'], ['I will take point!', 'One shot is enough.', 'Mind clearing a path?', 'Which pistol first?', 'One round settles this.', 'Engine is hot. Keep up!', 'Stay behind me. Covering!', 'Hide even your footsteps.', 'The wind will guide us.', 'Already behind you.', 'Stand firm. I will lead.', 'Ha! A glorious fight awaits!', 'A wall? I can break it.', 'None shall pass this shield.', 'Blade drawn. It ends now.', 'Where will you run?', 'Math done! Cover your ears!', 'Big problem? Bigger rocket.', 'Let us turn up the heat!', 'Ammo? Brought plenty!', 'Zero margin for error.', 'Output stable. Clearing the front.', 'Time to test the unknown!', 'Come on. Feel the voltage!']];
-        var growth = [['좋아, 더 빠르게!', '조준은 더 정밀하게.', '이제 더 묵직하겠는데?', '한 박자 더 빠르게!', '다음 승부가 기대되네.', '속도를 더 올려볼까!', '엄호는 나만 믿어.', '더 멀리, 더 조용히.', '화살에 바람을 실어.', '눈 깜빡하면 놓쳐.', '더 멀리 뻗는다!', '힘이 솟는군!', '다음 벽을 가져와.', '더 단단하게 지켜주마.', '한 치 더 날카롭게.', '빈틈이 더 잘 보이는군.', '폭발 반경 계산 완료!', '이번엔 더 크게 간다!', '온도가 올라간다!', '아직 한참 더 쏠 수 있어!', '관통력 보정 완료.', '출력 상승. 안정적이야.', '새 에너지, 확인 완료.', '손끝까지 짜릿해!'], ['Good. Faster now!', 'Aim refined.', 'That will hit harder.', 'One beat faster!', 'Ready for the next duel.', 'Let us speed things up!', 'Count on my covering fire.', 'Farther. Quieter.', 'Let the wind carry it.', 'Blink and you miss me.', 'My reach grows!', 'I feel the power!', 'Bring me the next wall.', 'I will hold the line.', 'An even keener edge.', 'Your openings are clear.', 'Blast calculations complete!', 'Going bigger this time!', 'Temperature rising!', 'Plenty more rounds to go!', 'Penetration calibrated.', 'Output up. Stable.', 'New energy confirmed.', 'Electric to my fingertips!']];
+        var names = [['레아', '블레어', '루비', '제트', '스칼렛', '네온', '브릭', '레이븐', '실바', '쉐이드', '사라', '프레야', '아이언', '발레리', '츠키', '카게', '파이퍼', '노바', '신더', '벌칸', '제로', '아이리스', '아스트라', '볼트', '베스퍼', '록시', '타이탄', '달리아', '렌', '힐다'], ['Rhea', 'Blair', 'Ruby', 'Jett', 'Scarlet', 'Neon', 'Brick', 'Raven', 'Sylva', 'Shade', 'Sara', 'Freya', 'Iron', 'Valerie', 'Tsuki', 'Kage', 'Piper', 'Nova', 'Cinder', 'Vulcan', 'Zero', 'Iris', 'Astra', 'Volt', 'Vesper', 'Roxy', 'Titan', 'Dahlia', 'Ren', 'Hilda']];
+        var weapons = [['돌격소총', '저격총', '펌프 산탄총', '쌍권총', '리볼버', '기관단총', '경기관총', '석궁', '장궁', '쌍단검', '장창', '양손 도끼', '전투 망치', '검·방패', '긴 카타나', '사슬낫', '유탄발사기', '로켓발사기', '화염방사기', '미니건', '레일건', '레이저 캐논', '플라즈마 런처', '전격 건틀릿', '장거리 저격총', '전격 글러브', '중형 미니건', '헤비 리볼버', '발도 카타나', '대형 전투 망치'], ['Assault Rifle', 'Sniper Rifle', 'Pump Shotgun', 'Dual Pistols', 'Revolver', 'SMG', 'Light Machine Gun', 'Crossbow', 'Longbow', 'Twin Daggers', 'Spear', 'Battle Axe', 'War Hammer', 'Sword & Shield', 'Long Katana', 'Chain Sickle', 'Grenade Launcher', 'Rocket Launcher', 'Flamethrower', 'Minigun', 'Railgun', 'Laser Cannon', 'Plasma Launcher', 'Shock Gauntlets', 'Long-range Rifle', 'Shock Gloves', 'Heavy Minigun', 'Heavy Revolver', 'Quickdraw Katana', 'Great War Hammer']];
+        var intro = [['선두는 내가 맡을게!', '한 발이면 충분해.', '길 좀 비켜줄래?', '둘 중 어느 총부터 볼래?', '승부는 한 발로 끝내지.', '시동 걸었어. 따라와!', '내 뒤에 있어. 엄호할게.', '발소리까지 숨겨.', '바람이 길을 알려줄 거야.', '벌써 네 뒤인데?', '흔들리지 마. 길은 내가 연다.', '하하! 오늘도 멋진 싸움이겠군!', '벽이라면 부수면 그만.', '이 방패 너머로는 못 지나간다.', '칼을 뽑았다. 끝내겠다.', '어디로 피할 생각이지?', '계산은 끝! 귀 막아!', '큰 문제엔 큰 한 방이지.', '식기 전에 시작하자!', '탄약? 충분히 가져왔지!', '오차는 허용하지 않는다.', '출력 안정. 전선을 지우겠어.', '미지의 힘, 시험해 볼까?', '한 판 붙자. 짜릿하게!', '거리는 상관없어. 끝은 같으니까.', '작다고 방심하면 날아간다!', '내 어깨 뒤로. 사선은 내가 연다.', '서두르지 마. 베테랑에게 맡겨.', '자세를 낮춰. 검이 지나간다.', '산도 비켜서게 만드는 한 방이다!'], ['I will take point!', 'One shot is enough.', 'Mind clearing a path?', 'Which pistol first?', 'One round settles this.', 'Engine is hot. Keep up!', 'Stay behind me. Covering!', 'Hide even your footsteps.', 'The wind will guide us.', 'Already behind you.', 'Stand firm. I will lead.', 'Ha! A glorious fight awaits!', 'A wall? I can break it.', 'None shall pass this shield.', 'Blade drawn. It ends now.', 'Where will you run?', 'Math done! Cover your ears!', 'Big problem? Bigger rocket.', 'Let us turn up the heat!', 'Ammo? Brought plenty!', 'Zero margin for error.', 'Output stable. Clearing the front.', 'Time to test the unknown!', 'Come on. Feel the voltage!', 'Distance changes nothing.', 'Small frame. Big punch!', 'Behind my shoulders. I clear the line.', 'Easy now. Trust the veteran.', 'Keep low. My blade is passing.', 'Even mountains step aside!']];
+        var growth = [['좋아, 더 빠르게!', '조준은 더 정밀하게.', '이제 더 묵직하겠는데?', '한 박자 더 빠르게!', '다음 승부가 기대되네.', '속도를 더 올려볼까!', '엄호는 나만 믿어.', '더 멀리, 더 조용히.', '화살에 바람을 실어.', '눈 깜빡하면 놓쳐.', '더 멀리 뻗는다!', '힘이 솟는군!', '다음 벽을 가져와.', '더 단단하게 지켜주마.', '한 치 더 날카롭게.', '빈틈이 더 잘 보이는군.', '폭발 반경 계산 완료!', '이번엔 더 크게 간다!', '온도가 올라간다!', '아직 한참 더 쏠 수 있어!', '관통력 보정 완료.', '출력 상승. 안정적이야.', '새 에너지, 확인 완료.', '손끝까지 짜릿해!', '시야는 더 멀리.', '한 라운드 더!', '무게는 내가 감당한다.', '경험은 배신하지 않지.', '불필요한 움직임은 지운다.', '대지가 울리겠군!'], ['Good. Faster now!', 'Aim refined.', 'That will hit harder.', 'One beat faster!', 'Ready for the next duel.', 'Let us speed things up!', 'Count on my covering fire.', 'Farther. Quieter.', 'Let the wind carry it.', 'Blink and you miss me.', 'My reach grows!', 'I feel the power!', 'Bring me the next wall.', 'I will hold the line.', 'An even keener edge.', 'Your openings are clear.', 'Blast calculations complete!', 'Going bigger this time!', 'Temperature rising!', 'Plenty more rounds to go!', 'Penetration calibrated.', 'Output up. Stable.', 'New energy confirmed.', 'Electric to my fingertips!', 'My sight reaches farther.', 'One more round!', 'I can carry the weight.', 'Experience never fails.', 'No wasted movement.', 'The ground will tremble!']];
         ['ko', 'en'].forEach(function (locale, l) {
-          for (var i = 0; i < 24; i++) {
+          for (var i = 0; i < MERCENARY_COUNT; i++) {
             t[locale]['hero.' + i] = names[l][i];
             t[locale]['hero.short.' + i] = names[l][i];
             t[locale]['merc.weapon.' + i] = weapons[l][i];
@@ -47681,8 +47701,8 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
   };
 });
 
-System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc'], function (exports) {
-  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, resources, Texture2D, SpriteFrame, Graphics, Color, UITransform, Node, Sprite, Font;
+System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Mercenaries.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, resources, Texture2D, SpriteFrame, Graphics, Color, UITransform, Node, Sprite, Font, MERCENARY_COUNT;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -47699,6 +47719,8 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
       Node = module.Node;
       Sprite = module.Sprite;
       Font = module.Font;
+    }, function (module) {
+      MERCENARY_COUNT = module.MERCENARY_COUNT;
     }],
     execute: function () {
       cclegacy._RF.push({}, "05d45q7oAlDnZ7ILCWIBhWL", "UITheme", undefined);
@@ -47841,15 +47863,15 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
                   }), [0, 1, 2, 3].map(function (key) {
                     return _this.loadFrame('battlefield/' + key, 0, false, 'military/battlefield/' + key);
                   }), Array.from({
-                    length: 24
+                    length: MERCENARY_COUNT
                   }, function (_, i) {
                     return _this.loadFrame('actors/merc-' + i, 0, false, 'military/mercenaries/' + i);
                   }), Array.from({
-                    length: 24
+                    length: MERCENARY_COUNT
                   }, function (_, i) {
                     return _this.loadFrame('faces/merc-' + i, 0, false, 'military/profiles/' + i);
                   }), Array.from({
-                    length: 24
+                    length: MERCENARY_COUNT
                   }, function (_, i) {
                     return _this.loadFrame('cutin/' + i, 0, false, 'military/cutins/' + i);
                   }), UI_ICONS.map(function (key, i) {
