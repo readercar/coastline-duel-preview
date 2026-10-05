@@ -328,6 +328,10 @@ export class GameApp extends Component {
             const n=this.nodeAt(this.particles,'laser-beam',0,0,480,500),g=n.addComponent(Graphics);
             for(const [width,color] of [[7,'#138aa5'],[3,'#80fff4'],[1,'#ffffff']] as [number,string][]){g.lineWidth=width;g.strokeColor=this.color(color);g.moveTo(ally.position.x+25,ally.position.y+soldierSize(ally.position.y)*.61);g.lineTo(target.x,target.y);g.stroke();}
             tween(n.addComponent(UIOpacity)).to(.17,{opacity:0}).call(()=>n.destroy()).start();this.sound(720);
+        }else if(['hammer','axe','gauntlets'].includes(weapon)){
+            const n=this.nodeAt(this.particles,'heavy-strike',target.x,target.y,70,70),g=n.addComponent(Graphics);g.strokeColor=this.color(weapon==='gauntlets'?'#79e9ff':'#ffe2a4');g.lineWidth=3;
+            if(weapon==='gauntlets'){g.moveTo(-27,24);g.lineTo(6,7);g.lineTo(-8,-3);g.lineTo(25,-26);g.stroke();}else {g.circle(0,0,20);g.stroke();this.bulletImpact(target.x-12,target.y+12);this.bulletImpact(target.x+12,target.y);}
+            tween(n).to(.18,{scale:new Vec3(1.7,1.7,1)}).call(()=>n.destroy()).start();this.sound(weapon==='gauntlets'?640:75);
         }else if(MELEE.includes(weapon)){
             const n=this.nodeAt(this.particles,'katana-cut',target.x,target.y,76,90);
             this.ui.polygon(n,[[-34,-40],[-5,-3],[36,43],[17,7],[-12,-20]],'#ffffff');

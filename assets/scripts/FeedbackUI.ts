@@ -44,20 +44,20 @@ export class FeedbackUI {
  showMercenary(id:number,preview=false){const a=this.a;if(this.showing)return;
   const layer=a.nodeAt(a.root,'mercenary-cutin',0,0,480,a.designH);this.overlay=layer;layer.addComponent(BlockInputEvents);a.rect(layer,0,0,480,a.designH,'#000000',undefined,128);
   const h=Math.min(640,a.designH-90),panel=a.nodeAt(layer,'mercenary-panel',0,0,420,h);a.ui.surface(panel,UI.bg,'panel');
-  a.ui.polygon(panel,[[-204,h/2-72],[183,h/2-48],[204,-h/2+120],[-178,-h/2+80]],UI.raised);
+  a.ui.polygon(a.nodeAt(panel,'cutin-backdrop',0,0,420,h),[[-204,h/2-72],[183,h/2-48],[204,-h/2+120],[-178,-h/2+80]],UI.raised);
   a.label(panel,a.tr(preview?'merc.gallery':'merc.unlocked'),0,h/2-30,380,40,26,UI.gold);
   a.label(panel,a.tr('merc.ready',{name:a.tr('hero.'+id)}),0,h/2-67,380,34,21,UI.text);
   a.ui.paint(a.nodeAt(panel,'mercenary-illustration',0,30,320,h-236),'cutin/'+mercenaryArt(id));
   const bubble=this.comic(panel,0,-h/2+139,366,68);a.label(bubble,a.tr('merc.intro.'+id),0,1,330,62,22,UI.ink);
   a.label(panel,a.tr('merc.cadence',{weapon:a.tr('merc.weapon.'+id),seconds:attackSeconds(id)}),0,-h/2+80,380,36,15,UI.muted);
-  a.button(panel,a.tr('action.confirm'),0,-h/2+35,290,44,()=>{if(!preview&&!a.game.s.extra.mercenarySeen.includes(id)){a.game.s.extra.mercenarySeen.push(id);a.game.persist();}layer.removeFromParent();layer.destroy();this.overlay=null;},true,{tone:UI.gold});
+  a.button(panel,a.tr('action.confirm'),0,-h/2+35,290,44,()=>{if(!preview&&!a.game.s.extra.mercenarySeen.includes(id)){a.game.s.extra.mercenarySeen.push(id);a.game.revision++;a.game.persist();void a.operations.save().catch(e=>a.operations.report('mercenary.seen',e));}layer.removeFromParent();layer.destroy();this.overlay=null;},true,{tone:UI.gold});
   if(a.game.s.extra.effects){panel.setScale(.72,.72,1);tween(panel).to(.23,{scale:new Vec3(1,1,1)},{easing:'backOut'}).start();this.particles(panel,0,30);}this.chime();
  }
  private growth(diff:ReturnType<typeof feedbackDiff>){const a=this.a;
   // Keep the current two-second bubble unchanged under repeated upgrades.
   if(!this.growthGate.request(Date.now()))return;
   if(this.banner&&isValid(this.banner,true))this.banner.destroy();
-  const n=a.nodeAt(a.root,'growth-feedback',-122,a.designH/2-195-a.safeTop,216,124);this.banner=n;
+  const n=a.nodeAt(a.root,'growth-feedback',-122,a.designH/2-195-a.safeTop,216,124);this.banner=n;a.ui.surface(a.nodeAt(n,'growth-header',0,31,216,72),UI.bg,'slant');
   const first=diff.growth[0],soldier=first?.key.startsWith('hero.')?Number(first.key.slice(5)):-1;
   a.ui.surface(a.nodeAt(n,'portrait-plate',-73,32,60,62),UI.gold,'cut');
   a.ui.icon(a.nodeAt(n,'growth-portrait',-73,32,56,58),soldier>=0?'face:merc-'+mercenaryArt(soldier):'face:guardian');

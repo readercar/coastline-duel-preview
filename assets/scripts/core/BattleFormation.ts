@@ -4,7 +4,7 @@ export const SOLDIER_SIZE=96;
 export function depthScale(y:number):number{return Math.max(.64,1-Math.max(0,y-65)*.0015);}
 export function soldierSize(y:number,male=false):number{return SOLDIER_SIZE*depthScale(y)*(male?1.08:1);}
 export function allyPosition(index:number){
- const feet=[[-142,65],[-67,96],[-153,120],[-70,154],[-151,177],[-68,212],[-145,230],[-65,266],[-143,283]];
+ const feet=[[-142,65],[-85,88],[-28,110],[-146,148],[-88,168],[-32,190],[-152,227],[-91,246],[-36,269]];
  const [x,y]=feet[Math.min(index,feet.length-1)];return {x:Math.max(x,-190+soldierSize(y)/2),y};
 }
 export function waveSize(stage:number,boss=false):number {

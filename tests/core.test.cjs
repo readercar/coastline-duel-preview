@@ -137,7 +137,7 @@ test('feedback reports batched levels and exact log-space reward quantities',()=
 const formation=require('../.test-output/BattleFormation.js');
 test('military formation stays separated and wave count grows to thirty',()=>{
  const units=Array.from({length:9},(_,i)=>formation.allyPosition(i));
- for(let i=0;i<units.length;i++)for(let j=i+1;j<units.length;j++)assert.ok(Math.abs(units[i].x-units[j].x)>=60||Math.abs(units[i].y-units[j].y)>=50);
+ for(let i=0;i<units.length;i++)for(let j=i+1;j<units.length;j++)assert.ok(Math.abs(units[i].x-units[j].x)>=50||Math.abs(units[i].y-units[j].y)>=70);
  let last=0;for(let stage=1;stage<=600;stage++){const n=formation.waveSize(stage);assert.ok(n>=last&&n<=30);last=n;for(let i=0;i<n;i++){const p=formation.enemyPosition(i,n);assert.ok(p.x>=40&&p.x+formation.soldierSize(p.y,true)/2<=210.00001&&p.y+formation.soldierSize(p.y,true)<350);}}
  assert.equal(formation.waveSize(1),1);assert.equal(formation.waveSize(400),30);assert.equal(formation.waveSize(400,true),1);
  assert.equal(formation.survivingEnemies(30,.5),15);assert.equal(formation.survivingEnemies(30,0),0);assert.equal(formation.survivingEnemies(30,1),30);
