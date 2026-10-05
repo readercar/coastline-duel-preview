@@ -34,6 +34,7 @@ export type CombatEffect = typeof COMBAT_EFFECTS[number];
 export const ACTORS=['guardian','rowen','kael','sera','golem','forest-wolf','spectral-knight','flame-spirit','ember-fox','stone-hawk','shade-wolf','fairy','skeleton','tree-boss','ice-boss','crystal-boss'];
 
 export class UITheme {
+    readonly contours=new WeakMap<Node,number[][]>();
     font: Font | null = null;
     frames = new Map<string, SpriteFrame>();
     missing: string[] = [];
@@ -105,6 +106,7 @@ export class UITheme {
         const old=node.getChildByName('ui-surface');if(old){old.removeFromParent();old.destroy();}
         const face=new Node('ui-surface');face.layer=node.layer;face.parent=node;face.addComponent(UITransform).setContentSize(w,h);face.setSiblingIndex(0);
         const points=kind==='slant'?[[l+c,b],[r,b],[r-c,t],[l,t]]:kind==='panel'?[[l,b+c],[l+c,b],[r,b],[r,t-c],[r-c,t],[l,t]]:[[l,b],[r-c,b],[r,b+c],[r,t],[l+c,t],[l,t-c]];
+        this.contours.set(node,points);
         this.polygon(face,points,fill,alpha);
         const edge=face.getComponent(Graphics)!;edge.lineWidth=1.5;const ink=new Color();
         Color.fromHEX(ink,[UI.ember,UI.raised,UI.danger,UI.mint].includes(fill)?'#ffacb9':[UI.paper,UI.paperMuted,UI.text].includes(fill)?'#515563':'#939aa9');ink.a=alpha;edge.strokeColor=ink;

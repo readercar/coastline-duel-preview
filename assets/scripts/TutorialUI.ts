@@ -65,9 +65,9 @@ export class TutorialUI {
   if(step===4)this.outline(164,-224-a.heightExtra,115,52);
   if(step===5||step===6)this.outline(171,(a.folded?-337:-39)-a.heightExtra,128,32);
  }
- // A small left-edge caption leaves the central combat silhouettes and right-side controls clear.
+ // Keep the compact caption against the upper-right edge below the HUD.
  guide(body:string,progress:string,boss=false){
-  const a=this.a,w=194,h=boss?116:106,x=-240+w/2,y=287+a.heightExtra-a.safeTop;
+  const a=this.a,w=194,h=boss?116:106,x=240-w/2-8,y=287+a.heightExtra-a.safeTop;
   const wrap=a.nodeAt(a.root,'tutorial-guide-root',x,y,w,h),p=a.nodeAt(wrap,'ink-surface',0,0,w,h);
   a.ui.polygon(p,[[-w/2,h/2],[w/2-15,h/2],[w/2,h/2-15],[w/2,-h/2+13],[w/2-23,-h/2],[-w/2,-h/2]],'#111114',240);
   a.polygon(p,-w/2+3,0,6,h,[[-.5,-.5],[.5,-.5],[.5,.5],[-.5,.5]],'#ffe000');
@@ -76,26 +76,42 @@ export class TutorialUI {
   a.label(p,body,3,-12,w-26,h-35,15,'#ffffff',Label.HorizontalAlign.LEFT);
   if(!boss)a.button(p,'×',70,32,30,26,()=>this.skip(),false,{style:'quiet',hint:a.tr('tutorial.skip')});
  }
- outline(x:number,y:number,w:number,h:number){this.focus(this.a.root,x,y+this.a.safeBottom,w,h,true);}
+ outline(x:number,y:number,w:number,h:number){
+  const a=this.a,point=new Vec3(x,y+a.safeBottom,0),rootTransform=a.root.getComponent(UITransform)!;
+  let target:Node|null=null,best=Infinity;
+  const search=(parent:Node)=>{for(const child of parent.children){
+   if(!child.activeInHierarchy||child.name.startsWith('guide-')||child.name==='tutorial-guide-root')continue;
+   if(child.name==='ui-button'||/^tab-\d+$/.test(child.name)){
+    const pos=rootTransform.convertToNodeSpaceAR(child.worldPosition),size=child.getComponent(UITransform)!;
+    const distance=Math.hypot(pos.x-point.x,pos.y-point.y);
+    if(distance<Math.min(w,h)/2&&size.width<w*1.8&&size.height<h*1.8&&distance<best){target=child;best=distance;}
+   }search(child);
+  }};search(a.root);
+  if(target){const node=target as Node,size=node.getComponent(UITransform)!;this.focus(node,0,0,size.width,size.height,true);}
+  else this.focus(a.root,point.x,point.y,w,h,true);
+ }
  focus(parent:Node,x:number,y:number,w:number,h:number,arrowVisible:boolean){
-  const a=this.a,n=a.nodeAt(parent,'guide-focus',x,y,w,h);
-  const animated=a.game.s.extra.effects,arm=Math.min(22,w/4,h/3);
-  // Move the actual brackets, not only a faint halo: the target stays readable.
-  for(const sx of [-1,1])for(const sy of [-1,1]){
-   const corner=a.nodeAt(n,'guide-bracket',sx*w/2,sy*h/2,arm,arm),g=corner.addComponent(Graphics);
-   g.strokeColor=a.color('#ffe000');g.lineWidth=4;g.moveTo(-sx*arm,0);g.lineTo(0,0);g.lineTo(0,-sy*arm);g.stroke();
-   if(animated)tween(corner).by(.38,{position:new Vec3(-sx*6,-sy*6,0)},{easing:'sineInOut'}).by(.38,{position:new Vec3(sx*6,sy*6,0)},{easing:'sineInOut'}).union().repeatForever().start();
-  }
-  // Bright, travelling glints make even popup guides and top-edge targets visibly alive.
+  const a=this.a,selected=parent.getChildByName('selected-tab'),shape=selected||parent;
+  const contour=a.ui.contours.get(shape);
+  const points=contour?contour.map(p=>[p[0]+(selected?.position.x||0),p[1]+(selected?.position.y||0)]):[[-w/2,-h/2],[w/2,-h/2],[w/2,h/2],[-w/2,h/2]];
+  const n=a.nodeAt(parent,'guide-focus',x,y,w,h),animated=a.game.s.extra.effects;
+  // The guide reuses the rendered surface vertices; no rectangular bounding-box brackets.
+  const line=a.nodeAt(n,'guide-contour',0,0,w,h),g=line.addComponent(Graphics);
+  g.strokeColor=a.color('#ffe000');g.lineWidth=3;g.moveTo(points[0][0],points[0][1]);points.slice(1).forEach(p=>g.lineTo(p[0],p[1]));g.close();g.stroke();
   if(animated){
-   const perimeter=2*(w+h),speed=perimeter/1.8;
+   const opacity=line.addComponent(UIOpacity);tween(opacity).to(.45,{opacity:120}).to(.45,{opacity:255}).union().repeatForever().start();
+   const lengths=points.map((p,i)=>Math.hypot(points[(i+1)%points.length][0]-p[0],points[(i+1)%points.length][1]-p[1]));
+   const speed=lengths.reduce((sum,length)=>sum+length,0)/1.8;
    for(let i=0;i<2;i++){
-    const glint=a.nodeAt(n,'guide-running-glint',-w/2,h/2,14,14);
-    a.ui.polygon(glint,[[0,7],[7,0],[0,-7],[-7,0]],i?'#ffe000':'#ffffff');
-    tween(glint).delay(i*.9).to(w/speed,{position:new Vec3(w/2,h/2,0)}).to(h/speed,{position:new Vec3(w/2,-h/2,0)}).to(w/speed,{position:new Vec3(-w/2,-h/2,0)}).to(h/speed,{position:new Vec3(-w/2,h/2,0)}).union().repeatForever().start();
+    const glint=a.nodeAt(n,'guide-running-glint',points[0][0],points[0][1],9,9);
+    a.ui.polygon(glint,[[0,4],[4,0],[0,-4],[-4,0]],i?'#ffe000':'#ffffff');
+    let motion=tween(glint).delay(i*.9);
+    for(let j=0;j<points.length;j++){const next=points[(j+1)%points.length];motion=motion.to(lengths[j]/speed,{position:new Vec3(next[0],next[1],0)});}
+    motion.union().repeatForever().start();
    }
   }
-  const above=parent!==a.root||y+h/2+50<a.designH/2,arrowY=above?h/2+20:-h/2-20;
+  const rootY=a.root.getComponent(UITransform)!.convertToNodeSpaceAR(n.worldPosition).y;
+  const above=rootY+h/2+50<a.designH/2,arrowY=above?h/2+20:-h/2-20;
   const arrow=a.nodeAt(n,'guide-moving-arrow',0,arrowY,30,30);arrow.active=arrowVisible;
   a.ui.icon(arrow,'symbol:down','#ffe000');if(!above)arrow.angle=180;
   if(animated)tween(arrow).by(.38,{position:new Vec3(0,above?10:-10,0)},{easing:'sineInOut'}).by(.38,{position:new Vec3(0,above?-10:10,0)},{easing:'sineInOut'}).union().repeatForever().start();
