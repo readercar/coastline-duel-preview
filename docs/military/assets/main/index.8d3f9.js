@@ -141,7 +141,7 @@ System.register("chunks:///_virtual/BattleFormation.ts", ['cc'], function (expor
         return SOLDIER_SIZE * depthScale(y) * (male ? 1.08 : 1);
       }
       function allyPosition(index) {
-        var feet = [[-142, 65], [-67, 96], [-153, 120], [-70, 154], [-151, 177], [-68, 212], [-145, 230], [-65, 266], [-143, 283]];
+        var feet = [[-142, 65], [-85, 88], [-28, 110], [-146, 148], [-88, 168], [-32, 190], [-152, 227], [-91, 246], [-36, 269]];
         var _feet$Math$min = feet[Math.min(index, feet.length - 1)],
           x = _feet$Math$min[0],
           y = _feet$Math$min[1];
@@ -4636,7 +4636,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           var h = Math.min(640, a.designH - 90),
             panel = a.nodeAt(layer, 'mercenary-panel', 0, 0, 420, h);
           a.ui.surface(panel, UI.bg, 'panel');
-          a.ui.polygon(panel, [[-204, h / 2 - 72], [183, h / 2 - 48], [204, -h / 2 + 120], [-178, -h / 2 + 80]], UI.raised);
+          a.ui.polygon(a.nodeAt(panel, 'cutin-backdrop', 0, 0, 420, h), [[-204, h / 2 - 72], [183, h / 2 - 48], [204, -h / 2 + 120], [-178, -h / 2 + 80]], UI.raised);
           a.label(panel, a.tr(preview ? 'merc.gallery' : 'merc.unlocked'), 0, h / 2 - 30, 380, 40, 26, UI.gold);
           a.label(panel, a.tr('merc.ready', {
             name: a.tr('hero.' + id)
@@ -4651,7 +4651,11 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           a.button(panel, a.tr('action.confirm'), 0, -h / 2 + 35, 290, 44, function () {
             if (!preview && !a.game.s.extra.mercenarySeen.includes(id)) {
               a.game.s.extra.mercenarySeen.push(id);
+              a.game.revision++;
               a.game.persist();
+              void a.operations.save()["catch"](function (e) {
+                return a.operations.report('mercenary.seen', e);
+              });
             }
             layer.removeFromParent();
             layer.destroy();
@@ -4677,6 +4681,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           if (this.banner && isValid(this.banner, true)) this.banner.destroy();
           var n = a.nodeAt(a.root, 'growth-feedback', -122, a.designH / 2 - 195 - a.safeTop, 216, 124);
           this.banner = n;
+          a.ui.surface(a.nodeAt(n, 'growth-header', 0, 31, 216, 72), UI.bg, 'slant');
           var first = diff.growth[0],
             soldier = first != null && first.key.startsWith('hero.') ? Number(first.key.slice(5)) : -1;
           a.ui.surface(a.nodeAt(n, 'portrait-plate', -73, 32, 60, 62), UI.gold, 'cut');
@@ -39667,31 +39672,54 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               return n.destroy();
             }).start();
             this.sound(720);
-          } else if (MELEE.includes(weapon)) {
-            var _n = this.nodeAt(this.particles, 'katana-cut', target.x, target.y, 76, 90);
-            this.ui.polygon(_n, [[-34, -40], [-5, -3], [36, 43], [17, 7], [-12, -20]], '#ffffff');
-            this.ui.polygon(_n, [[-31, -37], [0, -9], [33, 40], [8, 3]], '#b2b8ff');
+          } else if (['hammer', 'axe', 'gauntlets'].includes(weapon)) {
+            var _n = this.nodeAt(this.particles, 'heavy-strike', target.x, target.y, 70, 70),
+              _g = _n.addComponent(Graphics);
+            _g.strokeColor = this.color(weapon === 'gauntlets' ? '#79e9ff' : '#ffe2a4');
+            _g.lineWidth = 3;
+            if (weapon === 'gauntlets') {
+              _g.moveTo(-27, 24);
+              _g.lineTo(6, 7);
+              _g.lineTo(-8, -3);
+              _g.lineTo(25, -26);
+              _g.stroke();
+            } else {
+              _g.circle(0, 0, 20);
+              _g.stroke();
+              this.bulletImpact(target.x - 12, target.y + 12);
+              this.bulletImpact(target.x + 12, target.y);
+            }
             tween(_n).to(.18, {
-              scale: new Vec3(1.4, 1.4, 1)
+              scale: new Vec3(1.7, 1.7, 1)
             }).call(function () {
               return _n.destroy();
+            }).start();
+            this.sound(weapon === 'gauntlets' ? 640 : 75);
+          } else if (MELEE.includes(weapon)) {
+            var _n2 = this.nodeAt(this.particles, 'katana-cut', target.x, target.y, 76, 90);
+            this.ui.polygon(_n2, [[-34, -40], [-5, -3], [36, 43], [17, 7], [-12, -20]], '#ffffff');
+            this.ui.polygon(_n2, [[-31, -37], [0, -9], [33, 40], [8, 3]], '#b2b8ff');
+            tween(_n2).to(.18, {
+              scale: new Vec3(1.4, 1.4, 1)
+            }).call(function () {
+              return _n2.destroy();
             }).start();
             this.sound(440);
           } else if (['rocket', 'grenade', 'plasma', 'bow', 'crossbow'].includes(weapon) && ally) {
             var start = new Vec3(ally.position.x + 25, ally.position.y + soldierSize(ally.position.y) * .6, 0),
-              _n2 = this.nodeAt(this.particles, 'weapon-trail', 0, 0, 480, 500),
-              _g = _n2.addComponent(Graphics);
-            _g.lineWidth = weapon === 'plasma' ? 6 : 2;
-            _g.strokeColor = this.color(weapon === 'plasma' ? '#db82ff' : '#ffe6b0');
-            _g.moveTo(start.x, start.y);
-            _g.quadraticCurveTo((start.x + target.x) / 2, Math.max(start.y, target.y) + 48, target.x, target.y);
-            _g.stroke();
+              _n3 = this.nodeAt(this.particles, 'weapon-trail', 0, 0, 480, 500),
+              _g2 = _n3.addComponent(Graphics);
+            _g2.lineWidth = weapon === 'plasma' ? 6 : 2;
+            _g2.strokeColor = this.color(weapon === 'plasma' ? '#db82ff' : '#ffe6b0');
+            _g2.moveTo(start.x, start.y);
+            _g2.quadraticCurveTo((start.x + target.x) / 2, Math.max(start.y, target.y) + 48, target.x, target.y);
+            _g2.stroke();
             var impact = this.nodeAt(this.particles, 'explosive-impact', target.x, target.y, 48, 48);
             this.ui.polygon(impact, [[0, 27], [7, 7], [25, 0], [7, -7], [0, -25], [-7, -7], [-26, 0], [-7, 7]], weapon === 'plasma' ? '#db82ff' : '#ffb843');
-            tween(_n2.addComponent(UIOpacity)).to(.2, {
+            tween(_n3.addComponent(UIOpacity)).to(.2, {
               opacity: 0
             }).call(function () {
-              return _n2.destroy();
+              return _n3.destroy();
             }).start();
             tween(impact).to(.2, {
               scale: new Vec3(.1, .1, 1)
@@ -39700,12 +39728,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }).start();
             this.sound(85);
           } else if (weapon === 'flamer' && ally) {
-            var _n3 = this.nodeAt(this.particles, 'flame-cone', target.x, target.y, 42, 45);
-            this.ui.polygon(_n3, [[-22, 0], [-8, 17], [0, 8], [8, 23], [20, -3], [3, -16]], '#ff952f');
-            tween(_n3).to(.16, {
+            var _n4 = this.nodeAt(this.particles, 'flame-cone', target.x, target.y, 42, 45);
+            this.ui.polygon(_n4, [[-22, 0], [-8, 17], [0, 8], [8, 23], [20, -3], [3, -16]], '#ff952f');
+            tween(_n4).to(.16, {
               scale: new Vec3(.3, .3, 1)
             }).call(function () {
-              return _n3.destroy();
+              return _n4.destroy();
             }).start();
           } else {
             if (weapon === 'shotgun') for (var i = 0; i < 3; i++) this.bulletImpact(target.x + (i - 1) * 12, target.y + i * 5);
