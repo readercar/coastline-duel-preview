@@ -271,7 +271,7 @@ export class GameApp extends Component {
         const defeated=this.enemy;Tween.stopAllByTarget(defeated);const opacity=defeated.getComponent(UIOpacity)!;Tween.stopAllByTarget(opacity);
         tween(defeated).delay(.14).call(()=>{if(defeated.isValid)defeated.active=false;}).start();
         tween(opacity).to(.14,{opacity:0}).start();
-        this.enemy.children.filter(n=>n.active).forEach(n=>this.bulletImpact(n.position.x,n.position.y+20));
+        this.enemy.children.filter(n=>n.active).forEach(n=>this.bulletImpact(n.position.x,n.position.y+n.getComponent(UITransform)!.height*.5));
         this.sound(95);this.updateHUD();
     }
     populateEnemies():void {
@@ -283,7 +283,7 @@ export class GameApp extends Component {
         if(this.enemyTransition)return;
         const hp=this.game.enemyHealth();
         this.enemy.children.forEach(unit=>{const index=Number(unit.name.split('-')[1]),alive=hp[index]!==ZERO;
-            if(!alive&&unit.active&&this.game.s.extra.effects)this.bulletImpact(unit.position.x,unit.position.y+20);
+            if(!alive&&unit.active&&this.game.s.extra.effects)this.bulletImpact(unit.position.x,unit.position.y+unit.getComponent(UITransform)!.height*.5);
             unit.active=alive;const bar=unit.getChildByName('health');if(bar){bar.active=alive;bar.getChildByName('fill')?.setScale(Math.max(.001,ratio(hp[index],this.game.enemyMaxHP())),1,1);}
         });
     }
@@ -304,7 +304,7 @@ export class GameApp extends Component {
     }
     gunshot(x:number,y:number):void {
         if(!this.game.s.extra.effects||!isValid(this.particles,true))return;
-        const muzzle=this.nodeAt(this.particles,'muzzle-flash',x+24,y,18,14);
+        const muzzle=this.nodeAt(this.particles,'muzzle-flash',x+36,y,18,14);
         this.ui.polygon(muzzle,[[-8,0],[-2,3],[2,7],[4,2],[12,0],[3,-2],[1,-6],[-2,-2]],'#ffe04c');
         tween(muzzle).to(.07,{scale:new Vec3(.1,.1,1)}).call(()=>{if(isValid(muzzle,true))muzzle.destroy();}).start();
 

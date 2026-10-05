@@ -11,6 +11,6 @@ export function waveSize(stage:number,boss=false):number {
 export function enemyPosition(index:number,count:number){
  const columns=Math.min(5,count),rows=Math.ceil(count/columns);
  const row=Math.floor(index/columns);
- return {x:count===1?108:42+(index%columns)*36.5+(row%2)*7,y:65+row*41};
+ return {x:count===1?108:42+(index%columns)*36.5+(row%2)*3,y:65+row*41};
 }
 export function survivingEnemies(count:number,healthRatio:number):number{return Math.max(0,Math.min(count,Math.ceil(count*Math.max(0,Math.min(1,healthRatio)))));}
