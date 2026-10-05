@@ -1,9 +1,9 @@
 import { Color, Font, Graphics, Node, resources, Sprite, SpriteFrame, Texture2D, UITransform } from 'cc';
 
 export const UI = {
-    bg:'#08090b', panel:'#202125', raised:'#e71837', line:'#5e6068',
-    text:'#ffffff', muted:'#c6c7cc', gold:'#ffd83d', ember:'#ec193c',
-    mint:'#e71837', violet:'#d81740', blue:'#ffffff', light:'#101114',
+    bg:'#10130e', panel:'#242a21', raised:'#687444', line:'#5e6068',
+    text:'#ffffff', muted:'#c6c7cc', gold:'#ffd83d', ember:'#d88338',
+    mint:'#8e9d53', violet:'#d5ac65', blue:'#ffffff', light:'#101114',
     brightGold:'#ffe04c', ink:'#111114', sand:'#303136', tealDark:'#18191d', danger:'#ef2144',
     paper:'#f5f5f2', paperMuted:'#dbdcde'
 };
@@ -54,11 +54,19 @@ export class UITheme {
             ...[0,1,2,3].map(key=>this.loadFrame(`terrain/ground-${key}`)),
             ...POPUP_SKINS.map(key=>this.loadFrame(`popup/${key}`,2)),this.loadFrame('branding',0,true,'branding')
         ]);
+        const militaryActors:Record<string,string>={guardian:'riflewoman',rowen:'sniper',kael:'officer',sera:'riflewoman',golem:'heavy', 'forest-wolf':'mercenary','spectral-knight':'mercenary','flame-spirit':'drone',skeleton:'mercenary','tree-boss':'heavy','ice-boss':'heavy','crystal-boss':'heavy','ember-fox':'drone','stone-hawk':'drone','shade-wolf':'drone',fairy:'drone'};
+        await Promise.all([
+            ...Object.entries(militaryActors).map(([key,source])=>this.loadFrame('actors/'+key,0,false,'military/actors/'+source)),
+            ...[0,1,2,3].map(key=>this.loadFrame('world/'+key,0,false,'military/world/'+key)),
+            ...UI_ICONS.map((key,i)=>this.loadFrame('icons/'+key,0,false,'military/icons/'+i)),
+            ...UI_FACES.map((key,i)=>this.loadFrame('faces/'+key,0,false,i<4?'military/faces/'+[0,1,2,0][i]:'military/icons/'+(i%UI_ICONS.length)))
+        ]);
+        await Promise.all(['ember-fox','stone-hawk','shade-wolf','fairy'].map(key=>this.loadFrame('actors/'+key,0,false,'military/icons/4')));
         if (this.missing.length) console.warn('[UIArt] Missing assets:', this.missing.join(', '));
     }
 
     private loadFrame(key: string, inset = 0, smooth = false, source = key): Promise<void> {
-        return new Promise(resolve => resources.load(source==='branding'?'branding/tt-softs-ci/texture':`ui/pastel/${source}/texture`, Texture2D, (error, texture) => {
+        return new Promise(resolve => resources.load(source==='branding'?'branding/tt-softs-ci/texture':`ui/${source.startsWith('military/')?source:'pastel/'+source}/texture`, Texture2D, (error, texture) => {
             if (error) this.missing.push(key);
             else {
                 texture.setFilters(smooth ? Texture2D.Filter.LINEAR : Texture2D.Filter.NEAREST, smooth ? Texture2D.Filter.LINEAR : Texture2D.Filter.NEAREST);

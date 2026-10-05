@@ -220,11 +220,11 @@ export class GameApp extends Component {
         this.progressLabel=this.label(hud,'',-113,381,110,20,12,C.text);
         this.goldLabel=this.label(hud,'',118,375,148,30,24,UI.brightGold);this.coin(hud,34,375,11);
         this.battleCast=this.nodeAt(this.root,'battle-cast',0,(this.folded?-300:0)-this.heightExtra+this.safeBottom,480,600);this.battleCast.setSiblingIndex(2);
-        this.enemy=this.nodeAt(this.battleCast,'sentinel',0,20,272,224);this.sentinel(this.nodeAt(this.enemy,'enemy-art',0,0,272,224));this.enemy.addComponent(UIOpacity);
+        this.enemy=this.nodeAt(this.battleCast,'sentinel',138,20,160,160);this.sentinel(this.nodeAt(this.enemy,'enemy-art',0,0,272,224));this.enemy.addComponent(UIOpacity);
         this.footholds=this.nodeAt(this.battleCast,'ally-footholds',0,30,480,500);
         this.footholds.getComponent(UITransform)!.setAnchorPoint(.5,53/500);this.footholds.addComponent(Mask);this.footholds.setSiblingIndex(0);
         this.allies=this.nodeAt(this.battleCast,'allies',0,30,480,500);this.syncAllies();
-        this.actor=this.nodeAt(this.battleCast,'guardian',-8,4,76,82);this.guardian(this.actor);this.actor.getComponent(UITransform)!.setAnchorPoint(.5,6/192);this.actor.setScale(1,1,1);
+        this.actor=this.nodeAt(this.battleCast,'guardian',-136,4,150,150);this.guardian(this.actor);this.actor.getComponent(UITransform)!.setAnchorPoint(.5,6/192);this.actor.setScale(1,1,1);
         const battleBottom=(this.folded?-337:-39)-this.heightExtra+this.safeBottom+16;
         const target=this.nodeAt(this.root,'battle-input',0,(this.designH/2-120+battleBottom)/2,470,this.designH/2-battleBottom-120);target.on(Node.EventType.TOUCH_END,()=>{if(!this.modal)this.attack();});
         this.fairy=this.button(lower,'',-211,135,40,40,()=>this.payments.fairy(),true);this.ui.actor(this.nodeAt(this.fairy,'fairy-art',0,0,38,38),'fairy');
@@ -255,8 +255,8 @@ export class GameApp extends Component {
         g.fill();
     } })); }
     enemyArt():string {const keys=this.game.s.run.boss?['tree-boss','ice-boss','crystal-boss','golem']:['golem','forest-wolf','spectral-knight','flame-spirit','skeleton'];return keys[this.game.s.totalKills%keys.length];}
-    sentinel(parent:Node):void {this.ui.resize(parent,254,254);parent.getComponent(UITransform)!.setAnchorPoint(.5,6/192);this.ui.actor(parent,this.enemyArt());}
-    guardian(parent:Node):void {this.ui.resize(parent,108,108);this.ui.actor(parent,'guardian');}
+    sentinel(parent:Node):void {this.ui.resize(parent,154,154);parent.getComponent(UITransform)!.setAnchorPoint(.5,6/192);this.ui.actor(parent,this.enemyArt());}
+    guardian(parent:Node):void {this.ui.resize(parent,158,158);this.ui.actor(parent,'guardian');}
     appearanceTint(slot:number,fallback:string):string{const value=this.game.s.appearance[slot];return value<0?fallback:[C.gold,C.ember,C.blue,C.violet,C.mint][value%5];}
     enemyKey():string{return `${this.game.s.totalKills}:${this.game.s.run.boss}:${Math.floor((this.game.s.run.stage-1)/25)}`;}
     syncEnemyDeath():void {
@@ -266,45 +266,41 @@ export class GameApp extends Component {
         const defeated=this.enemy;Tween.stopAllByTarget(defeated);const opacity=defeated.getComponent(UIOpacity)!;Tween.stopAllByTarget(opacity);
         tween(defeated).to(.14,{scale:new Vec3(1.45,.55,1)}).call(()=>{if(defeated.isValid)defeated.active=false;}).start();
         tween(opacity).to(.14,{opacity:0}).start();
-        this.burst('defeat',0,95,150,.34);
-        for(let i=0;i<12;i++){const angle=i*Math.PI*2/12,n=this.combatSprite(i%3?'shard':'sparkle','defeat-particle',0,95,16+i%3*5);if(!n)continue;const opacity=n.addComponent(UIOpacity);tween(n).to(.36,{position:new Vec3(Math.cos(angle)*(70+i%4*12),95+Math.sin(angle)*82,0),scale:new Vec3(.25,.25,1),angle:i*30}).call(()=>{if(isValid(n,true))n.destroy();}).start();tween(opacity).to(.36,{opacity:0}).start();}
+        this.burst('defeat',138,95,120,.34);
+        for(let i=0;i<12;i++){const angle=i*Math.PI*2/12,n=this.combatSprite(i%3?'shard':'sparkle','defeat-particle',138,95,16+i%3*5);if(!n)continue;const opacity=n.addComponent(UIOpacity);tween(n).to(.36,{position:new Vec3(138+Math.cos(angle)*(70+i%4*12),95+Math.sin(angle)*82,0),scale:new Vec3(.25,.25,1),angle:i*30}).call(()=>{if(isValid(n,true))n.destroy();}).start();tween(opacity).to(.36,{opacity:0}).start();}
         this.sound(95);this.updateHUD();
     }
     spawnEnemy():void {
-        Tween.stopAllByTarget(this.enemy);this.clear(this.enemy);this.enemy.active=true;this.enemy.setPosition(0,20);
+        Tween.stopAllByTarget(this.enemy);this.clear(this.enemy);this.enemy.active=true;this.enemy.setPosition(270,20);
         const opacity=this.enemy.getComponent(UIOpacity)!;Tween.stopAllByTarget(opacity);opacity.opacity=255;
         this.sentinel(this.nodeAt(this.enemy,'enemy-art',0,0,272,224));this.enemyLook=this.enemyKey();
-        this.enemy.setScale(.65,.65,1);tween(this.enemy).to(.18,{scale:new Vec3(1,1,1)},{easing:'backOut'}).start();
+        this.enemy.setScale(1,1,1);if(this.game.s.extra.effects)tween(this.enemy).to(.45,{position:new Vec3(138,20,0)},{easing:'quadOut'}).start();else this.enemy.setPosition(138,20);
     }
     syncAllies():void {
         const ids=this.game.s.run.heroes.map((level,i)=>level>0?i:-1).filter(i=>i>=0),biome=Math.floor((this.game.s.run.stage-1)/25)%4,key=biome+':'+ids.join(',');
         if(this.allySignature===key)return;this.allySignature=key;this.clear(this.allies);this.clear(this.footholds);
-        // A continuous textured battle floor connects the guardian, enemy and lowest side shelves.
-        this.ui.paint(this.nodeAt(this.footholds,'battle-ground',0,20-30-GROUND_SURFACE_Y[biome]*210,480,210),`terrain/ground-${biome}`);
-        const terraces=new Set<string>(),footY=-30.9375;
-        ids.forEach((id,index)=>{
-            const side=index%2?-1:1,row=Math.floor(index%12/2),x=side*(178-(index>=12?42:0)),y=45+row*46,terrace=side+':'+row;
-            if(!terraces.has(terrace)){
-                terraces.add(terrace);
-                // Both ranks share a solid shelf, with its stone front reaching the next tier.
-                const ledge=this.nodeAt(this.footholds,'terrace-'+terrace,side*174,y+footY-LEDGE_SURFACE_Y[biome]*68,136,68);
-                this.ui.paint(ledge,`terrain/ledge-${biome}`);
-                if(side<0)ledge.setScale(-1,1,1);
-            }
-            const actor=this.nodeAt(this.allies,`hero-${id}`,x,y,64,70),body=this.nodeAt(actor,'body',0,footY,66,66);
-            // Source feet end at row 186/192. Pivot there so attacking does not lift the feet.
+        // All squad members fire from the left; the right lane stays reserved for hostiles.
+        ids.slice(0,8).forEach((id,index)=>{
+            const x=-195+(index%2)*54,y=75+Math.floor(index/2)*53;
+            const actor=this.nodeAt(this.allies,`hero-${id}`,x,y,76,80),body=this.nodeAt(actor,'body',0,-31,78,78);
             body.getComponent(UITransform)!.setAnchorPoint(.5,6/192);
-            this.ui.actor(body,['rowen','kael','sera'][id%3]);body.setScale(-side,1,1);
-            this.label(actor,this.tr(`hero.short.${id}`),0,-39,72,16,10,C.text);
+            this.ui.actor(body,['rowen','kael','sera'][id%3]);
         });
     }
+    gunshot(x:number,y:number):void {
+        if(!this.game.s.extra.effects)return;
+        const muzzle=this.nodeAt(this.particles,'muzzle-flash',x+32,y,26,20);
+        this.ui.polygon(muzzle,[[-12,0],[-3,4],[3,10],[6,3],[17,0],[5,-3],[1,-9],[-3,-3]],'#ffe04c');
+        tween(muzzle).to(.08,{scale:new Vec3(.1,.1,1)}).call(()=>{if(isValid(muzzle,true))muzzle.destroy();}).start();
+        const tracer=this.nodeAt(this.particles,'bullet-tracer',x+35,y,24,3);this.rect(tracer,0,0,24,3,'#fff4bc');
+        tween(tracer).to(.1,{position:new Vec3(138,95,0)}).call(()=>{if(isValid(tracer,true))tracer.destroy();this.spark(138,95,C.gold);}).start();
+    }
     animateAlly(id:number,duration=.24):void {
-        const ally=this.allies.getChildByName('hero-'+id);if(!ally)return;const body=ally.getChildByName('body')!;
-        Tween.stopAllByTarget(body);body.angle=0;
-        tween(body).to(duration*.4,{angle:ally.position.x>0?18:-18}).to(duration*.6,{angle:0}).start();
-        const role=id%3,missile=this.combatSprite((['wisp','arrow','orb'] as CombatEffect[])[role],'ally-projectile',ally.position.x,ally.position.y,role===2?34:42);if(!missile)return;
-        if(role===1)missile.angle=Math.atan2(100-ally.position.y,-ally.position.x)*180/Math.PI;
-        tween(missile).to(duration,{position:new Vec3(0,100,0)}).call(()=>{if(isValid(missile,true))missile.destroy();}).start();
+        if(!this.game.s.extra.effects)return;
+        const ally=this.allies.getChildByName('hero-'+id);if(!ally)return;
+        const body=ally.getChildByName('body')!;Tween.stopAllByTarget(body);body.setPosition(0,-31);
+        tween(body).by(.05,{position:new Vec3(-5,0,0)}).to(duration,{position:new Vec3(0,-31,0)}).start();
+        this.gunshot(ally.position.x,ally.position.y+48);
     }
     circle(parent:Node,x:number,y:number,radius:number,color:string):Node{const n=this.nodeAt(parent,'circle',x,y,radius*2,radius*2),g=n.addComponent(Graphics);g.fillColor=this.color(color);g.circle(0,0,radius);g.fill();g.strokeColor=this.color('#d5dedb');g.lineWidth=2;g.stroke();return n;}
     coin(parent:Node,x:number,y:number,r:number):void{this.ui.icon(this.nodeAt(parent,'gold-art',x,y,r*2,r*2),'symbol:coin',C.gold);}
@@ -862,10 +858,10 @@ export class GameApp extends Component {
         seconds: Math.ceil(r.bossLeft), count: r.kills
     }); this.bossButton.active = r.kills >= 5; const l = this.bossButton.getComponentInChildren(Label); if (l)
         l.string = this.tr(r.boss ? 'battle.leave' : 'battle.fight'); this.spellLabels.forEach((l, slot) => { const i = this.spellShown[slot]; l.string = r.master<SPELLS[i].unlock?String(SPELLS[i].unlock):r.cooldowns[i]>0?String(Math.ceil(r.cooldowns[i])):'✓'; }); }
-    attack(): void { if(!this.entry.playing||this.liveOps.blocked||this.enemyTransition>0||!this.operations.ready||this.operations.busy||this.operations.conflict||this.remoteBusy||this.feedback.asyncPending||this.feedback.showing)return;if(!this.game.s.extra.effects){this.game.tap();this.syncEnemyDeath();this.sound(180);return;}Tween.stopAllByTarget(this.actor);this.actor.angle=-9;tween(this.actor).to(.16,{angle:7}).to(.14,{angle:0}).start();this.burst('slash',0,120,128,.18);const damage = this.game.tap(); this.sound(170 + Math.random() * 50); const n = this.label(this.particles, this.format(damage), (Math.random() - .5) * 110, 135, 180, 40, 25, UI.brightGold).node; n.addComponent(UIOpacity); tween(n).by(.6, {
+    attack(): void { if(!this.entry.playing||this.liveOps.blocked||this.enemyTransition>0||!this.operations.ready||this.operations.busy||this.operations.conflict||this.remoteBusy||this.feedback.asyncPending||this.feedback.showing)return;if(!this.game.s.extra.effects){this.game.tap();this.syncEnemyDeath();this.sound(180);return;}Tween.stopAllByTarget(this.actor);this.actor.setPosition(-142,4);tween(this.actor).to(.12,{position:new Vec3(-136,4,0)}).start();this.gunshot(-100,95);const damage = this.game.tap(); this.sound(170 + Math.random() * 50); const n = this.label(this.particles, this.format(damage), 138+(Math.random() - .5) * 40, 155, 180, 40, 25, UI.brightGold).node; n.addComponent(UIOpacity); tween(n).by(.6, {
         position: new Vec3(0, 70, 0)
-    }).call(() => {if(isValid(n,true))n.destroy();}).start(); this.spark(0, 135, C.gold); this.enemy.setPosition(4, 20); tween(this.enemy).to(.08, {
-        position: new Vec3(0, 20, 0)
+    }).call(() => {if(isValid(n,true))n.destroy();}).start(); this.spark(138, 95, C.gold); this.enemy.setPosition(142, 20); tween(this.enemy).to(.08, {
+        position: new Vec3(138, 20, 0)
     }).start(); this.syncEnemyDeath();this.updateHUD(); }
     combatSprite(key:CombatEffect,name:string,x:number,y:number,size:number):Node|null {
         if(!this.game.s.extra.effects||!this.particles||!isValid(this.particles,true))return null;
@@ -933,12 +929,12 @@ export class GameApp extends Component {
         else {this.syncAllies();this.game.tick(dt);
             for(const event of this.game.heroEvents){
                 if(event.phase==='attack')this.animateAlly(event.hero,event.windup);
-                else {this.spark(0,100,C.ember);this.sound(120);const hit=this.label(this.particles,this.format(event.damage),0,140,180,30,20,C.gold).node;tween(hit).by(.45,{position:new Vec3(0,45,0)}).call(()=>{if(isValid(hit,true))hit.destroy();}).start();}
+                else {this.spark(138,95,C.ember);this.sound(120);const hit=this.label(this.particles,this.format(event.damage),138,150,180,30,20,C.gold).node;tween(hit).by(.45,{position:new Vec3(0,45,0)}).call(()=>{if(isValid(hit,true))hit.destroy();}).start();}
             }
             this.syncEnemyDeath();}
         if(!this.enemyTransition){const look=this.enemyKey();if(this.enemyLook!==look)this.spawnEnemy();this.enemy.setScale(1+Math.sin(this.age*2)*.014,1+Math.sin(this.age*2)*.014,1);}
         if(this.worldKey!==Math.floor((this.game.s.run.stage-1)/25)%4)this.world();
-        this.age+=dt;this.refresh+=dt;this.saveClock+=dt;this.actor.setPosition(-8,4);
+        this.age+=dt;this.refresh+=dt;this.saveClock+=dt;
         this.syncAllies();
         if(this.refresh>.15){this.refresh=0;this.updateHUD();if(this.modalRefresh)this.modalRefresh();this.flushNotice();}
         if(this.saveClock>=5){this.saveClock=0;this.extensions.notifyReady();this.game.persist();}

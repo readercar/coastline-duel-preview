@@ -1,3 +1,4 @@
+import { applyMilitaryTheme } from './MilitaryTheme';
 export type Locale = 'ko' | 'en';
 export const translations: Record<Locale, Record<string, string>> = {
     ko: {
@@ -644,3 +645,5 @@ Object.assign(translations.en,{'action.heroLevel':'Hero level','action.petTotal'
 
 Object.assign(translations.ko,{'action.alreadyClaimed':'이미 수령한 보상이에요.','action.alreadyApplied':'이미 적용되어 있어요.'});
 Object.assign(translations.en,{'action.alreadyClaimed':'This reward has already been claimed.','action.alreadyApplied':'Already applied.'});
+
+applyMilitaryTheme(translations);

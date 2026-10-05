@@ -1,0 +1,17 @@
+{
+  "build": "2026-10-05 13:30:05 KST",
+  "tests": {
+    "core": 87,
+    "server": 28,
+    "failed": 0
+  },
+  "branch": "concept/military-idle",
+  "checks": [
+    "Korean and English entry and military labels",
+    "Three adult soldier sprites and three enemy types imported from original transparent PNG",
+    "Four battlefield backgrounds and eighteen UI icons",
+    "Left-side rifle combat, right-side enemy entrance, code muzzle flashes and tracers",
+    "Existing economy and account identifiers preserved for this theme prototype"
+  ],
+  "scope": "Prototype theme variant; progression rules and Firebase project unchanged."
+}

@@ -1,0 +1,31 @@
+{
+  "source": "https://chatgpt.com/c/6ac325b0-30f0-83ee-9fe9-d1b14a053f1a",
+  "method": "Chrome 덕하 ChatGPT UI generation and original PNG download",
+  "scope": "Static sprites only; recoil, bullets and entrance use Cocos code",
+  "baseline": "1fbe608",
+  "branch": "concept/military-idle",
+  "originals": {
+    "world.png": {
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB"
+    },
+    "actors.png": {
+      "size": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA"
+    },
+    "icons.png": {
+      "size": [
+        1774,
+        887
+      ],
+      "mode": "RGBA"
+    }
+  },
+  "importScript": "scripts/import-military.py"
+}
