@@ -1,0 +1,23 @@
+{
+  "source": "fb282b8",
+  "deployment": "5d48e17",
+  "tests": 129,
+  "verified": [
+    "Public Pages built and correct source commit",
+    "Korean and English combat display",
+    "Actual hit lowers individual health bar",
+    "Damaged HP persists through reload and Firebase session resume",
+    "No captured browser warnings/errors"
+  ],
+  "automated": [
+    "Six enemies preserve independent damage and dead slots through save reload",
+    "Overkill does not spill into untouched enemies",
+    "Thirty enemies must all die before wave rewards",
+    "Boss timeout returns to thirty new enemies"
+  ],
+  "notes": [
+    "Wave HP budget is divided among independent enemies to preserve difficulty; HUD is their total",
+    "Wave-clear reward and existing progression counters retained",
+    "Art/morph/cut-in directives documented; no new morph or illustration assets in this change"
+  ]
+}
