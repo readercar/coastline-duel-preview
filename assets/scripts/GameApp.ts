@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, UITransform, Graphics, Color, Label, isValid, Vec3, Layers, Mask, ScrollView, EventTouch, tween, Tween, UIOpacity, sys, view, screen, ResolutionPolicy, resources, Sprite, SpriteFrame, BlockInputEvents, Input, input, EventKeyboard, KeyCode, profiler, EditBox, Texture2D } from 'cc';
 import {allyPosition,enemyPosition,waveSize,survivingEnemies,SOLDIER_SIZE} from './core/BattleFormation';
+import {CheatUI} from './CheatUI';
 import {FeedbackUI} from './FeedbackUI';
 import { Game, Item } from './core/Game';
 import { fmt, display, ratio, ZERO, add, mul } from './core/Amount';
@@ -102,6 +103,7 @@ export class GameApp extends Component {
     private browserRejection=(event:PromiseRejectionEvent)=>this.operations?.report('promise',event.reason);
     tr(key: string, args: Record<string, string | number> = {}): string { return t(this.game.s.locale, key, args); }
     id(kind: string): string { return `${kind}:${Date.now()}:${++this.tx}`; }
+    cheats=new CheatUI(this);
     async onLoad(): Promise<void> {
         this.resize();view.setResizeCallback(this.resize);
         profiler.hideStats();
@@ -212,6 +214,7 @@ export class GameApp extends Component {
         this.polygon(hud,0,414,480,132,[[-.5,.5],[.5,.5],[.5,-.35],[.18,-.5],[-.5,-.32]],C.bg,245);
         const settings=this.button(hud,'',-210,451,38,38,()=>this.settings(),false,{style:'quiet'});this.ui.icon(this.nodeAt(settings,'settings-icon',0,0,30,30),'settings');
         const menu=this.button(hud,'',-164,451,38,38,()=>this.menu(),false,{style:'quiet',hint:this.tr('menu.title')});this.ui.icon(this.nodeAt(menu,'menu-icon',0,0,26,26),'symbol:bag',C.text);
+        this.button(hud,this.tr('cheat.short'),-115,451,48,32,()=>this.cheats.open(),false,{style:'quiet',fontSize:13});
         this.stageNeighbors=[];[-1,1].forEach((offset,i)=>{const n=this.nodeAt(hud,'nearby-stage',i?66:-66,447,40,32);this.stageNeighbors.push(this.label(n,String(Math.max(1,this.game.s.run.stage+offset)),0,0,32,30,16,C.muted));});
         this.polygon(hud,-35,447,8,16,[[-.5,-.5],[.5,0],[-.5,.5]],C.blue);this.polygon(hud,35,447,8,16,[[-.5,-.5],[.5,0],[-.5,.5]],C.blue);
         const stage=this.polygon(hud,0,447,51,47,[[0,-.5],[.5,0],[0,.5],[-.5,0]],C.paper);this.stageLabel=this.label(stage,'',0,0,42,38,21,C.ink);
@@ -304,9 +307,7 @@ export class GameApp extends Component {
         const target=this.shotTarget(),muzzle=this.nodeAt(this.particles,'muzzle-flash',x+24,y,18,14);
         this.ui.polygon(muzzle,[[-8,0],[-2,3],[2,7],[4,2],[12,0],[3,-2],[1,-6],[-2,-2]],'#ffe04c');
         tween(muzzle).to(.07,{scale:new Vec3(.1,.1,1)}).call(()=>{if(isValid(muzzle,true))muzzle.destroy();}).start();
-        const tracer=this.nodeAt(this.particles,'bullet-tracer',x+25,y,18,2);this.rect(tracer,0,0,18,2,'#fff4bc');
-        tracer.angle=Math.atan2(target.y-y,target.x-x-25)*180/Math.PI;
-        tween(tracer).to(.1,{position:target}).call(()=>{if(isValid(tracer,true))tracer.destroy();if(isValid(this.particles,true))this.bulletImpact(target.x,target.y);}).start();
+        this.scheduleOnce(()=>{if(isValid(this.particles,true))this.bulletImpact(target.x,target.y);},.06);
     }
     bulletImpact(x:number,y:number):void {
         if(!this.game.s.extra.effects||!isValid(this.particles,true)||this.particles.children.length>180)return;
@@ -432,7 +433,7 @@ export class GameApp extends Component {
                 locked:s.maxStage<h.unlock,unavailable:()=>this.levelReason(h.id),
                 title: this.tr(h.name), sub: s.maxStage < h.unlock ? this.tr('hero.locked', {
                     stage: h.unlock
-                }) : undefined,metrics:s.maxStage<h.unlock?[{icon:'flag',value:String(h.unlock),hint:this.tr('hero.locked',{stage:h.unlock})}]:[{icon:'symbol:up',value:String(r.heroes[h.id]),hint:this.tr('action.level',{level:r.heroes[h.id]})},{icon:'sword',value:this.format(g.heroDamage(h.id)),hint:this.tr('hero.stats',{level:r.heroes[h.id],damage:this.format(g.heroDamage(h.id))})}], detail:()=>this.extensions.hero(h.id), icon: h.id, art:'face:'+['rowen','kael','sera','guardian'][h.id%4], tint: [C.ember, C.mint, C.blue, C.violet][h.id % 4], action:s.maxStage<h.unlock?this.tr('action.locked'):this.format(g.upgradeCost(h.id, this.mode === -1 ? 1 : this.mode)), click: () => { if(s.maxStage<h.unlock){this.info(this.tr('unlock.title'),this.tr('hero.locked',{stage:h.unlock}));return;}g.buy(h.id, this.mode);this.drawPanel();this.tutorial.event('progress');this.flushNotice(); }
+                }) : undefined,metrics:s.maxStage<h.unlock?[{icon:'flag',value:String(h.unlock),hint:this.tr('hero.locked',{stage:h.unlock})}]:[{icon:'symbol:up',value:String(r.heroes[h.id]),hint:this.tr('action.level',{level:r.heroes[h.id]})},{icon:'sword',value:this.format(g.heroDamage(h.id)),hint:this.tr('hero.stats',{level:r.heroes[h.id],damage:this.format(g.heroDamage(h.id))})}], detail:()=>this.extensions.hero(h.id), icon: h.id, art:'face:'+['rowen','kael','sera','guardian'][h.id%4], tint: [C.ember, C.mint, C.blue, C.violet][h.id % 4], action:s.maxStage<h.unlock?this.tr('action.locked'):r.heroes[h.id]===0?this.tr('action.recruitCost',{cost:this.format(g.upgradeCost(h.id,1))}):this.format(g.upgradeCost(h.id, this.mode === -1 ? 1 : this.mode)), click: () => { if(s.maxStage<h.unlock){this.info(this.tr('unlock.title'),this.tr('hero.locked',{stage:h.unlock}));return;}g.buy(h.id, this.mode);this.drawPanel();this.tutorial.event('progress');this.flushNotice(); }
             })));
         }
         else if (this.tab === 2) {
@@ -644,7 +645,7 @@ export class GameApp extends Component {
         },true,{icon:'scroll'});
         this.button(p,this.tr('live.17'),0,-6,365,46,()=>this.liveOps.hub(),false,{icon:'mail'});
         this.button(p,this.tr('tutorial.replay'),0,-66,365,38,()=>this.confirm(this.tr('tutorial.replay'),this.tr('tutorial.replayBody'),()=>{replayTutorial(this.game.s);this.game.revision++;this.game.persist();void this.operations.save().catch(e=>this.operations.report('tutorial.replay',e));this.tab=0;this.folded=false;this.draw();}),false,{style:'quiet',fontSize:14});
-        this.label(p,this.tr('settings.about'),0,-120,375,54,14,C.muted);
+        this.button(p,this.tr('cheat.title'),0,-120,365,38,()=>this.cheats.open(),false,{style:'quiet',icon:'settings',fontSize:15});
         resources.load('branding/tt-softs-ci/texture',Texture2D,(err,texture)=>{
             if(err||!p.isValid)return;
             const n=this.nodeAt(p,'company-ci',0,-188,120,120*texture.height/texture.width),sp=n.addComponent(Sprite),frame=new SpriteFrame();

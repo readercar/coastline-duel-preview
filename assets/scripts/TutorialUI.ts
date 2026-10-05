@@ -20,7 +20,7 @@ export class TutorialUI {
  popup(title:string,heading:Node){
   this.popupCandidates=[];this.popupHint=null;this.popupTarget=null;
   const table=translations[this.a.game.s.locale];this.popupTitle=Object.keys(table).find(k=>table[k]===title)||'';
-  if(this.active||!this.popupTitle||/^(tutorial|entry|consent|ops\.|error|unlock)/.test(this.popupTitle))return false;
+  if(this.active||!this.popupTitle||/^(cheat|tutorial|entry|consent|ops\.|error|unlock)/.test(this.popupTitle))return false;
   this.a.label(heading,title,0,12,322,24,19,UI.ink);
   this.popupHint=this.a.label(heading,this.a.tr('guide.inspect'),0,-15,334,23,13,'#222222');
   return true;
@@ -55,11 +55,11 @@ export class TutorialUI {
  tick(){this.event('progress');this.popupTick();if(this.deferredSave&&!this.a.operations.busy){this.deferredSave=false;void this.a.operations.save().catch(e=>this.a.operations.report('tutorial.save',e));}if(this.shown!==this.signature&&!this.a.modal)this.a.draw();}
 
  skip(){const a=this.a;a.confirm(a.tr('tutorial.skipTitle'),a.tr('tutorial.skipBody'),()=>{a.game.s.tutorial.step=TUTORIAL_DONE;a.game.revision++;a.game.persist();a.draw();void a.operations.save().catch(e=>a.operations.report('tutorial.save',e));});}
- draw(){const a=this.a,step=a.game.s.tutorial.step;this.shown=this.signature;if(step>=TUTORIAL_DONE){const next=this.followup();if(next){this.guide(a.tr(next.body),'!',true);if(next.target)this.outline(...next.target);const p=a.root.children.find(n=>n.name==='tutorial-guide-root');if(p)a.button(p,'×',70,32,30,26,()=>{this.postponed.add(next.id);a.draw();},false,{style:'quiet',hint:a.tr('guide.later')});}return;}if(step<1){this.guide(a.tr('guide.begin'),'0/6',true);const p=a.root.getChildByName('tutorial-guide-root');if(p)a.button(p,'▶',70,32,30,26,()=>this.event('begin'),true,{hint:a.tr('tutorial.begin')});return;}
+ draw(){const a=this.a,step=a.game.s.tutorial.step;this.shown=this.signature;if(step>=TUTORIAL_DONE){const next=this.followup();if(next){this.guide(a.tr(next.body),'!',true);if(next.target)this.outline(...next.target);const p=a.root.children.find(n=>n.name==='tutorial-guide-root');if(p)a.button(p,'×',70,32,30,26,()=>{this.postponed.add(next.id);a.draw();},false,{style:'quiet',hint:a.tr('guide.later')});}return;}if(step<1){this.guide(a.tr('guide.begin'),'0/6',true);const p=a.root.getChildByName('tutorial-guide-root');if(p)a.button(p,a.tr('tutorial.begin'),53,32,65,26,()=>this.event('begin'),true,{hint:a.tr('tutorial.begin')});return;}
   if(step===2&&a.tab!==0){this.guide(a.tr('guide.master'),step+'/6');this.outline(-200,-452-a.heightExtra,76,56);return;}
   if(step===4&&a.tab!==1){this.guide(a.tr('tutorial.step3'),step+'/6');this.outline(-120,-452-a.heightExtra,76,56);return;}
   this.guide(a.tr('tutorial.step'+step),step+'/6');
-  if(step===1)this.outline(0,95-a.heightExtra,276,236);
+  if(step===1)this.outline(120,85-a.heightExtra,184,150);
   if(step===2)this.outline(164,-171-a.heightExtra,138,64);
   if(step===3)this.outline(-120,-452-a.heightExtra,76,56);
   if(step===4)this.outline(164,-224-a.heightExtra,115,52);
@@ -104,6 +104,7 @@ export class TutorialUI {
   const a=this.a,s=a.game.s,extra=a.heightExtra;
   const offer=(id:string,body:string,target?:[number,number,number,number])=>!tutorialSeen(s,id)&&!this.postponed.has(id)?{id,body,target}:undefined;
   if(this.firstBoss&&!tutorialSeen(s,'first:boss')&&!this.postponed.has('first:boss'))return offer('first:boss','guide.boss',s.run.bossFailed?[180,442+extra-a.safeTop-a.safeBottom,111,44]:[0,95-extra,276,236]);
+  if(!s.claims.includes('daily.0')){const next=offer('first:daily','guide.daily',[-164,451+extra-a.safeTop-a.safeBottom,38,38]);if(next)return next;}
   const tab=[5,3,2,4].find(tab=>tabUnlocked(s,tab)&&!tutorialSeen(s,'tab:'+tab)&&!this.postponed.has('tab:'+tab));
   if(tab!==undefined&&tab!==a.tab)return offer('tab:'+tab,'guide.tab'+tab,[-200+80*tab,-452-extra,76,56]);
   const feature=[15,50,60,100,1000,100000,180000].find(stage=>s.maxStage>=stage&&!tutorialSeen(s,'feature:'+stage)&&!this.postponed.has('feature:'+stage));

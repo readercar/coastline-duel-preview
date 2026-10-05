@@ -1,7 +1,7 @@
 import {sys} from 'cc';
 import type {GameApp} from './GameApp';
 import {APP_VERSION,Policy,validatePolicy} from './core/LiveOps';
-import {Game} from './core/Game';
+import {Game,Save} from './core/Game';
 import {MailView,diagnostic} from './core/Operations';
 /** One queue owns restore, save and mail grants. A revision conflict stops progression. */
 export class OperationsClient {
@@ -28,6 +28,23 @@ export class OperationsClient {
   if(this.conflict)throw Error('online.saveConflict');if(!this.ready)throw Error('online.unreachable');if(this.uid!==(this.local?this.a.onlineService.accountId:this.a.cloud.uid)){this.conflict=true;throw Error('online.auth');}this.busy=true;const revision=this.a.game.revision,state=JSON.parse(JSON.stringify(this.a.game.s));
   try{const r=await this.request('/account/save',{state,version:this.version,key:this.a.id('auto-save')});this.version=r.version;this.revision=revision;}
   catch(e){if(['online.saveConflict','online.unreachable'].includes((e as Error).message))this.conflict=true;throw e;}finally{this.busy=false;}
+ });}
+ get identity(){return this.local?this.a.onlineService.accountId:this.a.cloud.uid;}
+ replaceProgress(state:Save):Promise<void>{return this.serial(async()=>{
+  if(this.conflict)throw Error('online.saveConflict');if(!this.ready||this.uid!==this.identity)throw Error('online.auth');
+  this.a.game.validate(state);this.busy=true;const payload=JSON.parse(JSON.stringify(state)),version=this.version;
+  try{
+   let next:number;
+   try{const result=await this.request('/account/save',{state:payload,version,key:this.a.id('prototype-replace')});next=result.version;}
+   catch(error){
+    // A lost response may follow a committed write. Verify before considering it a failure.
+    const stored=await this.request('/account/save');
+    if(stored.version!==version+1||JSON.stringify(stored.state)!==JSON.stringify(payload))throw error;
+    next=stored.version;
+   }
+   this.version=next;this.a.game.s=payload;this.a.game.revision++;this.revision=this.a.game.revision;this.elapsed=0;
+   if(!this.a.game.persist())throw Error('error.storage');
+  }catch(error){if((error as Error).message==='online.saveConflict')this.conflict=true;throw error;}finally{this.busy=false;}
  });}
  async read(id:string){await this.serial(()=>this.request('/operations/read',{id,key:this.a.id('notice-read')}));if(!this.reads.includes(id))this.reads.push(id);}
  async inbox(){if(!this.ready)throw Error('online.unreachable');this.mails=await this.request('/operations/mail');return this.mails;}

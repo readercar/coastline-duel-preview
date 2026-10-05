@@ -649,4 +649,35 @@ Object.assign(translations.en,{'action.alreadyClaimed':'This reward has already 
 Object.assign(translations.ko,{'action.claimReady':'수령 가능','action.notReady':'미충족','battle.wave':'적 부대 · {count}명'});
 Object.assign(translations.en,{'action.claimReady':'Claim now','action.notReady':'Not ready','battle.wave':'Hostiles · {count}'});
 
+Object.assign(translations.ko,{
+ 'action.recruitCost':'고용\n{cost}','cheat.short':'치트','cheat.title':'프로토타입 치트 패널','cheat.description':'전투와 성장 테스트용입니다.\n변경 사항은 현재 계정에 저장됩니다.',
+ 'cheat.stage':'구역 {stage}','cheat.funds':'군자금 +1,000,000','cheat.squad':'분대 8명 고용 · 레벨 10',
+ 'cheat.reset':'전체 초기화','cheat.resetBody':'재화·장비·분대·구역·해금·튜토리얼을 처음 상태로 되돌립니다. 서버 저장도 초기화합니다. 직전 상태는 이 기기에서 복구할 수 있습니다.',
+ 'cheat.restore':'직전 초기화 복구','cheat.restoreBody':'이 계정의 초기화 직전 진행으로 되돌립니다. 현재 진행은 교체됩니다.',
+ 'cheat.noBackup':'이 기기에 이 계정의 초기화 백업이 없습니다.','cheat.scope':'계정·약관 동의·운영 우편 수령 기록은 유지됩니다.',
+ 'guide.daily':'메뉴 → 일일 임무를 열고 노란 수령 가능 버튼을 눌러요. 획득 후 확인으로 닫아요.',
+ 'tutorial.begin':'시작','guide.begin':'신병 훈련 시작!\n사격 → 강화 → 분대 고용을 차례로 배워요.',
+ 'tutorial.step1':'오른쪽 전장을 3번 눌러 사격하세요. 적에게 파편이 튀어요.',
+ 'tutorial.step2':'대장 옆 + 버튼으로 강화하세요. 회색이면 눌러 부족한 재화를 확인해요.',
+ 'tutorial.step3':'아래 분대 탭을 눌러요. 분대원은 자동으로 사격해요.',
+ 'tutorial.step4':'레아 옆 고용 버튼을 눌러요. 아군은 같은 크기로 나란히 배치돼요.',
+ 'tutorial.step5':'↓로 메뉴를 접어요. 전장을 넓게 볼 수 있어요.',
+ 'tutorial.step6':'↑로 메뉴를 다시 펼쳐요. 다음은 보스와 첫 보상이에요.'
+});
+Object.assign(translations.en,{
+ 'action.recruitCost':'Recruit\n{cost}','cheat.short':'Cheat','cheat.title':'Prototype Cheat Panel','cheat.description':'Test combat and progression.\nChanges are saved to the current account.',
+ 'cheat.stage':'Zone {stage}','cheat.funds':'Funds +1,000,000','cheat.squad':'Recruit 8 soldiers · Level 10',
+ 'cheat.reset':'Reset all progress','cheat.resetBody':'Reset funds, gear, squad, zones, unlocks and tutorial, including the server save. The previous state can be restored on this device.',
+ 'cheat.restore':'Undo last reset','cheat.restoreBody':'Restore this account to its state before the last reset. This replaces current progress.',
+ 'cheat.noBackup':'No reset backup for this account on this device.','cheat.scope':'Account, consent and operational mail receipts are kept.',
+ 'guide.daily':'Open Menu → Daily tasks. Tap the yellow Claim now button, then Confirm after receiving rewards.',
+ 'tutorial.begin':'Start','guide.begin':'Boot camp begins!\nLearn firing, upgrades and recruiting.',
+ 'tutorial.step1':'Tap the right battlefield 3 times. Impacts mark your hits.',
+ 'tutorial.step2':'Upgrade with + beside the captain. Tap gray buttons to see what you need.',
+ 'tutorial.step3':'Open the squad tab below. Soldiers fire automatically.',
+ 'tutorial.step4':'Recruit Rhea using her button. Allies form evenly spaced ranks.',
+ 'tutorial.step5':'Hide the menu with ↓ to see more of the battlefield.',
+ 'tutorial.step6':'Show it again with ↑. Next: the boss and your first reward.'
+});
+
 applyMilitaryTheme(translations);

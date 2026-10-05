@@ -141,3 +141,15 @@ test('military formation stays separated and wave count grows to thirty',()=>{
  assert.equal(formation.waveSize(1),1);assert.equal(formation.waveSize(400),30);assert.equal(formation.waveSize(400,true),1);
  assert.equal(formation.survivingEnemies(30,.5),15);assert.equal(formation.survivingEnemies(30,0),0);assert.equal(formation.survivingEnemies(30,1),30);
 });
+
+const cheats=require('../.test-output/PrototypeCheats.js');
+test('prototype reset creates a fully fresh save and fresh tutorial without changing backup',()=>{
+ const g=game();g.s.run.master=500;g.s.run.heroes.fill(50);g.s.maxStage=400;g.s.claims=['daily.0'];g.s.tutorial.step=7;g.s.tutorial.completed=['tab:5'];g.s.equipment.push({id:1,slot:0,rarity:0,level:1,power:1,locked:false});
+ const old=JSON.stringify(g.s),fresh=cheats.freshPrototype('en',g.now());g.validate(fresh);
+ assert.equal(fresh.run.stage,1);assert.equal(fresh.run.master,1);assert.ok(fresh.run.heroes.every(v=>v===0));assert.equal(fresh.maxStage,1);assert.equal(fresh.tutorial.step,0);assert.deepEqual(fresh.claims,[]);assert.deepEqual(fresh.equipment,[]);assert.equal(fresh.locale,'en');assert.equal(fresh.offline,A.ZERO);assert.equal(JSON.stringify(g.s),old);
+});
+test('cheat presets clone progress, validate zones and replay uses fresh action baselines',()=>{
+ const g=game(),original=JSON.stringify(g.s);g.validate(cheats.prototypeCheat(g.s,'funds'));const squad=cheats.prototypeCheat(g.s,'squad');g.validate(squad);assert.equal(squad.run.heroes.filter(v=>v>0).length,8);
+ const advanced=cheats.prototypeCheat(g.s,'stage',400);assert.equal(advanced.run.stage,400);assert.equal(advanced.run.boss,false);assert.equal(advanced.run.hp,g.maxHP(400,false));assert.equal(advanced.tutorial.step,Entry.TUTORIAL_DONE);assert.throws(()=>cheats.prototypeCheat(g.s,'stage',999),/error.invalid/);
+ advanced.totalTaps=100;const replay=cheats.prototypeCheat(advanced,'tutorial');assert.equal(replay.tutorial.step,0);assert.equal(replay.tutorial.tapBaseline,100);assert.equal(JSON.stringify(g.s),original);
+});
