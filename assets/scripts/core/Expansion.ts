@@ -1,3 +1,4 @@
+import {MERCENARY_COUNT} from './Mercenaries';
 import {mailExpiry,MAIL_LIFETIME} from './LiveOps';
 import { CRYSTAL_THRESHOLDS } from './ReferenceRules';
 import { gemstoneRarity } from './Balance';
@@ -23,7 +24,7 @@ export interface ExpansionState {
 }
 export const seasonAt=(time:number)=>Math.floor(time/(28*86400000));
 export function newExpansion(now:number):ExpansionState {
- return {mercenarySeen:[],commerce:newCommerce(),rewardNotices:[],unseenEquipment:[],unlockNotices:[],unlocked:[],soloRaid:null,soloCleared:[],soloRewardDay:-1,deckPresets:[[0,1,2],[3,4,5],[6,7,8]],lastEquipmentStage:0,perkSlots:[0,1,2,3,4,5],extraPerks:[2,2,2,2],ascensions:Array(24).fill(0),heroSkills:Array(24).fill(0),
+ return {mercenarySeen:[],commerce:newCommerce(),rewardNotices:[],unseenEquipment:[],unlockNotices:[],unlocked:[],soloRaid:null,soloCleared:[],soloRewardDay:-1,deckPresets:[[0,1,2],[3,4,5],[6,7,8]],lastEquipmentStage:0,perkSlots:[0,1,2,3,4,5],extraPerks:[2,2,2,2],ascensions:Array(MERCENARY_COUNT).fill(0),heroSkills:Array(MERCENARY_COUNT).fill(0),
  petBoard:[0,3,5,1,7,2,6,4,3,6,1,7,4,0,2,5],petMatched:[],petFace:[],petEnergy:16,petMilestones:[],
  monumentInvested:Array(12).fill(ZERO),monumentEnchanted:Array(12).fill(0),season:seasonAt(now),seasonBest:0,
  crystal:Array(15).fill(-1),summonCount:0,titanLevels:Array(120).fill(0),banner:0,geodesOpened:0,mysticResearch:Array(12).fill(0),gemMilestones:[],

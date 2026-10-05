@@ -1,3 +1,4 @@
+import {MERCENARY_COUNT} from './core/Mercenaries';
 import {sys} from 'cc';
 import type {GameApp} from './GameApp';
 import {Save} from './core/Game';
@@ -9,7 +10,7 @@ import {UI} from './UITheme';
 export class CheatUI {
  constructor(private a:GameApp){}
  private get backupKey(){return 'outrun-military-reset-backup:'+this.a.operations.identity;}
- private backup():Save|null {try{const raw=sys.localStorage.getItem(this.backupKey);if(!raw)return null;const state=JSON.parse(raw);this.a.game.validate(state);return state;}catch{return null;}}
+ private backup():Save|null {try{const raw=sys.localStorage.getItem(this.backupKey);if(!raw)return null;const state=JSON.parse(raw);this.a.game.migrate(state);this.a.game.validate(state);return state;}catch{return null;}}
  open(){const a=this.a,p=a.open(a.tr('cheat.title'),650);
   a.label(p,a.tr('cheat.description'),0,211,365,82,16,UI.muted);
   [1,30,200,400].forEach((stage,i)=>a.button(p,a.tr('cheat.stage',{stage}),-144+i*96,125,90,50,()=>void this.change(prototypeCheat(a.game.s,'stage',stage)),false,{fontSize:15}));
@@ -20,7 +21,7 @@ export class CheatUI {
   a.button(p,a.tr('cheat.restore'),0,-214,366,45,()=>a.confirm(a.tr('cheat.restore'),a.tr('cheat.restoreBody'),()=>{const state=this.backup();if(state)void this.change(state);}),false,{style:'quiet',unavailable:()=>this.backup()?null:a.tr('cheat.noBackup')});
   a.button(p,a.tr('merc.gallery'),0,-277,365,42,()=>this.roster(),false);
  }
- roster(){const a=this.a,p=a.open(a.tr('merc.gallery'),680);a.scroll(p,0,-15,390,540,Array.from({length:24},(_,i)=>({title:a.tr('hero.'+i),sub:a.tr('merc.weapon.'+i),art:'face:merc-'+i,icon:i,action:a.tr('merc.preview'),click:()=>a.feedback.showMercenary(i,true)})));}
+ roster(){const a=this.a,p=a.open(a.tr('merc.gallery'),680);a.scroll(p,0,-15,390,540,[...Array.from({length:MERCENARY_COUNT-24},(_,i)=>i+24),...Array.from({length:24},(_,i)=>i)].map(i=>({title:a.tr('hero.'+i),sub:a.tr('merc.weapon.'+i),art:'face:merc-'+i,icon:i,action:a.tr('merc.preview'),click:()=>a.feedback.showMercenary(i,true)})));}
  async reset(){const a=this.a;if(a.remoteBusy||a.operations.busy)return;
   try{sys.localStorage.setItem(this.backupKey,JSON.stringify(a.game.s));}catch{a.toast(a.tr('error.storage'));return;}
   await this.change(freshPrototype(a.game.s.locale,a.game.now()));

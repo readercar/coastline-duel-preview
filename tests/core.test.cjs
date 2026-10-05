@@ -173,9 +173,9 @@ test('overkill retargets a dead slot without changing another living slot in the
 test('both factions share perspective with slightly larger male silhouettes',()=>{assert.equal(formation.soldierSize(65),96);assert.equal(formation.soldierSize(65,true),96*1.08);assert.ok(formation.soldierSize(215)<formation.soldierSize(65));assert.equal(formation.allyPosition(0).y,formation.enemyPosition(0,1).y);});
 
 const merc=require('../.test-output/Mercenaries.js');
-test('24 weapons have distinct cadences with equal DPS integration per full cycle',()=>{
+test('30 mercenaries preserve DPS integration with distinct weapon cadences',()=>{
  assert.equal(new Set(merc.WEAPONS).size,24);assert.ok(merc.attackSeconds(19)<merc.attackSeconds(17));
- for(let id=0;id<24;id++){
+ for(let id=0;id<merc.MERCENARY_COUNT;id++){
   const g=game();g.s.run.heroes[id]=1;g.s.run.hp=A.amount(1e300);const expected=g.heroDPS(id),period=merc.attackSeconds(id);let total=A.ZERO,hits=0;
   for(let t=0;t<200;t++){g.tick(period*3/200);for(const e of g.heroEvents)if(e.phase==='hit'){total=A.add(total,e.damage);hits++;}}
   assert.equal(hits,3,merc.WEAPONS[id]);assert.ok(Math.abs(total-A.mul(expected,period*3))<1e-7,merc.WEAPONS[id]);
@@ -189,4 +189,13 @@ test('all allied silhouettes respect left fifty pixel margin',()=>{
 });
 test('mercenary cutin receipts migrate and survive reload',()=>{
  const store=memory(),g=new Game(store);g.s.run.heroes[0]=1;delete g.s.extra.mercenarySeen;g.persist();const migrated=new Game(store);assert.deepEqual(migrated.s.extra.mercenarySeen,[0]);migrated.s.extra.mercenarySeen.push(1);migrated.persist();assert.deepEqual(new Game(store).s.extra.mercenarySeen,[0,1]);
+});
+
+test('legacy 24-slot saves append six heroes without losing progression',()=>{
+ const store=memory(),g=new Game(store);g.s.run.heroes[23]=17;g.s.weapons[23]=4;g.s.scrolls[23]=3;g.s.extra.ascensions[23]=2;g.s.extra.heroSkills[23]=5;
+ for(const a of [g.s.run.heroes,g.s.weapons,g.s.scrolls,g.s.extra.ascensions,g.s.extra.heroSkills])a.length=24;
+ g.persist();const next=new Game(store);next.validate(next.s);
+ assert.equal(next.s.run.heroes.length,30);assert.equal(next.s.run.heroes[23],17);assert.equal(next.s.weapons[23],4);assert.equal(next.s.scrolls[23],3);assert.equal(next.s.extra.ascensions[23],2);assert.equal(next.s.extra.heroSkills[23],5);
+ for(const a of [next.s.run.heroes,next.s.weapons,next.s.scrolls,next.s.extra.ascensions,next.s.extra.heroSkills])assert.deepEqual(a.slice(24),[0,0,0,0,0,0]);
+ next.s.extra.mercenarySeen.push(29);next.s.run.heroes[29]=1;next.persist();assert.equal(new Game(store).s.run.heroes[29],1);
 });

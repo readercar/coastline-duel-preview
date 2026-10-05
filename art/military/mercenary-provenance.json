@@ -42,6 +42,22 @@
       ],
       "mode": "RGB",
       "sha256": "48127cda510b435cfc359610a248426fe5fc1ca94607bdb717a435a11cab88d9"
+    },
+    "mercenaries-e.png": {
+      "size": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "sha256": "b3e97a11a7550e5fc4467258277eea57e17e6717cb487441527439e2c54a30e9"
+    },
+    "mercenaries-e-first.png": {
+      "size": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "sha256": "152867f124b329abbd965b0b26601793135690d8c6de2643f50fa4fdc1488200"
     }
   },
   "importScript": "scripts/import-mercenaries.py",
@@ -79,5 +95,18 @@
       23
     ]
   },
-  "scope": "24 distinct stationary adult female mercenaries, individual full-body cut-ins and profiles; four ground-focused battlefields. Intro art unchanged. Code combat effects only."
+  "scope": "24 distinct stationary adult female mercenaries, individual full-body cut-ins and profiles; four ground-focused battlefields. Intro art unchanged. Code combat effects only.",
+  "spectrumCharacters": "https://chatgpt.com/c/6ac3b6db-a830-83ee-8185-d339c2d21f66",
+  "spectrumReference": "https://nikke-en.com/indexm.html",
+  "spectrumNote": "Six original adult silhouettes appended to the existing 24. Chrome 덕하 ChatGPT original downloads, second pass for transparency. Composited over olive for alpha inspection; alpha-zero RGB is not visible background. Existing 24 assets retained.",
+  "spectrumMapping": {
+    "e": [
+      24,
+      25,
+      26,
+      27,
+      28,
+      29
+    ]
+  }
 }

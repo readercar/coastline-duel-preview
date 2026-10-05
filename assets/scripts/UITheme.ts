@@ -1,3 +1,4 @@
+import {MERCENARY_COUNT} from './core/Mercenaries';
 import { Color, Font, Graphics, Node, resources, Sprite, SpriteFrame, Texture2D, UITransform } from 'cc';
 
 export const UI = {
@@ -60,9 +61,9 @@ export class UITheme {
             ...Object.entries(militaryActors).map(([key,source])=>this.loadFrame('actors/'+key,0,false,'military/actors/'+source)),
             ...[0,1,2,3].map(key=>this.loadFrame('world/'+key,0,false,'military/world/'+key)),
             ...[0,1,2,3].map(key=>this.loadFrame('battlefield/'+key,0,false,'military/battlefield/'+key)),
-            ...Array.from({length:24},(_,i)=>this.loadFrame('actors/merc-'+i,0,false,'military/mercenaries/'+i)),
-            ...Array.from({length:24},(_,i)=>this.loadFrame('faces/merc-'+i,0,false,'military/profiles/'+i)),
-            ...Array.from({length:24},(_,i)=>this.loadFrame('cutin/'+i,0,false,'military/cutins/'+i)),
+            ...Array.from({length:MERCENARY_COUNT},(_,i)=>this.loadFrame('actors/merc-'+i,0,false,'military/mercenaries/'+i)),
+            ...Array.from({length:MERCENARY_COUNT},(_,i)=>this.loadFrame('faces/merc-'+i,0,false,'military/profiles/'+i)),
+            ...Array.from({length:MERCENARY_COUNT},(_,i)=>this.loadFrame('cutin/'+i,0,false,'military/cutins/'+i)),
             ...UI_ICONS.map((key,i)=>this.loadFrame('icons/'+key,0,false,'military/icons/'+i)),
             ...UI_FACES.map((key,i)=>this.loadFrame('faces/'+key,0,false,i<4?'military/faces/'+[0,1,2,0][i]:'military/icons/'+(i%UI_ICONS.length)))
         ]);

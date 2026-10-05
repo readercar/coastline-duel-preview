@@ -1,3 +1,4 @@
+import { MERCENARY_COUNT } from './Mercenaries';
 import { REFERENCE_SPELLS } from './ReferenceRules';
 export const CONFIG = {
     version: 'independent-2026-10-02.1', stageBaseHP: 22, stageGrowth: 1.115,
@@ -8,7 +9,7 @@ export const CONFIG = {
     manaMax: 120, manaRegen: 1.5,
 } as const;
 export const HEROES = Array.from({
-    length: 24
+    length: MERCENARY_COUNT
 }, (_, i) => ({
     id: i, name: `hero.${i}`, unlock: Math.max(1, i * 12), cost: 18 * Math.pow(12, i),
     damage: 2 * Math.pow(10, i), growth: 1.075,

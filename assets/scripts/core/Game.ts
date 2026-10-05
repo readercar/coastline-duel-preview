@@ -123,7 +123,7 @@ export class Game {
     readonly heroAttackInterval = 1.15;
     readonly heroAttackWindup = .24;
     heroEvents: {hero:number; phase:'attack'|'hit'; damage:number; windup?:number; target?:number}[] = [];
-    private heroClocks = Array(24).fill(0);
+    private heroClocks = Array(HEROES.length).fill(0);
     private combatRun: Run | null = null;
     constructor(public storage?: Storage, public now = () => Date.now()) {
         this.s = this.fresh();
@@ -166,12 +166,12 @@ export class Game {
             dust: 0, cards: Array(18).fill(1), fragments: Array(18).fill(0), deck: [0, 1, 2], portal: 1,
             souls: 0, titans: Array(120).fill(0), research: Array(12).fill(0), geodes: 0, stones: Array(24).fill(0),
             mementos: ZERO, monuments: Array(12).fill(0), eventTokens: 0, board: Array(16).fill(0),
-            perks: Array(6).fill(2), perkUntil: Array(6).fill(0), weapons: Array(24).fill(0), scrolls: Array(24).fill(0),
+            perks: Array(6).fill(2), perkUntil: Array(6).fill(0), weapons: Array(HEROES.length).fill(0), scrolls: Array(HEROES.length).fill(0),
             transactions: [], rng: (now >>> 0) || 12345678, offline: ZERO, audio: true
         };
     }
     newRun(stage = 1): Run { return {
-        stage, kills: 0, boss: false, bossLeft: 30, bossFailed: false, hp: this.maxHP(stage, false), gold: amount(25), master: 1, heroes: Array(24).fill(0), mana: 120, spells: Array(10).fill(0), cooldowns: Array(10).fill(0), spellLevels: Array(10).fill(1), stacks: Array(10).fill(0), elapsed: 0
+        stage, kills: 0, boss: false, bossLeft: 30, bossFailed: false, hp: this.maxHP(stage, false), gold: amount(25), master: 1, heroes: Array(HEROES.length).fill(0), mana: 120, spells: Array(10).fill(0), cooldowns: Array(10).fill(0), spellLevels: Array(10).fill(1), stacks: Array(10).fill(0), elapsed: 0
     }; }
     migrate(s: Save): void {
         const defaults = this.fresh();
@@ -181,6 +181,10 @@ export class Game {
         if(s.extra.unlocked===undefined)s.extra.unlocked=[8,15,60,100,1000,100000,180000].filter(stage=>s.maxStage>=stage);
         if(s.extra.lastEquipmentStage===undefined)s.extra.lastEquipmentStage=Math.floor(s.maxStage/5)*5;
         for(const key of Object.keys(defaults.extra))if(!(key in s.extra))(s.extra as any)[key]=(defaults.extra as any)[key];
+        // Append new identities without reindexing any existing hero or equipment.
+        for(const values of [s.run?.heroes,s.weapons,s.scrolls,s.extra.ascensions,s.extra.heroSkills]){
+            if(Array.isArray(values)&&values.length===24)values.push(...Array(HEROES.length-24).fill(0));
+        }
         if(s.extra.crystal.length===3){const old=s.extra.crystal;s.extra.crystal=Array(15).fill(-1);old.forEach((card,type)=>s.extra.crystal[type*5]=card);}
         if(s.extra.soloRaid&&!s.extra.soloRaid.expiresAt)s.extra.soloRaid.expiresAt=s.lastSeen+s.extra.soloRaid.seconds*1000;
         for (const key of ['fairyAt', 'spellSlots', 'artifactInvested', 'salvaged', 'enchanted', 'achievements', 'appearance'] as const)
@@ -203,20 +207,20 @@ export class Game {
         if(s.tutorial?.version!==1||!Number.isInteger(s.tutorial.step)||s.tutorial.step<0||s.tutorial.step>7)throw Error('tutorial');
         if(s.tutorial.completed!==undefined&&(!Array.isArray(s.tutorial.completed)||s.tutorial.completed.length>1024||new Set(s.tutorial.completed).size!==s.tutorial.completed.length||s.tutorial.completed.some(k=>typeof k!=='string'||!/^[a-zA-Z0-9_.:-]{1,120}$/.test(k))))throw Error('tutorial.completed');
         for (const [key, length] of Object.entries({
-            spellSlots: 6, artifactInvested: 30, enchanted: 30, achievements: 4, appearance: 5, skills: 18, artifacts: 30, pets: 12, equipped: 5, cards: 18, fragments: 18, deck: 3, titans: 120, research: 12, stones: 24, monuments: 12, board: 16, perks: 6, perkUntil: 6, weapons: 24, scrolls: 24
+            spellSlots: 6, artifactInvested: 30, enchanted: 30, achievements: 4, appearance: 5, skills: 18, artifacts: 30, pets: 12, equipped: 5, cards: 18, fragments: 18, deck: 3, titans: 120, research: 12, stones: 24, monuments: 12, board: 16, perks: 6, perkUntil: 6, weapons: HEROES.length, scrolls: HEROES.length
         })) {
             const a = (s as any)[key];
             if (!Array.isArray(a) || a.length !== length || a.some((v: unknown) => typeof v !== 'number' || !Number.isFinite(v)))
                 throw Error(key);
         }
-        for(const [key,length] of Object.entries({perkSlots:6,extraPerks:4,ascensions:24,heroSkills:24,petBoard:16,monumentInvested:12,monumentEnchanted:12,crystal:15,titanLevels:120,mysticResearch:12,cosmetics:3,notifications:6})){
+        for(const [key,length] of Object.entries({perkSlots:6,extraPerks:4,ascensions:HEROES.length,heroSkills:HEROES.length,petBoard:16,monumentInvested:12,monumentEnchanted:12,crystal:15,titanLevels:120,mysticResearch:12,cosmetics:3,notifications:6})){
             if(!Array.isArray((s.extra as any)[key])||(s.extra as any)[key].length!==length)throw Error('extra.'+key);
         }
         if(s.extra.crystal.some((card,slot)=>!Number.isInteger(card)||card< -1||card>=s.cards.length||(card>=0&&card%3!==Math.floor(slot/5)))||new Set(s.extra.crystal.filter(card=>card>=0)).size!==s.extra.crystal.filter(card=>card>=0).length)throw Error('crystal');
         const validDeck=(d:any)=>Array.isArray(d)&&d.length===3&&new Set(d).size===3&&d.every((n:any)=>Number.isInteger(n)&&n>=0&&n<18);
         if(!validDeck(s.deck)||!Array.isArray(s.extra.deckPresets)||s.extra.deckPresets.length!==3||!s.extra.deckPresets.every(validDeck))throw Error('deck');
         if(!Array.isArray(s.extra.rewardNotices)||s.extra.rewardNotices.some(r=>!['milestone','weapon','scroll','weaponSet','equipmentSet'].includes(r.kind)||!Number.isInteger(r.value)||r.value<0||!Number.isInteger(r.count)||r.count<1))throw Error('rewardNotices');
-        if(!Array.isArray(s.extra.mercenarySeen)||s.extra.mercenarySeen.length>24||new Set(s.extra.mercenarySeen).size!==s.extra.mercenarySeen.length||s.extra.mercenarySeen.some(i=>!Number.isInteger(i)||i<0||i>=24))throw Error('mercenarySeen');
+        if(!Array.isArray(s.extra.mercenarySeen)||s.extra.mercenarySeen.length>HEROES.length||new Set(s.extra.mercenarySeen).size!==s.extra.mercenarySeen.length||s.extra.mercenarySeen.some(i=>!Number.isInteger(i)||i<0||i>=HEROES.length))throw Error('mercenarySeen');
         const raid=s.extra.soloRaid;
         if(raid&&(!validDeck(raid.deck)||!Number.isInteger(raid.portal)||raid.portal<1||raid.portal>1000||raid.hp.length!==8||raid.armor.length!==8||raid.cardDamage.length!==3||raid.seconds<0||raid.seconds>30))throw Error('raid');
         if(s.run.enemies!==undefined&&(!Array.isArray(s.run.enemies)||s.run.enemies.length!==waveSize(s.run.stage,s.run.boss)||s.run.enemies.some(h=>typeof h!=='number'||!Number.isFinite(h)||h!==ZERO&&h>mul(this.maxHP(s.run.stage,s.run.boss),1/waveSize(s.run.stage,s.run.boss))+1e-8)))throw Error('enemyHealth');
@@ -229,7 +233,7 @@ export class Game {
         scan(s);
         if (s.run.stage < 1 || s.run.stage > 1000000 || s.run.master < 1 || s.gems < 0 || s.shards < 0 || !Array.isArray(s.transactions) || !Array.isArray(s.equipment))
             throw Error('range');
-        if (s.run.heroes.length !== 24 || s.run.spells.length !== 10 || s.run.cooldowns.length !== 10 || s.run.spellLevels.length !== 10 || s.run.stacks.length !== 10)
+        if (s.run.heroes.length !== HEROES.length || s.run.spells.length !== 10 || s.run.cooldowns.length !== 10 || s.run.spellLevels.length !== 10 || s.run.stacks.length !== 10)
             throw Error('run');
     }
     persist(): boolean {
@@ -546,7 +550,7 @@ export class Game {
         this.s.shards += 10; if (kind === 2) {
         this.s.shards += 10;
         this.s.geodes++;
-        const hero=Math.floor(this.random()*24),before=Math.min(...this.s.weapons);this.s.weapons[hero]++;this.rewardNotice('weapon',hero);if(Math.min(...this.s.weapons)>before)this.rewardNotice('weaponSet',Math.min(...this.s.weapons));
+        const hero=Math.floor(this.random()*HEROES.length),before=Math.min(...this.s.weapons);this.s.weapons[hero]++;this.rewardNotice('weapon',hero);if(Math.min(...this.s.weapons)>before)this.rewardNotice('weaponSet',Math.min(...this.s.weapons));
     } }); }
     summon(id: string): boolean { return this.transaction(id, () => { this.require(this.s.maxStage >= 100000 || this.now() - this.s.created >= 30 * 86400000, 'error.locked'); this.require(this.s.souls >= 10); this.s.souls -= 10; this.s.titans[Math.floor(this.random() * 120)]++;this.s.extra.summonCount++; }); }
     crack(id: string): boolean { return this.transaction(id, () => { this.require(this.s.geodes > 0); this.s.geodes--;this.s.extra.geodesOpened++; this.s.stones[Math.floor(this.random() * 24)]++; }); }
@@ -580,7 +584,7 @@ export class Game {
         r.claimed=true;this.s.dust+=Math.floor(r.damage/100);r.deck.forEach(i=>this.s.fragments[i]++);
         if(r.hp.every(h=>h===0)){
             this.s.portal=Math.max(this.s.portal,Math.min(1000,r.portal+1));
-            if(!this.s.extra.soloCleared.includes(r.portal)){this.s.extra.soloCleared.push(r.portal);const hero=Math.floor(this.random()*24);this.s.scrolls[hero]++;this.rewardNotice('scroll',hero);}
+            if(!this.s.extra.soloCleared.includes(r.portal)){this.s.extra.soloCleared.push(r.portal);const hero=Math.floor(this.random()*HEROES.length);this.s.scrolls[hero]++;this.rewardNotice('scroll',hero);}
         }
     });}
 }
