@@ -37199,8 +37199,8 @@ System.register("chunks:///_virtual/FirebaseConfig.ts", ['cc'], function (export
   };
 });
 
-System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Balance.ts', './Amount.ts', './Expansion.ts', './Config.ts', './EntryPolicy.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _objectWithoutPropertiesLoose, _createClass, cclegacy, gemstoneBonus, routedBonus, ARTIFACT_DISCOVERY_COSTS, ZERO, amount, add, mul, sub, newExpansion, Expansion, CONFIG, HEROES, SPELLS, SKILLS, migrateTutorial, tutorialComplete;
+System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Balance.ts', './BattleFormation.ts', './Amount.ts', './Expansion.ts', './Config.ts', './EntryPolicy.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _objectWithoutPropertiesLoose, _createClass, cclegacy, gemstoneBonus, routedBonus, ARTIFACT_DISCOVERY_COSTS, waveSize, ZERO, amount, mul, add, sub, newExpansion, Expansion, CONFIG, HEROES, SPELLS, SKILLS, migrateTutorial, tutorialComplete;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -37213,10 +37213,12 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
       routedBonus = module.routedBonus;
       ARTIFACT_DISCOVERY_COSTS = module.ARTIFACT_DISCOVERY_COSTS;
     }, function (module) {
+      waveSize = module.waveSize;
+    }, function (module) {
       ZERO = module.ZERO;
       amount = module.amount;
-      add = module.add;
       mul = module.mul;
+      add = module.add;
       sub = module.sub;
     }, function (module) {
       newExpansion = module.newExpansion;
@@ -37250,6 +37252,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           this.heroEvents = [];
           this.heroClocks = Array(24).fill(0);
           this.combatRun = null;
+          this.lastHit = -1;
           this.storage = storage;
           this.now = now;
           this.s = this.fresh();
@@ -37409,7 +37412,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           }
         };
         _proto.validate = function validate(s) {
-          var _s$tutorial;
+          var _s$tutorial,
+            _this = this;
           if (!s || s.version !== 1 || !s.run || !['ko', 'en'].includes(s.locale)) throw Error('schema');
           if (((_s$tutorial = s.tutorial) == null ? void 0 : _s$tutorial.version) !== 1 || !Number.isInteger(s.tutorial.step) || s.tutorial.step < 0 || s.tutorial.step > 7) throw Error('tutorial');
           if (s.tutorial.completed !== undefined && (!Array.isArray(s.tutorial.completed) || s.tutorial.completed.length > 1024 || new Set(s.tutorial.completed).size !== s.tutorial.completed.length || s.tutorial.completed.some(function (k) {
@@ -37483,6 +37487,9 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           })) throw Error('rewardNotices');
           var raid = s.extra.soloRaid;
           if (raid && (!validDeck(raid.deck) || !Number.isInteger(raid.portal) || raid.portal < 1 || raid.portal > 1000 || raid.hp.length !== 8 || raid.armor.length !== 8 || raid.cardDamage.length !== 3 || raid.seconds < 0 || raid.seconds > 30)) throw Error('raid');
+          if (s.run.enemies !== undefined && (!Array.isArray(s.run.enemies) || s.run.enemies.length !== waveSize(s.run.stage, s.run.boss) || s.run.enemies.some(function (h) {
+            return typeof h !== 'number' || !Number.isFinite(h) || h !== ZERO && h > mul(_this.maxHP(s.run.stage, s.run.boss), 1 / waveSize(s.run.stage, s.run.boss)) + 1e-8;
+          }))) throw Error('enemyHealth');
           var scan = function scan(o) {
             for (var _i4 = 0, _Object$values = Object.values(o); _i4 < _Object$values.length; _i4++) {
               var v = _Object$values[_i4];
@@ -37547,17 +37554,17 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           return Math.log10(CONFIG.stageBaseHP) + (stage - 1) * Math.log10(CONFIG.stageGrowth) + (boss ? Math.log10(CONFIG.bossMultiplier) : 0);
         };
         _proto.bonus = function bonus(kind) {
-          var _this = this;
+          var _this2 = this;
           var b = kind !== 3 && this.s.extra.commerce.boostUntil > this.now() ? Math.log10(2) : 0;
           if ((kind === 3 ? this.s.extra.commerce.goldSpreeUntil : this.s.extra.commerce.damageSpreeUntil) > this.now()) b += 1;
           this.s.artifacts.forEach(function (l, i) {
-            if (i % 4 === kind || i % 4 === 0) b += Math.log10(1 + l * 0.22) + (_this.s.enchanted[i] ? 1 : 0);
+            if (i % 4 === kind || i % 4 === 0) b += Math.log10(1 + l * 0.22) + (_this2.s.enchanted[i] ? 1 : 0);
           });
           this.s.pets.forEach(function (l, i) {
-            if (i % 3 === kind % 3) b += Math.log10(1 + l * .025 * (i === _this.s.activePet ? 1 : Math.min(1, l / 100)));
+            if (i % 3 === kind % 3) b += Math.log10(1 + l * .025 * (i === _this2.s.activePet ? 1 : Math.min(1, l / 100)));
           });
           this.s.equipped.forEach(function (id) {
-            var e = _this.s.equipment.find(function (e) {
+            var e = _this2.s.equipment.find(function (e) {
               return e.id === id;
             });
             if (e) b += Math.log10(e.power);
@@ -37576,11 +37583,11 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             return Math.floor(p / 5);
           }))).filter(function (set) {
             return [0, 1, 2, 3, 4].every(function (slot) {
-              return _this.s.setHistory.includes(set * 5 + slot);
+              return _this2.s.setHistory.includes(set * 5 + slot);
             });
           }).length * .2;
           if (this.s.extra.perkSlots.some(function (id, slot) {
-            return (id % 4 === 0 || id % 4 === kind % 4) && _this.s.perkUntil[slot] > _this.now();
+            return (id % 4 === 0 || id % 4 === kind % 4) && _this2.s.perkUntil[slot] > _this2.now();
           })) b += Math.log10(2);
           return b;
         };
@@ -37616,9 +37623,9 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           return damage === ZERO ? ZERO : damage + this.spellBonus(4, 5);
         };
         _proto.dps = function dps() {
-          var _this2 = this;
+          var _this3 = this;
           return add(this.s.run.heroes.reduce(function (sum, _, i) {
-            return add(sum, _this2.heroDPS(i));
+            return add(sum, _this3.heroDPS(i));
           }, ZERO), this.spellDPS());
         };
         _proto.spellDPS = function spellDPS() {
@@ -37653,6 +37660,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
               r.boss = false;
               r.bossFailed = true;
               r.hp = this.maxHP();
+              this.resetEnemies();
               this.notice = 'battle.failed';
               this.revision++;
             }
@@ -37695,7 +37703,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
               event = _objectWithoutPropertiesLoose(_ref, _excluded);
             this.heroEvents.push(event);
             if (event.phase === 'hit') {
-              this.damage(event.damage);
+              this.damage(event.damage, event.hero);
+              event.target = this.lastHit;
               if (this.s.totalKills !== kills) break;
             }
           }
@@ -37708,6 +37717,39 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           this.dailyReset();
           new Expansion(this).sync();
         };
+        _proto.waveKey = function waveKey() {
+          var r = this.s.run;
+          return r.stage + ":" + r.boss + ":" + r.kills;
+        };
+        _proto.enemyHealth = function enemyHealth() {
+          var r = this.s.run,
+            count = waveSize(r.stage, r.boss),
+            key = this.waveKey();
+          if (!r.enemies || r.enemyWave !== key || r.enemies.length !== count) {
+            r.enemies = Array(count).fill(mul(r.hp, 1 / count));
+            r.enemyWave = key;
+          }
+          return r.enemies;
+        };
+        _proto.enemyMaxHP = function enemyMaxHP() {
+          return mul(this.maxHP(), 1 / waveSize(this.s.run.stage, this.s.run.boss));
+        };
+        _proto.targetEnemy = function targetEnemy(preferred) {
+          if (preferred === void 0) {
+            preferred = 0;
+          }
+          var hp = this.enemyHealth();
+          for (var i = 0; i < hp.length; i++) {
+            var id = (Math.max(0, preferred) + i) % hp.length;
+            if (hp[id] !== ZERO) return id;
+          }
+          return -1;
+        };
+        _proto.resetEnemies = function resetEnemies() {
+          delete this.s.run.enemies;
+          delete this.s.run.enemyWave;
+          this.enemyHealth();
+        };
         _proto.tap = function tap() {
           this.s.totalTaps++;
           this.s.dayTaps++;
@@ -37716,13 +37758,26 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           this.damage(damage);
           return damage;
         };
-        _proto.damage = function damage(value) {
+        _proto.damage = function damage(value, preferred) {
+          if (preferred === void 0) {
+            preferred = 0;
+          }
+          this.lastHit = -1;
           if (value === ZERO) return;
           var r = this.s.run;
-          if (value < r.hp - 1e-10) {
-            r.hp = sub(r.hp, value);
-            return;
-          }
+          var hp = this.enemyHealth(),
+            target = this.targetEnemy(preferred);
+          if (target < 0) return;
+          this.lastHit = target;
+          // A rifle hit only damages its chosen enemy. Excess damage never kills an untouched unit.
+          hp[target] = sub(hp[target], value);
+          r.hp = hp.reduce(function (sum, h) {
+            return add(sum, h);
+          }, ZERO);
+          this.revision++;
+          if (hp.some(function (h) {
+            return h !== ZERO;
+          })) return;
           this.heroClocks.fill(0); // A new enemy starts a fresh attack cycle.
           r.gold = add(r.gold, this.goldReward());
           this.s.totalKills++;
@@ -37744,6 +37799,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             }
           }
           r.hp = this.maxHP();
+          this.resetEnemies();
           this.revision++;
         };
         _proto.unlock = function unlock() {
@@ -37781,6 +37837,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             r.bossLeft = 30;
           }
           r.hp = this.maxHP();
+          this.resetEnemies();
           this.revision++;
         };
         _proto.upgradeCost = function upgradeCost(hero, count) {
@@ -37892,18 +37949,18 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           return this.s.run.stage < 60 ? ZERO : amount(Math.max(1, Math.floor(Math.pow(this.s.run.stage / 60, 2.1))));
         };
         _proto.prestige = function prestige(id) {
-          var _this3 = this;
+          var _this4 = this;
           return this.transaction(id, function () {
-            _this3.require(_this3.s.run.stage >= 60, 'error.locked');
-            _this3.s.relics = add(_this3.s.relics, _this3.prestigeReward());
-            _this3.s.prestiges++;
-            _this3.s.dayPrestiges++;
-            _this3.s.extra.towerKeys += 3;
-            _this3.s.extra.ascensions.fill(0);
-            _this3.s.extra.heroSkills.fill(0);
-            if (_this3.s.maxStage >= 100000) _this3.s.souls += 100;
-            if (_this3.s.maxStage >= 180000) _this3.s.mementos = add(_this3.s.mementos, amount(10));
-            _this3.s.run = _this3.newRun(Math.max(1, Math.floor(_this3.s.maxStage * .05)));
+            _this4.require(_this4.s.run.stage >= 60, 'error.locked');
+            _this4.s.relics = add(_this4.s.relics, _this4.prestigeReward());
+            _this4.s.prestiges++;
+            _this4.s.dayPrestiges++;
+            _this4.s.extra.towerKeys += 3;
+            _this4.s.extra.ascensions.fill(0);
+            _this4.s.extra.heroSkills.fill(0);
+            if (_this4.s.maxStage >= 100000) _this4.s.souls += 100;
+            if (_this4.s.maxStage >= 180000) _this4.s.mementos = add(_this4.s.mementos, amount(10));
+            _this4.s.run = _this4.newRun(Math.max(1, Math.floor(_this4.s.maxStage * .05)));
           });
         };
         _proto.discoverCost = function discoverCost() {
@@ -37911,78 +37968,78 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           return amount(ARTIFACT_DISCOVERY_COSTS[Math.min(discovered, ARTIFACT_DISCOVERY_COSTS.length - 1)]);
         };
         _proto.discover = function discover(id) {
-          var _this4 = this;
+          var _this5 = this;
           return this.transaction(id, function () {
-            var c = _this4.discoverCost(),
-              options = _this4.s.artifacts.map(function (l, i) {
-                return l === 0 && !_this4.s.salvaged.includes(i) ? i : -1;
+            var c = _this5.discoverCost(),
+              options = _this5.s.artifacts.map(function (l, i) {
+                return l === 0 && !_this5.s.salvaged.includes(i) ? i : -1;
               }).filter(function (i) {
                 return i >= 0;
               });
-            _this4.require(options.length > 0, 'error.complete');
-            _this4.require(_this4.s.relics >= c);
-            _this4.s.relics = sub(_this4.s.relics, c);
-            _this4.s.artifacts[options[Math.floor(_this4.random() * options.length)]] = 1;
+            _this5.require(options.length > 0, 'error.complete');
+            _this5.require(_this5.s.relics >= c);
+            _this5.s.relics = sub(_this5.s.relics, c);
+            _this5.s.artifacts[options[Math.floor(_this5.random() * options.length)]] = 1;
           });
         };
         _proto.artifactCost = function artifactCost(i) {
           return amount(Math.pow(this.s.artifacts[i] + 1, 1.4));
         };
         _proto.upgradeArtifact = function upgradeArtifact(i, id) {
-          var _this5 = this;
+          var _this6 = this;
           return this.transaction(id, function () {
-            _this5.require(_this5.s.artifacts[i] > 0, 'error.locked');
-            var c = _this5.artifactCost(i);
-            _this5.require(_this5.s.relics >= c);
-            _this5.s.relics = sub(_this5.s.relics, c);
-            _this5.s.artifacts[i]++;
-            _this5.s.artifactInvested[i] = add(_this5.s.artifactInvested[i], c);
+            _this6.require(_this6.s.artifacts[i] > 0, 'error.locked');
+            var c = _this6.artifactCost(i);
+            _this6.require(_this6.s.relics >= c);
+            _this6.s.relics = sub(_this6.s.relics, c);
+            _this6.s.artifacts[i]++;
+            _this6.s.artifactInvested[i] = add(_this6.s.artifactInvested[i], c);
           });
         };
         _proto.salvageArtifact = function salvageArtifact(i, id) {
-          var _this6 = this;
+          var _this7 = this;
           return this.transaction(id, function () {
-            _this6.require(_this6.s.artifacts[i] > 0 && !_this6.s.enchanted[i], 'error.protected');
-            _this6.require(_this6.s.gems >= 20);
-            _this6.s.gems -= 20;
-            _this6.s.relics = add(_this6.s.relics, mul(_this6.s.artifactInvested[i], .8));
-            _this6.s.artifactInvested[i] = ZERO;
-            _this6.s.artifacts[i] = 0;
-            _this6.s.salvaged.push(i);
+            _this7.require(_this7.s.artifacts[i] > 0 && !_this7.s.enchanted[i], 'error.protected');
+            _this7.require(_this7.s.gems >= 20);
+            _this7.s.gems -= 20;
+            _this7.s.relics = add(_this7.s.relics, mul(_this7.s.artifactInvested[i], .8));
+            _this7.s.artifactInvested[i] = ZERO;
+            _this7.s.artifacts[i] = 0;
+            _this7.s.salvaged.push(i);
           });
         };
         _proto.rebuyArtifact = function rebuyArtifact(i, id) {
-          var _this7 = this;
+          var _this8 = this;
           return this.transaction(id, function () {
-            _this7.require(_this7.s.salvaged.includes(i), 'error.invalid');
-            _this7.require(_this7.s.gems >= 25);
-            _this7.s.gems -= 25;
-            _this7.s.salvaged = _this7.s.salvaged.filter(function (x) {
+            _this8.require(_this8.s.salvaged.includes(i), 'error.invalid');
+            _this8.require(_this8.s.gems >= 25);
+            _this8.s.gems -= 25;
+            _this8.s.salvaged = _this8.s.salvaged.filter(function (x) {
               return x !== i;
             });
-            _this7.s.artifacts[i] = 1;
+            _this8.s.artifacts[i] = 1;
           });
         };
         _proto.enchantArtifact = function enchantArtifact(i, id) {
-          var _this8 = this;
+          var _this9 = this;
           return this.transaction(id, function () {
-            _this8.require(_this8.s.artifacts.every(function (l) {
+            _this9.require(_this9.s.artifacts.every(function (l) {
               return l > 0;
             }), 'error.locked');
-            _this8.require(!_this8.s.enchanted[i], 'error.claimed');
-            _this8.require(_this8.s.relics >= amount(1000));
-            _this8.s.relics = sub(_this8.s.relics, amount(1000));
-            _this8.s.enchanted[i] = 1;
+            _this9.require(!_this9.s.enchanted[i], 'error.claimed');
+            _this9.require(_this9.s.relics >= amount(1000));
+            _this9.s.relics = sub(_this9.s.relics, amount(1000));
+            _this9.s.enchanted[i] = 1;
           });
         };
         _proto.transmog = function transmog(slot, item, id) {
-          var _this9 = this;
+          var _this10 = this;
           return this.transaction(id, function () {
-            var e = _this9.s.equipment.find(function (e) {
+            var e = _this10.s.equipment.find(function (e) {
               return e.id === item;
             });
-            _this9.require(!!e && e.slot === slot, 'error.invalid');
-            _this9.s.appearance[slot] = item;
+            _this10.require(!!e && e.slot === slot, 'error.invalid');
+            _this10.s.appearance[slot] = item;
           });
         };
         _proto.achievementProgress = function achievementProgress(i) {
@@ -37992,30 +38049,30 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           return [100, 100, 50, 1][i] * Math.pow(2, this.s.achievements[i]);
         };
         _proto.claimAchievement = function claimAchievement(i, id) {
-          var _this10 = this;
+          var _this11 = this;
           return this.transaction(id, function () {
-            _this10.require(_this10.achievementProgress(i) >= _this10.achievementGoal(i), 'error.locked');
-            _this10.s.achievements[i]++;
-            _this10.s.gems += 10;
+            _this11.require(_this11.achievementProgress(i) >= _this11.achievementGoal(i), 'error.locked');
+            _this11.s.achievements[i]++;
+            _this11.s.gems += 10;
           });
         };
         _proto.applySkills = function applySkills(draft, id) {
-          var _this11 = this;
+          var _this12 = this;
           return this.transaction(id, function () {
-            _this11.require(draft.length === 18, 'error.invalid');
-            var available = _this11.s.sp + _this11.s.skills.reduce(function (a, l) {
+            _this12.require(draft.length === 18, 'error.invalid');
+            var available = _this12.s.sp + _this12.s.skills.reduce(function (a, l) {
               return a + l * (l + 1) / 2;
             }, 0);
             var cost = 0;
             draft.forEach(function (l, i) {
               var c = SKILLS[i];
-              _this11.require(Number.isInteger(l) && l >= 0 && l <= c.max, 'error.invalid');
-              if (l > 0 && c.prerequisite >= 0) _this11.require(draft[c.prerequisite] >= 3, 'error.prerequisite');
+              _this12.require(Number.isInteger(l) && l >= 0 && l <= c.max, 'error.invalid');
+              if (l > 0 && c.prerequisite >= 0) _this12.require(draft[c.prerequisite] >= 3, 'error.prerequisite');
               cost += l * (l + 1) / 2;
             });
-            _this11.require(cost <= available);
-            _this11.s.sp = available - cost;
-            _this11.s.skills = [].concat(draft);
+            _this12.require(cost <= available);
+            _this12.s.sp = available - cost;
+            _this12.s.skills = [].concat(draft);
           });
         };
         _proto.drop = function drop(slot, rarity, set) {
@@ -38068,7 +38125,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           return 5 + slot;
         };
         _proto.craft = function craft(id, set, slot) {
-          var _this12 = this;
+          var _this13 = this;
           if (set === void 0) {
             set = Math.floor(this.nextCraft() / 5);
           }
@@ -38076,18 +38133,18 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             slot = this.nextCraft() % 5;
           }
           return this.transaction(id, function () {
-            _this12.require(Number.isInteger(set) && set >= 0 && set < 200 && Number.isInteger(slot) && slot >= 0 && slot < 5, 'error.invalid');
-            _this12.require(!_this12.s.setHistory.includes(set * 5 + slot), 'error.claimed');
-            _this12.require(_this12.s.equipment.length < CONFIG.inventoryCap, 'error.full');
-            var cost = _this12.craftCost(set, slot);
-            _this12.require(_this12.s.shards >= cost);
-            _this12.s.shards -= cost;
-            _this12.drop(slot, 2, set);
-            _this12.s.setHistory.push(set * 5 + slot);
-            _this12.s.crafted += cost;
+            _this13.require(Number.isInteger(set) && set >= 0 && set < 200 && Number.isInteger(slot) && slot >= 0 && slot < 5, 'error.invalid');
+            _this13.require(!_this13.s.setHistory.includes(set * 5 + slot), 'error.claimed');
+            _this13.require(_this13.s.equipment.length < CONFIG.inventoryCap, 'error.full');
+            var cost = _this13.craftCost(set, slot);
+            _this13.require(_this13.s.shards >= cost);
+            _this13.s.shards -= cost;
+            _this13.drop(slot, 2, set);
+            _this13.s.setHistory.push(set * 5 + slot);
+            _this13.s.crafted += cost;
             if ([0, 1, 2, 3, 4].every(function (part) {
-              return _this12.s.setHistory.includes(set * 5 + part);
-            })) _this12.rewardNotice('equipmentSet', set + 1);
+              return _this13.s.setHistory.includes(set * 5 + part);
+            })) _this13.rewardNotice('equipmentSet', set + 1);
           });
         };
         _proto.equip = function equip(id) {
@@ -38111,42 +38168,42 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           }
         };
         _proto.sell = function sell(items, id) {
-          var _this13 = this;
+          var _this14 = this;
           return this.transaction(id, function () {
-            _this13.require(items.length > 0, 'error.invalid');
-            var targets = _this13.s.equipment.filter(function (e) {
+            _this14.require(items.length > 0, 'error.invalid');
+            var targets = _this14.s.equipment.filter(function (e) {
               return items.includes(e.id);
             });
-            _this13.require(targets.length === new Set(items).size && targets.every(function (e) {
-              return !e.locked && !_this13.s.equipped.includes(e.id);
+            _this14.require(targets.length === new Set(items).size && targets.every(function (e) {
+              return !e.locked && !_this14.s.equipped.includes(e.id);
             }), 'error.protected');
-            _this13.s.gems += targets.reduce(function (a, e) {
+            _this14.s.gems += targets.reduce(function (a, e) {
               return a + e.rarity + 1;
             }, 0);
-            _this13.s.equipment = _this13.s.equipment.filter(function (e) {
+            _this14.s.equipment = _this14.s.equipment.filter(function (e) {
               return !items.includes(e.id);
             });
-            _this13.s.extra.unseenEquipment = _this13.s.extra.unseenEquipment.filter(function (id) {
+            _this14.s.extra.unseenEquipment = _this14.s.extra.unseenEquipment.filter(function (id) {
               return !items.includes(id);
             });
           });
         };
         _proto.hatch = function hatch(id) {
-          var _this14 = this;
+          var _this15 = this;
           return this.transaction(id, function () {
-            _this14.require(_this14.s.maxStage >= 8, 'error.locked');
-            _this14.require(_this14.now() >= _this14.s.eggAt, 'error.timer');
-            _this14.s.pets[Math.floor(_this14.random() * 12)]++;
-            _this14.s.extra.dailyEggs++;
-            _this14.s.eggAt = _this14.now() + CONFIG.eggSeconds * 1000;
+            _this15.require(_this15.s.maxStage >= 8, 'error.locked');
+            _this15.require(_this15.now() >= _this15.s.eggAt, 'error.timer');
+            _this15.s.pets[Math.floor(_this15.random() * 12)]++;
+            _this15.s.extra.dailyEggs++;
+            _this15.s.eggAt = _this15.now() + CONFIG.eggSeconds * 1000;
           });
         };
         _proto.usePerk = function usePerk(i, id) {
-          var _this15 = this;
+          var _this16 = this;
           return this.transaction(id, function () {
-            _this15.require(_this15.s.perks[i] > 0);
-            _this15.s.perks[i]--;
-            _this15.s.perkUntil[i] = _this15.now() + 300000;
+            _this16.require(_this16.s.perks[i] > 0);
+            _this16.s.perks[i]--;
+            _this16.s.perkUntil[i] = _this16.now() + 300000;
           });
         };
         _proto.dailyReset = function dailyReset() {
@@ -38168,143 +38225,143 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           return [1, 100, 50, 1][i];
         };
         _proto.claimFairy = function claimFairy(id) {
-          var _this16 = this;
+          var _this17 = this;
           return this.transaction(id, function () {
-            _this16.require(_this16.now() >= _this16.s.fairyAt, 'error.timer');
-            _this16.s.run.gold = add(_this16.s.run.gold, mul(_this16.goldReward(), 20));
-            _this16.s.extra.dailyFairies++;
-            _this16.s.fairyAt = _this16.now() + 60000;
+            _this17.require(_this17.now() >= _this17.s.fairyAt, 'error.timer');
+            _this17.s.run.gold = add(_this17.s.run.gold, mul(_this17.goldReward(), 20));
+            _this17.s.extra.dailyFairies++;
+            _this17.s.fairyAt = _this17.now() + 60000;
           });
         };
         _proto.claimDaily = function claimDaily(i) {
-          var _this17 = this;
+          var _this18 = this;
           return this.transaction("daily." + this.s.day + "." + i, function () {
             var key = "daily." + i;
-            _this17.require(!_this17.s.claims.includes(key), 'error.claimed');
-            _this17.require(_this17.dailyProgress(i) >= _this17.dailyGoal(i), 'error.locked');
-            _this17.s.claims.push(key);
-            _this17.s.gems += [25, 10, 15, 25][i];
-            if (i === 2) _this17.s.geodes++;
-            if (i === 3) _this17.s.shards += 5;
+            _this18.require(!_this18.s.claims.includes(key), 'error.claimed');
+            _this18.require(_this18.dailyProgress(i) >= _this18.dailyGoal(i), 'error.locked');
+            _this18.s.claims.push(key);
+            _this18.s.gems += [25, 10, 15, 25][i];
+            if (i === 2) _this18.s.geodes++;
+            if (i === 3) _this18.s.shards += 5;
           });
         };
         _proto.claimMilestone = function claimMilestone(stage) {
-          var _this18 = this;
+          var _this19 = this;
           return this.transaction("milestone." + stage, function () {
             var key = "milestone." + stage;
-            _this18.require([8, 15, 60, 100, 500, 1000, 100000, 180000].includes(stage), 'error.invalid');
-            _this18.require(!_this18.s.claims.includes(key), 'error.claimed');
-            _this18.require(_this18.s.maxStage >= stage, 'error.locked');
-            _this18.s.claims.push(key);
-            _this18.s.gems += 25;
-            _this18.s.shards += 5;
+            _this19.require([8, 15, 60, 100, 500, 1000, 100000, 180000].includes(stage), 'error.invalid');
+            _this19.require(!_this19.s.claims.includes(key), 'error.claimed');
+            _this19.require(_this19.s.maxStage >= stage, 'error.locked');
+            _this19.s.claims.push(key);
+            _this19.s.gems += 25;
+            _this19.s.shards += 5;
           });
         };
         _proto.collectOffline = function collectOffline(id) {
-          var _this19 = this;
+          var _this20 = this;
           return this.transaction(id, function () {
-            _this19.require(_this19.s.offline > ZERO, 'error.claimed');
-            _this19.s.run.gold = add(_this19.s.run.gold, _this19.s.offline);
-            _this19.s.offline = ZERO;
+            _this20.require(_this20.s.offline > ZERO, 'error.claimed');
+            _this20.s.run.gold = add(_this20.s.run.gold, _this20.s.offline);
+            _this20.s.offline = ZERO;
           });
         };
         _proto.buyDeal = function buyDeal(kind, id) {
-          var _this20 = this;
+          var _this21 = this;
           return this.transaction(id, function () {
             var costs = [30, 60, 100],
               c = costs[kind];
-            _this20.require(c !== undefined, 'error.invalid');
-            _this20.require(_this20.s.gems >= c);
-            _this20.s.gems -= c;
-            if (kind === 0) _this20.s.pets[Math.floor(_this20.random() * 12)] += 3;
-            if (kind === 1) _this20.s.shards += 10;
+            _this21.require(c !== undefined, 'error.invalid');
+            _this21.require(_this21.s.gems >= c);
+            _this21.s.gems -= c;
+            if (kind === 0) _this21.s.pets[Math.floor(_this21.random() * 12)] += 3;
+            if (kind === 1) _this21.s.shards += 10;
             if (kind === 2) {
-              _this20.s.shards += 10;
-              _this20.s.geodes++;
-              var hero = Math.floor(_this20.random() * 24),
-                before = Math.min.apply(Math, _this20.s.weapons);
-              _this20.s.weapons[hero]++;
-              _this20.rewardNotice('weapon', hero);
-              if (Math.min.apply(Math, _this20.s.weapons) > before) _this20.rewardNotice('weaponSet', Math.min.apply(Math, _this20.s.weapons));
+              _this21.s.shards += 10;
+              _this21.s.geodes++;
+              var hero = Math.floor(_this21.random() * 24),
+                before = Math.min.apply(Math, _this21.s.weapons);
+              _this21.s.weapons[hero]++;
+              _this21.rewardNotice('weapon', hero);
+              if (Math.min.apply(Math, _this21.s.weapons) > before) _this21.rewardNotice('weaponSet', Math.min.apply(Math, _this21.s.weapons));
             }
           });
         };
         _proto.summon = function summon(id) {
-          var _this21 = this;
+          var _this22 = this;
           return this.transaction(id, function () {
-            _this21.require(_this21.s.maxStage >= 100000 || _this21.now() - _this21.s.created >= 30 * 86400000, 'error.locked');
-            _this21.require(_this21.s.souls >= 10);
-            _this21.s.souls -= 10;
-            _this21.s.titans[Math.floor(_this21.random() * 120)]++;
-            _this21.s.extra.summonCount++;
+            _this22.require(_this22.s.maxStage >= 100000 || _this22.now() - _this22.s.created >= 30 * 86400000, 'error.locked');
+            _this22.require(_this22.s.souls >= 10);
+            _this22.s.souls -= 10;
+            _this22.s.titans[Math.floor(_this22.random() * 120)]++;
+            _this22.s.extra.summonCount++;
           });
         };
         _proto.crack = function crack(id) {
-          var _this22 = this;
+          var _this23 = this;
           return this.transaction(id, function () {
-            _this22.require(_this22.s.geodes > 0);
-            _this22.s.geodes--;
-            _this22.s.extra.geodesOpened++;
-            _this22.s.stones[Math.floor(_this22.random() * 24)]++;
+            _this23.require(_this23.s.geodes > 0);
+            _this23.s.geodes--;
+            _this23.s.extra.geodesOpened++;
+            _this23.s.stones[Math.floor(_this23.random() * 24)]++;
           });
         };
         _proto.upgradeResearch = function upgradeResearch(i, id) {
-          var _this23 = this;
+          var _this24 = this;
           return this.transaction(id, function () {
-            _this23.require(Number.isInteger(i) && i >= 0 && i < _this23.s.research.length, 'error.invalid');
-            var points = Math.floor(_this23.s.extra.summonCount / 5);
-            var spent = _this23.s.research.reduce(function (a, b) {
+            _this24.require(Number.isInteger(i) && i >= 0 && i < _this24.s.research.length, 'error.invalid');
+            var points = Math.floor(_this24.s.extra.summonCount / 5);
+            var spent = _this24.s.research.reduce(function (a, b) {
               return a + b;
             }, 0);
-            _this23.require(points > spent);
-            if (i % 3) _this23.require(_this23.s.research[i - 1] >= 3, 'error.prerequisite');
-            _this23.s.research[i]++;
+            _this24.require(points > spent);
+            if (i % 3) _this24.require(_this24.s.research[i - 1] >= 3, 'error.prerequisite');
+            _this24.s.research[i]++;
           });
         };
         _proto.monument = function monument(i, id) {
-          var _this24 = this;
+          var _this25 = this;
           return this.transaction(id, function () {
-            _this24.require(Number.isInteger(i) && i >= 0 && i < _this24.s.monuments.length, 'error.invalid');
-            _this24.require(_this24.s.maxStage >= 180000, 'error.locked');
-            var cost = amount(Math.pow(2, i) * (_this24.s.monuments[i] + 1));
-            _this24.require(_this24.s.mementos >= cost);
-            _this24.s.mementos = sub(_this24.s.mementos, cost);
-            _this24.s.monuments[i]++;
-            _this24.s.extra.monumentInvested[i] = add(_this24.s.extra.monumentInvested[i], cost);
+            _this25.require(Number.isInteger(i) && i >= 0 && i < _this25.s.monuments.length, 'error.invalid');
+            _this25.require(_this25.s.maxStage >= 180000, 'error.locked');
+            var cost = amount(Math.pow(2, i) * (_this25.s.monuments[i] + 1));
+            _this25.require(_this25.s.mementos >= cost);
+            _this25.s.mementos = sub(_this25.s.mementos, cost);
+            _this25.s.monuments[i]++;
+            _this25.s.extra.monumentInvested[i] = add(_this25.s.extra.monumentInvested[i], cost);
           });
         };
         _proto.claimEvent = function claimEvent(i) {
-          var _this25 = this;
+          var _this26 = this;
           return this.transaction("event.path." + this.s.extra.eventSeason + "." + i, function () {
-            _this25.require(Number.isInteger(i) && i >= 0 && i < 10, 'error.invalid');
+            _this26.require(Number.isInteger(i) && i >= 0 && i < 10, 'error.invalid');
             var key = "event." + i;
-            _this25.require(!_this25.s.claims.includes(key), 'error.claimed');
-            _this25.require(Math.max(_this25.s.extra.eventEarned, _this25.s.eventTokens) >= (i + 1) * 100, 'error.locked');
-            _this25.s.claims.push(key);
-            _this25.s.shards += 5;
-            _this25.s.gems += 15;
+            _this26.require(!_this26.s.claims.includes(key), 'error.claimed');
+            _this26.require(Math.max(_this26.s.extra.eventEarned, _this26.s.eventTokens) >= (i + 1) * 100, 'error.locked');
+            _this26.s.claims.push(key);
+            _this26.s.shards += 5;
+            _this26.s.gems += 15;
           });
         };
         _proto.revealTile = function revealTile(i, id) {
-          var _this26 = this;
+          var _this27 = this;
           return this.transaction(id, function () {
-            _this26.require(Number.isInteger(i) && i >= 0 && i < _this26.s.board.length, 'error.invalid');
-            _this26.require(!_this26.s.board[i], 'error.claimed');
-            _this26.require(_this26.s.eventTokens >= 20);
-            _this26.s.eventTokens -= 20;
-            _this26.s.board[i] = Math.floor(_this26.random() * 3) + 1;
-            _this26.s.gems += _this26.s.board[i] * 5;
+            _this27.require(Number.isInteger(i) && i >= 0 && i < _this27.s.board.length, 'error.invalid');
+            _this27.require(!_this27.s.board[i], 'error.claimed');
+            _this27.require(_this27.s.eventTokens >= 20);
+            _this27.s.eventTokens -= 20;
+            _this27.s.board[i] = Math.floor(_this27.random() * 3) + 1;
+            _this27.s.gems += _this27.s.board[i] * 5;
           });
         };
         _proto.upgradeCard = function upgradeCard(i, id) {
-          var _this27 = this;
+          var _this28 = this;
           return this.transaction(id, function () {
-            _this27.require(!_this27.raid || _this27.raid.claimed, 'error.protected');
-            var c = _this27.s.cards[i] * 10;
-            _this27.require(_this27.s.dust >= c && _this27.s.fragments[i] >= _this27.s.cards[i]);
-            _this27.s.dust -= c;
-            _this27.s.fragments[i] -= _this27.s.cards[i];
-            _this27.s.cards[i]++;
+            _this28.require(!_this28.raid || _this28.raid.claimed, 'error.protected');
+            var c = _this28.s.cards[i] * 10;
+            _this28.require(_this28.s.dust >= c && _this28.s.fragments[i] >= _this28.s.cards[i]);
+            _this28.s.dust -= c;
+            _this28.s.fragments[i] -= _this28.s.cards[i];
+            _this28.s.cards[i]++;
           });
         };
         _proto.setDeck = function setDeck(i) {
@@ -38317,7 +38374,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           }
         };
         _proto.startRaid = function startRaid(portal) {
-          var _this28 = this;
+          var _this29 = this;
           if (portal === void 0) {
             portal = this.s.portal;
           }
@@ -38330,12 +38387,12 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             return false;
           }
           return this.transaction("solo-start-" + this.now() + "-" + this.revision, function () {
-            _this28.require(Number.isInteger(portal) && portal >= 1 && portal <= Math.min(1000, _this28.s.portal), 'error.locked');
+            _this29.require(Number.isInteger(portal) && portal >= 1 && portal <= Math.min(1000, _this29.s.portal), 'error.locked');
             var hp = 1000 * Math.pow(1.2, portal - 1);
-            _this28.raid = {
-              expiresAt: _this28.now() + 30000,
+            _this29.raid = {
+              expiresAt: _this29.now() + 30000,
               portal: portal,
-              deck: _this28.s.deck.slice(),
+              deck: _this29.s.deck.slice(),
               seconds: 30,
               hp: Array(8).fill(hp),
               armor: Array(8).fill(portal > 2 ? hp * .5 : 0),
@@ -38348,7 +38405,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           });
         };
         _proto.raidTap = function raidTap(part) {
-          var _this29 = this;
+          var _this30 = this;
           var r = this.raid;
           if (r && this.now() >= r.expiresAt) {
             r.seconds = 0;
@@ -38358,7 +38415,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           var damage = 12;
           r.hits++;
           r.deck.forEach(function (card, i) {
-            var level = new Expansion(_this29).boostedLevel(card, true);
+            var level = new Expansion(_this30).boostedLevel(card, true);
             var proc = card % 3 === 0 ? r.hits % 4 === 0 ? 30 * level : 0 : card % 3 === 1 ? level * Math.min(20, r.hits) : 5 * level;
             damage += proc;
             r.cardDamage[i] += proc;
@@ -38374,25 +38431,25 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           })) r.ended = true;
         };
         _proto.claimRaid = function claimRaid(id) {
-          var _this30 = this;
+          var _this31 = this;
           return this.transaction(id, function () {
-            var r = _this30.raid;
-            _this30.require(!!r && r.ended && !r.claimed, 'error.claimed');
+            var r = _this31.raid;
+            _this31.require(!!r && r.ended && !r.claimed, 'error.claimed');
             if (!r) return;
             r.claimed = true;
-            _this30.s.dust += Math.floor(r.damage / 100);
+            _this31.s.dust += Math.floor(r.damage / 100);
             r.deck.forEach(function (i) {
-              return _this30.s.fragments[i]++;
+              return _this31.s.fragments[i]++;
             });
             if (r.hp.every(function (h) {
               return h === 0;
             })) {
-              _this30.s.portal = Math.max(_this30.s.portal, Math.min(1000, r.portal + 1));
-              if (!_this30.s.extra.soloCleared.includes(r.portal)) {
-                _this30.s.extra.soloCleared.push(r.portal);
-                var hero = Math.floor(_this30.random() * 24);
-                _this30.s.scrolls[hero]++;
-                _this30.rewardNotice('scroll', hero);
+              _this31.s.portal = Math.max(_this31.s.portal, Math.min(1000, r.portal + 1));
+              if (!_this31.s.extra.soloCleared.includes(r.portal)) {
+                _this31.s.extra.soloCleared.push(r.portal);
+                var hero = Math.floor(_this31.random() * 24);
+                _this31.s.scrolls[hero]++;
+                _this31.rewardNotice('scroll', hero);
               }
             }
           });
@@ -38414,7 +38471,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
 });
 
 System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _extends, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, SOLDIER_SIZE, waveSize, survivingEnemies, enemyPosition, allyPosition, CheatUI, FeedbackUI, Game, display, ratio, fmt, HEROES, SPELLS, PETS, ARTIFACTS, CARDS, SKILLS, t, ExpansionUI, Monetization, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, UI, UITheme;
+  var _inheritsLoose, _extends, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, SOLDIER_SIZE, waveSize, enemyPosition, allyPosition, CheatUI, FeedbackUI, Game, display, ZERO, ratio, fmt, HEROES, SPELLS, PETS, ARTIFACTS, CARDS, SKILLS, t, ExpansionUI, Monetization, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, UI, UITheme;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
@@ -38458,7 +38515,6 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
     }, function (module) {
       SOLDIER_SIZE = module.SOLDIER_SIZE;
       waveSize = module.waveSize;
-      survivingEnemies = module.survivingEnemies;
       enemyPosition = module.enemyPosition;
       allyPosition = module.allyPosition;
     }, function (module) {
@@ -38469,6 +38525,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       Game = module.Game;
     }, function (module) {
       display = module.display;
+      ZERO = module.ZERO;
       ratio = module.ratio;
       fmt = module.fmt;
     }, function (module) {
@@ -39306,32 +39363,38 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         };
         _proto.populateEnemies = function populateEnemies() {
           var count = waveSize(this.game.s.run.stage, this.game.s.run.boss);
-          // A wave shares the existing combat HP/reward budget; no extra currency is minted by the visuals.
+          // Each stable slot has independent saved health; the HUD displays their sum.
           for (var i = count - 1; i >= 0; i--) {
             var pos = enemyPosition(i, count),
               unit = this.nodeAt(this.enemy, 'hostile-' + i, pos.x, pos.y, 40, 40);
             this.sentinel(unit);
+            var bar = this.nodeAt(unit, 'health', 0, 51, 32, 4);
+            this.rect(bar, 0, 0, 32, 4, '#111820');
+            this.rect(bar, 0, 0, 30, 2, '#ffdb48').name = 'fill';
           }
         };
         _proto.syncWave = function syncWave() {
           var _this8 = this;
           if (this.enemyTransition) return;
-          var count = waveSize(this.game.s.run.stage, this.game.s.run.boss),
-            alive = survivingEnemies(count, ratio(this.game.s.run.hp, this.game.maxHP()));
+          var hp = this.game.enemyHealth();
           this.enemy.children.forEach(function (unit) {
-            var index = Number(unit.name.split('-')[1]);
-            if (index < alive || !unit.active) return;
-            if (_this8.game.s.extra.effects) {
-              _this8.bulletImpact(unit.position.x, unit.position.y + 20);
+            var index = Number(unit.name.split('-')[1]),
+              alive = hp[index] !== ZERO;
+            if (!alive && unit.active && _this8.game.s.extra.effects) _this8.bulletImpact(unit.position.x, unit.position.y + 20);
+            unit.active = alive;
+            var bar = unit.getChildByName('health');
+            if (bar) {
+              var _bar$getChildByName;
+              bar.active = alive;
+              (_bar$getChildByName = bar.getChildByName('fill')) == null || _bar$getChildByName.setScale(Math.max(.001, ratio(hp[index], _this8.game.enemyMaxHP())), 1, 1);
             }
-            unit.active = false;
           });
         };
-        _proto.shotTarget = function shotTarget() {
-          var units = this.enemy.children.filter(function (n) {
-            return n.active;
-          });
-          var unit = units[Math.floor(Math.random() * units.length)];
+        _proto.shotTarget = function shotTarget(id) {
+          if (id === void 0) {
+            id = this.game.targetEnemy();
+          }
+          var unit = this.enemy.getChildByName('hostile-' + id);
           return unit ? new Vec3(unit.position.x, unit.position.y + 24, 0) : new Vec3(138, 48, 0);
         };
         _proto.spawnEnemy = function spawnEnemy() {
@@ -39378,26 +39441,21 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           });
         };
         _proto.gunshot = function gunshot(x, y) {
-          var _this10 = this;
           if (!this.game.s.extra.effects || !isValid(this.particles, true)) return;
-          var target = this.shotTarget(),
-            muzzle = this.nodeAt(this.particles, 'muzzle-flash', x + 24, y, 18, 14);
+          var muzzle = this.nodeAt(this.particles, 'muzzle-flash', x + 24, y, 18, 14);
           this.ui.polygon(muzzle, [[-8, 0], [-2, 3], [2, 7], [4, 2], [12, 0], [3, -2], [1, -6], [-2, -2]], '#ffe04c');
           tween(muzzle).to(.07, {
             scale: new Vec3(.1, .1, 1)
           }).call(function () {
             if (isValid(muzzle, true)) muzzle.destroy();
           }).start();
-          this.scheduleOnce(function () {
-            if (isValid(_this10.particles, true)) _this10.bulletImpact(target.x, target.y);
-          }, .06);
         };
         _proto.bulletImpact = function bulletImpact(x, y) {
-          var _this11 = this;
+          var _this10 = this;
           if (!this.game.s.extra.effects || !isValid(this.particles, true) || this.particles.children.length > 180) return;
           var _loop = function _loop() {
-            var p = _this11.nodeAt(_this11.particles, 'bullet-impact', x, y, 3, 3);
-            _this11.rect(p, 0, 0, 3, 3, i === 0 ? '#ffffff' : '#ffd83d');
+            var p = _this10.nodeAt(_this10.particles, 'bullet-impact', x, y, 3, 3);
+            _this10.rect(p, 0, 0, 3, 3, i === 0 ? '#ffffff' : '#ffd83d');
             var angle = i * 2.1;
             tween(p).to(.14, {
               position: new Vec3(x + Math.cos(angle) * 10, y + Math.sin(angle) * 10, 0),
@@ -39411,11 +39469,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
         };
         _proto.fireBurst = function fireBurst(x, y) {
-          var _this12 = this;
+          var _this11 = this;
           var layer = this.particles;
           [0, .065, .13].forEach(function (delay) {
-            return _this12.scheduleOnce(function () {
-              if (_this12.particles === layer && isValid(layer, true) && !_this12.enemyTransition) _this12.gunshot(x, y);
+            return _this11.scheduleOnce(function () {
+              if (_this11.particles === layer && isValid(layer, true) && !_this11.enemyTransition) _this11.gunshot(x, y);
             }, delay);
           });
         };
@@ -39527,7 +39585,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
         };
         _proto.drawNav = function drawNav() {
-          var _this13 = this;
+          var _this12 = this;
           var old = this.root.getChildByName('navigation');
           if (old) {
             old.removeFromParent();
@@ -39537,29 +39595,29 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.rect(nav, 0, 0, 480, 56, C.bg);
           this.rect(nav, 0, 27, 480, 2, '#9da3af');
           var _loop2 = function _loop2(i) {
-            var unlocked = tabUnlocked(_this13.game.s, i),
-              n = _this13.nodeAt(nav, 'tab-' + i, -200 + i * 80, 0, 80, 56),
-              title = _this13.tr(['nav.master', 'nav.heroes', 'nav.equipment', 'nav.pets', 'nav.artifacts', 'nav.shop'][i]);
-            if (i > 0) _this13.rect(n, -40, 0, 1, 40, '#626978');
-            if (i === _this13.tab) {
-              var selected = _this13.nodeAt(n, 'selected-tab', 0, 3, 76, 62);
-              _this13.ui.surface(selected, _this13.tabTone, 'slant');
+            var unlocked = tabUnlocked(_this12.game.s, i),
+              n = _this12.nodeAt(nav, 'tab-' + i, -200 + i * 80, 0, 80, 56),
+              title = _this12.tr(['nav.master', 'nav.heroes', 'nav.equipment', 'nav.pets', 'nav.artifacts', 'nav.shop'][i]);
+            if (i > 0) _this12.rect(n, -40, 0, 1, 40, '#626978');
+            if (i === _this12.tab) {
+              var selected = _this12.nodeAt(n, 'selected-tab', 0, 3, 76, 62);
+              _this12.ui.surface(selected, _this12.tabTone, 'slant');
             }
-            _this13.touchAction(n, function () {
-              return _this13.tutorial.tab(i);
+            _this12.touchAction(n, function () {
+              return _this12.tutorial.tab(i);
             }, title);
-            var icon = _this13.nodeAt(n, 'tab-icon', 0, i === _this13.tab ? 5 : 1, i === _this13.tab ? 44 : 37, i === _this13.tab ? 44 : 37);
-            _this13.hudIcon(icon, i, C.text);
-            if (i !== _this13.tab) icon.addComponent(UIOpacity).opacity = unlocked ? 210 : 60;
-            if (!unlocked) _this13.lockIcon(n, 23, 12);
-            if (i === 3 && unlocked && Date.now() >= _this13.game.s.eggAt) _this13.rect(n, 25, 18, 6, 6, C.danger);
+            var icon = _this12.nodeAt(n, 'tab-icon', 0, i === _this12.tab ? 5 : 1, i === _this12.tab ? 44 : 37, i === _this12.tab ? 44 : 37);
+            _this12.hudIcon(icon, i, C.text);
+            if (i !== _this12.tab) icon.addComponent(UIOpacity).opacity = unlocked ? 210 : 60;
+            if (!unlocked) _this12.lockIcon(n, 23, 12);
+            if (i === 3 && unlocked && Date.now() >= _this12.game.s.eggAt) _this12.rect(n, 25, 18, 6, 6, C.danger);
           };
           for (var i = 0; i < 6; i++) {
             _loop2(i);
           }
         };
         _proto.scroll = function scroll(parent, x, y, w, h, rows) {
-          var _this14 = this;
+          var _this13 = this;
           var viewport = this.nodeAt(parent, 'scroll', x, y, w, h);
           viewport.addComponent(Mask);
           var sv = viewport.addComponent(ScrollView);
@@ -39572,46 +39630,46 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           sv.content = content;
           rows.forEach(function (r, i) {
             var yy = -39 - i * 77;
-            var card = _this14.nodeAt(content, 'list-row', 0, yy, w - 8, 70);
-            if (r.action === _this14.tr('action.claim') && !r.locked && !(r.unavailable != null && r.unavailable())) _this14.rect(card, -w / 2 + 9, 0, 4, 54, C.gold);
-            _this14.rect(card, 0, -36, w - 24, 1, _this14.ui.inPopup(card) ? '#777e8c' : '#a4a8b1');
+            var card = _this13.nodeAt(content, 'list-row', 0, yy, w - 8, 70);
+            if (r.action === _this13.tr('action.claim') && !r.locked && !(r.unavailable != null && r.unavailable())) _this13.rect(card, -w / 2 + 9, 0, 4, 54, C.gold);
+            _this13.rect(card, 0, -36, w - 24, 1, _this13.ui.inPopup(card) ? '#777e8c' : '#a4a8b1');
             if (r.locked) {
               card.addComponent(UIOpacity).opacity = 155;
-              _this14.lockIcon(card, -w / 2 + 35, 0);
+              _this13.lockIcon(card, -w / 2 + 35, 0);
             }
-            if (r.tint && !r.locked) _this14.polygon(card, -w / 2 + 33, 0, 48, 48, [[0, -.5], [.5, 0], [0, .5], [-.5, 0]], r.tint, 90);
-            if (r.icon !== undefined && !r.locked) _this14.glyph(card, -w / 2 + 35, 0, r.icon, r.tint || C.gold, r.art);
+            if (r.tint && !r.locked) _this13.polygon(card, -w / 2 + 33, 0, 48, 48, [[0, -.5], [.5, 0], [0, .5], [-.5, 0]], r.tint, 90);
+            if (r.icon !== undefined && !r.locked) _this13.glyph(card, -w / 2 + 35, 0, r.icon, r.tint || C.gold, r.art);
             var hasIcon = r.icon !== undefined,
               hasAction = !!r.action;
             var left = -w / 2 + (hasIcon ? 66 : 16),
               right = w / 2 - (hasAction ? 106 : 16),
               width = right - left;
-            _this14.label(card, r.title, left + width / 2, r.sub || r.metrics ? 15 : 0, width, 28, 17, C.text, Label.HorizontalAlign.LEFT);
+            _this13.label(card, r.title, left + width / 2, r.sub || r.metrics ? 15 : 0, width, 28, 17, C.text, Label.HorizontalAlign.LEFT);
             if (r.metrics) r.metrics.forEach(function (m, j) {
-              return _this14.metric(card, m.icon, m.value, left + (j + .5) * width / r.metrics.length, -16, width / r.metrics.length, m.hint);
-            });else if (r.sub) _this14.label(card, r.sub, left + width / 2, -16, width, 31, 14, C.muted, Label.HorizontalAlign.LEFT);
+              return _this13.metric(card, m.icon, m.value, left + (j + .5) * width / r.metrics.length, -16, width / r.metrics.length, m.hint);
+            });else if (r.sub) _this13.label(card, r.sub, left + width / 2, -16, width, 31, 14, C.muted, Label.HorizontalAlign.LEFT);
             if (r.detail) {
-              var target = _this14.nodeAt(card, "details", -w / 2 + 120, 0, 210, 65);
+              var target = _this13.nodeAt(card, "details", -w / 2 + 120, 0, 210, 65);
               target.on(Node.EventType.TOUCH_END, r.detail);
             }
             if (r.action) {
-              var settled = [_this14.tr('action.equipped'), _this14.tr('action.claimed'), _this14.tr('action.selected')].includes(r.action);
+              var settled = [_this13.tr('action.equipped'), _this13.tr('action.claimed'), _this13.tr('action.selected')].includes(r.action);
               var browse = ['action.details', 'action.open', 'action.back'].some(function (key) {
-                return r.action === _this14.tr(key);
+                return r.action === _this13.tr(key);
               });
-              _this14.button(card, r.action, w / 2 - 54, 0, 90, 50, r.click || function () {}, !settled && (!_this14.ui.inPopup(card) || !browse), {
+              _this13.button(card, r.action, w / 2 - 54, 0, 90, 50, r.click || function () {}, !settled && (!_this13.ui.inPopup(card) || !browse), {
                 style: r.buttonStyle || (r.locked ? 'disabled' : settled ? 'selected' : browse ? 'secondary' : 'primary'),
                 fontSize: 18,
                 icon: r.actionIcon,
                 iconOnly: false,
                 hint: r.actionHint,
-                unavailable: r.unavailable || (r.action === _this14.tr('action.claimed') ? function () {
-                  return _this14.tr('action.alreadyClaimed');
+                unavailable: r.unavailable || (r.action === _this13.tr('action.claimed') ? function () {
+                  return _this13.tr('action.alreadyClaimed');
                 } : r.locked ? function () {
                   var _r$metrics;
                   return r.sub || ((_r$metrics = r.metrics) == null || (_r$metrics = _r$metrics.find(function (m) {
                     return m.hint;
-                  })) == null ? void 0 : _r$metrics.hint) || _this14.tr('error.locked');
+                  })) == null ? void 0 : _r$metrics.hint) || _this13.tr('error.locked');
                 } : undefined)
               });
             } else if (r.click) card.on(Node.EventType.TOUCH_END, r.click);
@@ -39647,7 +39705,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
         };
         _proto.drawPanel = function drawPanel() {
-          var _this15 = this;
+          var _this14 = this;
           this.clear(this.panel);
           if (!tabUnlocked(this.game.s, this.tab)) {
             this.tab = 0;
@@ -39672,15 +39730,15 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               value: this.format(g.tapDamage())
             }));
             this.button(this.panel, this.format(g.upgradeCost(-1, this.mode === -1 ? 1 : this.mode)), 164, 112, 135, 60, function () {
-              g.buy(-1, _this15.mode);
-              _this15.drawPanel();
-              _this15.flushNotice();
+              g.buy(-1, _this14.mode);
+              _this14.drawPanel();
+              _this14.flushNotice();
             }, true, {
               icon: 'symbol:plus',
               iconOnly: false,
               hint: this.tr('layout.upgrade'),
               unavailable: function unavailable() {
-                return _this15.levelReason(-1);
+                return _this14.levelReason(-1);
               }
             });
             this.polygon(this.panel, -6, 62, 468, 26, [[-.5, -.5], [.48, -.5], [.5, .5], [-.5, .5]], C.paperMuted);
@@ -39695,15 +39753,15 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               this.lockIcon(this.panel, 164, 13);
             } else this.button(this.panel, r.stage >= 60 ? this.format(g.prestigeReward()) : '60', 164, 13, 135, 60, function () {
               if (r.stage < 60) {
-                _this15.info(_this15.tr('unlock.title'), _this15.tr('prestige.locked'));
+                _this14.info(_this14.tr('unlock.title'), _this14.tr('prestige.locked'));
                 return;
               }
-              _this15.prestige();
+              _this14.prestige();
             }, r.stage >= 60, {
               icon: r.stage >= 60 ? 'rebirth' : 'lock',
               hint: this.tr('prestige.title'),
               unavailable: function unavailable() {
-                return _this15.game.s.run.stage < 60 ? _this15.tr('prestige.locked') : null;
+                return _this14.game.s.run.stage < 60 ? _this14.tr('prestige.locked') : null;
               }
             });
             this.polygon(this.panel, -6, -36, 468, 26, [[-.5, -.5], [.48, -.5], [.5, .5], [-.5, .5]], C.paperMuted);
@@ -39716,39 +39774,39 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }).map(function (sp) {
               return {
                 locked: r.master < sp.unlock,
-                title: _this15.tr("spell." + sp.id),
+                title: _this14.tr("spell." + sp.id),
                 metrics: [{
                   icon: r.master < sp.unlock ? 'lock' : 'symbol:up',
                   value: String(r.master < sp.unlock ? sp.unlock : r.spellLevels[sp.id]),
-                  hint: _this15.tr('spell.detail', {
+                  hint: _this14.tr('spell.detail', {
                     level: r.spellLevels[sp.id],
                     unlock: sp.unlock,
-                    mana: _this15.game.spellMana(sp.id)
+                    mana: _this14.game.spellMana(sp.id)
                   })
                 }, {
                   icon: 'lightning',
-                  value: String(_this15.game.spellMana(sp.id)),
-                  hint: _this15.tr('hud.mana', {
-                    value: _this15.game.spellMana(sp.id)
+                  value: String(_this14.game.spellMana(sp.id)),
+                  hint: _this14.tr('hud.mana', {
+                    value: _this14.game.spellMana(sp.id)
                   })
                 }],
                 icon: sp.id,
-                action: _this15.tr(r.master < sp.unlock ? 'action.level' : 'action.details', {
+                action: _this14.tr(r.master < sp.unlock ? 'action.level' : 'action.details', {
                   level: sp.unlock
                 }),
                 click: function click() {
-                  return _this15.spells(_this15.game.s.spellSlots.indexOf(sp.id) < 0 ? 0 : _this15.game.s.spellSlots.indexOf(sp.id));
+                  return _this14.spells(_this14.game.s.spellSlots.indexOf(sp.id) < 0 ? 0 : _this14.game.s.spellSlots.indexOf(sp.id));
                 }
               };
             }));
           } else if (this.tab === 1) {
             this.label(this.panel, this.tr('hero.title'), -133, 127, 190, 29, 21, C.gold, Label.HorizontalAlign.LEFT);
             this.button(this.panel, '×' + (this.mode === -1 ? '∞' : this.mode), 80, 127, 127, 34, function () {
-              _this15.mode = [1, 10, 100, -1][([1, 10, 100, -1].indexOf(_this15.mode) + 1) % 4];
-              _this15.drawPanel();
+              _this14.mode = [1, 10, 100, -1][([1, 10, 100, -1].indexOf(_this14.mode) + 1) % 4];
+              _this14.drawPanel();
             });
             if (s.maxStage >= 15) this.button(this.panel, '◈', 200, 127, 49, 34, function () {
-              return _this15.mastery();
+              return _this14.mastery();
             });
             this.scroll(this.panel, 0, -24, 458, 244, HEROES.filter(function (h) {
               var _HEROES$find;
@@ -39759,52 +39817,52 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               return {
                 locked: s.maxStage < h.unlock,
                 unavailable: function unavailable() {
-                  return _this15.levelReason(h.id);
+                  return _this14.levelReason(h.id);
                 },
-                title: _this15.tr(h.name),
-                sub: s.maxStage < h.unlock ? _this15.tr('hero.locked', {
+                title: _this14.tr(h.name),
+                sub: s.maxStage < h.unlock ? _this14.tr('hero.locked', {
                   stage: h.unlock
                 }) : undefined,
                 metrics: s.maxStage < h.unlock ? [{
                   icon: 'flag',
                   value: String(h.unlock),
-                  hint: _this15.tr('hero.locked', {
+                  hint: _this14.tr('hero.locked', {
                     stage: h.unlock
                   })
                 }] : [{
                   icon: 'symbol:up',
                   value: String(r.heroes[h.id]),
-                  hint: _this15.tr('action.level', {
+                  hint: _this14.tr('action.level', {
                     level: r.heroes[h.id]
                   })
                 }, {
                   icon: 'sword',
-                  value: _this15.format(g.heroDamage(h.id)),
-                  hint: _this15.tr('hero.stats', {
+                  value: _this14.format(g.heroDamage(h.id)),
+                  hint: _this14.tr('hero.stats', {
                     level: r.heroes[h.id],
-                    damage: _this15.format(g.heroDamage(h.id))
+                    damage: _this14.format(g.heroDamage(h.id))
                   })
                 }],
                 detail: function detail() {
-                  return _this15.extensions.hero(h.id);
+                  return _this14.extensions.hero(h.id);
                 },
                 icon: h.id,
                 art: 'face:' + ['rowen', 'kael', 'sera', 'guardian'][h.id % 4],
                 tint: [C.ember, C.mint, C.blue, C.violet][h.id % 4],
-                action: s.maxStage < h.unlock ? _this15.tr('action.locked') : r.heroes[h.id] === 0 ? _this15.tr('action.recruitCost', {
-                  cost: _this15.format(g.upgradeCost(h.id, 1))
-                }) : _this15.format(g.upgradeCost(h.id, _this15.mode === -1 ? 1 : _this15.mode)),
+                action: s.maxStage < h.unlock ? _this14.tr('action.locked') : r.heroes[h.id] === 0 ? _this14.tr('action.recruitCost', {
+                  cost: _this14.format(g.upgradeCost(h.id, 1))
+                }) : _this14.format(g.upgradeCost(h.id, _this14.mode === -1 ? 1 : _this14.mode)),
                 click: function click() {
                   if (s.maxStage < h.unlock) {
-                    _this15.info(_this15.tr('unlock.title'), _this15.tr('hero.locked', {
+                    _this14.info(_this14.tr('unlock.title'), _this14.tr('hero.locked', {
                       stage: h.unlock
                     }));
                     return;
                   }
-                  g.buy(h.id, _this15.mode);
-                  _this15.drawPanel();
-                  _this15.tutorial.event('progress');
-                  _this15.flushNotice();
+                  g.buy(h.id, _this14.mode);
+                  _this14.drawPanel();
+                  _this14.tutorial.event('progress');
+                  _this14.flushNotice();
                 }
               };
             }));
@@ -39812,22 +39870,22 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             this.metric(this.panel, 'face:compass', String(s.shards), -158, 127, 130, this.tr('equipment.craft'));
             this.metric(this.panel, 'symbol:bag', s.equipment.length + '/100', -25, 127, 120, this.tr('equipment.title'));
             this.button(this.panel, '⋯', 73, 127, 40, 34, function () {
-              return _this15.equipmentTools();
+              return _this14.equipmentTools();
             });
             this.button(this.panel, this.tr('equipment.craft'), 172, 127, 110, 34, function () {
-              return _this15.craft();
+              return _this14.craft();
             }, false, {
               unavailable: function unavailable() {
-                return s.equipment.length >= 100 ? _this15.tr('error.full') : _this15.costReason('shards', g.craftCost());
+                return s.equipment.length >= 100 ? _this14.tr('error.full') : _this14.costReason('shards', g.craftCost());
               }
             });
             var _loop3 = function _loop3(i) {
-              _this15.button(_this15.panel, _this15.tr("slot." + i), -180 + i * 90, 80, 84, 40, function () {
-                _this15.filter = _this15.filter === i ? -1 : i;
-                _this15.drawPanel();
-              }, _this15.filter === i, {
-                style: _this15.filter === i ? 'selected' : 'quiet',
-                tone: _this15.filter === i ? C.violet : C.paperMuted,
+              _this14.button(_this14.panel, _this14.tr("slot." + i), -180 + i * 90, 80, 84, 40, function () {
+                _this14.filter = _this14.filter === i ? -1 : i;
+                _this14.drawPanel();
+              }, _this14.filter === i, {
+                style: _this14.filter === i ? 'selected' : 'quiet',
+                tone: _this14.filter === i ? C.violet : C.paperMuted,
                 icon: 'face:' + ['blade', 'helmet', 'breastplate', 'aura', 'compass'][i],
                 iconOnly: true
               });
@@ -39836,7 +39894,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               _loop3(i);
             }
             var items = s.equipment.filter(function (e) {
-              return _this15.filter < 0 || e.slot === _this15.filter;
+              return _this14.filter < 0 || e.slot === _this14.filter;
             }).sort(function (a, b) {
               return b.power - a.power;
             });
@@ -39846,17 +39904,17 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                 metrics: [{
                   icon: 'sword',
                   value: '×' + e.power.toFixed(2),
-                  hint: _this15.tr('equipment.power', {
+                  hint: _this14.tr('equipment.power', {
                     power: e.power.toFixed(2)
                   })
                 }],
-                actionHint: _this15.itemName(e),
-                action: s.equipped.includes(e.id) ? _this15.tr('action.equipped') : _this15.tr('action.details'),
+                actionHint: _this14.itemName(e),
+                action: s.equipped.includes(e.id) ? _this14.tr('action.equipped') : _this14.tr('action.details'),
                 icon: e.slot,
                 art: 'face:' + ['blade', 'helmet', 'breastplate', 'aura', 'compass'][e.slot],
                 tint: e.rarity > 1 ? C.gold : C.blue,
                 click: function click() {
-                  return _this15.item(e);
+                  return _this14.item(e);
                 }
               };
             }));
@@ -39866,46 +39924,46 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             this.button(this.panel, Date.now() >= s.eggAt ? this.tr('pet.hatch') : this.tr('action.remaining', {
               seconds: Math.ceil((s.eggAt - Date.now()) / 1000)
             }), 143, 127, 164, 36, function () {
-              return _this15.act(function () {
-                return g.hatch(_this15.id('egg'));
+              return _this14.act(function () {
+                return g.hatch(_this14.id('egg'));
               }, function () {
-                return _this15.drawPanel();
+                return _this14.drawPanel();
               });
             }, false, {
               unavailable: function unavailable() {
-                return _this15.game.now() < _this15.game.s.eggAt ? _this15.tr('action.waitSeconds', {
-                  seconds: Math.ceil((_this15.game.s.eggAt - _this15.game.now()) / 1000)
+                return _this14.game.now() < _this14.game.s.eggAt ? _this14.tr('action.waitSeconds', {
+                  seconds: Math.ceil((_this14.game.s.eggAt - _this14.game.now()) / 1000)
                 }) : null;
               }
             });
             this.scroll(this.panel, 0, -24, 458, 244, PETS.map(function (p) {
               return {
                 locked: s.pets[p.id] === 0,
-                title: _this15.tr(p.name),
+                title: _this14.tr(p.name),
                 metrics: [{
                   icon: 'symbol:up',
                   value: String(s.pets[p.id]),
-                  hint: _this15.tr('action.level', {
+                  hint: _this14.tr('action.level', {
                     level: s.pets[p.id]
                   })
                 }, {
                   icon: ['sword', 'symbol:hand', 'face:gems'][p.effect],
                   value: '×' + (1 + s.pets[p.id] * .025).toFixed(2),
-                  hint: _this15.tr('effect.' + p.effect)
+                  hint: _this14.tr('effect.' + p.effect)
                 }],
                 detail: function detail() {
-                  return _this15.extensions.petDetail(p.id);
+                  return _this14.extensions.petDetail(p.id);
                 },
                 icon: p.id,
                 art: 'face:' + ['ember-fox', 'stone-hawk', 'shade-wolf'][p.id % 3],
                 tint: C.mint,
-                action: !s.pets[p.id] ? _this15.tr('action.locked') : s.activePet === p.id ? _this15.tr('action.equipped') : _this15.tr('action.equip'),
+                action: !s.pets[p.id] ? _this14.tr('action.locked') : s.activePet === p.id ? _this14.tr('action.equipped') : _this14.tr('action.equip'),
                 click: function click() {
-                  if (!s.pets[p.id]) _this15.toast(_this15.tr('error.locked'));else {
+                  if (!s.pets[p.id]) _this14.toast(_this14.tr('error.locked'));else {
                     s.activePet = p.id;
-                    _this15.tutorial.complete('first:pet');
+                    _this14.tutorial.complete('first:pet');
                     g.persist();
-                    _this15.drawPanel();
+                    _this14.drawPanel();
                   }
                 }
               };
@@ -39915,10 +39973,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               value: this.format(s.relics)
             }));
             this.button(this.panel, this.format(g.discoverCost()), 149, 127, 154, 36, function () {
-              return _this15.act(function () {
-                return g.discover(_this15.id('discover'));
+              return _this14.act(function () {
+                return g.discover(_this14.id('discover'));
               }, function () {
-                return _this15.drawPanel();
+                return _this14.drawPanel();
               });
             }, true, {
               icon: 'chest',
@@ -39928,35 +39986,35 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               unavailable: function unavailable() {
                 return s.artifacts.every(function (v) {
                   return v > 0;
-                }) ? _this15.tr('error.complete') : _this15.costReason('relics', g.discoverCost());
+                }) ? _this14.tr('error.complete') : _this14.costReason('relics', g.discoverCost());
               }
             });
             var owned = ARTIFACTS.filter(function (a) {
               return s.artifacts[a.id];
             });
             this.button(this.panel, '⋯', -208, 89, 40, 26, function () {
-              return _this15.salvaged();
+              return _this14.salvaged();
             });
             this.scroll(this.panel, 0, -37, 458, 221, owned.map(function (a) {
               return {
-                title: _this15.tr(a.name),
+                title: _this14.tr(a.name),
                 metrics: [{
                   icon: 'symbol:up',
                   value: String(s.artifacts[a.id]),
-                  hint: _this15.tr('action.level', {
+                  hint: _this14.tr('action.level', {
                     level: s.artifacts[a.id]
                   })
                 }, {
                   icon: ['sword', 'symbol:hand', 'adventurer', 'symbol:coin'][a.effect],
-                  value: _this15.artifactMultiplier(a.id),
-                  hint: _this15.tr('effect.' + a.effect)
+                  value: _this14.artifactMultiplier(a.id),
+                  hint: _this14.tr('effect.' + a.effect)
                 }],
                 icon: a.id,
                 art: 'face:' + ['blade', 'crown', 'compass', 'aura', 'gems', 'supplies'][a.id % 6],
                 tint: C.violet,
-                action: _this15.tr('action.details'),
+                action: _this14.tr('action.details'),
                 click: function click() {
-                  return _this15.artifactDetail(a.id);
+                  return _this14.artifactDetail(a.id);
                 }
               };
             }));
@@ -39966,12 +40024,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }
           } else {
             [0, 1, 2].forEach(function (i) {
-              return _this15.button(_this15.panel, _this15.tr(['shop.regular', 'shop.progression', 'shop.limited'][i]), -151 + i * 151, 127, 142, 38, function () {
-                _this15.shopTab = i;
-                _this15.drawPanel();
-              }, _this15.shopTab === i, {
-                style: _this15.shopTab === i ? 'selected' : 'quiet',
-                tone: _this15.shopTab === i ? C.gold : C.paperMuted,
+              return _this14.button(_this14.panel, _this14.tr(['shop.regular', 'shop.progression', 'shop.limited'][i]), -151 + i * 151, 127, 142, 38, function () {
+                _this14.shopTab = i;
+                _this14.drawPanel();
+              }, _this14.shopTab === i, {
+                style: _this14.shopTab === i ? 'selected' : 'quiet',
+                tone: _this14.shopTab === i ? C.gold : C.paperMuted,
                 icon: ['chest', 'symbol:up', 'symbol:clock'][i],
                 iconOnly: true
               });
@@ -39988,37 +40046,37 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               }],
               action: this.tr(s.claims.includes('daily.0') ? 'action.claimed' : 'action.claim'),
               click: function click() {
-                return _this15.act(function () {
+                return _this14.act(function () {
                   return g.claimDaily(0);
                 }, function () {
-                  return _this15.drawPanel();
+                  return _this14.drawPanel();
                 });
               }
             }].concat([0, 1, 2].map(function (i) {
               return {
                 unavailable: function unavailable() {
-                  return _this15.costReason('gems', [30, 60, 100][i]) || (i === 2 && s.equipment.length >= 100 ? _this15.tr('error.full') : null);
+                  return _this14.costReason('gems', [30, 60, 100][i]) || (i === 2 && s.equipment.length >= 100 ? _this14.tr('error.full') : null);
                 },
-                title: _this15.tr(['shop.pet', 'shop.shards', 'shop.chest'][i]),
+                title: _this14.tr(['shop.pet', 'shop.shards', 'shop.chest'][i]),
                 metrics: [{
                   icon: 'face:gems',
                   value: String([30, 60, 100][i]),
-                  hint: _this15.tr('action.cost', {
+                  hint: _this14.tr('action.cost', {
                     cost: [30, 60, 100][i]
                   })
                 }],
                 icon: i,
                 tint: C.gold,
-                action: _this15.tr('action.buy'),
+                action: _this14.tr('action.buy'),
                 click: function click() {
-                  return _this15.confirm(_this15.tr(['shop.pet', 'shop.shards', 'shop.chest'][i]), _this15.tr('shop.confirm', {
+                  return _this14.confirm(_this14.tr(['shop.pet', 'shop.shards', 'shop.chest'][i]), _this14.tr('shop.confirm', {
                     cost: [30, 60, 100][i]
-                  }) + (i === 2 ? '\n' + _this15.tr('shop.chestInfo') : ''), function () {
-                    return _this15.act(function () {
-                      return g.buyDeal(i, _this15.id('deal'));
+                  }) + (i === 2 ? '\n' + _this14.tr('shop.chestInfo') : ''), function () {
+                    return _this14.act(function () {
+                      return g.buyDeal(i, _this14.id('deal'));
                     }, function () {
-                      _this15.close();
-                      _this15.drawPanel();
+                      _this14.close();
+                      _this14.drawPanel();
                     });
                   });
                 }
@@ -40030,15 +40088,15 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }).map(function (stage) {
               return {
                 locked: s.maxStage < stage,
-                title: _this15.tr('milestone.row', {
+                title: _this14.tr('milestone.row', {
                   stage: stage
                 }),
-                action: _this15.tr(s.maxStage < stage ? 'action.locked' : s.claims.includes("milestone." + stage) ? 'action.claimed' : 'action.claim'),
+                action: _this14.tr(s.maxStage < stage ? 'action.locked' : s.claims.includes("milestone." + stage) ? 'action.claimed' : 'action.claim'),
                 click: function click() {
-                  return _this15.act(function () {
+                  return _this14.act(function () {
                     return g.claimMilestone(stage);
                   }, function () {
-                    return _this15.drawPanel();
+                    return _this14.drawPanel();
                   });
                 }
               };
@@ -40047,7 +40105,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               sub: this.tr('extra.limitedInfo'),
               action: this.tr('action.open'),
               click: function click() {
-                return _this15.extensions.limited();
+                return _this14.extensions.limited();
               }
             }];
             rows.unshift({
@@ -40061,7 +40119,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               }],
               action: this.tr('action.open'),
               click: function click() {
-                return _this15.payments.store();
+                return _this14.payments.store();
               }
             });
             if (this.shopTab === 0) rows.splice(1, 0, {
@@ -40077,14 +40135,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               }],
               action: this.tr('money.watch'),
               click: function click() {
-                return _this15.payments.ads('shop');
+                return _this14.payments.ads('shop');
               }
             });
             if (this.shopTab === 2) rows.unshift({
               title: this.tr('money.pass'),
               action: this.payments.price('season_pass'),
               click: function click() {
-                return _this15.payments.product('season_pass');
+                return _this14.payments.product('season_pass');
               }
             });
             this.scroll(this.panel, 0, -24, 458, 244, rows);
@@ -40099,7 +40157,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         };
         _proto.open = function open(title, height, closable, surface) {
           var _this$tutorial2,
-            _this16 = this;
+            _this15 = this;
           if (height === void 0) {
             height = 600;
           }
@@ -40121,7 +40179,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.polygon(box, -199, height / 2 - 38, 34, 60, [[-.5, -.5], [.15, -.5], [.5, .5], [-.5, .5]], panelAccent);
           if (!((_this$tutorial2 = this.tutorial) != null && _this$tutorial2.popup(title, heading))) this.label(heading, title, 0, 0, 322, 44, 23, C.ink);
           if (closable) this.button(box, '×', 181, height / 2 - 36, 38, 36, function () {
-            return _this16.close();
+            return _this15.close();
           }, false, {
             style: 'quiet',
             tone: panelAccent,
@@ -40140,20 +40198,20 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
         };
         _proto.confirm = function confirm(title, body, yes) {
-          var _this17 = this;
+          var _this16 = this;
           var p = this.open(title, 370);
           this.label(p, body, 0, 10, 372, 195, 19, C.text);
           this.button(p, this.tr('action.cancel'), -103, -132, 178, 48, function () {
-            return _this17.close();
+            return _this16.close();
           });
           this.button(p, this.tr('action.confirm'), 103, -132, 178, 48, yes, true);
         };
         _proto.info = function info(title, body) {
-          var _this18 = this;
+          var _this17 = this;
           var p = this.open(title, 390);
           this.label(p, body, 0, 0, 375, 245, 18, C.text);
           this.button(p, this.tr('action.close'), 0, -145, 260, 45, function () {
-            return _this18.close();
+            return _this17.close();
           });
         };
         _proto.act = function act(action, done) {
@@ -40165,45 +40223,45 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           } else this.flushNotice();
         };
         _proto.menu = function menu() {
-          var _this19 = this;
+          var _this18 = this;
           for (var _i3 = 0, _arr3 = [15, 50, 60, 100, 1000, 100000, 180000]; _i3 < _arr3.length; _i3++) {
             var stage = _arr3[_i3];
             if (this.game.s.maxStage >= stage) this.tutorial.complete('feature:' + stage);
           }
           var p = this.open(this.tr('menu.title'), 706);
           var actions = [['daily', function () {
-            return _this19.daily();
+            return _this18.daily();
           }], ['milestones', function () {
-            return _this19.milestones();
+            return _this18.milestones();
           }], ['raid', function () {
-            return _this19.raidLobby();
+            return _this18.raidLobby();
           }], ['cards', function () {
-            return _this19.cards();
+            return _this18.cards();
           }], ['event', function () {
-            return _this19.events();
+            return _this18.events();
           }], ['meta', function () {
-            return _this19.meta();
+            return _this18.meta();
           }], ['clan', function () {
-            return _this19.guild();
+            return _this18.guild();
           }], ['tournament', function () {
-            return _this19.competition();
+            return _this18.competition();
           }], ['profile', function () {
-            return _this19.profile();
+            return _this18.profile();
           }], ['settings', function () {
-            return _this19.settings();
+            return _this18.settings();
           }], ['inbox', function () {
-            return _this19.extensions.inbox();
+            return _this18.extensions.inbox();
           }], ['achievements', function () {
-            return _this19.achievements();
+            return _this18.achievements();
           }]];
           var icons = ['chest', 'flag', 'sword', 'cards', 'trophy', 'scroll', 'flag', 'trophy', 'adventurer', 'settings', 'mail', 'trophy'];
           actions.filter(function (_ref3) {
             var key = _ref3[0];
-            return featureUnlocked(_this19.game.s, 'menu.' + key);
+            return featureUnlocked(_this18.game.s, 'menu.' + key);
           }).forEach(function (_ref4, i) {
             var key = _ref4[0],
               f = _ref4[1];
-            return _this19.button(p, _this19.tr("menu." + key), i % 2 ? 101 : -101, 245 - Math.floor(i / 2) * 91, 184, 70, f, false, {
+            return _this18.button(p, _this18.tr("menu." + key), i % 2 ? 101 : -101, 245 - Math.floor(i / 2) * 91, 184, 70, f, false, {
               style: 'secondary',
               icon: icons[i],
               iconOnly: false,
@@ -40211,31 +40269,31 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             });
           });
           this.button(p, this.tr('extra.hub'), 0, -304, 380, 44, function () {
-            return _this19.extensions.hub();
+            return _this18.extensions.hub();
           }, false, {
             style: 'quiet'
           });
         };
         _proto.prestige = function prestige() {
-          var _this20 = this;
+          var _this19 = this;
           var g = this.game;
           this.confirm(this.tr('prestige.title'), this.tr('prestige.desc') + '\n\n' + this.tr('prestige.reward', {
             value: this.format(g.prestigeReward())
           }) + '\n' + this.tr('prestige.start', {
             stage: Math.max(1, Math.floor(g.s.maxStage * .05))
           }), function () {
-            if (g.prestige(_this20.id('prestige'))) {
-              _this20.close();
-              _this20.drawPanel();
-              _this20.toast(_this20.tr('prestige.done'));
-            } else _this20.flushNotice();
+            if (g.prestige(_this19.id('prestige'))) {
+              _this19.close();
+              _this19.drawPanel();
+              _this19.toast(_this19.tr('prestige.done'));
+            } else _this19.flushNotice();
           });
         };
         _proto.item = function item(e) {
-          var _this21 = this;
+          var _this20 = this;
           this.tutorial.complete('first:gear');
           var current = this.game.s.equipment.find(function (x) {
-              return x.id === _this21.game.s.equipped[e.slot];
+              return x.id === _this20.game.s.equipped[e.slot];
             }),
             equipped = (current == null ? void 0 : current.id) === e.id,
             p = this.open(this.tr("slot." + e.slot), 480, true, 'slate');
@@ -40253,29 +40311,29 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var gain = (e.power / ((current == null ? void 0 : current.power) || 1) - 1) * 100;
           this.label(p, (gain >= 0 ? '+' : '') + gain.toFixed(1) + '%', 0, -47, 230, 26, 20, gain >= 0 ? C.mint : C.danger);
           this.button(p, this.tr(equipped ? 'action.equipped' : 'action.equip'), -128, -103, 112, 58, function () {
-            _this21.game.equip(e.id);
-            _this21.close();
-            _this21.drawPanel();
+            _this20.game.equip(e.id);
+            _this20.close();
+            _this20.drawPanel();
           }, true, {
             style: equipped ? 'selected' : 'primary'
           });
           this.button(p, this.tr('action.lock'), 0, -103, 112, 58, function () {
-            _this21.game.lock(e.id);
-            _this21.item(e);
+            _this20.game.lock(e.id);
+            _this20.item(e);
           }, false, {
             style: e.locked ? 'selected' : 'secondary'
           });
           this.button(p, this.tr('action.sell'), 128, -103, 112, 58, function () {
             if (e.locked || equipped) {
-              _this21.toast(_this21.tr('equipment.protected'));
+              _this20.toast(_this20.tr('equipment.protected'));
               return;
             }
-            _this21.confirm(_this21.itemName(e), _this21.tr('equipment.sellConfirm'), function () {
-              return _this21.act(function () {
-                return _this21.game.sell([e.id], _this21.id('sell'));
+            _this20.confirm(_this20.itemName(e), _this20.tr('equipment.sellConfirm'), function () {
+              return _this20.act(function () {
+                return _this20.game.sell([e.id], _this20.id('sell'));
               }, function () {
-                _this21.close();
-                _this21.drawPanel();
+                _this20.close();
+                _this20.drawPanel();
               });
             });
           }, false, {
@@ -40283,28 +40341,28 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             hint: this.tr('action.sell') + ' · ' + (e.rarity + 1)
           });
           this.button(p, this.tr('equipment.sets'), -98, -186, 174, 44, function () {
-            return _this21.sets();
+            return _this20.sets();
           });
           this.button(p, this.tr('ui.iconHelp'), 98, -186, 174, 44, function () {
-            return _this21.info(_this21.itemName(e), _this21.tr('ui.equipmentHelp'));
+            return _this20.info(_this20.itemName(e), _this20.tr('ui.equipmentHelp'));
           }, false, {
             icon: 'symbol:info',
             iconOnly: true
           });
         };
         _proto.craft = function craft() {
-          var _this22 = this;
+          var _this21 = this;
           this.confirm(this.tr('equipment.craft'), this.tr('equipment.craftDesc', {
             cost: this.game.craftCost(),
             shards: this.game.s.shards
           }), function () {
-            return _this22.act(function () {
-              return _this22.game.craft(_this22.id('craft'));
+            return _this21.act(function () {
+              return _this21.game.craft(_this21.id('craft'));
             }, function () {
-              _this22.close();
-              _this22.drawPanel();
-              var last = _this22.game.s.equipment[_this22.game.s.equipment.length - 1];
-              _this22.item(last);
+              _this21.close();
+              _this21.drawPanel();
+              var last = _this21.game.s.equipment[_this21.game.s.equipment.length - 1];
+              _this21.item(last);
             });
           });
         };
@@ -40320,7 +40378,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.skills = function skills(fresh) {
-          var _this23 = this;
+          var _this22 = this;
           if (fresh === void 0) {
             fresh = true;
           }
@@ -40346,14 +40404,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             this.label(group, this.tr("branch." + branch), 0, 69, 114, 24, 16, '#175960');
             var _loop4 = function _loop4() {
               var i = branch * 3 + tier;
-              if (tier < 2) _this23.rect(group, 0, 14 - tier * 45, 2, 14, '#8fbfb5');
-              var unlocked = tier === 0 || _this23.draft[i - 1] >= 3;
-              _this23.button(group, _this23.tr('action.level', {
-                level: _this23.draft[i]
+              if (tier < 2) _this22.rect(group, 0, 14 - tier * 45, 2, 14, '#8fbfb5');
+              var unlocked = tier === 0 || _this22.draft[i - 1] >= 3;
+              _this22.button(group, _this22.tr('action.level', {
+                level: _this22.draft[i]
               }), 0, 36 - tier * 45, 112, 38, function () {
-                return _this23.skillNode(i);
+                return _this22.skillNode(i);
               }, false, {
-                style: _this23.draft[i] > 0 ? 'selected' : unlocked ? 'secondary' : 'disabled',
+                style: _this22.draft[i] > 0 ? 'selected' : unlocked ? 'secondary' : 'disabled',
                 icon: icons[branch],
                 fontSize: 13
               });
@@ -40363,42 +40421,42 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }
           }
           this.button(p, this.tr('action.revert'), -137, -285, 124, 46, function () {
-            return _this23.skills();
+            return _this22.skills();
           });
           this.button(p, this.tr('action.reset'), 0, -285, 124, 46, function () {
-            _this23.draft = Array(18).fill(0);
-            _this23.skills(false);
+            _this22.draft = Array(18).fill(0);
+            _this22.skills(false);
           });
           this.button(p, this.tr('action.apply'), 137, -285, 124, 46, function () {
-            return _this23.act(function () {
-              return _this23.game.applySkills(_this23.draft, _this23.id('skills'));
+            return _this22.act(function () {
+              return _this22.game.applySkills(_this22.draft, _this22.id('skills'));
             }, function () {
-              return _this23.skills();
+              return _this22.skills();
             });
           }, true);
         };
         _proto.perks = function perks() {
-          var _this24 = this;
+          var _this23 = this;
           var p = this.open(this.tr('perks.title'), 650);
           this.label(p, this.tr('perks.info'), 0, 242, 370, 50, 16, C.muted);
           this.scroll(p, 0, -25, 400, 450, Array.from({
             length: 6
           }, function (_, i) {
             return {
-              title: _this24.tr('perks.row', {
-                name: _this24.tr("branch." + i),
-                count: _this24.game.s.perks[i]
+              title: _this23.tr('perks.row', {
+                name: _this23.tr("branch." + i),
+                count: _this23.game.s.perks[i]
               }),
-              sub: Date.now() < _this24.game.s.perkUntil[i] ? _this24.tr('action.remaining', {
-                seconds: Math.ceil((_this24.game.s.perkUntil[i] - Date.now()) / 1000)
+              sub: Date.now() < _this23.game.s.perkUntil[i] ? _this23.tr('action.remaining', {
+                seconds: Math.ceil((_this23.game.s.perkUntil[i] - Date.now()) / 1000)
               }) : '',
               icon: i,
-              action: _this24.tr('action.apply'),
+              action: _this23.tr('action.apply'),
               click: function click() {
-                return _this24.act(function () {
-                  return _this24.game.usePerk(i, _this24.id('perk'));
+                return _this23.act(function () {
+                  return _this23.game.usePerk(i, _this23.id('perk'));
                 }, function () {
-                  return _this24.extensions.perks();
+                  return _this23.extensions.perks();
                 });
               }
             };
@@ -40419,64 +40477,64 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.daily = function daily() {
-          var _this25 = this;
+          var _this24 = this;
           var p = this.open(this.tr('daily.title'), 570);
           this.scroll(p, 0, -24, 400, 450, [0, 1, 2, 3].map(function (i) {
             return {
-              title: _this25.tr("daily." + i),
-              sub: _this25.tr('daily.progress', {
-                current: _this25.game.dailyProgress(i),
-                goal: _this25.game.dailyGoal(i)
+              title: _this24.tr("daily." + i),
+              sub: _this24.tr('daily.progress', {
+                current: _this24.game.dailyProgress(i),
+                goal: _this24.game.dailyGoal(i)
               }),
-              locked: _this25.game.dailyProgress(i) < _this25.game.dailyGoal(i),
+              locked: _this24.game.dailyProgress(i) < _this24.game.dailyGoal(i),
               icon: i,
               tint: C.mint,
-              action: _this25.tr(_this25.game.s.claims.includes("daily." + i) ? 'action.claimed' : 'action.claim'),
+              action: _this24.tr(_this24.game.s.claims.includes("daily." + i) ? 'action.claimed' : 'action.claim'),
               click: function click() {
-                return _this25.act(function () {
-                  return _this25.game.claimDaily(i);
+                return _this24.act(function () {
+                  return _this24.game.claimDaily(i);
                 }, function () {
-                  return _this25.daily();
+                  return _this24.daily();
                 });
               }
             };
           }));
         };
         _proto.milestones = function milestones() {
-          var _this26 = this;
+          var _this25 = this;
           var p = this.open(this.tr('milestone.title'), 630);
           this.scroll(p, 0, -28, 400, 514, [8, 15, 60, 100, 500, 1000, 100000, 180000].map(function (stage) {
             return {
-              title: _this26.tr('hud.stage', {
+              title: _this25.tr('hud.stage', {
                 stage: stage
               }),
-              sub: _this26.tr('milestone.row', {
+              sub: _this25.tr('milestone.row', {
                 stage: stage
               }),
-              locked: _this26.game.s.maxStage < stage,
-              action: _this26.tr(_this26.game.s.claims.includes("milestone." + stage) ? 'action.claimed' : 'action.claim'),
+              locked: _this25.game.s.maxStage < stage,
+              action: _this25.tr(_this25.game.s.claims.includes("milestone." + stage) ? 'action.claimed' : 'action.claim'),
               click: function click() {
-                return _this26.act(function () {
-                  return _this26.game.claimMilestone(stage);
+                return _this25.act(function () {
+                  return _this25.game.claimMilestone(stage);
                 }, function () {
-                  return _this26.milestones();
+                  return _this25.milestones();
                 });
               }
             };
           }));
         };
         _proto.offline = function offline() {
-          var _this27 = this;
+          var _this26 = this;
           var p = this.open(this.tr('offline.title'), 380);
           this.label(p, this.tr('offline.reward', {
             gold: this.format(this.game.s.offline)
           }), 0, 40, 370, 65, 24, C.gold);
           this.label(p, this.tr('offline.info'), 0, -26, 370, 56, 17, C.muted);
           this.button(p, this.tr('action.claim'), 0, -126, 310, 50, function () {
-            return _this27.act(function () {
-              return _this27.game.collectOffline(_this27.id('offline'));
+            return _this26.act(function () {
+              return _this26.game.collectOffline(_this26.id('offline'));
             }, function () {
-              return _this27.close();
+              return _this26.close();
             });
           }, true);
         };
@@ -40497,18 +40555,18 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.settings = function settings() {
-          var _this28 = this;
+          var _this27 = this;
           var p = this.open(this.tr('menu.settings'), 700);
           this.label(p, this.tr('settings.language'), 0, 239, 340, 30, 16, '#38696b');
           var language = function language(locale) {
-            _this28.game.s.locale = locale;
-            _this28.game.persist();
-            if (_this28.liveOps.push.supported && _this28.liveOps.push.choice === 'on') void _this28.liveOps.push.set(true, locale)["catch"](function (e) {
-              return _this28.operations.report('push.locale', e);
+            _this27.game.s.locale = locale;
+            _this27.game.persist();
+            if (_this27.liveOps.push.supported && _this27.liveOps.push.choice === 'on') void _this27.liveOps.push.set(true, locale)["catch"](function (e) {
+              return _this27.operations.report('push.locale', e);
             });
-            _this28.close();
-            _this28.draw();
-            _this28.settings();
+            _this27.close();
+            _this27.draw();
+            _this27.settings();
           };
           this.button(p, this.tr('locale.ko'), -94, 192, 175, 46, function () {
             return language('ko');
@@ -40523,53 +40581,53 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.button(p, this.tr('settings.audio', {
             state: this.tr(this.game.s.audio ? 'settings.on' : 'settings.off')
           }), 0, 120, 365, 48, function () {
-            _this28.game.s.audio = !_this28.game.s.audio;
-            _this28.game.persist();
-            _this28.settings();
+            _this27.game.s.audio = !_this27.game.s.audio;
+            _this27.game.persist();
+            _this27.settings();
           }, false, {
             icon: 'heart'
           });
           this.button(p, this.tr('settings.saveButton'), 0, 57, 365, 48, function () {
-            if (_this28.game.persist()) void _this28.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
+            if (_this27.game.persist()) void _this27.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
               return _regeneratorRuntime().wrap(function _callee2$(_context2) {
                 while (1) switch (_context2.prev = _context2.next) {
                   case 0:
                     _context2.next = 2;
-                    return _this28.operations.save();
+                    return _this27.operations.save();
                   case 2:
-                    _this28.toast(_this28.tr('settings.save'));
+                    _this27.toast(_this27.tr('settings.save'));
                   case 3:
                   case "end":
                     return _context2.stop();
                 }
               }, _callee2);
-            })));else _this28.flushNotice();
+            })));else _this27.flushNotice();
           }, true, {
             icon: 'scroll'
           });
           this.button(p, this.tr('live.17'), 0, -6, 365, 46, function () {
-            return _this28.liveOps.hub();
+            return _this27.liveOps.hub();
           }, false, {
             icon: 'mail'
           });
           this.button(p, this.tr('tutorial.replay'), 0, -66, 365, 38, function () {
-            return _this28.confirm(_this28.tr('tutorial.replay'), _this28.tr('tutorial.replayBody'), function () {
-              replayTutorial(_this28.game.s);
-              _this28.game.revision++;
-              _this28.game.persist();
-              void _this28.operations.save()["catch"](function (e) {
-                return _this28.operations.report('tutorial.replay', e);
+            return _this27.confirm(_this27.tr('tutorial.replay'), _this27.tr('tutorial.replayBody'), function () {
+              replayTutorial(_this27.game.s);
+              _this27.game.revision++;
+              _this27.game.persist();
+              void _this27.operations.save()["catch"](function (e) {
+                return _this27.operations.report('tutorial.replay', e);
               });
-              _this28.tab = 0;
-              _this28.folded = false;
-              _this28.draw();
+              _this27.tab = 0;
+              _this27.folded = false;
+              _this27.draw();
             });
           }, false, {
             style: 'quiet',
             fontSize: 14
           });
           this.button(p, this.tr('cheat.title'), 0, -120, 365, 38, function () {
-            return _this28.cheats.open();
+            return _this27.cheats.open();
           }, false, {
             style: 'quiet',
             icon: 'settings',
@@ -40577,7 +40635,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           });
           resources.load('branding/tt-softs-ci/texture', Texture2D, function (err, texture) {
             if (err || !p.isValid) return;
-            var n = _this28.nodeAt(p, 'company-ci', 0, -188, 120, 120 * texture.height / texture.width),
+            var n = _this27.nodeAt(p, 'company-ci', 0, -188, 120, 120 * texture.height / texture.width),
               sp = n.addComponent(Sprite),
               frame = new SpriteFrame();
             frame.texture = texture;
@@ -40586,26 +40644,26 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             n.getComponent(UITransform).setContentSize(120, 120 * texture.height / texture.width);
           });
           this.button(p, this.tr('complete.display'), -124, -270, 116, 68, function () {
-            return _this28.extensions.displaySettings();
+            return _this27.extensions.displaySettings();
           }, false, {
             style: 'quiet',
             icon: 'settings'
           });
           this.button(p, this.tr('complete.account'), 0, -270, 116, 68, function () {
-            return _this28.extensions.account();
+            return _this27.extensions.account();
           }, false, {
             style: 'quiet',
             icon: 'adventurer'
           });
           this.button(p, this.tr('complete.support'), 124, -270, 116, 68, function () {
-            return _this28.extensions.support();
+            return _this27.extensions.support();
           }, false, {
             style: 'quiet',
             icon: 'mail'
           });
         };
         _proto.cards = function cards() {
-          var _this29 = this;
+          var _this28 = this;
           var s = this.game.s,
             p = this.open(this.tr('menu.cards'), 720);
           this.label(p, this.tr('raid.deck', {
@@ -40618,29 +40676,29 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }), 0, 225, 385, 26, 15, C.gold);
           this.scroll(p, 0, -25, 400, 450, CARDS.map(function (c) {
             return {
-              title: _this29.tr(c.name),
-              sub: _this29.tr('raid.card', {
+              title: _this28.tr(c.name),
+              sub: _this28.tr('raid.card', {
                 level: s.cards[c.id],
                 fragments: s.fragments[c.id]
               }),
               icon: c.id,
               tint: [C.ember, C.violet, C.mint][c.type],
-              action: _this29.tr(s.deck.includes(c.id) ? 'action.selected' : 'action.select'),
+              action: _this28.tr(s.deck.includes(c.id) ? 'action.selected' : 'action.select'),
               click: function click() {
-                _this29.game.setDeck(c.id);
-                _this29.cardDetail(c.id);
+                _this28.game.setDeck(c.id);
+                _this28.cardDetail(c.id);
               }
             };
           }));
           this.button(p, this.tr('extra.dustShop'), -101, -306, 190, 44, function () {
-            return _this29.extensions.dustShop();
+            return _this28.extensions.dustShop();
           });
           this.button(p, this.tr('extra.crystal'), 101, -306, 190, 44, function () {
-            return _this29.extensions.crystal();
+            return _this28.extensions.crystal();
           });
         };
         _proto.cardDetail = function cardDetail(i) {
-          var _this30 = this;
+          var _this29 = this;
           var s = this.game.s,
             p = this.open(this.tr("card." + i), 490);
           this.label(p, this.tr('complete.cardProc.' + i % 3), 0, 140, 370, 85, 18);
@@ -40651,20 +40709,20 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.button(p, this.tr('raid.upgrade', {
             cost: s.cards[i] * 10
           }), 0, -33, 360, 48, function () {
-            return _this30.act(function () {
-              return _this30.game.upgradeCard(i, _this30.id('card'));
+            return _this29.act(function () {
+              return _this29.game.upgradeCard(i, _this29.id('card'));
             }, function () {
-              return _this30.cardDetail(i);
+              return _this29.cardDetail(i);
             });
           }, true, {
             unavailable: function unavailable() {
-              return _this30.game.raid && !_this30.game.raid.claimed ? _this30.tr('error.protected') : _this30.costReason('dust', s.cards[i] * 10) || _this30.needReason(_this30.tr('feedback.fragments', {
+              return _this29.game.raid && !_this29.game.raid.claimed ? _this29.tr('error.protected') : _this29.costReason('dust', s.cards[i] * 10) || _this29.needReason(_this29.tr('feedback.fragments', {
                 index: i + 1
               }), s.fragments[i], s.cards[i]);
             }
           });
           this.button(p, this.tr('action.back'), 0, -112, 360, 44, function () {
-            return _this30.cards();
+            return _this29.cards();
           });
         };
         _proto.format = function format(value) {
@@ -40674,7 +40732,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.extensions.solo();
         };
         _proto.raidView = function raidView() {
-          var _this31 = this;
+          var _this30 = this;
           var p = this.open(this.tr('raid.title'), 700),
             r = this.game.raid;
           var status = this.label(p, '', 0, 266, 375, 32, 20, C.gold);
@@ -40682,33 +40740,33 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var _loop5 = function _loop5(i) {
             var x = i % 2 ? -94 : 94,
               y = 178 - Math.floor(i / 2) * 88;
-            var b = _this31.button(p, '', x, y, 170, 70, function () {
-              _this31.game.raidTap(i);
-              _this31.sound(170 + i * 30);
+            var b = _this30.button(p, '', x, y, 170, 70, function () {
+              _this30.game.raidTap(i);
+              _this30.sound(170 + i * 30);
             });
-            parts.push(_this31.label(b, '', 0, 0, 156, 61, 16, C.text));
+            parts.push(_this30.label(b, '', 0, 0, 156, 61, 16, C.text));
           };
           for (var i = 0; i < 8; i++) {
             _loop5(i);
           }
           var done = this.button(p, this.tr('action.claim'), 0, -243, 365, 51, function () {
             if (!r.ended) return;
-            _this31.act(function () {
-              return _this31.game.claimRaid(_this31.id('raid'));
+            _this30.act(function () {
+              return _this30.game.claimRaid(_this30.id('raid'));
             }, function () {
-              return _this31.info(_this31.tr('raid.result'), _this31.tr('raid.reward', {
+              return _this30.info(_this30.tr('raid.result'), _this30.tr('raid.reward', {
                 damage: display(r.damage),
                 dust: Math.floor(r.damage / 100)
               }));
             });
           }, true);
           this.modalRefresh = function () {
-            status.string = _this31.tr('raid.damage', {
+            status.string = _this30.tr('raid.damage', {
               damage: display(r.damage),
               seconds: Math.ceil(r.seconds)
             });
             parts.forEach(function (l, i) {
-              return l.string = _this31.tr('raid.part', {
+              return l.string = _this30.tr('raid.part', {
                 part: i + 1
               }) + '\n' + display(r.hp[i] + r.armor[i]);
             });
@@ -40717,54 +40775,54 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.modalRefresh();
         };
         _proto.events = function events() {
-          var _this32 = this;
+          var _this31 = this;
           var p = this.open(this.tr('event.title'), 670);
           this.label(p, this.tr('event.balance', {
             tokens: this.game.s.eventTokens
           }), 0, 246, 380, 35, 22, C.gold);
           this.label(p, this.tr('event.rule'), 0, 158, 380, 116, 17, C.muted);
           this.button(p, this.tr('event.board'), -99, 57, 182, 50, function () {
-            return _this32.board();
+            return _this31.board();
           });
           this.button(p, this.tr('extra.eventModes'), 99, 57, 182, 50, function () {
-            return _this32.extensions.eventHub();
+            return _this31.extensions.eventHub();
           });
           this.scroll(p, 0, -140, 400, 270, Array.from({
             length: 10
           }, function (_, i) {
             return {
-              title: _this32.tr('event.reward', {
+              title: _this31.tr('event.reward', {
                 tokens: (i + 1) * 100
               }),
-              locked: Math.max(_this32.game.s.extra.eventEarned, _this32.game.s.eventTokens) < (i + 1) * 100,
-              action: _this32.tr(_this32.game.s.claims.includes("event." + i) ? 'action.claimed' : 'action.claim'),
+              locked: Math.max(_this31.game.s.extra.eventEarned, _this31.game.s.eventTokens) < (i + 1) * 100,
+              action: _this31.tr(_this31.game.s.claims.includes("event." + i) ? 'action.claimed' : 'action.claim'),
               click: function click() {
-                return _this32.act(function () {
-                  return _this32.game.claimEvent(i);
+                return _this31.act(function () {
+                  return _this31.game.claimEvent(i);
                 }, function () {
-                  return _this32.events();
+                  return _this31.events();
                 });
               }
             };
           }));
         };
         _proto.board = function board() {
-          var _this33 = this;
+          var _this32 = this;
           var p = this.open(this.tr('event.board'), 610);
           this.label(p, this.tr('event.balance', {
             tokens: this.game.s.eventTokens
           }), 0, 215, 375, 40, 20, C.gold);
           var _loop6 = function _loop6(i) {
-            var v = _this33.game.s.board[i];
-            _this33.button(p, v ? _this33.tr('event.found', {
+            var v = _this32.game.s.board[i];
+            _this32.button(p, v ? _this32.tr('event.found', {
               gems: v * 5
-            }) : _this33.tr('event.tile', {
+            }) : _this32.tr('event.tile', {
               index: i + 1
             }), -147 + i % 4 * 98, 123 - Math.floor(i / 4) * 85, 88, 70, function () {
-              return _this33.act(function () {
-                return _this33.game.revealTile(i, _this33.id('tile'));
+              return _this32.act(function () {
+                return _this32.game.revealTile(i, _this32.id('tile'));
               }, function () {
-                return _this33.board();
+                return _this32.board();
               });
             }, !!v);
           };
@@ -40772,26 +40830,26 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             _loop6(i);
           }
           this.button(p, this.tr('action.back'), 0, -244, 365, 43, function () {
-            return _this33.events();
+            return _this32.events();
           });
         };
         _proto.meta = function meta() {
-          var _this34 = this;
+          var _this33 = this;
           var p = this.open(this.tr('meta.title'), 540);
           [['meta.souls', function () {
-            return _this34.extensions.souls();
+            return _this33.extensions.souls();
           }], ['meta.gems', function () {
-            return _this34.extensions.gems();
+            return _this33.extensions.gems();
           }], ['meta.research', function () {
-            return _this34.research();
+            return _this33.research();
           }], ['meta.monuments', function () {
-            return _this34.extensions.monuments();
+            return _this33.extensions.monuments();
           }]].forEach(function (v, i) {
-            return _this34.button(p, _this34.tr(v[0]), 0, 139 - i * 91, 372, 70, v[1]);
+            return _this33.button(p, _this33.tr(v[0]), 0, 139 - i * 91, 372, 70, v[1]);
           });
         };
         _proto.souls = function souls() {
-          var _this35 = this;
+          var _this34 = this;
           var s = this.game.s,
             p = this.open(this.tr('meta.souls'), 440);
           this.label(p, this.tr('meta.soulInfo', {
@@ -40799,15 +40857,15 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             count: s.titans.filter(Boolean).length
           }), 0, 60, 380, 160, 20);
           this.button(p, this.tr('meta.summon'), 0, -105, 370, 55, function () {
-            return _this35.act(function () {
-              return _this35.game.summon(_this35.id('summon'));
+            return _this34.act(function () {
+              return _this34.game.summon(_this34.id('summon'));
             }, function () {
-              return _this35.souls();
+              return _this34.souls();
             });
           }, true);
         };
         _proto.stones = function stones() {
-          var _this36 = this;
+          var _this35 = this;
           var s = this.game.s,
             p = this.open(this.tr('meta.gems'), 680);
           this.label(p, this.tr('meta.gemInfo', {
@@ -40815,15 +40873,15 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             count: s.stones.filter(Boolean).length
           }), 0, 251, 375, 42, 19, C.gold);
           this.button(p, this.tr('meta.crack'), 0, 190, 375, 46, function () {
-            return _this36.act(function () {
-              return _this36.game.crack(_this36.id('geode'));
+            return _this35.act(function () {
+              return _this35.game.crack(_this35.id('geode'));
             }, function () {
-              return _this36.stones();
+              return _this35.stones();
             });
           }, true);
           this.scroll(p, 0, -74, 400, 440, s.stones.map(function (level, i) {
             return {
-              title: _this36.tr('meta.stone', {
+              title: _this35.tr('meta.stone', {
                 index: i + 1,
                 level: level
               }),
@@ -40833,28 +40891,28 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.research = function research() {
-          var _this37 = this;
+          var _this36 = this;
           var s = this.game.s,
             p = this.open(this.tr('meta.research'), 650);
           this.scroll(p, 0, -25, 400, 520, s.research.map(function (level, i) {
             return {
-              title: _this37.tr('meta.researchNode', {
+              title: _this36.tr('meta.researchNode', {
                 index: i + 1,
                 level: level
               }),
-              action: _this37.tr('action.upgrade'),
+              action: _this36.tr('action.upgrade'),
               click: function click() {
-                return _this37.act(function () {
-                  return _this37.game.upgradeResearch(i, _this37.id('research'));
+                return _this36.act(function () {
+                  return _this36.game.upgradeResearch(i, _this36.id('research'));
                 }, function () {
-                  return _this37.research();
+                  return _this36.research();
                 });
               }
             };
           }));
         };
         _proto.monuments = function monuments() {
-          var _this38 = this;
+          var _this37 = this;
           var s = this.game.s,
             p = this.open(this.tr('meta.monuments'), 670);
           this.label(p, this.tr('meta.monumentInfo', {
@@ -40862,17 +40920,17 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }), 0, 225, 380, 80, 19, C.gold);
           this.scroll(p, 0, -66, 400, 460, s.monuments.map(function (level, i) {
             return {
-              title: _this38.tr('meta.monument', {
+              title: _this37.tr('meta.monument', {
                 index: i + 1,
                 level: level
               }),
-              action: _this38.tr('action.upgrade'),
+              action: _this37.tr('action.upgrade'),
               icon: i,
               click: function click() {
-                return _this38.act(function () {
-                  return _this38.game.monument(i, _this38.id('monument'));
+                return _this37.act(function () {
+                  return _this37.game.monument(i, _this37.id('monument'));
                 }, function () {
-                  return _this38.monuments();
+                  return _this37.monuments();
                 });
               }
             };
@@ -40881,7 +40939,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         _proto.remote = /*#__PURE__*/function () {
           var _remote = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(work) {
             var _this$tutorial3,
-              _this39 = this;
+              _this38 = this;
             var firstUseKey, before, _this$operations3, key;
             return _regeneratorRuntime().wrap(function _callee3$(_context3) {
               while (1) switch (_context3.prev = _context3.next) {
@@ -40909,7 +40967,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                   key = _context3.t0.message;
                   if (key === 'online.unreachable') {
                     this.confirm(this.tr('extra.retry'), this.tr(key), function () {
-                      void _this39.remote(work);
+                      void _this38.remote(work);
                     });
                   } else this.toast(this.tr(key.startsWith('online.') || key.startsWith('error.') || key.startsWith('extra.') ? key : 'online.serverError'));
                 case 16:
@@ -40942,14 +41000,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           return field;
         };
         _proto.guild = function guild() {
-          var _this40 = this;
+          var _this39 = this;
           void this.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
             var boot, guilds, _p, name, data, p, message;
             return _regeneratorRuntime().wrap(function _callee7$(_context7) {
               while (1) switch (_context7.prev = _context7.next) {
                 case 0:
                   _context7.next = 2;
-                  return _this40.onlineService.connect(_this40.tr('online.defaultName'));
+                  return _this39.onlineService.connect(_this39.tr('online.defaultName'));
                 case 2:
                   boot = _context7.sent;
                   if (boot.membership) {
@@ -40957,25 +41015,25 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                     break;
                   }
                   _context7.next = 6;
-                  return _this40.onlineService.request('/guilds');
+                  return _this39.onlineService.request('/guilds');
                 case 6:
                   guilds = _context7.sent;
-                  _p = _this40.open(_this40.tr('menu.clan'), 690);
-                  name = _this40.edit(_p, 0, 230, 375, 48, _this40.tr('online.guildName'));
+                  _p = _this39.open(_this39.tr('menu.clan'), 690);
+                  name = _this39.edit(_p, 0, 230, 375, 48, _this39.tr('online.guildName'));
                   name.maxLength = 24;
-                  _this40.button(_p, _this40.tr('online.create'), 0, 163, 375, 46, function () {
+                  _this39.button(_p, _this39.tr('online.create'), 0, 163, 375, 46, function () {
                     var value = name.string;
-                    void _this40.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+                    void _this39.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
                       return _regeneratorRuntime().wrap(function _callee4$(_context4) {
                         while (1) switch (_context4.prev = _context4.next) {
                           case 0:
                             _context4.next = 2;
-                            return _this40.onlineService.command('/guild/create', {
+                            return _this39.onlineService.command('/guild/create', {
                               name: value
                             });
                           case 2:
-                            _this40.remoteBusy = false;
-                            _this40.guild();
+                            _this39.remoteBusy = false;
+                            _this39.guild();
                           case 4:
                           case "end":
                             return _context4.stop();
@@ -40983,57 +41041,57 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                       }, _callee4);
                     })));
                   }, true);
-                  _this40.scroll(_p, 0, -80, 400, 400, guilds.map(function (g) {
+                  _this39.scroll(_p, 0, -80, 400, 400, guilds.map(function (g) {
                     return {
                       title: g.name,
-                      sub: _this40.tr('online.members', {
+                      sub: _this39.tr('online.members', {
                         count: g.members
                       }),
-                      action: _this40.tr('online.join'),
+                      action: _this39.tr('online.join'),
                       click: function click() {
-                        return _this40.extensions.joinGuild(g.id, g.name);
+                        return _this39.extensions.joinGuild(g.id, g.name);
                       }
                     };
                   }));
                   return _context7.abrupt("return");
                 case 13:
                   _context7.next = 15;
-                  return _this40.onlineService.request('/guild');
+                  return _this39.onlineService.request('/guild');
                 case 15:
                   data = _context7.sent;
-                  p = _this40.open(data.guild.name, 710);
-                  _this40.label(p, _this40.tr('online.members', {
+                  p = _this39.open(data.guild.name, 710);
+                  _this39.label(p, _this39.tr('online.members', {
                     count: data.members.length
                   }), -60, 271, 250, 30, 18, C.gold);
-                  _this40.button(p, '⋯', 164, 271, 55, 34, function () {
-                    return _this40.extensions.guildTools();
+                  _this39.button(p, '⋯', 164, 271, 55, 34, function () {
+                    return _this39.extensions.guildTools();
                   });
-                  _this40.button(p, _this40.tr('online.roster'), -101, 221, 185, 43, function () {
-                    return _this40.guildMembers(data);
+                  _this39.button(p, _this39.tr('online.roster'), -101, 221, 185, 43, function () {
+                    return _this39.guildMembers(data);
                   });
-                  _this40.button(p, _this40.tr('online.guildRaid'), 101, 221, 185, 43, function () {
-                    return _this40.guildRaid(data);
+                  _this39.button(p, _this39.tr('online.guildRaid'), 101, 221, 185, 43, function () {
+                    return _this39.guildRaid(data);
                   });
-                  _this40.scroll(p, 0, 10, 400, 355, data.messages.map(function (m) {
+                  _this39.scroll(p, 0, 10, 400, 355, data.messages.map(function (m) {
                     return {
                       title: m.name,
-                      sub: /^\[sticker:[0-5]\]$/.test(m.body) ? _this40.tr('extra.sticker.' + m.body[9]) : m.body
+                      sub: /^\[sticker:[0-5]\]$/.test(m.body) ? _this39.tr('extra.sticker.' + m.body[9]) : m.body
                     };
                   }));
-                  message = _this40.edit(p, -35, -216, 303, 46, _this40.tr('online.message'));
-                  _this40.button(p, _this40.tr('online.send'), 161, -216, 70, 46, function () {
+                  message = _this39.edit(p, -35, -216, 303, 46, _this39.tr('online.message'));
+                  _this39.button(p, _this39.tr('online.send'), 161, -216, 70, 46, function () {
                     var value = message.string;
-                    void _this40.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+                    void _this39.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
                       return _regeneratorRuntime().wrap(function _callee5$(_context5) {
                         while (1) switch (_context5.prev = _context5.next) {
                           case 0:
                             _context5.next = 2;
-                            return _this40.onlineService.command('/guild/chat', {
+                            return _this39.onlineService.command('/guild/chat', {
                               body: value
                             });
                           case 2:
-                            _this40.remoteBusy = false;
-                            _this40.guild();
+                            _this39.remoteBusy = false;
+                            _this39.guild();
                           case 4:
                           case "end":
                             return _context5.stop();
@@ -41041,20 +41099,20 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                       }, _callee5);
                     })));
                   }, true);
-                  _this40.button(p, _this40.tr('online.refresh'), -101, -281, 185, 44, function () {
-                    return _this40.guild();
+                  _this39.button(p, _this39.tr('online.refresh'), -101, -281, 185, 44, function () {
+                    return _this39.guild();
                   });
-                  _this40.button(p, _this40.tr('online.leave'), 101, -281, 185, 44, function () {
-                    return _this40.confirm(_this40.tr('online.leave'), _this40.tr('online.leaveConfirm'), function () {
-                      void _this40.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+                  _this39.button(p, _this39.tr('online.leave'), 101, -281, 185, 44, function () {
+                    return _this39.confirm(_this39.tr('online.leave'), _this39.tr('online.leaveConfirm'), function () {
+                      void _this39.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
                         return _regeneratorRuntime().wrap(function _callee6$(_context6) {
                           while (1) switch (_context6.prev = _context6.next) {
                             case 0:
                               _context6.next = 2;
-                              return _this40.onlineService.command('/guild/leave');
+                              return _this39.onlineService.command('/guild/leave');
                             case 2:
-                              _this40.remoteBusy = false;
-                              _this40.guild();
+                              _this39.remoteBusy = false;
+                              _this39.guild();
                             case 4:
                             case "end":
                               return _context6.stop();
@@ -41071,34 +41129,34 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           })));
         };
         _proto.guildMembers = function guildMembers(data) {
-          var _this41 = this;
+          var _this40 = this;
           var p = this.open(this.tr('online.roster'), 650);
           this.scroll(p, 0, -28, 400, 520, data.members.map(function (m) {
             return {
               title: m.name,
               detail: function detail() {
-                return _this41.extensions.member(m.id);
+                return _this40.extensions.member(m.id);
               },
-              sub: _this41.tr(m.role === 'leader' ? 'online.leader' : 'online.member'),
-              action: data.role === 'leader' && m.id !== _this41.onlineService.accountId ? _this41.tr('action.details') : undefined,
+              sub: _this40.tr(m.role === 'leader' ? 'online.leader' : 'online.member'),
+              action: data.role === 'leader' && m.id !== _this40.onlineService.accountId ? _this40.tr('action.details') : undefined,
               click: function click() {
-                if (data.role !== 'leader' || m.id === _this41.onlineService.accountId) return;
-                var box = _this41.open(m.name, 350);
+                if (data.role !== 'leader' || m.id === _this40.onlineService.accountId) return;
+                var box = _this40.open(m.name, 350);
                 ['transfer', 'kick'].forEach(function (action, i) {
-                  return _this41.button(box, _this41.tr("online." + action), 0, 30 - i * 86, 360, 55, function () {
-                    return _this41.confirm(_this41.tr("online." + action), m.name, function () {
-                      void _this41.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
+                  return _this40.button(box, _this40.tr("online." + action), 0, 30 - i * 86, 360, 55, function () {
+                    return _this40.confirm(_this40.tr("online." + action), m.name, function () {
+                      void _this40.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
                         return _regeneratorRuntime().wrap(function _callee8$(_context8) {
                           while (1) switch (_context8.prev = _context8.next) {
                             case 0:
                               _context8.next = 2;
-                              return _this41.onlineService.command('/guild/role', {
+                              return _this40.onlineService.command('/guild/role', {
                                 target: m.id,
                                 action: action
                               });
                             case 2:
-                              _this41.remoteBusy = false;
-                              _this41.guild();
+                              _this40.remoteBusy = false;
+                              _this40.guild();
                             case 4:
                             case "end":
                               return _context8.stop();
@@ -41113,21 +41171,21 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.guildRaid = function guildRaid(data) {
-          var _this42 = this;
+          var _this41 = this;
           var p = this.open(this.tr('online.guildRaid'), 440);
           this.label(p, this.tr('online.guildHP', {
             hp: display(data.guild.raid_hp)
           }), 0, 90, 380, 60, 24, C.ember);
           this.label(p, this.tr('online.guildRaidInfo'), 0, 9, 380, 90, 18, C.muted);
           this.button(p, this.tr('action.attack'), 0, -124, 370, 55, function () {
-            _this42.extensions.guildBattle();
+            _this41.extensions.guildBattle();
           }, true);
         };
         _proto.competition = function competition() {
           this.extensions.tournaments();
         };
         _proto.competitionBattle = function competitionBattle(state) {
-          var _this43 = this;
+          var _this42 = this;
           var p = this.open(this.tr(this.competitionId < 0 ? 'complete.regular' : 'online.abyss'), 680);
           this.label(p, this.tr('hud.stage', {
             stage: state.run.stage
@@ -41140,20 +41198,20 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             if (hero === void 0) {
               hero = -1;
             }
-            void _this43.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
+            void _this42.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
               var result;
               return _regeneratorRuntime().wrap(function _callee9$(_context9) {
                 while (1) switch (_context9.prev = _context9.next) {
                   case 0:
                     _context9.next = 2;
-                    return _this43.onlineService.command('/competition/action', {
-                      id: _this43.competitionId,
+                    return _this42.onlineService.command('/competition/action', {
+                      id: _this42.competitionId,
                       action: action,
                       hero: hero
                     });
                   case 2:
                     result = _context9.sent;
-                    _this43.competitionBattle(result.state);
+                    _this42.competitionBattle(result.state);
                   case 4:
                   case "end":
                     return _context9.stop();
@@ -41179,20 +41237,20 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return command('boss');
           });
           this.button(p, this.tr('online.backMain'), 0, -270, 375, 50, function () {
-            _this43.close();
-            _this43.drawPanel();
+            _this42.close();
+            _this42.drawPanel();
           });
         };
         _proto.spells = function spells(slot) {
-          var _this44 = this;
+          var _this43 = this;
           if (slot === void 0) {
             slot = 0;
           }
           var s = this.game.s,
             p = this.open(this.tr('spell.title'), 715);
           var _loop7 = function _loop7(j) {
-            _this44.button(p, String(j + 1), -165 + j * 66, 260, 60, 40, function () {
-              return _this44.spells(j);
+            _this43.button(p, String(j + 1), -165 + j * 66, 260, 60, 40, function () {
+              return _this43.spells(j);
             }, j === slot);
           };
           for (var j = 0; j < 6; j++) {
@@ -41206,50 +41264,50 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }).map(function (c) {
             return {
               locked: s.run.master < c.unlock,
-              title: _this44.tr("spell." + c.id),
-              sub: _this44.tr('spell.detail', {
+              title: _this43.tr("spell." + c.id),
+              sub: _this43.tr('spell.detail', {
                 level: s.run.spellLevels[c.id],
                 unlock: c.unlock,
-                mana: _this44.game.spellMana(c.id)
+                mana: _this43.game.spellMana(c.id)
               }),
               icon: c.id,
               tint: C.violet,
-              action: _this44.tr(s.spellSlots.includes(c.id) ? 'action.details' : 'action.select'),
+              action: _this43.tr(s.spellSlots.includes(c.id) ? 'action.details' : 'action.select'),
               click: function click() {
                 if (s.spellSlots.includes(c.id)) {
-                  var box = _this44.open(_this44.tr("spell." + c.id), 400);
-                  _this44.label(box, _this44.tr('spell.detail', {
+                  var box = _this43.open(_this43.tr("spell." + c.id), 400);
+                  _this43.label(box, _this43.tr('spell.detail', {
                     level: s.run.spellLevels[c.id],
                     unlock: c.unlock,
-                    mana: _this44.game.spellMana(c.id)
+                    mana: _this43.game.spellMana(c.id)
                   }), 0, 70, 375, 70, 20);
-                  _this44.label(box, _this44.tr('spell.multicast'), 0, 0, 375, 60, 16, C.muted);
-                  _this44.button(box, _this44.tr('action.upgrade'), 0, -106, 360, 50, function () {
-                    if (_this44.game.upgradeSpell(c.id)) {
-                      _this44.close();
-                      _this44.drawPanel();
-                      _this44.spells(slot);
-                    } else _this44.flushNotice();
+                  _this43.label(box, _this43.tr('spell.multicast'), 0, 0, 375, 60, 16, C.muted);
+                  _this43.button(box, _this43.tr('action.upgrade'), 0, -106, 360, 50, function () {
+                    if (_this43.game.upgradeSpell(c.id)) {
+                      _this43.close();
+                      _this43.drawPanel();
+                      _this43.spells(slot);
+                    } else _this43.flushNotice();
                   }, true, {
                     unavailable: function unavailable() {
-                      return s.run.spellLevels[c.id] >= c.cap ? _this44.tr('action.maxReached') : s.run.master < c.unlock ? _this44.tr('action.needLevel', {
+                      return s.run.spellLevels[c.id] >= c.cap ? _this43.tr('action.maxReached') : s.run.master < c.unlock ? _this43.tr('action.needLevel', {
                         level: c.unlock
-                      }) : _this44.costReason('gold', _this44.game.spellUpgradeCost(c.id));
+                      }) : _this43.costReason('gold', _this43.game.spellUpgradeCost(c.id));
                     }
                   });
-                } else _this44.confirm(_this44.tr('spell.title'), _this44.tr('spell.swap'), function () {
-                  if (_this44.game.selectSpell(slot, c.id)) {
-                    _this44.close();
-                    _this44.draw();
-                    _this44.spells(slot);
-                  } else _this44.flushNotice();
+                } else _this43.confirm(_this43.tr('spell.title'), _this43.tr('spell.swap'), function () {
+                  if (_this43.game.selectSpell(slot, c.id)) {
+                    _this43.close();
+                    _this43.draw();
+                    _this43.spells(slot);
+                  } else _this43.flushNotice();
                 });
               }
             };
           }));
         };
         _proto.skillNode = function skillNode(i) {
-          var _this45 = this;
+          var _this44 = this;
           var branch = Math.floor(i / 3),
             p = this.open(this.tr('skills.node', {
               branch: this.tr("branch." + branch),
@@ -41260,24 +41318,24 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.ui.icon(this.nodeAt(card, 'skill-art', -136, 0, 64, 64), ['sword', 'fox', 'flag', 'lightning', 'adventurer', 'scroll'][branch]);
           this.label(card, this.tr('skills.info'), 39, 0, 254, 100, 14, '#38696b');
           this.button(p, '−', -90, -57, 160, 54, function () {
-            _this45.draft[i] = Math.max(0, _this45.draft[i] - 1);
-            _this45.skillNode(i);
+            _this44.draft[i] = Math.max(0, _this44.draft[i] - 1);
+            _this44.skillNode(i);
           }, false, {
             style: 'quiet',
             fontSize: 23
           });
           this.button(p, '+', 90, -57, 160, 54, function () {
-            _this45.draft[i] = Math.min(SKILLS[i].max, _this45.draft[i] + 1);
-            _this45.skillNode(i);
+            _this44.draft[i] = Math.min(SKILLS[i].max, _this44.draft[i] + 1);
+            _this44.skillNode(i);
           }, true, {
             fontSize: 23
           });
           this.button(p, this.tr('action.back'), 0, -157, 350, 44, function () {
-            return _this45.skills(false);
+            return _this44.skills(false);
           });
         };
         _proto.artifactDetail = function artifactDetail(i) {
-          var _this46 = this;
+          var _this45 = this;
           this.tutorial.complete('first:artifact');
           var s = this.game.s,
             p = this.open(this.tr("artifact." + i), 530);
@@ -41287,162 +41345,162 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
           this.metric(p, ['sword', 'symbol:hand', 'adventurer', 'symbol:coin'][i % 4], this.artifactMultiplier(i), 96, 69, 164, this.tr("effect." + i % 4));
           this.button(p, this.format(this.game.artifactCost(i)), 0, -9, 370, 54, function () {
-            return _this46.act(function () {
-              return _this46.game.upgradeArtifact(i, _this46.id('artifact'));
+            return _this45.act(function () {
+              return _this45.game.upgradeArtifact(i, _this45.id('artifact'));
             }, function () {
-              _this46.drawPanel();
-              _this46.artifactDetail(i);
+              _this45.drawPanel();
+              _this45.artifactDetail(i);
             });
           }, true, {
             icon: 'symbol:plus',
             hint: this.tr('action.upgrade'),
             unavailable: function unavailable() {
-              return _this46.costReason('relics', _this46.game.artifactCost(i));
+              return _this45.costReason('relics', _this45.game.artifactCost(i));
             }
           });
           this.button(p, this.tr('artifact.salvage'), -96, -91, 178, 54, function () {
-            return _this46.confirm(_this46.tr('artifact.salvage'), _this46.tr('artifact.salvageInfo'), function () {
-              return _this46.act(function () {
-                return _this46.game.salvageArtifact(i, _this46.id('salvage'));
+            return _this45.confirm(_this45.tr('artifact.salvage'), _this45.tr('artifact.salvageInfo'), function () {
+              return _this45.act(function () {
+                return _this45.game.salvageArtifact(i, _this45.id('salvage'));
               }, function () {
-                _this46.close();
-                _this46.drawPanel();
+                _this45.close();
+                _this45.drawPanel();
               });
             });
           }, false, {
             style: 'danger',
             unavailable: function unavailable() {
-              return s.enchanted[i] ? _this46.tr('error.protected') : _this46.costReason('gems', 20);
+              return s.enchanted[i] ? _this45.tr('error.protected') : _this45.costReason('gems', 20);
             }
           });
           this.button(p, this.tr('ui.enchantCost', {
             cost: 1000
           }), 96, -91, 178, 54, function () {
-            return _this46.act(function () {
-              return _this46.game.enchantArtifact(i, _this46.id('enchant'));
+            return _this45.act(function () {
+              return _this45.game.enchantArtifact(i, _this45.id('enchant'));
             }, function () {
-              return _this46.artifactDetail(i);
+              return _this45.artifactDetail(i);
             });
           }, false, {
             icon: 'lightning',
             hint: this.tr('artifact.enchantInfo'),
             unavailable: function unavailable() {
-              return s.enchanted[i] ? _this46.tr('action.alreadyApplied') : !s.artifacts.every(function (v) {
+              return s.enchanted[i] ? _this45.tr('action.alreadyApplied') : !s.artifacts.every(function (v) {
                 return v > 0;
-              }) ? _this46.tr('artifact.enchantInfo') : _this46.costReason('relics', 3);
+              }) ? _this45.tr('artifact.enchantInfo') : _this45.costReason('relics', 3);
             }
           });
           this.button(p, this.tr('ui.iconHelp'), 0, -193, 370, 44, function () {
-            return _this46.info(_this46.tr("artifact." + i), _this46.tr("effect." + i % 4) + '\n' + _this46.tr('artifact.enchantInfo'));
+            return _this45.info(_this45.tr("artifact." + i), _this45.tr("effect." + i % 4) + '\n' + _this45.tr('artifact.enchantInfo'));
           }, false, {
             icon: 'symbol:info',
             iconOnly: true
           });
         };
         _proto.salvaged = function salvaged() {
-          var _this47 = this;
+          var _this46 = this;
           var p = this.open(this.tr('artifact.salvaged'), 600);
           this.scroll(p, 0, -24, 400, 480, this.game.s.salvaged.map(function (i) {
             return {
-              title: _this47.tr("artifact." + i),
-              sub: _this47.tr('artifact.rebuyInfo'),
+              title: _this46.tr("artifact." + i),
+              sub: _this46.tr('artifact.rebuyInfo'),
               unavailable: function unavailable() {
-                return _this47.costReason('gems', 25);
+                return _this46.costReason('gems', 25);
               },
               icon: i,
-              action: _this47.tr('action.buy'),
+              action: _this46.tr('action.buy'),
               click: function click() {
-                return _this47.act(function () {
-                  return _this47.game.rebuyArtifact(i, _this47.id('rebuy'));
+                return _this46.act(function () {
+                  return _this46.game.rebuyArtifact(i, _this46.id('rebuy'));
                 }, function () {
-                  _this47.drawPanel();
-                  _this47.salvaged();
+                  _this46.drawPanel();
+                  _this46.salvaged();
                 });
               }
             };
           }));
         };
         _proto.equipmentTools = function equipmentTools() {
-          var _this48 = this;
+          var _this47 = this;
           var p = this.open(this.tr('nav.equipment'), 460);
           [['equipment.sets', function () {
-            return _this48.sets();
+            return _this47.sets();
           }], ['equipment.bulk', function () {
-            return _this48.confirm(_this48.tr('equipment.bulk'), _this48.tr('equipment.bulkInfo'), function () {
-              return _this48.act(function () {
-                return _this48.game.sell(_this48.game.s.equipment.filter(function (e) {
-                  return !e.locked && !_this48.game.s.equipped.includes(e.id);
+            return _this47.confirm(_this47.tr('equipment.bulk'), _this47.tr('equipment.bulkInfo'), function () {
+              return _this47.act(function () {
+                return _this47.game.sell(_this47.game.s.equipment.filter(function (e) {
+                  return !e.locked && !_this47.game.s.equipped.includes(e.id);
                 }).map(function (e) {
                   return e.id;
-                }), _this48.id('bulk'));
+                }), _this47.id('bulk'));
               }, function () {
-                _this48.close();
-                _this48.drawPanel();
+                _this47.close();
+                _this47.drawPanel();
               });
             });
           }], ['equipment.transmog', function () {
-            return _this48.transmog();
+            return _this47.transmog();
           }]].forEach(function (v, i) {
-            return _this48.button(p, _this48.tr(v[0]), 0, 114 - i * 96, 375, 60, v[1]);
+            return _this47.button(p, _this47.tr(v[0]), 0, 114 - i * 96, 375, 60, v[1]);
           });
         };
         _proto.transmog = function transmog() {
-          var _this49 = this;
+          var _this48 = this;
           var p = this.open(this.tr('equipment.transmog'), 650);
           this.scroll(p, 0, -24, 400, 520, this.game.s.equipment.map(function (e) {
             return {
-              title: _this49.itemName(e),
+              title: _this48.itemName(e),
               icon: e.slot,
-              action: _this49.tr('action.apply'),
+              action: _this48.tr('action.apply'),
               click: function click() {
-                return _this49.act(function () {
-                  return _this49.game.transmog(e.slot, e.id, _this49.id('transmog'));
+                return _this48.act(function () {
+                  return _this48.game.transmog(e.slot, e.id, _this48.id('transmog'));
                 }, function () {
-                  _this49.close();
-                  _this49.draw();
+                  _this48.close();
+                  _this48.draw();
                 });
               }
             };
           }));
         };
         _proto.achievements = function achievements() {
-          var _this50 = this;
+          var _this49 = this;
           var p = this.open(this.tr('achievement.title'), 570);
           this.scroll(p, 0, -24, 400, 450, [0, 1, 2, 3].map(function (i) {
             return {
-              title: _this50.tr("achievement." + i),
-              sub: _this50.tr('daily.progress', {
-                current: _this50.game.achievementProgress(i),
-                goal: _this50.game.achievementGoal(i)
+              title: _this49.tr("achievement." + i),
+              sub: _this49.tr('daily.progress', {
+                current: _this49.game.achievementProgress(i),
+                goal: _this49.game.achievementGoal(i)
               }),
               icon: i,
               tint: C.gold,
-              action: _this50.tr('action.claim'),
+              action: _this49.tr('action.claim'),
               click: function click() {
-                return _this50.act(function () {
-                  return _this50.game.claimAchievement(i, _this50.id('achievement'));
+                return _this49.act(function () {
+                  return _this49.game.claimAchievement(i, _this49.id('achievement'));
                 }, function () {
-                  return _this50.achievements();
+                  return _this49.achievements();
                 });
               }
             };
           }));
         };
         _proto.globalRaid = function globalRaid() {
-          var _this51 = this;
+          var _this50 = this;
           void this.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10() {
             var data;
             return _regeneratorRuntime().wrap(function _callee10$(_context10) {
               while (1) switch (_context10.prev = _context10.next) {
                 case 0:
                   _context10.next = 2;
-                  return _this51.onlineService.connect(_this51.tr('online.defaultName'));
+                  return _this50.onlineService.connect(_this50.tr('online.defaultName'));
                 case 2:
                   _context10.next = 4;
-                  return _this51.onlineService.request('/global');
+                  return _this50.onlineService.request('/global');
                 case 4:
                   data = _context10.sent;
-                  _this51.globalRaidPanel(data);
+                  _this50.globalRaidPanel(data);
                 case 6:
                 case "end":
                   return _context10.stop();
@@ -41451,22 +41509,22 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           })));
         };
         _proto.globalRaidPanel = function globalRaidPanel(data) {
-          var _this52 = this;
+          var _this51 = this;
           var p = this.open(this.tr('extra.globalRaid'), 450);
           this.label(p, this.tr('online.guildHP', {
             hp: display(data.hp)
           }), 0, 90, 375, 70, 24);
           this.button(p, this.tr('action.attack'), 0, -65, 375, 60, function () {
-            void _this52.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
+            void _this51.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
               var next;
               return _regeneratorRuntime().wrap(function _callee11$(_context11) {
                 while (1) switch (_context11.prev = _context11.next) {
                   case 0:
                     _context11.next = 2;
-                    return _this52.onlineService.command('/global/attack');
+                    return _this51.onlineService.command('/global/attack');
                   case 2:
                     next = _context11.sent;
-                    _this52.globalRaidPanel(next);
+                    _this51.globalRaidPanel(next);
                   case 4:
                   case "end":
                     return _context11.stop();
@@ -41476,27 +41534,27 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }, true);
         };
         _proto.eventRanks = function eventRanks() {
-          var _this53 = this;
+          var _this52 = this;
           void this.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12() {
             var rows, p;
             return _regeneratorRuntime().wrap(function _callee12$(_context12) {
               while (1) switch (_context12.prev = _context12.next) {
                 case 0:
                   _context12.next = 2;
-                  return _this53.onlineService.connect(_this53.tr('online.defaultName'));
+                  return _this52.onlineService.connect(_this52.tr('online.defaultName'));
                 case 2:
                   _context12.next = 4;
-                  return _this53.onlineService.request('/global/ranks');
+                  return _this52.onlineService.request('/global/ranks');
                 case 4:
                   rows = _context12.sent;
-                  p = _this53.open(_this53.tr('extra.eventRanks'), 660);
-                  _this53.scroll(p, 0, -25, 400, 530, rows.map(function (r, i) {
+                  p = _this52.open(_this52.tr('extra.eventRanks'), 660);
+                  _this52.scroll(p, 0, -25, 400, 530, rows.map(function (r, i) {
                     return {
-                      title: _this53.tr('online.rank', {
+                      title: _this52.tr('online.rank', {
                         rank: i + 1,
                         name: r.name
                       }),
-                      sub: _this53.tr('extra.contribution', {
+                      sub: _this52.tr('extra.contribution', {
                         value: r.damage
                       })
                     };
@@ -41509,7 +41567,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           })));
         };
         _proto.updateHUD = function updateHUD() {
-          var _this54 = this;
+          var _this53 = this;
           this.buttonStates = this.buttonStates.filter(function (b) {
             return isValid(b.node, true);
           });
@@ -41528,7 +41586,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return l.string = String(Math.max(1, r.stage + (i ? 1 : -1)));
           });
           this.enemyLabel.string = this.tr('battle.wave', {
-            count: survivingEnemies(waveSize(r.stage, r.boss), ratio(r.hp, g.maxHP()))
+            count: g.enemyHealth().filter(function (h) {
+              return h !== ZERO;
+            }).length
           });
           this.goldLabel.string = this.format(r.gold);
           this.gemsLabel.string = String(g.s.gems);
@@ -41544,7 +41604,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var l = this.bossButton.getComponentInChildren(Label);
           if (l) l.string = this.tr(r.boss ? 'battle.leave' : 'battle.fight');
           this.spellLabels.forEach(function (l, slot) {
-            var i = _this54.spellShown[slot];
+            var i = _this53.spellShown[slot];
             l.string = r.master < SPELLS[i].unlock ? String(SPELLS[i].unlock) : r.cooldowns[i] > 0 ? String(Math.ceil(r.cooldowns[i])) : '✓';
           });
         };
@@ -41562,16 +41622,17 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             position: new Vec3(-64, 12, 0)
           }).start();
           this.fireBurst(-64, 51);
+          var target = this.shotTarget();
           var damage = this.game.tap();
           this.sound(170 + Math.random() * 50);
-          var n = this.label(this.particles, this.format(damage), 138 + (Math.random() - .5) * 40, 155, 180, 40, 25, UI.brightGold).node;
+          var n = this.label(this.particles, this.format(damage), target.x + (Math.random() - .5) * 12, target.y + 28, 180, 40, 25, UI.brightGold).node;
           n.addComponent(UIOpacity);
           tween(n).by(.6, {
             position: new Vec3(0, 70, 0)
           }).call(function () {
             if (isValid(n, true)) n.destroy();
           }).start();
-          this.bulletImpact(138, 48);
+          this.bulletImpact(target.x, target.y);
           this.enemy.setPosition(2, 0);
           tween(this.enemy).to(.08, {
             position: new Vec3(0, 0, 0)
@@ -41617,11 +41678,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }).start();
         };
         _proto.spark = function spark(x, y, color) {
-          var _this55 = this;
+          var _this54 = this;
           var magic = color === C.violet;
           this.burst(magic ? 'ring' : 'impact', x, y, magic ? 92 : 66, magic ? .3 : .2);
           var _loop8 = function _loop8() {
-            var n = _this55.combatSprite(magic ? 'shard' : 'sparkle', 'hit-particle', x, y, 12 + i % 3 * 3);
+            var n = _this54.combatSprite(magic ? 'shard' : 'sparkle', 'hit-particle', x, y, 12 + i % 3 * 3);
             if (!n) return 1; // continue
             var angle = i * Math.PI / 3 + Math.random() * .3,
               opacity = n.addComponent(UIOpacity);
@@ -41661,7 +41722,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           } catch (_unused) {}
         };
         _proto.toast = function toast(text) {
-          var _this56 = this;
+          var _this55 = this;
           if (this.toastNode && isValid(this.toastNode, true)) {
             this.toastNode.removeFromParent();
             this.toastNode.destroy();
@@ -41671,7 +41732,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.label(n, text, 0, 0, 404, 72, 16, C.text);
           tween(n).delay(3.2).call(function () {
             if (isValid(n, true)) n.destroy();
-            if (_this56.toastNode === n) _this56.toastNode = null;
+            if (_this55.toastNode === n) _this55.toastNode = null;
           }).start();
         };
         _proto.flushNotice = function flushNotice() {
@@ -41715,7 +41776,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             for (var _iterator2 = _createForOfIteratorHelperLoose(this.game.heroEvents), _step2; !(_step2 = _iterator2()).done;) {
               var event = _step2.value;
               if (event.phase === 'attack') this.animateAlly(event.hero, event.windup);else {
-                var target = this.shotTarget();
+                var target = this.shotTarget(event.target);
                 this.bulletImpact(target.x, target.y);
                 this.sound(120);
               }
@@ -46522,6 +46583,7 @@ System.register("chunks:///_virtual/PrototypeCheats.ts", ['cc', './Game.ts', './
           r.bossLeft = 30;
           r.bossFailed = false;
           r.hp = g.maxHP(stage, false);
+          g.resetEnemies();
           g.s.maxStage = Math.max(g.s.maxStage, stage);
           g.s.tutorial.step = TUTORIAL_DONE;
         }
