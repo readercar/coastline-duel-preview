@@ -560,8 +560,8 @@ System.register("chunks:///_virtual/EntryPolicy.ts", ['cc'], function (exports) 
   };
 });
 
-System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './UITheme.ts', './EntryPolicy.ts', './LiveOps.ts'], function (exports) {
-  var _createClass, _asyncToGenerator, _regeneratorRuntime, cclegacy, Mask, sys, UITransform, Label, ScrollView, UI, CONSENT_KEY, consentReceipt, parseConsent, requiresUpdate;
+System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './UITheme.ts', './EntryPolicy.ts', './FeedbackUI.ts', './TutorialUI.ts', './LiveOps.ts'], function (exports) {
+  var _createClass, _asyncToGenerator, _regeneratorRuntime, cclegacy, Mask, sys, UITransform, Label, ScrollView, UI, CONSENT_KEY, consentReceipt, parseConsent, FeedbackUI, TutorialUI, requiresUpdate;
   return {
     setters: [function (module) {
       _createClass = module.createClass;
@@ -580,6 +580,10 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
       CONSENT_KEY = module.CONSENT_KEY;
       consentReceipt = module.consentReceipt;
       parseConsent = module.parseConsent;
+    }, function (module) {
+      FeedbackUI = module.FeedbackUI;
+    }, function (module) {
+      TutorialUI = module.TutorialUI;
     }, function (module) {
       requiresUpdate = module.requiresUpdate;
     }],
@@ -635,8 +639,10 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
           } else this.afterConsent();
         };
         _proto.afterConsent = function afterConsent() {
-          this.screen = this.a.liveOps.push.choice === null ? 'push' : 'login';
-          this.a.draw();
+          if (this.a.liveOps.push.choice === null) {
+            this.screen = 'push';
+            this.a.draw();
+          } else void this.login('guest', false, true);
         };
         _proto.draw = function draw() {
           var _this = this;
@@ -807,39 +813,91 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
             fontSize: 12
           });
         };
-        _proto.choosePush = /*#__PURE__*/function () {
-          var _choosePush = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(enabled) {
+        _proto.logout = /*#__PURE__*/function () {
+          var _logout = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
             return _regeneratorRuntime().wrap(function _callee$(_context) {
               while (1) switch (_context.prev = _context.next) {
                 case 0:
-                  if (!this.busy) {
-                    _context.next = 2;
+                  if (!(this.busy || this.a.operations.busy || this.a.remoteBusy || this.a.liveOps.checking)) {
+                    _context.next = 3;
                     break;
                   }
+                  this.a.toast(this.a.tr('money.busy'));
                   return _context.abrupt("return");
-                case 2:
+                case 3:
                   this.busy = true;
-                  _context.prev = 3;
-                  _context.next = 6;
-                  return this.a.liveOps.push.set(enabled, this.a.game.s.locale);
-                case 6:
-                  this.screen = 'login';
+                  this.screen = 'loading';
+                  this.stage(.1, 'entry.loadSave');
+                  _context.prev = 6;
+                  _context.next = 9;
+                  return this.a.operations.save();
+                case 9:
+                  _context.next = 11;
+                  return this.a.operations.endSession();
+                case 11:
+                  sys.localStorage.removeItem('tapwar-login-method');
+                  this.screen = 'title';
+                  this.a.close();
                   this.a.draw();
-                  _context.next = 13;
+                  _context.next = 22;
                   break;
-                case 10:
-                  _context.prev = 10;
-                  _context.t0 = _context["catch"](3);
-                  this.a.toast(this.a.tr('online.unreachable'));
-                case 13:
-                  _context.prev = 13;
+                case 17:
+                  _context.prev = 17;
+                  _context.t0 = _context["catch"](6);
+                  this.screen = 'game';
+                  this.a.draw();
+                  this.a.toast(this.a.tr(/^(online|entry|error)\./.test(_context.t0.message) ? _context.t0.message : 'online.unreachable'));
+                case 22:
+                  _context.prev = 22;
                   this.busy = false;
-                  return _context.finish(13);
-                case 16:
+                  return _context.finish(22);
+                case 25:
                 case "end":
                   return _context.stop();
               }
-            }, _callee, this, [[3, 10, 13, 16]]);
+            }, _callee, this, [[6, 17, 22, 25]]);
+          }));
+          function logout() {
+            return _logout.apply(this, arguments);
+          }
+          return logout;
+        }();
+        _proto.choosePush = /*#__PURE__*/function () {
+          var _choosePush = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(enabled) {
+            var selected;
+            return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+              while (1) switch (_context2.prev = _context2.next) {
+                case 0:
+                  if (!this.busy) {
+                    _context2.next = 2;
+                    break;
+                  }
+                  return _context2.abrupt("return");
+                case 2:
+                  this.busy = true;
+                  selected = false;
+                  _context2.prev = 4;
+                  _context2.next = 7;
+                  return this.a.liveOps.push.set(enabled, this.a.game.s.locale);
+                case 7:
+                  selected = true;
+                  _context2.next = 13;
+                  break;
+                case 10:
+                  _context2.prev = 10;
+                  _context2.t0 = _context2["catch"](4);
+                  this.a.toast(this.a.tr('online.unreachable'));
+                case 13:
+                  _context2.prev = 13;
+                  this.busy = false;
+                  return _context2.finish(13);
+                case 16:
+                  if (selected) this.afterConsent();
+                case 17:
+                case "end":
+                  return _context2.stop();
+              }
+            }, _callee2, this, [[4, 10, 13, 16]]);
           }));
           function choosePush(_x) {
             return _choosePush.apply(this, arguments);
@@ -860,98 +918,139 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
           });
         };
         _proto.login = /*#__PURE__*/function () {
-          var _login = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(method, allowSwitch) {
+          var _login = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(method, allowSwitch, resume) {
             var _this4 = this;
-            var policy, key;
-            return _regeneratorRuntime().wrap(function _callee2$(_context2) {
-              while (1) switch (_context2.prev = _context2.next) {
+            var session, policy, key;
+            return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+              while (1) switch (_context3.prev = _context3.next) {
                 case 0:
                   if (allowSwitch === void 0) {
                     allowSwitch = false;
                   }
+                  if (resume === void 0) {
+                    resume = false;
+                  }
                   if (!(this.busy || !this.accepted || this.a.liveOps.push.choice === null)) {
-                    _context2.next = 3;
+                    _context3.next = 4;
                     break;
                   }
-                  return _context2.abrupt("return");
-                case 3:
+                  return _context3.abrupt("return");
+                case 4:
                   this.busy = true;
                   this.screen = 'loading';
                   this.error = '';
                   this.stage(.08, 'entry.loadAuth');
-                  _context2.prev = 7;
-                  _context2.next = 10;
+                  _context3.prev = 8;
+                  _context3.next = 11;
                   return this.frame();
-                case 10:
-                  this.a.operations.useCloud = method === 'google';
-                  if (!(method === 'google')) {
-                    _context2.next = 16;
+                case 11:
+                  if (!resume) {
+                    _context3.next = 26;
                     break;
                   }
-                  _context2.next = 14;
-                  return this.a.cloud.loginGoogle(allowSwitch);
-                case 14:
-                  _context2.next = 23;
-                  break;
-                case 16:
+                  this.a.operations.useCloud = sys.localStorage.getItem('tapwar-login-method') === 'google';
                   if (!this.a.operations.local) {
-                    _context2.next = 21;
+                    _context3.next = 17;
                     break;
                   }
-                  _context2.next = 19;
-                  return this.a.onlineService.connect(this.a.tr('online.defaultName'));
-                case 19:
-                  _context2.next = 23;
+                  _context3.t0 = this.a.onlineService.token && this.a.onlineService.accountId ? 'guest' : null;
+                  _context3.next = 20;
                   break;
-                case 21:
-                  _context2.next = 23;
-                  return this.a.cloud.loginGuest();
-                case 23:
-                  this.stage(.32, 'entry.loadPolicy');
-                  _context2.next = 26;
-                  return this.frame();
+                case 17:
+                  _context3.next = 19;
+                  return this.a.cloud.resume();
+                case 19:
+                  _context3.t0 = _context3.sent;
+                case 20:
+                  session = _context3.t0;
+                  if (session) {
+                    _context3.next = 25;
+                    break;
+                  }
+                  this.screen = 'login';
+                  this.a.draw();
+                  return _context3.abrupt("return");
+                case 25:
+                  method = session;
                 case 26:
-                  _context2.next = 28;
+                  this.a.operations.useCloud = method === 'google';
+                  if (!(!resume && method === 'google')) {
+                    _context3.next = 32;
+                    break;
+                  }
+                  _context3.next = 30;
+                  return this.a.cloud.loginGoogle(allowSwitch);
+                case 30:
+                  _context3.next = 40;
+                  break;
+                case 32:
+                  if (!this.a.operations.local) {
+                    _context3.next = 37;
+                    break;
+                  }
+                  _context3.next = 35;
+                  return this.a.onlineService.connect(this.a.tr('online.defaultName'));
+                case 35:
+                  _context3.next = 40;
+                  break;
+                case 37:
+                  if (resume) {
+                    _context3.next = 40;
+                    break;
+                  }
+                  _context3.next = 40;
+                  return this.a.cloud.loginGuest();
+                case 40:
+                  this.stage(.32, 'entry.loadPolicy');
+                  _context3.next = 43;
+                  return this.frame();
+                case 43:
+                  _context3.next = 45;
                   return this.a.operations.policy();
-                case 28:
-                  policy = _context2.sent;
+                case 45:
+                  policy = _context3.sent;
                   this.a.liveOps.policy = policy;
                   if (!requiresUpdate(policy, this.a.liveOps.platform, this.a.liveOps.version)) {
-                    _context2.next = 36;
+                    _context3.next = 53;
                     break;
                   }
                   this.busy = false;
                   this.screen = 'login';
                   this.a.draw();
                   this.a.liveOps.updatePanel();
-                  return _context2.abrupt("return");
-                case 36:
+                  return _context3.abrupt("return");
+                case 53:
                   this.stage(.54, 'entry.loadSave');
-                  _context2.next = 39;
+                  _context3.next = 56;
                   return this.frame();
-                case 39:
-                  _context2.next = 41;
+                case 56:
+                  _context3.next = 58;
                   return this.a.operations.start(method === 'google');
-                case 41:
+                case 58:
                   this.stage(.88, 'entry.loadReady');
-                  _context2.next = 44;
+                  _context3.next = 61;
                   return this.frame();
-                case 44:
-                  _context2.next = 46;
+                case 61:
+                  _context3.next = 63;
                   return this.a.operations.flushErrors();
-                case 46:
+                case 63:
                   sys.localStorage.setItem('tapwar-login-method', method);
+                  this.a.feedback = new FeedbackUI(this.a);
+                  this.a.tutorial = new TutorialUI(this.a);
+                  this.a.enemyTransition = 0;
+                  this.a.tab = 0;
+                  this.a.folded = false;
                   this.progress = 1;
                   this.screen = 'game';
                   this.a.draw();
-                  _context2.next = 64;
+                  _context3.next = 86;
                   break;
-                case 52:
-                  _context2.prev = 52;
-                  _context2.t0 = _context2["catch"](7);
-                  key = _context2.t0.message;
+                case 74:
+                  _context3.prev = 74;
+                  _context3.t1 = _context3["catch"](8);
+                  key = _context3.t1.message;
                   if (!(key === 'ops.googleCollision')) {
-                    _context2.next = 61;
+                    _context3.next = 83;
                     break;
                   }
                   this.busy = false;
@@ -961,22 +1060,22 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
                     _this4.a.close();
                     void _this4.login('google', true);
                   });
-                  return _context2.abrupt("return");
-                case 61:
+                  return _context3.abrupt("return");
+                case 83:
                   this.error = /^(ops|online|entry|error)\./.test(key) ? key : 'online.unreachable';
                   this.screen = 'error';
                   this.a.draw();
-                case 64:
-                  _context2.prev = 64;
+                case 86:
+                  _context3.prev = 86;
                   this.busy = false;
-                  return _context2.finish(64);
-                case 67:
+                  return _context3.finish(86);
+                case 89:
                 case "end":
-                  return _context2.stop();
+                  return _context3.stop();
               }
-            }, _callee2, this, [[7, 52, 64, 67]]);
+            }, _callee3, this, [[8, 74, 86, 89]]);
           }));
-          function login(_x2, _x3) {
+          function login(_x2, _x3, _x4) {
             return _login.apply(this, arguments);
           }
           return login;
@@ -2264,6 +2363,14 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             action: this.tr('complete.exportFile'),
             click: function click() {
               return _this13.exportSave();
+            }
+          }, {
+            title: this.tr('entry.logout'),
+            action: this.tr('entry.logout'),
+            click: function click() {
+              return a.confirm(_this13.tr('entry.logout'), _this13.tr('entry.logoutBody'), function () {
+                return void a.entry.logout();
+              });
             }
           }]));
         };
@@ -4548,27 +4655,28 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
     }],
     execute: function () {
       exports({
-        doc: hm,
-        getApps: z_,
-        getAuth: eC,
-        getDocFromServer: kT,
-        getFirestore: uE,
+        doc: dm,
+        getApps: W_,
+        getAuth: tC,
+        getDocFromServer: VT,
+        getFirestore: cE,
         initializeApp: Wf,
-        linkWithPopup: Yp,
-        runTransaction: xT,
-        serverTimestamp: ym,
+        linkWithPopup: Xp,
+        runTransaction: kT,
+        serverTimestamp: wm,
         signInAnonymously: Gp,
-        signInWithPopup: $p
+        signInWithPopup: Yp,
+        signOut: jp
       });
       var _excluded = ["providerId"],
         _excluded2 = ["uid", "auth", "stsTokenManager"],
         _excluded3 = ["providerId", "signInMethod"],
         _excluded4 = ["rawOptions"];
-      var _i_, _j_, _fields;
+      var _a_, _K_, _fields;
       cclegacy._RF.push({}, "8c2e3vjGblKS6wBYF1Ai4W6", "firebase-sdk", undefined);
-      var qE = Object.defineProperty;
-      var jE = function jE(n, e, t) {
-        return e in n ? qE(n, e, {
+      var jE = Object.defineProperty;
+      var KE = function KE(n, e, t) {
+        return e in n ? jE(n, e, {
           enumerable: !0,
           configurable: !0,
           writable: !0,
@@ -4576,7 +4684,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }) : n[e] = t;
       };
       var M = function M(n, e, t) {
-        return jE(n, typeof e != "symbol" ? e + "" : e, t);
+        return KE(n, typeof e != "symbol" ? e + "" : e, t);
       };
       var _f = function _f() {}; /**
                                  * @license
@@ -4633,7 +4741,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }
           return e;
         },
-        KE = function KE(n) {
+        JE = function JE(n) {
           var e = [],
             t = 0,
             r = 0;
@@ -4692,7 +4800,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             return this.HAS_NATIVE_SUPPORT && !e ? btoa(n) : this.encodeByteArray(yf(n), e);
           },
           decodeString: function decodeString(n, e) {
-            return this.HAS_NATIVE_SUPPORT && !e ? atob(n) : KE(this.decodeStringToByteArray(n, e));
+            return this.HAS_NATIVE_SUPPORT && !e ? atob(n) : JE(this.decodeStringToByteArray(n, e));
           },
           decodeStringToByteArray: function decodeStringToByteArray(n, e) {
             this.init_();
@@ -4733,12 +4841,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }
           return Ju;
         }( /*#__PURE__*/_wrapNativeSuper(Error)),
-        JE = function JE(n) {
+        zE = function zE(n) {
           var e = yf(n);
           return wf.encodeByteArray(e, !0);
         },
         Hs = function Hs(n) {
-          return JE(n).replace(/\./g, "");
+          return zE(n).replace(/\./g, "");
         },
         Da = function Da(n) {
           try {
@@ -4799,15 +4907,15 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      var zE = function zE() {
+      var WE = function WE() {
           return If().__FIREBASE_DEFAULTS__;
         },
-        WE = function WE() {
+        QE = function QE() {
           if (typeof process > "u" || typeof process.env > "u") return;
           var n = process.env.__FIREBASE_DEFAULTS__;
           if (n) return JSON.parse(n);
         },
-        QE = function QE() {
+        $E = function $E() {
           if (typeof document > "u") return;
           var n;
           try {
@@ -4820,7 +4928,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         },
         ya = function ya() {
           try {
-            return _f() || zE() || WE() || QE();
+            return _f() || WE() || QE() || $E();
           } catch (n) {
             console.info("Unable to get __FIREBASE_DEFAULTS__ due to: " + n);
             return;
@@ -4938,7 +5046,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       function vf() {
         return typeof window < "u" && !!(window.cordova || window.phonegap || window.PhoneGap) && /ios|iphone|ipod|ipad|android|blackberry|iemobile/i.test(Ge());
       }
-      function $E() {
+      function YE() {
         var _ya4;
         var n = (_ya4 = ya()) == null ? void 0 : _ya4.forceEnvironment;
         if (n === "node") return !0;
@@ -4964,7 +5072,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         return n.indexOf("MSIE ") >= 0 || n.indexOf("Trident/") >= 0;
       }
       function Nf() {
-        return !$E() && !!navigator.userAgent && navigator.userAgent.includes("Safari") && !navigator.userAgent.includes("Chrome");
+        return !YE() && !!navigator.userAgent && navigator.userAgent.includes("Safari") && !navigator.userAgent.includes("Chrome");
       }
       function Yu() {
         try {
@@ -5007,12 +5115,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      var YE = "FirebaseError",
+      var XE = "FirebaseError",
         lt = /*#__PURE__*/function (_Error2) {
           _inheritsLoose(n, _Error2);
           function n(e, t, r) {
             var _this4;
-            _this4 = _Error2.call(this, t) || this, _this4.code = e, _this4.customData = r, _this4.name = YE, Object.setPrototypeOf(_assertThisInitialized(_this4), n.prototype), Error.captureStackTrace && Error.captureStackTrace(_assertThisInitialized(_this4), jt.prototype.create);
+            _this4 = _Error2.call(this, t) || this, _this4.code = e, _this4.customData = r, _this4.name = XE, Object.setPrototypeOf(_assertThisInitialized(_this4), n.prototype), Error.captureStackTrace && Error.captureStackTrace(_assertThisInitialized(_this4), jt.prototype.create);
             return _this4;
           }
           return n;
@@ -5026,13 +5134,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             var r = (arguments.length <= 1 ? undefined : arguments[1]) || {},
               s = this.service + "/" + e,
               i = this.errors[e],
-              a = i ? XE(i, r) : "Error",
+              a = i ? ZE(i, r) : "Error",
               u = this.serviceName + ": " + a + " (" + s + ").";
             return new lt(s, u, r);
           };
           return jt;
         }();
-      function XE(n, e) {
+      function ZE(n, e) {
         try {
           var t = 0,
             r = "";
@@ -5220,7 +5328,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           var _this6 = this;
           var s;
           if (e === void 0 && t === void 0 && r === void 0) throw new Error("Missing Observer.");
-          ZE(e, ["next", "error", "complete"]) ? s = e : s = {
+          e_(e, ["next", "error", "complete"]) ? s = e : s = {
             next: e,
             error: t,
             complete: r
@@ -5256,7 +5364,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         };
         return zu;
       }();
-      function ZE(n, e) {
+      function e_(n, e) {
         if (typeof n != "object" || n === null) return !1;
         for (var _iterator = _createForOfIteratorHelperLoose(e), _step; !(_step = _iterator()).done;) {
           var t = _step.value;
@@ -5295,7 +5403,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                           * See the License for the specific language governing permissions and
                           * limitations under the License.
                           */
-      function Le(n) {
+      function be(n) {
         return n && n._delegate ? n._delegate : n;
       } /**
         * @license
@@ -5448,7 +5556,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           if (e.name !== this.name) throw Error("Mismatching Component " + e.name + " for Provider " + this.name + ".");
           if (this.component) throw Error("Component for " + this.name + " has already been provided");
           if (this.component = e, !!this.shouldAutoInitialize()) {
-            if (t_(e)) try {
+            if (n_(e)) try {
               this.getOrInitializeService({
                 instanceIdentifier: zn
               });
@@ -5566,7 +5674,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             t = _ref$options === void 0 ? {} : _ref$options;
           var r = this.instances.get(e);
           if (!r && this.component && (r = this.component.instanceFactory(this.container, {
-            instanceIdentifier: e_(e),
+            instanceIdentifier: t_(e),
             options: t
           }), this.instances.set(e, r), this.instancesOptions.set(e, t), this.invokeOnInitCallbacks(r, e), this.component.onInstanceCreated)) try {
             this.component.onInstanceCreated(this.container, e, r);
@@ -5584,10 +5692,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         };
         return Xu;
       }();
-      function e_(n) {
+      function t_(n) {
         return n === zn ? void 0 : n;
       }
-      function t_(n) {
+      function n_(n) {
         return n.instantiationMode === "EAGER";
       } /**
         * @license
@@ -5643,12 +5751,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
            * See the License for the specific language governing permissions and
            * limitations under the License.
            */
-      var n_ = [],
+      var r_ = [],
         re;
       (function (n) {
         n[n.DEBUG = 0] = "DEBUG", n[n.VERBOSE = 1] = "VERBOSE", n[n.INFO = 2] = "INFO", n[n.WARN = 3] = "WARN", n[n.ERROR = 4] = "ERROR", n[n.SILENT = 5] = "SILENT";
       })(re || (re = {}));
-      var r_ = {
+      var s_ = {
           debug: re.DEBUG,
           verbose: re.VERBOSE,
           info: re.INFO,
@@ -5656,13 +5764,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           error: re.ERROR,
           silent: re.SILENT
         },
-        s_ = re.INFO,
-        i_ = (_i_ = {}, _i_[re.DEBUG] = "log", _i_[re.VERBOSE] = "log", _i_[re.INFO] = "info", _i_[re.WARN] = "warn", _i_[re.ERROR] = "error", _i_),
-        a_ = function a_(n, e) {
+        i_ = re.INFO,
+        a_ = (_a_ = {}, _a_[re.DEBUG] = "log", _a_[re.VERBOSE] = "log", _a_[re.INFO] = "info", _a_[re.WARN] = "warn", _a_[re.ERROR] = "error", _a_),
+        o_ = function o_(n, e) {
           var _console;
           if (e < n.logLevel) return;
           var r = new Date().toISOString(),
-            s = i_[e];
+            s = a_[e];
           for (var _len = arguments.length, t = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
             t[_key - 2] = arguments[_key];
           }
@@ -5670,11 +5778,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         },
         En = /*#__PURE__*/function () {
           function En(e) {
-            this.name = e, this._logLevel = s_, this._logHandler = a_, this._userLogHandler = null, n_.push(this);
+            this.name = e, this._logLevel = i_, this._logHandler = o_, this._userLogHandler = null, r_.push(this);
           }
           var _proto7 = En.prototype;
           _proto7.setLogLevel = function setLogLevel(e) {
-            this._logLevel = typeof e == "string" ? r_[e] : e;
+            this._logLevel = typeof e == "string" ? s_[e] : e;
           };
           _proto7.debug = function debug() {
             for (var _len2 = arguments.length, e = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
@@ -5735,17 +5843,17 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }]);
           return En;
         }();
-      var o_ = function o_(n, e) {
+      var u_ = function u_(n, e) {
           return e.some(function (t) {
             return n instanceof t;
           });
         },
         xf,
         kf;
-      function u_() {
+      function c_() {
         return xf || (xf = [IDBDatabase, IDBObjectStore, IDBIndex, IDBCursor, IDBTransaction]);
       }
-      function c_() {
+      function l_() {
         return kf || (kf = [IDBCursor.prototype.advance, IDBCursor.prototype["continue"], IDBCursor.prototype.continuePrimaryKey]);
       }
       var Vf = new WeakMap(),
@@ -5753,7 +5861,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         Mf = new WeakMap(),
         Zu = new WeakMap(),
         nc = new WeakMap();
-      function l_(n) {
+      function B_(n) {
         var e = new Promise(function (t, r) {
           var s = function s() {
               n.removeEventListener("success", i), n.removeEventListener("error", a);
@@ -5770,7 +5878,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           t instanceof IDBCursor && Vf.set(t, n);
         })["catch"](function () {}), nc.set(e, n), e;
       }
-      function B_(n) {
+      function h_(n) {
         if (ec.has(n)) return;
         var e = new Promise(function (t, r) {
           var s = function s() {
@@ -5805,14 +5913,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       function Gf(n) {
         tc = n(tc);
       }
-      function h_(n) {
+      function d_(n) {
         return n === IDBDatabase.prototype.transaction && !("objectStoreNames" in IDBTransaction.prototype) ? function (e) {
           for (var _len7 = arguments.length, t = new Array(_len7 > 1 ? _len7 - 1 : 0), _key7 = 1; _key7 < _len7; _key7++) {
             t[_key7 - 1] = arguments[_key7];
           }
           var r = n.call.apply(n, [Ta(this), e].concat(t));
           return Mf.set(r, e.sort ? e.sort() : [e]), Ft(r);
-        } : c_().includes(n) ? function () {
+        } : l_().includes(n) ? function () {
           for (var _len8 = arguments.length, e = new Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
             e[_key8] = arguments[_key8];
           }
@@ -5824,13 +5932,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return Ft(n.apply(Ta(this), e));
         };
       }
-      function d_(n) {
-        return typeof n == "function" ? h_(n) : (n instanceof IDBTransaction && B_(n), o_(n, u_()) ? new Proxy(n, tc) : n);
+      function f_(n) {
+        return typeof n == "function" ? d_(n) : (n instanceof IDBTransaction && h_(n), u_(n, c_()) ? new Proxy(n, tc) : n);
       }
       function Ft(n) {
-        if (n instanceof IDBRequest) return l_(n);
+        if (n instanceof IDBRequest) return B_(n);
         if (Zu.has(n)) return Zu.get(n);
-        var e = d_(n);
+        var e = f_(n);
         return e !== n && (Zu.set(n, e), nc.set(e, n)), e;
       }
       var Ta = function Ta(n) {
@@ -5856,16 +5964,16 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           });
         })["catch"](function () {}), u;
       }
-      var f_ = ["get", "getKey", "getAll", "getAllKeys", "count"],
-        p_ = ["put", "add", "delete", "clear"],
+      var p_ = ["get", "getKey", "getAll", "getAllKeys", "count"],
+        C_ = ["put", "add", "delete", "clear"],
         rc = new Map();
       function Uf(n, e) {
         if (!(n instanceof IDBDatabase && !(e in n) && typeof e == "string")) return;
         if (rc.get(e)) return rc.get(e);
         var t = e.replace(/FromIndex$/, ""),
           r = e !== t,
-          s = p_.includes(t);
-        if (!(t in (r ? IDBIndex : IDBObjectStore).prototype) || !(s || f_.includes(t))) return;
+          s = C_.includes(t);
+        if (!(t in (r ? IDBIndex : IDBObjectStore).prototype) || !(s || p_.includes(t))) return;
         var i = /*#__PURE__*/function () {
           var _ref3 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(a) {
             var _l2;
@@ -5931,7 +6039,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         var _proto8 = ic.prototype;
         _proto8.getPlatformInfoString = function getPlatformInfoString() {
           return this.container.getProviders().map(function (t) {
-            if (C_(t)) {
+            if (g_(t)) {
               var r = t.getImmediate();
               return r.library + "/" + r.version;
             } else return null;
@@ -5941,7 +6049,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         };
         return ic;
       }();
-      function C_(n) {
+      function g_(n) {
         var _n$getComponent;
         return ((_n$getComponent = n.getComponent()) == null ? void 0 : _n$getComponent.type) === "VERSION";
       }
@@ -5963,33 +6071,33 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                        * limitations under the License.
                        */
       var Jt = new En("@firebase/app"),
-        g_ = "@firebase/app-compat",
-        m_ = "@firebase/analytics-compat",
-        E_ = "@firebase/analytics",
-        __ = "@firebase/app-check-compat",
-        D_ = "@firebase/app-check",
-        y_ = "@firebase/auth",
-        w_ = "@firebase/auth-compat",
-        I_ = "@firebase/database",
-        T_ = "@firebase/data-connect",
-        A_ = "@firebase/database-compat",
-        v_ = "@firebase/functions",
-        b_ = "@firebase/functions-compat",
-        S_ = "@firebase/installations",
-        R_ = "@firebase/installations-compat",
-        P_ = "@firebase/messaging",
-        N_ = "@firebase/messaging-compat",
-        O_ = "@firebase/performance",
-        F_ = "@firebase/performance-compat",
-        L_ = "@firebase/remote-config",
-        x_ = "@firebase/remote-config-compat",
-        k_ = "@firebase/storage",
-        V_ = "@firebase/storage-compat",
-        M_ = "@firebase/firestore",
-        G_ = "@firebase/ai",
-        U_ = "@firebase/firestore-compat",
-        H_ = "firebase",
-        q_ = "12.19.0"; /**
+        m_ = "@firebase/app-compat",
+        E_ = "@firebase/analytics-compat",
+        __ = "@firebase/analytics",
+        D_ = "@firebase/app-check-compat",
+        y_ = "@firebase/app-check",
+        w_ = "@firebase/auth",
+        I_ = "@firebase/auth-compat",
+        T_ = "@firebase/database",
+        A_ = "@firebase/data-connect",
+        v_ = "@firebase/database-compat",
+        b_ = "@firebase/functions",
+        S_ = "@firebase/functions-compat",
+        R_ = "@firebase/installations",
+        P_ = "@firebase/installations-compat",
+        N_ = "@firebase/messaging",
+        O_ = "@firebase/messaging-compat",
+        F_ = "@firebase/performance",
+        L_ = "@firebase/performance-compat",
+        x_ = "@firebase/remote-config",
+        k_ = "@firebase/remote-config-compat",
+        V_ = "@firebase/storage",
+        M_ = "@firebase/storage-compat",
+        G_ = "@firebase/firestore",
+        U_ = "@firebase/ai",
+        H_ = "@firebase/firestore-compat",
+        q_ = "firebase",
+        j_ = "12.19.0"; /**
                         * @license
                         * Copyright 2019 Google LLC
                         *
@@ -6006,7 +6114,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                         * limitations under the License.
                         */
       var oc = "[DEFAULT]",
-        j_ = (_j_ = {}, _j_[ac] = "fire-core", _j_[g_] = "fire-core-compat", _j_[E_] = "fire-analytics", _j_[m_] = "fire-analytics-compat", _j_[D_] = "fire-app-check", _j_[__] = "fire-app-check-compat", _j_[y_] = "fire-auth", _j_[w_] = "fire-auth-compat", _j_[I_] = "fire-rtdb", _j_[T_] = "fire-data-connect", _j_[A_] = "fire-rtdb-compat", _j_[v_] = "fire-fn", _j_[b_] = "fire-fn-compat", _j_[S_] = "fire-iid", _j_[R_] = "fire-iid-compat", _j_[P_] = "fire-fcm", _j_[N_] = "fire-fcm-compat", _j_[O_] = "fire-perf", _j_[F_] = "fire-perf-compat", _j_[L_] = "fire-rc", _j_[x_] = "fire-rc-compat", _j_[k_] = "fire-gcs", _j_[V_] = "fire-gcs-compat", _j_[M_] = "fire-fst", _j_[U_] = "fire-fst-compat", _j_[G_] = "fire-vertex", _j_["fire-js"] = "fire-js", _j_[H_] = "fire-js-all", _j_); /**
+        K_ = (_K_ = {}, _K_[ac] = "fire-core", _K_[m_] = "fire-core-compat", _K_[__] = "fire-analytics", _K_[E_] = "fire-analytics-compat", _K_[y_] = "fire-app-check", _K_[D_] = "fire-app-check-compat", _K_[w_] = "fire-auth", _K_[I_] = "fire-auth-compat", _K_[T_] = "fire-rtdb", _K_[A_] = "fire-data-connect", _K_[v_] = "fire-rtdb-compat", _K_[b_] = "fire-fn", _K_[S_] = "fire-fn-compat", _K_[R_] = "fire-iid", _K_[P_] = "fire-iid-compat", _K_[N_] = "fire-fcm", _K_[O_] = "fire-fcm-compat", _K_[F_] = "fire-perf", _K_[L_] = "fire-perf-compat", _K_[x_] = "fire-rc", _K_[k_] = "fire-rc-compat", _K_[V_] = "fire-gcs", _K_[M_] = "fire-gcs-compat", _K_[G_] = "fire-fst", _K_[H_] = "fire-fst-compat", _K_[U_] = "fire-vertex", _K_["fire-js"] = "fire-js", _K_[q_] = "fire-js-all", _K_); /**
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            * @license
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            * Copyright 2019 Google LLC
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            *
@@ -6023,7 +6131,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            * limitations under the License.
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            */
       var qs = new Map(),
-        K_ = new Map(),
+        J_ = new Map(),
         uc = new Map();
       function jf(n, e) {
         try {
@@ -6040,7 +6148,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           var t = _step5.value;
           jf(t, n);
         }
-        for (var _iterator6 = _createForOfIteratorHelperLoose(K_.values()), _step6; !(_step6 = _iterator6()).done;) {
+        for (var _iterator6 = _createForOfIteratorHelperLoose(J_.values()), _step6; !(_step6 = _iterator6()).done;) {
           var _t3 = _step6.value;
           jf(_t3, n);
         }
@@ -6070,7 +6178,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      var J_ = {
+      var z_ = {
           "no-app": "No Firebase App '{$appName}' has been created - call initializeApp() first",
           "bad-app-name": "Illegal App name: '{$appName}'",
           "duplicate-app": "Firebase App named '{$appName}' already exists with different {$mismatchedParam}. Existing: '{$oldValue}'. New: '{$newValue}'.",
@@ -6086,7 +6194,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           "finalization-registry-not-supported": "FirebaseServerApp deleteOnDeref field defined but the JS runtime does not support FinalizationRegistry.",
           "invalid-server-app-environment": "FirebaseServerApp is not for use in browser environments."
         },
-        Kt = new jt("app", "Firebase", J_); /**
+        Kt = new jt("app", "Firebase", z_); /**
                                             * @license
                                             * Copyright 2019 Google LLC
                                             *
@@ -6184,7 +6292,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               * See the License for the specific language governing permissions and
               * limitations under the License.
               */
-      var Dn = q_;
+      var Dn = j_;
       function Wf(n, e) {
         if (e === void 0) {
           e = {};
@@ -6236,12 +6344,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         });
         return e;
       }
-      function z_() {
+      function W_() {
         return Array.from(qs.values());
       }
       function Tt(n, e, t) {
-        var _j_$n;
-        var r = (_j_$n = j_[n]) != null ? _j_$n : n;
+        var _K_$n;
+        var r = (_K_$n = K_[n]) != null ? _K_$n : n;
         t && (r += "-" + t);
         var s = r.match(/\s|\//),
           i = e.match(/\s|\//);
@@ -6272,12 +6380,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      var W_ = "firebase-heartbeat-database",
-        Q_ = 1,
+      var Q_ = "firebase-heartbeat-database",
+        $_ = 1,
         js = "firebase-heartbeat-store",
         sc = null;
       function Qf() {
-        return sc || (sc = Hf(W_, Q_, {
+        return sc || (sc = Hf(Q_, $_, {
           upgrade: function upgrade(n, e) {
             switch (e) {
               case 0:
@@ -6294,11 +6402,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           });
         })), sc;
       }
-      function $_(_x3) {
-        return _$_.apply(this, arguments);
+      function Y_(_x3) {
+        return _Y_.apply(this, arguments);
       }
-      function _$_() {
-        _$_ = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee134(n) {
+      function _Y_() {
+        _Y_ = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee134(n) {
           var t, r, _t29;
           return _regeneratorRuntime().wrap(function _callee134$(_context135) {
             while (1) switch (_context135.prev = _context135.next) {
@@ -6331,7 +6439,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee134, null, [[0, 12]]);
         }));
-        return _$_.apply(this, arguments);
+        return _Y_.apply(this, arguments);
       }
       function Kf(_x4, _x5) {
         return _Kf.apply(this, arguments);
@@ -6390,8 +6498,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      var Y_ = 1024,
-        X_ = 30,
+      var X_ = 1024,
+        Z_ = 30,
         lc = /*#__PURE__*/function () {
           function lc(e) {
             var _this10 = this;
@@ -6446,8 +6554,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                     if (this._heartbeatsCache.heartbeats.push({
                       date: r,
                       agent: t
-                    }), this._heartbeatsCache.heartbeats.length > X_) {
-                      s = eD(this._heartbeatsCache.heartbeats);
+                    }), this._heartbeatsCache.heartbeats.length > Z_) {
+                      s = tD(this._heartbeatsCache.heartbeats);
                       this._heartbeatsCache.heartbeats.splice(s, 1);
                     }
                     return _context3.abrupt("return", this._storage.overwrite(this._heartbeatsCache));
@@ -6468,7 +6576,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }();
           _proto10.getHeartbeatsHeader = /*#__PURE__*/function () {
             var _getHeartbeatsHeader = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
-              var _this$_heartbeatsCach3, e, _Z_, t, r, s;
+              var _this$_heartbeatsCach3, e, _eD, t, r, s;
               return _regeneratorRuntime().wrap(function _callee4$(_context4) {
                 while (1) switch (_context4.prev = _context4.next) {
                   case 0:
@@ -6487,7 +6595,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                     }
                     return _context4.abrupt("return", "");
                   case 7:
-                    e = Jf(), _Z_ = Z_(this._heartbeatsCache.heartbeats), t = _Z_.heartbeatsToSend, r = _Z_.unsentEntries, s = Hs(JSON.stringify({
+                    e = Jf(), _eD = eD(this._heartbeatsCache.heartbeats), t = _eD.heartbeatsToSend, r = _eD.unsentEntries, s = Hs(JSON.stringify({
                       version: 2,
                       heartbeats: t
                     }));
@@ -6526,9 +6634,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       function Jf() {
         return new Date().toISOString().substring(0, 10);
       }
-      function Z_(n, e) {
+      function eD(n, e) {
         if (e === void 0) {
-          e = Y_;
+          e = X_;
         }
         var t = [],
           r = n.slice();
@@ -6601,7 +6709,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                     break;
                   }
                   _context6.next = 5;
-                  return $_(this.app);
+                  return Y_(this.app);
                 case 5:
                   t = _context6.sent;
                   return _context6.abrupt("return", t != null && t.heartbeats ? t : {
@@ -6698,7 +6806,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           heartbeats: n
         })).length;
       }
-      function eD(n) {
+      function tD(n) {
         if (n.length === 0) return -1;
         var e = 0,
           t = n[0].date;
@@ -6720,7 +6828,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      function tD(n) {
+      function nD(n) {
         _n(new mt("platform-logger", function (e) {
           return new ic(e);
         }, "PRIVATE")), _n(new mt("heartbeat", function (e) {
@@ -6742,9 +6850,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      tD("");
-      var nD = "firebase",
-        rD = "12.19.0"; /**
+      nD("");
+      var rD = "firebase",
+        sD = "12.19.0"; /**
                         * @license
                         * Copyright 2020 Google LLC
                         *
@@ -6760,7 +6868,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                         * See the License for the specific language governing permissions and
                         * limitations under the License.
                         */
-      Tt(nD, rD, "app"); /**
+      Tt(rD, sD, "app"); /**
                          * @license
                          * Copyright 2021 Google LLC
                          *
@@ -6911,7 +7019,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         var _self$location;
         return typeof self < "u" && ((_self$location = self.location) == null ? void 0 : _self$location.href) || "";
       }
-      function sD() {
+      function iD() {
         return Yf() === "http:" || Yf() === "https:";
       }
       function Yf() {
@@ -6933,10 +7041,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      function iD() {
-        return typeof navigator < "u" && navigator && "onLine" in navigator && typeof navigator.onLine == "boolean" && (sD() || Sf() || "connection" in navigator) ? navigator.onLine : !0;
-      }
       function aD() {
+        return typeof navigator < "u" && navigator && "onLine" in navigator && typeof navigator.onLine == "boolean" && (iD() || Sf() || "connection" in navigator) ? navigator.onLine : !0;
+      }
+      function oD() {
         if (typeof navigator > "u") return null;
         var n = navigator;
         return n.languages && n.languages[0] || n.language || null;
@@ -6962,7 +7070,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }
         var _proto12 = Wn.prototype;
         _proto12.get = function get() {
-          return iD() ? this.isMobile ? this.longDelay : this.shortDelay : Math.min(5e3, this.shortDelay);
+          return aD() ? this.isMobile ? this.longDelay : this.shortDelay : Math.min(5e3, this.shortDelay);
         };
         return Wn;
       }(); /**
@@ -7052,7 +7160,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
            * See the License for the specific language governing permissions and
            * limitations under the License.
            */
-      var oD = {
+      var uD = {
         CREDENTIAL_MISMATCH: "custom-token-mismatch",
         MISSING_CUSTOM_TOKEN: "internal-error",
         INVALID_IDENTIFIER: "invalid-email",
@@ -7117,8 +7225,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
          * See the License for the specific language governing permissions and
          * limitations under the License.
          */
-      var uD = ["/v1/accounts:signInWithCustomToken", "/v1/accounts:signInWithEmailLink", "/v1/accounts:signInWithIdp", "/v1/accounts:signInWithPassword", "/v1/accounts:signInWithPhoneNumber", "/v1/token"],
-        cD = new Wn(3e4, 6e4);
+      var cD = ["/v1/accounts:signInWithCustomToken", "/v1/accounts:signInWithEmailLink", "/v1/accounts:signInWithIdp", "/v1/accounts:signInWithPassword", "/v1/accounts:signInWithPhoneNumber", "/v1/token"],
+        lD = new Wn(3e4, 6e4);
       function xe(n, e) {
         return n.tenantId && !e.tenantId ? _extends({}, e, {
           tenantId: n.tenantId
@@ -7189,7 +7297,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             while (1) switch (_context139.prev = _context139.next) {
               case 0:
                 n._canInitEmulator = !1;
-                r = _extends({}, oD, e);
+                r = _extends({}, uD, e);
                 _context139.prev = 2;
                 s = new mc(n);
                 _context139.next = 6;
@@ -7299,7 +7407,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             while (1) switch (_context141.prev = _context141.next) {
               case 0:
                 s = "" + e + t + "?" + r, i = n, a = i.config.emulator ? Lc(n.config, s) : n.config.apiScheme + "://" + s;
-                _context141.t0 = uD.includes(t);
+                _context141.t0 = cD.includes(t);
                 if (!_context141.t0) {
                   _context141.next = 6;
                   break;
@@ -7338,7 +7446,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           this.auth = e, this.timer = null, this.promise = new Promise(function (t, r) {
             _this11.timer = setTimeout(function () {
               return r(At(_this11.auth, "network-request-failed"));
-            }, cD.get());
+            }, lD.get());
           });
         }
         return mc;
@@ -7351,11 +7459,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         var s = At(n, e, r);
         return s.customData._tokenResponse = t, s;
       }
-      function BD(_x27, _x28) {
-        return _BD.apply(this, arguments);
+      function hD(_x27, _x28) {
+        return _hD.apply(this, arguments);
       }
-      function _BD() {
-        _BD = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee142(n, e) {
+      function _hD() {
+        _hD = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee142(n, e) {
           return _regeneratorRuntime().wrap(function _callee142$(_context143) {
             while (1) switch (_context143.prev = _context143.next) {
               case 0:
@@ -7366,7 +7474,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee142);
         }));
-        return _BD.apply(this, arguments);
+        return _hD.apply(this, arguments);
       }
       function ka(_x29, _x30) {
         return _ka.apply(this, arguments);
@@ -7433,7 +7541,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 if (e === void 0) {
                   e = !1;
                 }
-                t = Le(n);
+                t = be(n);
                 _context145.next = 4;
                 return t.getIdToken(e);
               case 4:
@@ -7518,7 +7626,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               case 9:
                 _context146.prev = 9;
                 _context146.t0 = _context146["catch"](3);
-                _context146.t1 = _context146.t0 instanceof lt && hD(_context146.t0) && n.auth.currentUser === n;
+                _context146.t1 = _context146.t0 instanceof lt && dD(_context146.t0) && n.auth.currentUser === n;
                 if (!_context146.t1) {
                   _context146.next = 15;
                   break;
@@ -7535,7 +7643,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }));
         return _Zs.apply(this, arguments);
       }
-      function hD(_ref4) {
+      function dD(_ref4) {
         var n = _ref4.code;
         return n === "auth/user-disabled" || n === "auth/user-token-expired";
       } /**
@@ -7700,7 +7808,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 $(r == null ? void 0 : r.users.length, e, "internal-error");
                 s = r.users[0];
                 n._notifyReloadListener(s);
-                i = (_s$providerUserInfo = s.providerUserInfo) != null && _s$providerUserInfo.length ? Tp(s.providerUserInfo) : [], a = dD(n.providerData, i), u = n.isAnonymous, c = !(n.email && s.passwordHash) && !(a != null && a.length), l = u ? c : !1, d = {
+                i = (_s$providerUserInfo = s.providerUserInfo) != null && _s$providerUserInfo.length ? Tp(s.providerUserInfo) : [], a = fD(n.providerData, i), u = n.isAnonymous, c = !(n.email && s.passwordHash) && !(a != null && a.length), l = u ? c : !1, d = {
                   uid: s.localId,
                   displayName: s.displayName || null,
                   photoURL: s.photoUrl || null,
@@ -7730,7 +7838,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return _regeneratorRuntime().wrap(function _callee147$(_context148) {
             while (1) switch (_context148.prev = _context148.next) {
               case 0:
-                e = Le(n);
+                e = be(n);
                 _context148.next = 3;
                 return Va(e);
               case 3:
@@ -7746,7 +7854,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }));
         return _Ip.apply(this, arguments);
       }
-      function dD(n, e) {
+      function fD(n, e) {
         return [].concat(n.filter(function (r) {
           return !e.some(function (s) {
             return s.providerId === r.providerId;
@@ -7782,11 +7890,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      function fD(_x38, _x39) {
-        return _fD.apply(this, arguments);
+      function pD(_x38, _x39) {
+        return _pD.apply(this, arguments);
       }
-      function _fD() {
-        _fD = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee149(n, e) {
+      function _pD() {
+        _pD = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee149(n, e) {
           var t;
           return _regeneratorRuntime().wrap(function _callee149$(_context150) {
             while (1) switch (_context150.prev = _context150.next) {
@@ -7838,10 +7946,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee149);
         }));
-        return _fD.apply(this, arguments);
-      }
-      function pD(_x40, _x41) {
         return _pD.apply(this, arguments);
+      }
+      function CD(_x40, _x41) {
+        return _CD.apply(this, arguments);
       } /**
         * @license
         * Copyright 2020 Google LLC
@@ -7858,8 +7966,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      function _pD() {
-        _pD = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee150(n, e) {
+      function _CD() {
+        _CD = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee150(n, e) {
           return _regeneratorRuntime().wrap(function _callee150$(_context151) {
             while (1) switch (_context151.prev = _context151.next) {
               case 0:
@@ -7870,7 +7978,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee150);
         }));
-        return _pD.apply(this, arguments);
+        return _CD.apply(this, arguments);
       }
       var Qs = /*#__PURE__*/function () {
         function n() {
@@ -7936,17 +8044,17 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         };
         _proto17.refresh = /*#__PURE__*/function () {
           var _refresh = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12(e, t) {
-            var _yield$fD, r, s, i;
+            var _yield$pD, r, s, i;
             return _regeneratorRuntime().wrap(function _callee12$(_context12) {
               while (1) switch (_context12.prev = _context12.next) {
                 case 0:
                   _context12.next = 2;
-                  return fD(e, t);
+                  return pD(e, t);
                 case 2:
-                  _yield$fD = _context12.sent;
-                  r = _yield$fD.accessToken;
-                  s = _yield$fD.refreshToken;
-                  i = _yield$fD.expiresIn;
+                  _yield$pD = _context12.sent;
+                  r = _yield$pD.accessToken;
+                  s = _yield$pD.refreshToken;
+                  i = _yield$pD.expiresIn;
                   this.updateTokensAndExpiration(r, s, Number(i));
                 case 7:
                 case "end":
@@ -8143,7 +8251,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 case 4:
                   e = _context15.sent;
                   _context15.next = 7;
-                  return Zs(this, BD(this.auth, {
+                  return Zs(this, hD(this.auth, {
                     idToken: e
                   }));
                 case 7:
@@ -8780,14 +8888,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }
         return /iphone|ipad|ipod/i.test(n) || /macintosh/i.test(n) && /mobile/i.test(n);
       }
-      function CD(n) {
+      function gD(n) {
         var _window$navigator;
         if (n === void 0) {
           n = Ge();
         }
         return kc(n) && !!((_window$navigator = window.navigator) != null && _window$navigator.standalone);
       }
-      function gD() {
+      function mD() {
         return Pf() && document.documentMode === 10;
       }
       function Op(n) {
@@ -8941,8 +9049,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
            * See the License for the specific language governing permissions and
            * limitations under the License.
            */
-      function mD(_x66, _x67) {
-        return _mD.apply(this, arguments);
+      function ED(_x66, _x67) {
+        return _ED.apply(this, arguments);
       } /**
         * @license
         * Copyright 2023 Google LLC
@@ -8959,8 +9067,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      function _mD() {
-        _mD = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee151(n, e) {
+      function _ED() {
+        _ED = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee151(n, e) {
           return _regeneratorRuntime().wrap(function _callee151$(_context152) {
             while (1) switch (_context152.prev = _context152.next) {
               case 0:
@@ -8974,14 +9082,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee151);
         }));
-        return _mD.apply(this, arguments);
+        return _ED.apply(this, arguments);
       }
-      var ED = 6,
+      var _D = 6,
         yc = /*#__PURE__*/function () {
           function yc(e) {
             var _t$minPasswordLength, _e$allowedNonAlphanum, _e$allowedNonAlphanum2, _e$forceUpgradeOnSign;
             var t = e.customStrengthOptions;
-            this.customStrengthOptions = {}, this.customStrengthOptions.minPasswordLength = (_t$minPasswordLength = t.minPasswordLength) != null ? _t$minPasswordLength : ED, t.maxPasswordLength && (this.customStrengthOptions.maxPasswordLength = t.maxPasswordLength), t.containsLowercaseCharacter !== void 0 && (this.customStrengthOptions.containsLowercaseLetter = t.containsLowercaseCharacter), t.containsUppercaseCharacter !== void 0 && (this.customStrengthOptions.containsUppercaseLetter = t.containsUppercaseCharacter), t.containsNumericCharacter !== void 0 && (this.customStrengthOptions.containsNumericCharacter = t.containsNumericCharacter), t.containsNonAlphanumericCharacter !== void 0 && (this.customStrengthOptions.containsNonAlphanumericCharacter = t.containsNonAlphanumericCharacter), this.enforcementState = e.enforcementState, this.enforcementState === "ENFORCEMENT_STATE_UNSPECIFIED" && (this.enforcementState = "OFF"), this.allowedNonAlphanumericCharacters = (_e$allowedNonAlphanum = (_e$allowedNonAlphanum2 = e.allowedNonAlphanumericCharacters) == null ? void 0 : _e$allowedNonAlphanum2.join("")) != null ? _e$allowedNonAlphanum : "", this.forceUpgradeOnSignin = (_e$forceUpgradeOnSign = e.forceUpgradeOnSignin) != null ? _e$forceUpgradeOnSign : !1, this.schemaVersion = e.schemaVersion;
+            this.customStrengthOptions = {}, this.customStrengthOptions.minPasswordLength = (_t$minPasswordLength = t.minPasswordLength) != null ? _t$minPasswordLength : _D, t.maxPasswordLength && (this.customStrengthOptions.maxPasswordLength = t.maxPasswordLength), t.containsLowercaseCharacter !== void 0 && (this.customStrengthOptions.containsLowercaseLetter = t.containsLowercaseCharacter), t.containsUppercaseCharacter !== void 0 && (this.customStrengthOptions.containsUppercaseLetter = t.containsUppercaseCharacter), t.containsNumericCharacter !== void 0 && (this.customStrengthOptions.containsNumericCharacter = t.containsNumericCharacter), t.containsNonAlphanumericCharacter !== void 0 && (this.customStrengthOptions.containsNonAlphanumericCharacter = t.containsNonAlphanumericCharacter), this.enforcementState = e.enforcementState, this.enforcementState === "ENFORCEMENT_STATE_UNSPECIFIED" && (this.enforcementState = "OFF"), this.allowedNonAlphanumericCharacters = (_e$allowedNonAlphanum = (_e$allowedNonAlphanum2 = e.allowedNonAlphanumericCharacters) == null ? void 0 : _e$allowedNonAlphanum2.join("")) != null ? _e$allowedNonAlphanum : "", this.forceUpgradeOnSignin = (_e$forceUpgradeOnSign = e.forceUpgradeOnSignin) != null ? _e$forceUpgradeOnSign : !1, this.schemaVersion = e.schemaVersion;
           }
           var _proto22 = yc.prototype;
           _proto22.validatePassword = function validatePassword(e) {
@@ -9333,7 +9441,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return reloadAndSetCurrentUserOrClear;
         }();
         _proto23.useDeviceLanguage = function useDeviceLanguage() {
-          this.languageCode = aD();
+          this.languageCode = oD();
         };
         _proto23._delete = /*#__PURE__*/function () {
           var _delete4 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee34() {
@@ -9364,7 +9472,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   }
                   return _context35.abrupt("return", Promise.reject(In(this)));
                 case 2:
-                  t = e ? Le(e) : null;
+                  t = e ? be(e) : null;
                   return _context35.abrupt("return", (t && $(t.auth.config.apiKey === this.config.apiKey, this, "invalid-user-token"), this._updateCurrentUser(t && t._clone(this))));
                 case 4:
                 case "end":
@@ -9517,7 +9625,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               while (1) switch (_context41.prev = _context41.next) {
                 case 0:
                   _context41.next = 2;
-                  return mD(this);
+                  return ED(this);
                 case 2:
                   e = _context41.sent;
                   t = new yc(e);
@@ -9583,7 +9691,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   };
                   this.tenantId != null && (r.tenantId = this.tenantId);
                   _context42.next = 8;
-                  return pD(this, r);
+                  return CD(this, r);
                 case 8:
                 case "end":
                   return _context42.stop();
@@ -9898,7 +10006,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         return wc;
       }();
       function An(n) {
-        return Le(n);
+        return be(n);
       }
       var Ga = /*#__PURE__*/function () {
         function Ga(e) {
@@ -9948,13 +10056,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         recaptchaEnterpriseScript: "",
         gapiScript: ""
       };
-      function _D(n) {
+      function DD(n) {
         ro = n;
       }
       function Lp(n) {
         return ro.loadJS(n);
       }
-      function yD() {
+      function wD() {
         return ro.gapiScript;
       }
       function xp(n) {
@@ -9972,7 +10080,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           options: e
         });
       }
-      function TD(n, e) {
+      function AD(n, e) {
         var t = (e == null ? void 0 : e.persistence) || [],
           r = (Array.isArray(t) ? t : [t]).map(zt);
         e != null && e.errorMap && n._updateErrorMap(e.errorMap), n._initializeWithPersistence(r, e == null ? void 0 : e.popupRedirectResolver);
@@ -9982,9 +10090,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         $(/^https?:\/\//.test(e), r, "invalid-emulator-scheme");
         var s = !!(t != null && t.disableWarnings),
           i = Mp(e),
-          _AD = AD(e),
-          a = _AD.host,
-          u = _AD.port,
+          _vD = vD(e),
+          a = _vD.host,
+          u = _vD.port,
           c = u === null ? "" : ":" + u,
           l = {
             url: i + "//" + a + c + "/"
@@ -10001,13 +10109,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           $(r.config.emulator && r.emulatorConfig, r, "emulator-config-failed"), $(It(l, r.config.emulator) && It(d, r.emulatorConfig), r, "emulator-config-failed");
           return;
         }
-        r.config.emulator = l, r.emulatorConfig = d, r.settings.appVerificationDisabledForTesting = !0, Jn(a) ? wa(i + "//" + a + c) : s || vD();
+        r.config.emulator = l, r.emulatorConfig = d, r.settings.appVerificationDisabledForTesting = !0, Jn(a) ? wa(i + "//" + a + c) : s || bD();
       }
       function Mp(n) {
         var e = n.indexOf(":");
         return e < 0 ? "" : n.substr(0, e + 1);
       }
-      function AD(n) {
+      function vD(n) {
         var e = Mp(n),
           t = /(\/\/)?([^?#/]+)/.exec(n.substr(e.length));
         if (!t) return {
@@ -10037,7 +10145,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         var e = Number(n);
         return isNaN(e) ? null : e;
       }
-      function vD() {
+      function bD() {
         function n() {
           var e = document.createElement("p"),
             t = e.style;
@@ -10126,7 +10234,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }));
         return _xr.apply(this, arguments);
       }
-      var ND = "http://localhost",
+      var OD = "http://localhost",
         $n = /*#__PURE__*/function (_Qn2) {
           _inheritsLoose(n, _Qn2);
           function n() {
@@ -10173,7 +10281,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           _proto29.buildRequest = function buildRequest() {
             var e = {
-              requestUri: ND,
+              requestUri: OD,
               returnSecureToken: !0
             };
             if (this.pendingToken) e.pendingToken = this.pendingToken;else {
@@ -10313,8 +10421,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                                      * See the License for the specific language governing permissions and
                                      * limitations under the License.
                                      */
-      function MD(_x121, _x122) {
-        return _MD.apply(this, arguments);
+      function GD(_x121, _x122) {
+        return _GD.apply(this, arguments);
       } /**
         * @license
         * Copyright 2020 Google LLC
@@ -10331,8 +10439,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      function _MD() {
-        _MD = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee166(n, e) {
+      function _GD() {
+        _GD = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee166(n, e) {
           return _regeneratorRuntime().wrap(function _callee166$(_context167) {
             while (1) switch (_context167.prev = _context167.next) {
               case 0:
@@ -10343,7 +10451,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee166);
         }));
-        return _MD.apply(this, arguments);
+        return _GD.apply(this, arguments);
       }
       var Xn = /*#__PURE__*/function () {
         function n(e) {
@@ -10473,7 +10581,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 }));
               case 7:
                 _context168.next = 9;
-                return MD(e, {
+                return GD(e, {
                   returnSecureToken: !0
                 });
               case 9:
@@ -10547,8 +10655,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
            * See the License for the specific language governing permissions and
            * limitations under the License.
            */
-      function GD(_x131, _x132, _x133) {
-        return _GD.apply(this, arguments);
+      function UD(_x131, _x132, _x133) {
+        return _UD.apply(this, arguments);
       } /**
         * @license
         * Copyright 2019 Google LLC
@@ -10565,8 +10673,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      function _GD() {
-        _GD = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee168(n, e, t) {
+      function _UD() {
+        _UD = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee168(n, e, t) {
           var r;
           return _regeneratorRuntime().wrap(function _callee168$(_context169) {
             while (1) switch (_context169.prev = _context169.next) {
@@ -10595,10 +10703,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee168);
         }));
-        return _GD.apply(this, arguments);
-      }
-      function UD(_x134, _x135, _x136) {
         return _UD.apply(this, arguments);
+      }
+      function HD(_x134, _x135, _x136) {
+        return _HD.apply(this, arguments);
       } /**
         * @license
         * Copyright 2020 Google LLC
@@ -10615,8 +10723,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      function _UD() {
-        _UD = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee169(n, e, t) {
+      function _HD() {
+        _HD = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee169(n, e, t) {
           var r, s, i, a, _u65;
           return _regeneratorRuntime().wrap(function _callee169$(_context170) {
             while (1) switch (_context170.prev = _context170.next) {
@@ -10652,10 +10760,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee169, null, [[5, 16]]);
         }));
-        return _UD.apply(this, arguments);
-      }
-      function HD(_x137, _x138, _x139) {
         return _HD.apply(this, arguments);
+      }
+      function qD(_x137, _x138, _x139) {
+        return _qD.apply(this, arguments);
       } /**
         * @license
         * Copyright 2020 Google LLC
@@ -10837,8 +10945,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                                          * See the License for the specific language governing permissions and
                                          * limitations under the License.
                                          */
-      function _HD() {
-        _HD = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee170(n, e, t) {
+      function _qD() {
+        _qD = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee170(n, e, t) {
           var r, s, i;
           return _regeneratorRuntime().wrap(function _callee170$(_context171) {
             while (1) switch (_context171.prev = _context171.next) {
@@ -10876,13 +10984,16 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee170);
         }));
-        return _HD.apply(this, arguments);
+        return _qD.apply(this, arguments);
       }
       function Hp(n, e, t, r) {
-        return Le(n).onIdTokenChanged(e, t, r);
+        return be(n).onIdTokenChanged(e, t, r);
       }
       function qp(n, e, t) {
-        return Le(n).beforeAuthStateChanged(e, t);
+        return be(n).beforeAuthStateChanged(e, t);
+      }
+      function jp(n) {
+        return be(n).signOut();
       }
       var Ha = "__sak"; /**
                         * @license
@@ -10945,8 +11056,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
            * See the License for the specific language governing permissions and
            * limitations under the License.
            */
-      var JD = 1e3,
-        zD = 10,
+      var zD = 1e3,
+        WD = 10,
         ja = /*#__PURE__*/function (_qa) {
           _inheritsLoose(ja, _qa);
           function ja() {
@@ -10985,7 +11096,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 !t && _this31.localCache[r] === a || _this31.notifyListeners(r, a);
               },
               i = this.storage.getItem(r);
-            gD() && i !== e.newValue && e.newValue !== e.oldValue ? setTimeout(s, zD) : s();
+            mD() && i !== e.newValue && e.newValue !== e.oldValue ? setTimeout(s, WD) : s();
           };
           _proto34.notifyListeners = function notifyListeners(e, t) {
             this.localCache[e] = t;
@@ -11005,7 +11116,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   newValue: r
                 }), !0);
               });
-            }, JD);
+            }, zD);
           };
           _proto34.stopPolling = function stopPolling() {
             this.pollTimer && (clearInterval(this.pollTimer), this.pollTimer = null);
@@ -11087,7 +11198,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return ja;
         }(qa);
       ja.type = "LOCAL";
-      var jp = ja; /**
+      var Kp = ja; /**
                    * @license
                    * Copyright 2020 Google LLC
                    *
@@ -11132,7 +11243,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                    * See the License for the specific language governing permissions and
                    * limitations under the License.
                    */
-      function QD(n) {
+      function $D(n) {
         return Promise.all(n.map( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee68(e) {
           return _regeneratorRuntime().wrap(function _callee68$(_context68) {
             while (1) switch (_context68.prev = _context68.next) {
@@ -11222,7 +11333,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                     }, _callee69);
                   })));
                   _context70.next = 7;
-                  return QD(u);
+                  return $D(u);
                 case 7:
                   c = _context70.sent;
                   t.ports[0].postMessage({
@@ -11380,7 +11491,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       function xt() {
         return window;
       }
-      function $D(n) {
+      function YD(n) {
         xt().location.href = n;
       } /**
         * @license
@@ -11398,14 +11509,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      function Kp() {
+      function Jp() {
         return typeof xt().WorkerGlobalScope < "u" && typeof xt().importScripts == "function";
       }
-      function YD() {
-        return _YD.apply(this, arguments);
+      function XD() {
+        return _XD.apply(this, arguments);
       }
-      function _YD() {
-        _YD = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee171() {
+      function _XD() {
+        _XD = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee171() {
           var _navigator2;
           return _regeneratorRuntime().wrap(function _callee171$(_context172) {
             while (1) switch (_context172.prev = _context172.next) {
@@ -11431,14 +11542,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee171, null, [[2, 8]]);
         }));
-        return _YD.apply(this, arguments);
+        return _XD.apply(this, arguments);
       }
-      function XD() {
+      function ZD() {
         var _navigator;
         return ((_navigator = navigator) == null || (_navigator = _navigator.serviceWorker) == null ? void 0 : _navigator.controller) || null;
       }
-      function ZD() {
-        return Kp() ? self : null;
+      function ey() {
+        return Jp() ? self : null;
       } /**
         * @license
         * Copyright 2019 Google LLC
@@ -11455,10 +11566,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      var Jp = "firebaseLocalStorageDb",
-        ey = 1,
+      var zp = "firebaseLocalStorageDb",
+        ty = 1,
         za = "firebaseLocalStorage",
-        zp = "fbase_key",
+        Wp = "fbase_key",
         Zn = /*#__PURE__*/function () {
           function Zn(e) {
             this.request = e;
@@ -11479,12 +11590,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       function so(n, e) {
         return n.transaction([za], e ? "readwrite" : "readonly").objectStore(za);
       }
-      function ty() {
-        var n = indexedDB.deleteDatabase(Jp);
+      function ny() {
+        var n = indexedDB.deleteDatabase(zp);
         return new Zn(n).toPromise();
       }
-      function Wp() {
-        var n = indexedDB.open(Jp, ey);
+      function Qp() {
+        var n = indexedDB.open(zp, ty);
         return new Promise(function (e, t) {
           n.addEventListener("error", function () {
             t(n.error);
@@ -11492,7 +11603,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             var r = n.result;
             try {
               r.createObjectStore(za, {
-                keyPath: zp
+                keyPath: Wp
               });
             } catch (s) {
               t(s);
@@ -11513,11 +11624,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 case 5:
                   r.close();
                   _context72.next = 8;
-                  return ty();
+                  return ny();
                 case 8:
                   _context72.t0 = e;
                   _context72.next = 11;
-                  return Wp();
+                  return Qp();
                 case 11:
                   _context72.t1 = _context72.sent;
                   (0, _context72.t0)(_context72.t1);
@@ -11539,7 +11650,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return _regeneratorRuntime().wrap(function _callee172$(_context173) {
             while (1) switch (_context173.prev = _context173.next) {
               case 0:
-                r = so(n, !0).put((_so$put = {}, _so$put[zp] = e, _so$put.value = t, _so$put));
+                r = so(n, !0).put((_so$put = {}, _so$put[Wp] = e, _so$put.value = t, _so$put));
                 return _context173.abrupt("return", new Zn(r).toPromise());
               case 2:
               case "end":
@@ -11549,11 +11660,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }));
         return _op.apply(this, arguments);
       }
-      function ny(_x157, _x158) {
-        return _ny.apply(this, arguments);
+      function ry(_x157, _x158) {
+        return _ry.apply(this, arguments);
       }
-      function _ny() {
-        _ny = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee173(n, e) {
+      function _ry() {
+        _ry = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee173(n, e) {
           var t, r;
           return _regeneratorRuntime().wrap(function _callee173$(_context174) {
             while (1) switch (_context174.prev = _context174.next) {
@@ -11570,14 +11681,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee173);
         }));
-        return _ny.apply(this, arguments);
+        return _ry.apply(this, arguments);
       }
       function up(n, e) {
         var t = so(n, !0)["delete"](e);
         return new Zn(t).toPromise();
       }
-      var ry = 800,
-        sy = 3,
+      var sy = 800,
+        iy = 3,
         Wa = /*#__PURE__*/function () {
           var _proto40 = Wa.prototype;
           _proto40.registerLifecycleListeners = function registerLifecycleListeners() {
@@ -11602,7 +11713,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               return _regeneratorRuntime().wrap(function _callee73$(_context73) {
                 while (1) switch (_context73.prev = _context73.next) {
                   case 0:
-                    return _context73.abrupt("return", this.dbPromise ? this.dbPromise : (this.dbPromise = Wp(), this.dbPromise["catch"](function () {
+                    return _context73.abrupt("return", this.dbPromise ? this.dbPromise : (this.dbPromise = Qp(), this.dbPromise["catch"](function () {
                       _this36.dbPromise = null;
                     }), this.dbPromise));
                   case 1:
@@ -11636,7 +11747,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   case 10:
                     _context74.prev = 10;
                     _context74.t0 = _context74["catch"](1);
-                    if (!(t++ > sy)) {
+                    if (!(t++ > iy)) {
                       _context74.next = 14;
                       break;
                     }
@@ -11677,7 +11788,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               return _regeneratorRuntime().wrap(function _callee75$(_context75) {
                 while (1) switch (_context75.prev = _context75.next) {
                   case 0:
-                    return _context75.abrupt("return", Kp() ? this.initializeReceiver() : this.initializeSender());
+                    return _context75.abrupt("return", Jp() ? this.initializeReceiver() : this.initializeSender());
                   case 1:
                   case "end":
                     return _context75.stop();
@@ -11695,7 +11806,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               return _regeneratorRuntime().wrap(function _callee78$(_context78) {
                 while (1) switch (_context78.prev = _context78.next) {
                   case 0:
-                    this.receiver = Ja._getInstance(ZD()), this.receiver._subscribe("keyChanged", /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee76(e, t) {
+                    this.receiver = Ja._getInstance(ey()), this.receiver._subscribe("keyChanged", /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee76(e, t) {
                       return _regeneratorRuntime().wrap(function _callee76$(_context76) {
                         while (1) switch (_context76.prev = _context76.next) {
                           case 0:
@@ -11741,7 +11852,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 while (1) switch (_context79.prev = _context79.next) {
                   case 0:
                     _context79.next = 2;
-                    return YD();
+                    return XD();
                   case 2:
                     this.activeServiceWorker = _context79.sent;
                     if (this.activeServiceWorker) {
@@ -11772,7 +11883,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               return _regeneratorRuntime().wrap(function _callee80$(_context80) {
                 while (1) switch (_context80.prev = _context80.next) {
                   case 0:
-                    if (!this.sender || !this.activeServiceWorker || XD() !== this.activeServiceWorker) {
+                    if (!this.sender || !this.activeServiceWorker || ZD() !== this.activeServiceWorker) {
                       _context80.next = 8;
                       break;
                     }
@@ -11914,7 +12025,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   case 0:
                     _context86.next = 2;
                     return this._withRetries(function (r) {
-                      return ny(r, e);
+                      return ry(r, e);
                     });
                   case 2:
                     t = _context86.sent;
@@ -12049,7 +12160,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                     return _context90.stop();
                 }
               }, _callee90);
-            })), ry);
+            })), sy);
           };
           _proto40.stopPolling = function stopPolling() {
             this.pollTimer && (clearInterval(this.pollTimer), this.pollTimer = null);
@@ -12063,7 +12174,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return Wa;
         }();
       Wa.type = "LOCAL";
-      var Qp = Wa; /**
+      var $p = Wa; /**
                    * @license
                    * Copyright 2020 Google LLC
                    *
@@ -12079,7 +12190,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                    * See the License for the specific language governing permissions and
                    * limitations under the License.
                    */
-      var pA = new Wn(3e4, 6e4); /**
+      var CA = new Wn(3e4, 6e4); /**
                                  * @license
                                  * Copyright 2021 Google LLC
                                  *
@@ -12144,16 +12255,16 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         };
         return ui;
       }(Qn);
-      function uy(n) {
-        return HD(n.auth, new ui(n), n.bypassAuthState);
-      }
       function cy(n) {
+        return qD(n.auth, new ui(n), n.bypassAuthState);
+      }
+      function ly(n) {
         var e = n.auth,
           t = n.user;
-        return $(t, e, "internal-error"), UD(t, new ui(n), n.bypassAuthState);
+        return $(t, e, "internal-error"), HD(t, new ui(n), n.bypassAuthState);
       }
-      function ly(_x177) {
-        return _ly.apply(this, arguments);
+      function By(_x177) {
+        return _By.apply(this, arguments);
       } /**
         * @license
         * Copyright 2020 Google LLC
@@ -12170,21 +12281,21 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      function _ly() {
-        _ly = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee179(n) {
+      function _By() {
+        _By = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee179(n) {
           var e, t;
           return _regeneratorRuntime().wrap(function _callee179$(_context180) {
             while (1) switch (_context180.prev = _context180.next) {
               case 0:
                 e = n.auth, t = n.user;
-                return _context180.abrupt("return", ($(t, e, "internal-error"), GD(t, new ui(n), n.bypassAuthState)));
+                return _context180.abrupt("return", ($(t, e, "internal-error"), UD(t, new ui(n), n.bypassAuthState)));
               case 2:
               case "end":
                 return _context180.stop();
             }
           }, _callee179);
         }));
-        return _ly.apply(this, arguments);
+        return _By.apply(this, arguments);
       }
       var Qa = /*#__PURE__*/function () {
         function Qa(e, t, r, s, i) {
@@ -12280,13 +12391,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           switch (e) {
             case "signInViaPopup":
             case "signInViaRedirect":
-              return uy;
+              return cy;
             case "linkViaPopup":
             case "linkViaRedirect":
-              return ly;
+              return By;
             case "reauthViaPopup":
             case "reauthViaRedirect":
-              return cy;
+              return ly;
             default:
               Et(this.auth, "internal-error");
           }
@@ -12317,12 +12428,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
            * See the License for the specific language governing permissions and
            * limitations under the License.
            */
-      var By = new Wn(2e3, 1e4);
-      function $p(_x181, _x182, _x183) {
-        return _$p.apply(this, arguments);
+      var hy = new Wn(2e3, 1e4);
+      function Yp(_x181, _x182, _x183) {
+        return _Yp.apply(this, arguments);
       }
-      function _$p() {
-        _$p = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee180(n, e, t) {
+      function _Yp() {
+        _Yp = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee180(n, e, t) {
           var r, s;
           return _regeneratorRuntime().wrap(function _callee180$(_context181) {
             while (1) switch (_context181.prev = _context181.next) {
@@ -12343,18 +12454,18 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee180);
         }));
-        return _$p.apply(this, arguments);
-      }
-      function Yp(_x184, _x185, _x186) {
         return _Yp.apply(this, arguments);
       }
-      function _Yp() {
-        _Yp = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee181(n, e, t) {
+      function Xp(_x184, _x185, _x186) {
+        return _Xp.apply(this, arguments);
+      }
+      function _Xp() {
+        _Xp = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee181(n, e, t) {
           var r, s;
           return _regeneratorRuntime().wrap(function _callee181$(_context182) {
             while (1) switch (_context182.prev = _context182.next) {
               case 0:
-                r = Le(n);
+                r = be(n);
                 Ep(r.auth, e, Vr);
                 s = Gc(r.auth, t);
                 return _context182.abrupt("return", new ci(r.auth, "linkViaPopup", e, s, r).executeNotNull());
@@ -12364,7 +12475,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee181);
         }));
-        return _Yp.apply(this, arguments);
+        return _Xp.apply(this, arguments);
       }
       var ci = /*#__PURE__*/function (_Qa) {
         _inheritsLoose(n, _Qa);
@@ -12444,7 +12555,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               }, 8e3);
               return;
             }
-            _this45.pollId = window.setTimeout(e, By.get());
+            _this45.pollId = window.setTimeout(e, hy.get());
           };
           e();
         };
@@ -12473,7 +12584,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                                     * See the License for the specific language governing permissions and
                                     * limitations under the License.
                                     */
-      var hy = "pendingRedirect",
+      var dy = "pendingRedirect",
         Na = new Map(),
         Sc = /*#__PURE__*/function (_Qa2) {
           _inheritsLoose(Sc, _Qa2);
@@ -12499,7 +12610,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                     }
                     _context95.prev = 2;
                     _context95.next = 5;
-                    return dy(this.resolver, this.auth);
+                    return fy(this.resolver, this.auth);
                   case 5:
                     if (!_context95.sent) {
                       _context95.next = 11;
@@ -12606,16 +12717,16 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           _proto45.cleanUp = function cleanUp() {};
           return Sc;
         }(Qa);
-      function dy(_x188, _x189) {
-        return _dy.apply(this, arguments);
+      function fy(_x188, _x189) {
+        return _fy.apply(this, arguments);
       }
-      function _dy() {
-        _dy = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee182(n, e) {
+      function _fy() {
+        _fy = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee182(n, e) {
           var t, r, s;
           return _regeneratorRuntime().wrap(function _callee182$(_context183) {
             while (1) switch (_context183.prev = _context183.next) {
               case 0:
-                t = Cy(e), r = py(n);
+                t = gy(e), r = Cy(n);
                 _context183.next = 3;
                 return r._isAvailable();
               case 3:
@@ -12640,16 +12751,16 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee182);
         }));
-        return _dy.apply(this, arguments);
+        return _fy.apply(this, arguments);
       }
-      function fy(n, e) {
+      function py(n, e) {
         Na.set(n._key(), e);
       }
-      function py(n) {
+      function Cy(n) {
         return zt(n._redirectPersistence);
       }
-      function Cy(n) {
-        return Ra(hy, n.config.apiKey, n.name);
+      function gy(n) {
+        return Ra(dy, n.config.apiKey, n.name);
       } /**
         * @license
         * Copyright 2020 Google LLC
@@ -12666,8 +12777,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      function gy(_x190, _x191, _x192) {
-        return _gy.apply(this, arguments);
+      function my(_x190, _x191, _x192) {
+        return _my.apply(this, arguments);
       } /**
         * @license
         * Copyright 2020 Google LLC
@@ -12684,8 +12795,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      function _gy() {
-        _gy = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee183(n, e, t) {
+      function _my() {
+        _my = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee183(n, e, t) {
           var r, s, a;
           return _regeneratorRuntime().wrap(function _callee183$(_context184) {
             while (1) switch (_context184.prev = _context184.next) {
@@ -12724,9 +12835,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee183);
         }));
-        return _gy.apply(this, arguments);
+        return _my.apply(this, arguments);
       }
-      var my = 600 * 1e3,
+      var Ey = 600 * 1e3,
         Rc = /*#__PURE__*/function () {
           function Rc(e) {
             this.auth = e, this.cachedEventUids = new Set(), this.consumers = new Set(), this.queuedRedirectEvent = null, this.hasHandledPotentialRedirect = !1, this.lastProcessedEventTime = Date.now();
@@ -12744,10 +12855,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             var t = !1;
             return this.consumers.forEach(function (r) {
               _this47.isEventForConsumer(e, r) && (t = !0, _this47.sendToConsumer(e, r), _this47.saveEventToCache(e));
-            }), this.hasHandledPotentialRedirect || !Ey(e) || (this.hasHandledPotentialRedirect = !0, t || (this.queuedRedirectEvent = e, t = !0)), t;
+            }), this.hasHandledPotentialRedirect || !_y(e) || (this.hasHandledPotentialRedirect = !0, t || (this.queuedRedirectEvent = e, t = !0)), t;
           };
           _proto46.sendToConsumer = function sendToConsumer(e, t) {
-            if (e.error && !Xp(e)) {
+            if (e.error && !Zp(e)) {
               var _e$error$code;
               var r = ((_e$error$code = e.error.code) == null ? void 0 : _e$error$code.split("auth/")[1]) || "internal-error";
               t.onError(At(this.auth, r));
@@ -12758,7 +12869,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             return t.filter.includes(e.type) && r;
           };
           _proto46.hasEventBeenHandled = function hasEventBeenHandled(e) {
-            return Date.now() - this.lastProcessedEventTime >= my && this.cachedEventUids.clear(), this.cachedEventUids.has(lp(e));
+            return Date.now() - this.lastProcessedEventTime >= Ey && this.cachedEventUids.clear(), this.cachedEventUids.has(lp(e));
           };
           _proto46.saveEventToCache = function saveEventToCache(e) {
             this.cachedEventUids.add(lp(e)), this.lastProcessedEventTime = Date.now();
@@ -12770,19 +12881,19 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return e;
         }).join("-");
       }
-      function Xp(_ref32) {
+      function Zp(_ref32) {
         var n = _ref32.type,
           e = _ref32.error;
         return n === "unknown" && (e == null ? void 0 : e.code) === "auth/no-auth-event";
       }
-      function Ey(n) {
+      function _y(n) {
         switch (n.type) {
           case "signInViaRedirect":
           case "linkViaRedirect":
           case "reauthViaRedirect":
             return !0;
           case "unknown":
-            return Xp(n);
+            return Zp(n);
           default:
             return !1;
         }
@@ -12802,8 +12913,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      function _y(_x193, _x194) {
-        return _y2.apply(this, arguments);
+      function Dy(_x193, _x194) {
+        return _Dy.apply(this, arguments);
       } /**
         * @license
         * Copyright 2020 Google LLC
@@ -12820,8 +12931,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      function _y2() {
-        _y2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee184(n, e) {
+      function _Dy() {
+        _Dy = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee184(n, e) {
           return _regeneratorRuntime().wrap(function _callee184$(_context185) {
             while (1) switch (_context185.prev = _context185.next) {
               case 0:
@@ -12835,16 +12946,16 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee184);
         }));
-        return _y2.apply(this, arguments);
+        return _Dy.apply(this, arguments);
       }
-      var Dy = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/,
-        yy = /^https?/;
-      function wy(_x195) {
-        return _wy.apply(this, arguments);
+      var yy = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/,
+        wy = /^https?/;
+      function Iy(_x195) {
+        return _Iy.apply(this, arguments);
       }
-      function _wy() {
-        _wy = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee185(n) {
-          var _yield$_y, e, _iterator101, _step101, t;
+      function _Iy() {
+        _Iy = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee185(n) {
+          var _yield$Dy, e, _iterator101, _step101, t;
           return _regeneratorRuntime().wrap(function _callee185$(_context186) {
             while (1) switch (_context186.prev = _context186.next) {
               case 0:
@@ -12855,10 +12966,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 return _context186.abrupt("return");
               case 2:
                 _context186.next = 4;
-                return _y(n);
+                return Dy(n);
               case 4:
-                _yield$_y = _context186.sent;
-                e = _yield$_y.authorizedDomains;
+                _yield$Dy = _context186.sent;
+                e = _yield$Dy.authorizedDomains;
                 _iterator101 = _createForOfIteratorHelperLoose(e);
               case 7:
                 if ((_step101 = _iterator101()).done) {
@@ -12867,7 +12978,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 }
                 t = _step101.value;
                 _context186.prev = 9;
-                if (!Iy(t)) {
+                if (!Ty(t)) {
                   _context186.next = 12;
                   break;
                 }
@@ -12889,9 +13000,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee185, null, [[9, 14]]);
         }));
-        return _wy.apply(this, arguments);
+        return _Iy.apply(this, arguments);
       }
-      function Iy(n) {
+      function Ty(n) {
         var e = gc(),
           _URL = new URL(e),
           t = _URL.protocol,
@@ -12900,8 +13011,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           var a = new URL(n);
           return a.hostname === "" && r === "" ? t === "chrome-extension:" && n.replace("chrome-extension://", "") === e.replace("chrome-extension://", "") : t === "chrome-extension:" && a.hostname === r;
         }
-        if (!yy.test(t)) return !1;
-        if (Dy.test(n)) return r === n;
+        if (!wy.test(t)) return !1;
+        if (yy.test(n)) return r === n;
         var s = n.replace(/\./g, "\\.");
         return new RegExp("^(.+\\." + s + "|" + s + ")$", "i").test(r);
       } /**
@@ -12920,7 +13031,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      var Ty = new Wn(3e4, 6e4);
+      var Ay = new Wn(3e4, 6e4);
       function Bp() {
         var n = xt().___jsl;
         if (n != null && n.H) {
@@ -12930,7 +13041,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }
         }
       }
-      function Ay(n) {
+      function vy(n) {
         return new Promise(function (e, t) {
           var _xt$gapi, _xt$gapi2;
           function r() {
@@ -12941,14 +13052,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               ontimeout: function ontimeout() {
                 Bp(), t(At(n, "network-request-failed"));
               },
-              timeout: Ty.get()
+              timeout: Ay.get()
             });
           }
           if ((_xt$gapi = xt().gapi) != null && (_xt$gapi = _xt$gapi.iframes) != null && _xt$gapi.Iframe) e(gapi.iframes.getContext());else if ((_xt$gapi2 = xt().gapi) != null && _xt$gapi2.load) r();else {
             var s = xp("iframefcb");
             return xt()[s] = function () {
               gapi.load ? r() : t(At(n, "network-request-failed"));
-            }, Lp(yD() + "?onload=" + s)["catch"](function (i) {
+            }, Lp(wD() + "?onload=" + s)["catch"](function (i) {
               return t(i);
             });
           }
@@ -12957,8 +13068,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         });
       }
       var Oa = null;
-      function vy(n) {
-        return Oa = Oa || Ay(n), Oa;
+      function by(n) {
+        return Oa = Oa || vy(n), Oa;
       } /**
         * @license
         * Copyright 2020 Google LLC.
@@ -12975,10 +13086,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      var by = new Wn(5e3, 15e3),
-        Sy = "__/auth/iframe",
-        Ry = "emulator/auth/iframe",
-        Py = {
+      var Sy = new Wn(5e3, 15e3),
+        Ry = "__/auth/iframe",
+        Py = "emulator/auth/iframe",
+        Ny = {
           style: {
             position: "absolute",
             top: "-100px",
@@ -12988,23 +13099,23 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           "aria-hidden": "true",
           tabindex: "-1"
         },
-        Ny = new Map([["identitytoolkit.googleapis.com", "p"], ["staging-identitytoolkit.sandbox.googleapis.com", "s"], ["test-identitytoolkit.sandbox.googleapis.com", "t"]]);
-      function Oy(n) {
+        Oy = new Map([["identitytoolkit.googleapis.com", "p"], ["staging-identitytoolkit.sandbox.googleapis.com", "s"], ["test-identitytoolkit.sandbox.googleapis.com", "t"]]);
+      function Fy(n) {
         var e = n.config;
         $(e.authDomain, n, "auth-domain-config-required");
-        var t = e.emulator ? Lc(e, Ry) : "https://" + n.config.authDomain + "/" + Sy,
+        var t = e.emulator ? Lc(e, Py) : "https://" + n.config.authDomain + "/" + Ry,
           r = {
             apiKey: e.apiKey,
             appName: n.name,
             v: Dn
           },
-          s = Ny.get(n.config.apiHost);
+          s = Oy.get(n.config.apiHost);
         s && (r.eid = s);
         var i = n._getFrameworks();
         return i.length && (r.fw = i.join(",")), t + "?" + Or(r).slice(1);
       }
-      function Fy(_x196) {
-        return _Fy.apply(this, arguments);
+      function Ly(_x196) {
+        return _Ly.apply(this, arguments);
       } /**
         * @license
         * Copyright 2020 Google LLC.
@@ -13021,22 +13132,22 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      function _Fy() {
-        _Fy = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee187(n) {
+      function _Ly() {
+        _Ly = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee187(n) {
           var e, t;
           return _regeneratorRuntime().wrap(function _callee187$(_context188) {
             while (1) switch (_context188.prev = _context188.next) {
               case 0:
                 _context188.next = 2;
-                return vy(n);
+                return by(n);
               case 2:
                 e = _context188.sent;
                 t = xt().gapi;
                 return _context188.abrupt("return", ($(t, n, "internal-error"), e.open({
                   where: document.body,
-                  url: Oy(n),
+                  url: Fy(n),
                   messageHandlersFilter: t.iframes.CROSS_ORIGIN_IFRAMES_FILTER,
-                  attributes: Py,
+                  attributes: Ny,
                   dontclear: !0
                 }, function (r) {
                   return new Promise( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee186(s, i) {
@@ -13054,7 +13165,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                         case 3:
                           a = At(n, "network-request-failed"), u = xt().setTimeout(function () {
                             i(a);
-                          }, by.get());
+                          }, Sy.get());
                           r.ping(c).then(c, function () {
                             i(a);
                           });
@@ -13071,18 +13182,18 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee187);
         }));
-        return _Fy.apply(this, arguments);
+        return _Ly.apply(this, arguments);
       }
-      var Ly = {
+      var xy = {
           location: "yes",
           resizable: "yes",
           statusbar: "yes",
           toolbar: "no"
         },
-        xy = 500,
-        ky = 600,
-        Vy = "_blank",
-        My = "http://localhost",
+        ky = 500,
+        Vy = 600,
+        My = "_blank",
+        Gy = "http://localhost",
         $a = /*#__PURE__*/function () {
           function $a(e) {
             this.window = e, this.associatedEvent = null;
@@ -13095,30 +13206,30 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           return $a;
         }();
-      function Gy(n, e, t, r, s) {
+      function Uy(n, e, t, r, s) {
         if (r === void 0) {
-          r = xy;
+          r = ky;
         }
         if (s === void 0) {
-          s = ky;
+          s = Vy;
         }
         var i = Math.max((window.screen.availHeight - s) / 2, 0).toString(),
           a = Math.max((window.screen.availWidth - r) / 2, 0).toString(),
           u = "",
-          c = _extends({}, Ly, {
+          c = _extends({}, xy, {
             width: r.toString(),
             height: s.toString(),
             top: i,
             left: a
           }),
           l = Ge().toLowerCase();
-        t && (u = bp(l) ? Vy : t), Ap(l) && (e = e || My, c.scrollbars = "yes");
+        t && (u = bp(l) ? My : t), Ap(l) && (e = e || Gy, c.scrollbars = "yes");
         var d = Object.entries(c).reduce(function (m, _ref33) {
           var v = _ref33[0],
             R = _ref33[1];
           return "" + m + v + "=" + R + ",";
         }, "");
-        if (CD(l) && u !== "_self") return Uy(e || "", u), new $a(null);
+        if (gD(l) && u !== "_self") return Hy(e || "", u), new $a(null);
         var f = window.open(e || "", u, d);
         $(f, n, "popup-blocked");
         try {
@@ -13126,7 +13237,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         } catch (_unused31) {}
         return new $a(f);
       }
-      function Uy(n, e) {
+      function Hy(n, e) {
         var t = document.createElement("a");
         t.href = n, t.target = e;
         var r = document.createEvent("MouseEvent");
@@ -13147,9 +13258,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      var Hy = "__/auth/handler",
-        qy = "emulator/auth/handler",
-        jy = encodeURIComponent("fac");
+      var qy = "__/auth/handler",
+        jy = "emulator/auth/handler",
+        Ky = encodeURIComponent("fac");
       function hp(_x197, _x198, _x199, _x200, _x201, _x202) {
         return _hp.apply(this, arguments);
       }
@@ -13191,8 +13302,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 return n._getAppCheckToken();
               case 9:
                 c = _context189.sent;
-                l = c ? "#" + jy + "=" + encodeURIComponent(c) : "";
-                return _context189.abrupt("return", Ky(n) + "?" + Or(u).slice(1) + l);
+                l = c ? "#" + Ky + "=" + encodeURIComponent(c) : "";
+                return _context189.abrupt("return", Jy(n) + "?" + Or(u).slice(1) + l);
               case 12:
               case "end":
                 return _context189.stop();
@@ -13201,9 +13312,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }));
         return _hp.apply(this, arguments);
       }
-      function Ky(_ref34) {
+      function Jy(_ref34) {
         var n = _ref34.config;
-        return n.emulator ? Lc(n, qy) : "https://" + n.authDomain + "/" + Hy;
+        return n.emulator ? Lc(n, jy) : "https://" + n.authDomain + "/" + qy;
       } /**
         * @license
         * Copyright 2020 Google LLC
@@ -13223,7 +13334,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       var Cc = "webStorageSupport",
         Pc = /*#__PURE__*/function () {
           function Pc() {
-            this.eventManagers = {}, this.iframes = {}, this.originValidationPromises = {}, this._redirectPersistence = Vc, this._completeRedirectFn = gy, this._overrideRedirectResult = fy;
+            this.eventManagers = {}, this.iframes = {}, this.originValidationPromises = {}, this._redirectPersistence = Vc, this._completeRedirectFn = my, this._overrideRedirectResult = py;
           }
           var _proto48 = Pc.prototype;
           _proto48._openPopup = /*#__PURE__*/function () {
@@ -13238,7 +13349,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                     return hp(e, t, r, gc(), s);
                   case 3:
                     i = _context98.sent;
-                    return _context98.abrupt("return", Gy(e, i, Mc()));
+                    return _context98.abrupt("return", Uy(e, i, Mc()));
                   case 5:
                   case "end":
                     return _context98.stop();
@@ -13263,7 +13374,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                     return hp(e, t, r, gc(), s);
                   case 4:
                     i = _context99.sent;
-                    return _context99.abrupt("return", ($D(i), new Promise(function () {})));
+                    return _context99.abrupt("return", (YD(i), new Promise(function () {})));
                   case 6:
                   case "end":
                     return _context99.stop();
@@ -13298,7 +13409,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 while (1) switch (_context100.prev = _context100.next) {
                   case 0:
                     _context100.next = 2;
-                    return Fy(e);
+                    return Ly(e);
                   case 2:
                     t = _context100.sent;
                     r = new Rc(e);
@@ -13331,7 +13442,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           _proto48._originValidation = function _originValidation(e) {
             var t = e._key();
-            return this.originValidationPromises[t] || (this.originValidationPromises[t] = wy(e)), this.originValidationPromises[t];
+            return this.originValidationPromises[t] || (this.originValidationPromises[t] = Iy(e)), this.originValidationPromises[t];
           };
           _createClass(Pc, [{
             key: "_shouldInitProactively",
@@ -13341,7 +13452,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }]);
           return Pc;
         }(),
-        Zp = Pc;
+        eC = Pc;
       var dp = "@firebase/auth",
         fp = "1.13.6"; /**
                        * @license
@@ -13440,7 +13551,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
            * See the License for the specific language governing permissions and
            * limitations under the License.
            */
-      function Jy(n) {
+      function zy(n) {
         switch (n) {
           case "Node":
             return "node";
@@ -13456,7 +13567,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             return;
         }
       }
-      function zy(n) {
+      function Wy(n) {
         _n(new mt("auth", function (e, _ref35) {
           var t = _ref35.options;
           var r = e.getProvider("app").getImmediate(),
@@ -13478,7 +13589,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               sdkClientVersion: Fp(n)
             },
             l = new wc(r, s, i, c);
-          return TD(l, t), l;
+          return AD(l, t), l;
         }, "PUBLIC").setInstantiationMode("EXPLICIT").setInstanceCreatedCallback(function (e, t, r) {
           e.getProvider("auth-internal").initialize();
         })), _n(new mt("auth-internal", function (e) {
@@ -13486,7 +13597,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return function (r) {
             return new Oc(r);
           }(t);
-        }, "PRIVATE").setInstantiationMode("EXPLICIT")), Tt(dp, fp, Jy(n)), Tt(dp, fp, "esm2020");
+        }, "PRIVATE").setInstantiationMode("EXPLICIT")), Tt(dp, fp, zy(n)), Tt(dp, fp, "esm2020");
       } /**
         * @license
         * Copyright 2021 Google LLC
@@ -13503,10 +13614,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      var Wy = 300,
-        Qy = $u("authIdTokenMaxAge") || Wy,
+      var Qy = 300,
+        $y = $u("authIdTokenMaxAge") || Qy,
         pp = null,
-        $y = function $y(n) {
+        Yy = function Yy(n) {
           return /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee105(e) {
             var t, r, s;
             return _regeneratorRuntime().wrap(function _callee105$(_context105) {
@@ -13524,7 +13635,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 case 5:
                   t = _context105.t0;
                   r = t && (new Date().getTime() - Date.parse(t.issuedAtTime)) / 1e3;
-                  if (!(r && r > Qy)) {
+                  if (!(r && r > $y)) {
                     _context105.next = 9;
                     break;
                   }
@@ -13551,21 +13662,21 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }, _callee105);
           }));
         };
-      function eC(n) {
+      function tC(n) {
         if (n === void 0) {
           n = Aa();
         }
         var e = Ks(n, "auth");
         if (e.isInitialized()) return e.getImmediate();
         var t = kp(n, {
-            popupRedirectResolver: Zp,
-            persistence: [Qp, jp, Vc]
+            popupRedirectResolver: eC,
+            persistence: [$p, Kp, Vc]
           }),
           r = $u("authTokenSyncURL");
         if (r && typeof isSecureContext == "boolean" && isSecureContext) {
           var i = new URL(r, location.origin);
           if (location.origin === i.origin) {
-            var a = $y(i.toString());
+            var a = Yy(i.toString());
             qp(t, a, function () {
               return a(t.currentUser);
             }), Hp(t, function (u) {
@@ -13576,26 +13687,26 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         var s = Wu("auth");
         return s && Vp(t, "http://" + s), t;
       }
-      function Yy() {
+      function Xy() {
         var _document$getElements, _document$getElements2;
         return (_document$getElements = (_document$getElements2 = document.getElementsByTagName("head")) == null ? void 0 : _document$getElements2[0]) != null ? _document$getElements : document;
       }
-      _D({
+      DD({
         loadJS: function loadJS(n) {
           return new Promise(function (e, t) {
             var r = document.createElement("script");
             r.setAttribute("src", n), r.onload = e, r.onerror = function (s) {
               var i = At("internal-error");
               i.customData = s, t(i);
-            }, r.type = "text/javascript", r.charset = "UTF-8", Yy().appendChild(r);
+            }, r.type = "text/javascript", r.charset = "UTF-8", Xy().appendChild(r);
           });
         },
         gapiScript: "https://apis.google.com/js/api.js",
         recaptchaV2Script: "https://www.google.com/recaptcha/api.js",
         recaptchaEnterpriseScript: "https://www.google.com/recaptcha/enterprise.js?render="
       });
-      zy("Browser");
-      var tC = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {}; /** @license
+      Wy("Browser");
+      var nC = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {}; /** @license
                                                                                                                                                    Copyright The Closure Library Authors.
                                                                                                                                                    SPDX-License-Identifier: Apache-2.0
                                                                                                                                                    */
@@ -13843,7 +13954,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return new a(w, I.h);
         }
         r.prototype.digest = r.prototype.A, r.prototype.reset = r.prototype.u, r.prototype.update = r.prototype.v, Uc = r, a.prototype.add = a.prototype.add, a.prototype.multiply = a.prototype.j, a.prototype.modulo = a.prototype.B, a.prototype.compare = a.prototype.l, a.prototype.toNumber = a.prototype.m, a.prototype.toString = a.prototype.toString, a.prototype.getBits = a.prototype.i, a.fromNumber = l, a.fromString = d, Qt = a;
-      }).apply(typeof tC < "u" ? tC : typeof self < "u" ? self : typeof window < "u" ? window : {});
+      }).apply(typeof nC < "u" ? nC : typeof self < "u" ? self : typeof window < "u" ? window : {});
       var io = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {}; /** @license
                                                                                                                                                    Copyright The Closure Library Authors.
                                                                                                                                                    SPDX-License-Identifier: Apache-2.0
@@ -14063,9 +14174,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           o.preventDefault ? o.preventDefault() : o.returnValue = !1;
         };
         var Gn = "closure_listenable_" + (Math.random() * 1e6 | 0),
-          BE = 0;
-        function hE(o, B, h, p, b) {
-          this.listener = o, this.proxy = null, this.src = B, this.type = h, this.capture = !!p, this.ha = b, this.key = ++BE, this.da = this.fa = !1;
+          hE = 0;
+        function dE(o, B, h, p, b) {
+          this.listener = o, this.proxy = null, this.src = B, this.type = h, this.capture = !!p, this.ha = b, this.key = ++hE, this.da = this.fa = !1;
         }
         function ia(o) {
           o.da = !0, o.listener = null, o.proxy = null, o.src = null, o.ha = null;
@@ -14073,7 +14184,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         function aa(o, B, h) {
           for (var p in o) B.call(h, o[p], p, o);
         }
-        function dE(o, B) {
+        function fE(o, B) {
           for (var h in o) B.call(void 0, o[h], h, o);
         }
         function md(o) {
@@ -14097,7 +14208,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           var P = o.toString();
           o = this.g[P], o || (o = this.g[P] = [], this.h++);
           var q = wu(o, B, p, b);
-          return q > -1 ? (B = o[q], h || (B.fa = !1)) : (B = new hE(B, this.src, P, !!p, b), B.fa = h, o.push(B)), B;
+          return q > -1 ? (B = o[q], h || (B.fa = !1)) : (B = new dE(B, this.src, P, !!p, b), B.fa = h, o.push(B)), B;
         };
         function yu(o, B) {
           var h = B.type;
@@ -14122,21 +14233,21 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             for (var P = 0; P < B.length; P++) Dd(o, B[P], h, p, b);
             return null;
           }
-          return h = Id(h), o && o[Gn] ? o.J(B, h, u(p) ? !!p.capture : !1, b) : fE(o, B, h, !1, p, b);
+          return h = Id(h), o && o[Gn] ? o.J(B, h, u(p) ? !!p.capture : !1, b) : pE(o, B, h, !1, p, b);
         }
-        function fE(o, B, h, p, b, P) {
+        function pE(o, B, h, p, b, P) {
           if (!B) throw Error("Invalid event type");
           var q = u(b) ? !!b.capture : !!b,
             ne = vu(o);
           if (ne || (o[Iu] = ne = new oa(o)), h = ne.add(B, h, p, q, P), h.proxy) return h;
-          if (p = pE(), h.proxy = p, p.src = o, p.listener = h, o.addEventListener) S || (b = q), b === void 0 && (b = !1), o.addEventListener(B.toString(), p, b);else if (o.attachEvent) o.attachEvent(wd(B.toString()), p);else if (o.addListener && o.removeListener) o.addListener(p);else throw Error("addEventListener and attachEvent are unavailable.");
+          if (p = CE(), h.proxy = p, p.src = o, p.listener = h, o.addEventListener) S || (b = q), b === void 0 && (b = !1), o.addEventListener(B.toString(), p, b);else if (o.attachEvent) o.attachEvent(wd(B.toString()), p);else if (o.addListener && o.removeListener) o.addListener(p);else throw Error("addEventListener and attachEvent are unavailable.");
           return h;
         }
-        function pE() {
+        function CE() {
           function o(h) {
             return B.call(o.src, o.listener, h);
           }
-          var B = CE;
+          var B = gE;
           return o;
         }
         function yd(o, B, h, p, b) {
@@ -14155,7 +14266,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         function wd(o) {
           return o in Tu ? Tu[o] : Tu[o] = "on" + o;
         }
-        function CE(o, B) {
+        function gE(o, B) {
           if (o.da) o = !0;else {
             B = new tt(B, this);
             var h = o.listener,
@@ -14215,38 +14326,38 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             var q = B[P];
             if (q && !q.da && q.capture == h) {
               var ne = q.listener,
-                Fe = q.ha || q.src;
-              q.fa && yu(o.i, q), b = ne.call(Fe, p) !== !1 && b;
+                Le = q.ha || q.src;
+              q.fa && yu(o.i, q), b = ne.call(Le, p) !== !1 && b;
             }
           }
           return b && !p.defaultPrevented;
         }
-        function gE(o, B) {
+        function mE(o, B) {
           if (typeof o != "function") if (o && typeof o.handleEvent == "function") o = l(o.handleEvent, o);else throw Error("Invalid listener argument");
           return Number(B) > 2147483647 ? -1 : a.setTimeout(o, B || 0);
         }
         function Td(o) {
-          o.g = gE(function () {
+          o.g = mE(function () {
             o.g = null, o.i && (o.i = !1, Td(o));
           }, o.l);
           var B = o.h;
           o.h = null, o.m.apply(null, B);
         }
-        var mE = /*#__PURE__*/function (_A) {
-          _inheritsLoose(mE, _A);
-          function mE(B, h) {
+        var EE = /*#__PURE__*/function (_A) {
+          _inheritsLoose(EE, _A);
+          function EE(B, h) {
             var _this51;
             _this51 = _A.call(this) || this, _this51.m = B, _this51.l = h, _this51.h = null, _this51.i = !1, _this51.g = null;
             return _this51;
           }
-          var _proto57 = mE.prototype;
+          var _proto57 = EE.prototype;
           _proto57.j = function j(B) {
             this.h = arguments, this.g ? this.i = !0 : Td(this);
           };
           _proto57.N = function N() {
             _A.prototype.N.call(this), this.g && (a.clearTimeout(this.g), this.g = null, this.i = !1, this.h = null);
           };
-          return mE;
+          return EE;
         }(A);
         function As(o) {
           A.call(this), this.h = o, this.g = {};
@@ -14264,17 +14375,17 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           throw Error("EventHandler.handleEvent not implemented");
         };
         var Su = a.JSON.stringify,
-          EE = a.JSON.parse,
-          _E = /*#__PURE__*/function () {
-            function _E() {}
-            var _proto58 = _E.prototype;
+          _E = a.JSON.parse,
+          DE = /*#__PURE__*/function () {
+            function DE() {}
+            var _proto58 = DE.prototype;
             _proto58.stringify = function stringify(o) {
               return a.JSON.stringify(o, void 0);
             };
             _proto58.parse = function parse(o) {
               return a.JSON.parse(o, void 0);
             };
-            return _E;
+            return DE;
           }();
         function bd() {}
         function Sd() {}
@@ -14332,19 +14443,19 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         Rs.prototype.ua = function () {
           this.g = !1;
         };
-        function DE(o, B, h, p, b, P) {
+        function yE(o, B, h, p, b, P) {
           o.info(function () {
             if (o.g) {
               if (P) {
                 var q = "",
                   ne = P.split("&");
                 for (var de = 0; de < ne.length; de++) {
-                  var Fe = ne[de].split("=");
-                  if (Fe.length > 1) {
-                    var Me = Fe[0];
-                    Fe = Fe[1];
+                  var Le = ne[de].split("=");
+                  if (Le.length > 1) {
+                    var Me = Le[0];
+                    Le = Le[1];
                     var Ot = Me.split("_");
-                    q = Ot.length >= 2 && Ot[1] == "type" ? q + (Me + "=" + Fe + "&") : q + (Me + "=redacted&");
+                    q = Ot.length >= 2 && Ot[1] == "type" ? q + (Me + "=" + Le + "&") : q + (Me + "=redacted&");
                   }
                 }
               } else q = null;
@@ -14352,23 +14463,23 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             return "XMLHTTP REQ (" + p + ") [attempt " + b + "]: " + B + "\n" + h + "\n" + q;
           });
         }
-        function yE(o, B, h, p, b, P, q) {
+        function wE(o, B, h, p, b, P, q) {
           o.info(function () {
             return "XMLHTTP RESP (" + p + ") [ attempt " + b + "]: " + B + "\n" + h + "\n" + P + " " + q;
           });
         }
         function Sr(o, B, h, p) {
           o.info(function () {
-            return "XMLHTTP TEXT (" + B + "): " + IE(o, h) + (p ? " " + p : "");
+            return "XMLHTTP TEXT (" + B + "): " + TE(o, h) + (p ? " " + p : "");
           });
         }
-        function wE(o, B) {
+        function IE(o, B) {
           o.info(function () {
             return "TIMEOUT: " + B;
           });
         }
         Rs.prototype.info = function () {};
-        function IE(o, B) {
+        function TE(o, B) {
           if (!o.g) return B;
           if (!B) return null;
           try {
@@ -14423,7 +14534,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         function Ps(o) {
           return encodeURIComponent(String(o));
         }
-        function TE(o) {
+        function AE(o) {
           var B = 1;
           o = o.split(":");
           var h = [];
@@ -14445,7 +14556,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           o.F = Date.now(), Ba(o), o.B = Nt(o.A);
           var h = o.B,
             p = o.S;
-          Array.isArray(p) || (p = [String(p)]), Yd(h.i, "t", p), o.C = 0, h = o.j.L, o.h = new xd(), o.g = Cf(o.j, h ? B : null, !o.u), o.P > 0 && (o.O = new mE(l(o.Y, o, o.g), o.P)), B = o.V, h = o.g, p = o.ba;
+          Array.isArray(p) || (p = [String(p)]), Yd(h.i, "t", p), o.C = 0, h = o.j.L, o.h = new xd(), o.g = Cf(o.j, h ? B : null, !o.u), o.P > 0 && (o.O = new EE(l(o.Y, o, o.g), o.P)), B = o.V, h = o.g, p = o.ba;
           var b = "readystatechange";
           Array.isArray(b) || (b && (Ad[0] = b.toString()), b = Ad);
           for (var P = 0; P < b.length; P++) {
@@ -14453,7 +14564,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             if (!q) break;
             B.g[q.key] = q;
           }
-          B = o.J ? md(o.J) : {}, o.u ? (o.v || (o.v = "POST"), B["Content-Type"] = "application/x-www-form-urlencoded", o.g.ea(o.B, o.v, o.u, B)) : (o.v = "GET", o.g.ea(o.B, o.v, null, B)), bs(), DE(o.i, o.v, o.B, o.l, o.S, o.u);
+          B = o.J ? md(o.J) : {}, o.u ? (o.v || (o.v = "POST"), B["Content-Type"] = "application/x-www-form-urlencoded", o.g.ea(o.B, o.v, o.u, B)) : (o.v = "GET", o.g.ea(o.B, o.v, null, B)), bs(), yE(o.i, o.v, o.B, o.l, o.S, o.u);
         }
         dn.prototype.ba = function (o) {
           o = o.target;
@@ -14463,14 +14574,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           try {
             if (o == this.g) e: {
               var ne = Cn(this.g),
-                Fe = this.g.ya(),
+                Le = this.g.ya(),
                 de = this.g.ca();
               if (!(ne < 3) && (ne != 3 || this.g && (this.h.h || this.g.la() || sf(this.g)))) {
-                this.K || ne != 4 || Fe == 7 || (Fe == 8 || de <= 0 ? bs(3) : bs(2)), Lu(this);
+                this.K || ne != 4 || Le == 7 || (Le == 8 || de <= 0 ? bs(3) : bs(2)), Lu(this);
                 var B = this.g.ca();
                 this.X = B;
-                var h = AE(this);
-                if (this.o = B == 200, yE(this.i, this.v, this.B, this.l, this.S, ne, B), this.o) {
+                var h = vE(this);
+                if (this.o = B == 200, wE(this.i, this.v, this.B, this.l, this.S, ne, B), this.o) {
                   if (this.U && !this.L) {
                     t: {
                       if (this.g) {
@@ -14491,7 +14602,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   if (this.R) {
                     o = !0;
                     var Me;
-                    for (; !this.K && this.C < h.length;) if (Me = vE(this, h), Me == Ou) {
+                    for (; !this.K && this.C < h.length;) if (Me = bE(this, h), Me == Ou) {
                       ne == 4 && (this.m = 4, Ye(14), o = !1), Sr(this.i, this.l, null, "[Incomplete Response]");
                       break;
                     } else if (Me == kd) {
@@ -14505,12 +14616,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                     }
                   } else Sr(this.i, this.l, h, null), xu(this, h);
                   ne == 4 && Hn(this), this.o && !this.K && (ne == 4 ? hf(this.j, this) : (this.o = !1, Ba(this)));
-                } else UE(this.g), B == 400 && h.indexOf("Unknown SID") > 0 ? (this.m = 3, Ye(12)) : (this.m = 0, Ye(13)), Hn(this), Ns(this);
+                } else HE(this.g), B == 400 && h.indexOf("Unknown SID") > 0 ? (this.m = 3, Ye(12)) : (this.m = 0, Ye(13)), Hn(this), Ns(this);
               }
             }
           } catch (_unused34) {}
         };
-        function AE(o) {
+        function vE(o) {
           if (!Md(o)) return o.g.la();
           var B = sf(o.g);
           if (B === "") return "";
@@ -14529,7 +14640,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         function Md(o) {
           return o.g ? o.v == "GET" && o.M != 2 && o.j.Aa : !1;
         }
-        function vE(o, B) {
+        function bE(o, B) {
           var h = o.C,
             p = B.indexOf("\n", h);
           return p == -1 ? Ou : (h = Number(B.substring(h, p)), isNaN(h) ? kd : (p += 1, p + h > B.length ? Ou : (B = B.slice(p, p + h), o.C = p + h, B)));
@@ -14550,7 +14661,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         dn.prototype.aa = function () {
           this.D = null;
           var o = Date.now();
-          o - this.T >= 0 ? (wE(this.i, this.B), this.M != 2 && (bs(), Ye(17)), Hn(this), this.m = 2, Ns(this)) : Gd(this, this.T - o);
+          o - this.T >= 0 ? (IE(this.i, this.B), this.M != 2 && (bs(), Ye(17)), Hn(this), this.m = 2, Ns(this)) : Gd(this, this.T - o);
         };
         function Ns(o) {
           o.j.I == 0 || o.K || hf(o.j, o);
@@ -14609,8 +14720,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                     if (p.na = pf(p, p.L ? p.ba : null, p.W), q.L) {
                       jd(p.h, q);
                       var ne = q,
-                        Fe = p.O;
-                      Fe && (ne.H = Fe), ne.D && (Lu(ne), Ba(ne)), p.g = q;
+                        Le = p.O;
+                      Le && (ne.H = Le), ne.D && (Lu(ne), Ba(ne)), p.g = q;
                     } else lf(p);
                     h.i.length > 0 && ga(h);
                   } else de[0] != "stop" && de[0] != "close" || jn(h, 7);
@@ -14620,7 +14731,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             bs(4);
           } catch (_unused36) {}
         }
-        var bE = function bE(o, B) {
+        var SE = function SE(o, B) {
           this.g = o, this.map = B;
         };
         function Ud(o) {
@@ -14663,7 +14774,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return v(o.i);
         }
         var Jd = RegExp("^(?:([^:/?#.]+):)?(?://(?:([^\\\\/?#]*)@)?([^\\\\/?#]*?)(?::([0-9]+))?(?=[\\\\/?#]|$))?([^?#]+)?(?:\\?([^#]*))?(?:#([\\s\\S]*))?$");
-        function SE(o, B) {
+        function RE(o, B) {
           if (o) {
             o = o.split("&");
             for (var h = 0; h < o.length; h++) {
@@ -14684,7 +14795,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           var B = this.j;
           B && o.push(xs(B, zd, !0), ":");
           var h = this.g;
-          return (h || B == "file") && (o.push("//"), (B = this.o) && o.push(xs(B, zd, !0), "@"), o.push(Ps(h).replace(/%25([0-9a-fA-F]{2})/g, "%$1")), h = this.u, h != null && o.push(":", String(h))), (h = this.h) && (this.g && h.charAt(0) != "/" && o.push("/"), o.push(xs(h, h.charAt(0) == "/" ? NE : PE, !0))), (h = this.i.toString()) && o.push("?", h), (h = this.m) && o.push("#", xs(h, FE)), o.join("");
+          return (h || B == "file") && (o.push("//"), (B = this.o) && o.push(xs(B, zd, !0), "@"), o.push(Ps(h).replace(/%25([0-9a-fA-F]{2})/g, "%$1")), h = this.u, h != null && o.push(":", String(h))), (h = this.h) && (this.g && h.charAt(0) != "/" && o.push("/"), o.push(xs(h, h.charAt(0) == "/" ? OE : NE, !0))), (h = this.i.toString()) && o.push("?", h), (h = this.m) && o.push("#", xs(h, LE)), o.join("");
         }, fn.prototype.resolve = function (o) {
           var B = Nt(this),
             h = !!o.j;
@@ -14720,7 +14831,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           } else o.u = null;
         }
         function Mu(o, B, h) {
-          B instanceof ks ? (o.i = B, LE(o.i, o.l)) : (h || (B = xs(B, OE)), o.i = new ks(B, o.l));
+          B instanceof ks ? (o.i = B, xE(o.i, o.l)) : (h || (B = xs(B, FE)), o.i = new ks(B, o.l));
         }
         function _e(o, B, h) {
           o.i.set(B, h);
@@ -14732,21 +14843,21 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return o ? B ? decodeURI(o.replace(/%25/g, "%2525")) : decodeURIComponent(o) : "";
         }
         function xs(o, B, h) {
-          return typeof o == "string" ? (o = encodeURI(o).replace(B, RE), h && (o = o.replace(/%25([0-9a-fA-F]{2})/g, "%$1")), o) : null;
+          return typeof o == "string" ? (o = encodeURI(o).replace(B, PE), h && (o = o.replace(/%25([0-9a-fA-F]{2})/g, "%$1")), o) : null;
         }
-        function RE(o) {
+        function PE(o) {
           return o = o.charCodeAt(0), "%" + (o >> 4 & 15).toString(16) + (o & 15).toString(16);
         }
         var zd = /[#\/\?@]/g,
-          PE = /[#\?:]/g,
-          NE = /[#\?]/g,
-          OE = /[#\?@]/g,
-          FE = /#/g;
+          NE = /[#\?:]/g,
+          OE = /[#\?]/g,
+          FE = /[#\?@]/g,
+          LE = /#/g;
         function ks(o, B) {
           this.h = this.g = null, this.i = o || null, this.j = !!B;
         }
         function qn(o) {
-          o.g || (o.g = new Map(), o.h = 0, o.i && SE(o.i, function (B, h) {
+          o.g || (o.g = new Map(), o.h = 0, o.i && RE(o.i, function (B, h) {
             o.add(decodeURIComponent(B.replace(/\+/g, " ")), h);
           }));
         }
@@ -14805,13 +14916,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         function Rr(o, B) {
           return B = String(B), o.j && (B = B.toLowerCase()), B;
         }
-        function LE(o, B) {
+        function xE(o, B) {
           B && !o.j && (qn(o), o.i = null, o.g.forEach(function (h, p) {
             var b = p.toLowerCase();
             p != b && (Wd(this, p), Yd(this, b, h));
           }, o)), o.j = B;
         }
-        function xE(o, B) {
+        function kE(o, B) {
           var h = new Rs();
           if (a.Image) {
             var p = new Image();
@@ -14820,7 +14931,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }, 1e4), p.src = o;
           } else B(!1);
         }
-        function kE(o, B) {
+        function VE(o, B) {
           var h = new Rs(),
             p = new AbortController(),
             b = setTimeout(function () {
@@ -14839,8 +14950,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             b && (b.onload = null, b.onerror = null, b.onabort = null, b.ontimeout = null), p(h);
           } catch (_unused37) {}
         }
-        function VE() {
-          this.g = new _E();
+        function ME() {
+          this.g = new DE();
         }
         function da(o) {
           this.i = o.Sb || null, this.h = o.ab || !1;
@@ -14942,8 +15053,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           Ke.call(this), this.headers = new Map(), this.L = o || null, this.h = !1, this.g = null, this.D = "", this.o = 0, this.l = "", this.j = this.B = this.v = this.A = !1, this.m = null, this.F = "", this.H = !1;
         }
         f(we, Ke);
-        var ME = /^https?$/i,
-          GE = ["POST", "PUT"];
+        var GE = /^https?$/i,
+          UE = ["POST", "PUT"];
         n = we.prototype, n.Fa = function (o) {
           this.H = o;
         }, n.ea = function (o, B, h, p) {
@@ -14963,7 +15074,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           } else throw Error("Unknown input type for opt_headers: " + String(p));
           p = Array.from(h.keys()).find(function (P) {
             return P.toLowerCase() == "content-type";
-          }), b = a.FormData && o instanceof a.FormData, !(Array.prototype.indexOf.call(GE, B, void 0) >= 0) || p || b || h.set("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
+          }), b = a.FormData && o instanceof a.FormData, !(Array.prototype.indexOf.call(UE, B, void 0) >= 0) || p || b || h.set("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
           for (var _iterator17 = _createForOfIteratorHelperLoose(h), _step17; !(_step17 = _iterator17()).done;) {
             var _step17$value = _step17.value,
               _P = _step17$value[0],
@@ -15016,7 +15127,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   var p;
                   if (p = P === 0) {
                     var q = String(o.D).match(Jd)[1] || null;
-                    !q && a.self && a.self.location && (q = a.self.location.protocol.slice(0, -1)), p = !ME.test(q ? q.toLowerCase() : "");
+                    !q && a.self && a.self.location && (q = a.self.location.protocol.slice(0, -1)), p = !GE.test(q ? q.toLowerCase() : "");
                   }
                   h = p;
                 }
@@ -15066,7 +15177,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }, n.La = function (o) {
           if (this.g) {
             var B = this.g.responseText;
-            return o && B.indexOf(o) == 0 && (B = B.substring(o.length)), EE(B);
+            return o && B.indexOf(o) == 0 && (B = B.substring(o.length)), _E(B);
           }
         };
         function sf(o) {
@@ -15085,19 +15196,19 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             return null;
           }
         }
-        function UE(o) {
+        function HE(o) {
           var B = {};
           o = (o.g && Cn(o) >= 2 && o.g.getAllResponseHeaders() || "").split("\r\n");
           for (var p = 0; p < o.length; p++) {
             if (_(o[p])) continue;
-            var h = TE(o[p]);
+            var h = AE(o[p]);
             var b = h[0];
             if (h = h[1], typeof h != "string") continue;
             h = h.trim();
             var P = B[b] || [];
             B[b] = P, P.push(h);
           }
-          dE(B, function (p) {
+          fE(B, function (p) {
             return p.join(", ");
           });
         }
@@ -15110,7 +15221,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return h && h.internalChannelParams && h.internalChannelParams[o] || B;
         }
         function af(o) {
-          this.za = 0, this.i = [], this.j = new Rs(), this.ba = this.na = this.J = this.W = this.g = this.wa = this.G = this.H = this.u = this.U = this.o = null, this.Ya = this.V = 0, this.Sa = Gs("failFast", !1, o), this.F = this.C = this.v = this.m = this.l = null, this.X = !0, this.xa = this.K = -1, this.Y = this.A = this.D = 0, this.Qa = Gs("baseRetryDelayMs", 5e3, o), this.Za = Gs("retryDelaySeedMs", 1e4, o), this.Ta = Gs("forwardChannelMaxRetries", 2, o), this.va = Gs("forwardChannelRequestTimeoutMs", 2e4, o), this.ma = o && o.xmlHttpFactory || void 0, this.Ua = o && o.Rb || void 0, this.Aa = o && o.useFetchStreams || !1, this.O = void 0, this.L = o && o.supportsCrossDomainXhr || !1, this.M = "", this.h = new Ud(o && o.concurrentRequestLimit), this.Ba = new VE(), this.S = o && o.fastHandshake || !1, this.R = o && o.encodeInitMessageHeaders || !1, this.S && this.R && (this.R = !1), this.Ra = o && o.Pb || !1, o && o.ua && this.j.ua(), o && o.forceLongPolling && (this.X = !1), this.aa = !this.S && this.X && o && o.detectBufferingProxy || !1, this.ia = void 0, o && o.longPollingTimeout && o.longPollingTimeout > 0 && (this.ia = o.longPollingTimeout), this.ta = void 0, this.T = 0, this.P = !1, this.ja = this.B = null;
+          this.za = 0, this.i = [], this.j = new Rs(), this.ba = this.na = this.J = this.W = this.g = this.wa = this.G = this.H = this.u = this.U = this.o = null, this.Ya = this.V = 0, this.Sa = Gs("failFast", !1, o), this.F = this.C = this.v = this.m = this.l = null, this.X = !0, this.xa = this.K = -1, this.Y = this.A = this.D = 0, this.Qa = Gs("baseRetryDelayMs", 5e3, o), this.Za = Gs("retryDelaySeedMs", 1e4, o), this.Ta = Gs("forwardChannelMaxRetries", 2, o), this.va = Gs("forwardChannelRequestTimeoutMs", 2e4, o), this.ma = o && o.xmlHttpFactory || void 0, this.Ua = o && o.Rb || void 0, this.Aa = o && o.useFetchStreams || !1, this.O = void 0, this.L = o && o.supportsCrossDomainXhr || !1, this.M = "", this.h = new Ud(o && o.concurrentRequestLimit), this.Ba = new ME(), this.S = o && o.fastHandshake || !1, this.R = o && o.encodeInitMessageHeaders || !1, this.S && this.R && (this.R = !1), this.Ra = o && o.Pb || !1, o && o.ua && this.j.ua(), o && o.forceLongPolling && (this.X = !1), this.aa = !this.S && this.X && o && o.detectBufferingProxy || !1, this.ia = void 0, o && o.longPollingTimeout && o.longPollingTimeout > 0 && (this.ia = o.longPollingTimeout), this.ta = void 0, this.T = 0, this.P = !1, this.ja = this.B = null;
         }
         n = af.prototype, n.ka = 8, n.I = 1, n.connect = function (o, B, h, p) {
           Ye(0), this.W = o, this.H = B || {}, h && p !== void 0 && (this.H.OSID = h, this.H.OAID = p), this.F = this.X, this.J = pf(this, null, this.W), ga(this);
@@ -15139,7 +15250,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             ut || E(), ye || (ut(), ye = !0), I.add(B, o), o.D = 0;
           }
         }
-        function HE(o, B) {
+        function qE(o, B) {
           return qd(o.h) >= o.h.j - (o.m ? 1 : 0) ? !1 : o.m ? (o.i = B.G.concat(o.i), !0) : o.I == 1 || o.I == 2 || o.D >= (o.Sa ? 0 : o.Ta) ? !1 : (o.m = Ss(l(o.Ea, o, B), df(o, o.D)), o.D++, !0);
         }
         n.Ea = function (o) {
@@ -15194,8 +15305,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             var b = o.i;
             var ne = -1;
             for (;;) {
-              var Fe = ["count=" + h];
-              ne == -1 ? h > 0 ? (ne = b[0].g, Fe.push("ofs=" + ne)) : ne = 0 : Fe.push("ofs=" + ne);
+              var Le = ["count=" + h];
+              ne == -1 ? h > 0 ? (ne = b[0].g, Le.push("ofs=" + ne)) : ne = 0 : Le.push("ofs=" + ne);
               var de = !0;
               for (var Me = 0; Me < h; Me++) {
                 var P = b[Me].g;
@@ -15209,17 +15320,17 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                         Kn = _step18$value[0],
                         gn = _step18$value[1];
                       var mn = gn;
-                      u(gn) && (mn = Su(gn)), Fe.push(P + Kn + "=" + encodeURIComponent(mn));
+                      u(gn) && (mn = Su(gn)), Le.push(P + Kn + "=" + encodeURIComponent(mn));
                     }
                   } catch (Kn) {
-                    throw Fe.push(P + "type=" + encodeURIComponent("_badmap")), Kn;
+                    throw Le.push(P + "type=" + encodeURIComponent("_badmap")), Kn;
                   }
                 } catch (_unused44) {
                   p && p(Ot);
                 }
               }
               if (de) {
-                q = Fe.join("&");
+                q = Le.join("&");
                 break e;
               }
             }
@@ -15274,7 +15385,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 var b = o.D;
                 p = ca(), $e(p, new Od(p, h)), ga(o);
               } else lf(o);
-            } else if (b = B.m, b == 3 || b == 0 && B.X > 0 || !(p == 1 && HE(o, B) || p == 2 && Hu(o))) switch (h && h.length > 0 && (B = o.h, B.i = B.i.concat(h)), b) {
+            } else if (b = B.m, b == 3 || b == 0 && B.X > 0 || !(p == 1 && qE(o, B) || p == 2 && Hu(o))) switch (h && h.length > 0 && (B = o.h, B.i = B.i.concat(h)), b) {
               case 1:
                 jn(o, 5);
                 break;
@@ -15298,7 +15409,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             var h = l(o.bb, o),
               p = o.Ua;
             var b = !p;
-            p = new fn(p || "//www.google.com/images/cleardot.gif"), a.location && a.location.protocol == "http" || Os(p, "https"), ha(p), b ? xE(p.toString(), h) : kE(p.toString(), h);
+            p = new fn(p || "//www.google.com/images/cleardot.gif"), a.location && a.location.protocol == "http" || Os(p, "https"), ha(p), b ? kE(p.toString(), h) : VE(p.toString(), h);
           } else Ye(2);
           o.I = 0, o.l && o.l.pa(B), ff(o), of(o);
         }
@@ -15357,7 +15468,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             var h = {};
             h.__data__ = o, o = h;
           } else this.v && (h = {}, h.__data__ = Su(o), o = h);
-          B.i.push(new bE(B.Ya++, o)), B.I == 3 && ga(B);
+          B.i.push(new SE(B.Ya++, o)), B.I == 3 && ga(B);
         }, ct.prototype.N = function () {
           this.g.l = null, delete this.j, Uu(this.g), delete this.g, ct.Z.N.call(this);
         };
@@ -15491,20 +15602,20 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }]);
           return C;
         }(),
-        SC = new Uint8Array(256);
-      for (var _n2 = 0, e = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-"; _n2 < 64; _n2++) SC[e.charCodeAt(_n2)] = _n2;
-      var RC = function RC(n) {
+        RC = new Uint8Array(256);
+      for (var _n2 = 0, e = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-"; _n2 < 64; _n2++) RC[e.charCodeAt(_n2)] = _n2;
+      var PC = function PC(n) {
           var e = [],
             t = 0,
             r = 0;
           for (var s = 0; s < n.length; s++) {
-            var i = SC[n.charCodeAt(s)];
+            var i = RC[n.charCodeAt(s)];
             t |= (i & 31) << r, (i & 32) === 0 ? (e.push(t), t = 0, r = 0) : r += 5;
           }
           return e;
         },
         g = function g(n, e) {
-          var t = RC(n),
+          var t = PC(n),
             r = e ? t.length / 2 : t.length / 3,
             s = new Uint32Array(r * 3),
             i = 0,
@@ -15512,8 +15623,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           for (var _u4 = 0; _u4 < r; _u4++) i += t[a++], s[_u4 * 3] = i, i += t[a++], s[_u4 * 3 + 1] = i, s[_u4 * 3 + 2] = e ? 1 : t[a++];
           return s;
         },
-        Zy = function Zy(n) {
-          var e = RC(n),
+        ew = function ew(n) {
+          var e = PC(n),
             t = new Map(),
             r = 0;
           for (var s = 0; s < e.length; s += 2) {
@@ -15546,7 +15657,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           _createClass(bn, null, [{
             key: "CASE_ORBIT",
             get: function get() {
-              return this._CASE_ORBIT || (this._CASE_ORBIT = Zy("rCgCIgCY+rQI4QiCuuBLgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCCgCBgCBgCBgCBgCBgCBgCB+7OB-BB-BB-BB-BB-BBskQB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BC-BB-BB-BB-BB-BB-BB-BByHBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBDCBBBCBBBCBBCCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBCCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBxHBCBBBCBBBCBBB3SBmMBkNBCBBBCBBB8MBCBBB6MB6MBCBBC+EB0MB2MBCBBB6MB+MBiGBmNBiNBCBBBmKBikzCBmNBqNBkIBsNBCBBBCBBBCBBB0NBCBBB0NDCBBB0NBCBBByNByNBCBBBCBBB2NBCBBDCBBCwDFCBCBDBCBCBDBCBCBDBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBB9EBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBCCBCBDBCBBBhGBvDBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBjICCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBH2iVBCBBBlKBwiVB+jVB+jVBCBBBlMBqEBuEBCBBBCBBBCBBBCBBBCBBB+hVB4hVB8hVBjNB7MC5MB5MCzMC1MB+0yCE5MB20yCC9MBu2yCBwyyCBo0yCChNBlNBo0yCBu-UBi0yCDlNC6-UBpNDrNIu+UDzNCm0yCBzNE0yyCBzNBpEBxNBxNBtEG1NLqxyCBkxyCnFoFrBCBBBCBBDCBBEkIBkIBkICoHHsCCqCBqCBqCCgEC+DB+DBmkOBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCC+BBgCBgCBgCBgCBgCBgCBgCBgCBrCBpCBpCBpCBmjOB-BB8BB-BB-BBgEB-BB-BByBBqgOBsDB-BBtwBB-BB-BB-BBsBBgDBCB-BB-BB-BBeB-BB-BB61OB-BB-BB-DB9DB9DBQB7DBmCE9CBrDBPBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBrFB-EBOBnHB3FB-FCCBBBNBCBBCjIBjIBjIBgFBgFBgFBgFBgFBgFBgFBgFBgFBgFBgFBgFBgFBgFBgFBgFBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCB-BB-BB8kMB-BB6kMB-BB-BB-BB-BB-BB-BB-BB-BB-BBokMB-BB-BBkkMBkkMB-BB-BB-BB-BB-BB-BB-BB4jMB-BB-BB-BB-BB-BB-EB-EB-EB-EB-EB-EB-EB-EB-EB-EB-EB-EB-EB-EB-EB-EBCBBBCBoiMBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBJCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBeBCBBBCBBBCBBBCBBBCBBBCBBBCBBBdBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBCgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDL-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-C64CgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOCgmOGgmODg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FDg8FBg8FBg8FhVg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBQBQBQBQBQBQDPBPBPBPBPBPjkC7mMB5mMBnmMBjmMBCBlmMB3lMBpiMBk8kCBCBBG-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FD-7FB-7FB-7F6FoglCEsuHRwjlCyDCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCB0DBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBG1DD97OCCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBQBQBQBQBQBQBQBQBPBPBPBPBPBPBPBPBQBQBQBQBQBQDPBPBPBPBPBPDQBQBQBQBQBQBQBQBPBPBPBPBPBPBPBPBQBQBQBQBQBQBQBQBPBPBPBPBPBPBPBPBQBQBQBQBQBQDPBPBPBPBPBPEQCQCQCQCPCPCPCPBQBQBQBQBQBQBQBQBPBPBPBPBPBPBPBPB0EB0EBsFBsFBsFBsFBoGBoGBgIBgIBgHBgHB8HB8HDQBQBQBQBQBQBQBQBPBPBPBPBPBPBPBPBQBQBQBQBQBQBQBQBPBPBPBPBPBPBPBPBQBQBQBQBQBQBQBQBPBPBPBPBPBPBPBPBQBQCSFPBPBzEBzEBRCxnOFSFrFBrFBrFBrFBREQBQClkOFPBPBnGBnGFQBQCljOCODPBPB-GB-GBNHSF-HB-HB7HB7HBRqJ53OE9tQBrmQH4Bc3BSgBBgBBgBBgBBgBBgBBgBBgBBgBBgBBgBBgBBgBBgBBgBBgBBfBfBfBfBfBfBfBfBfBfBfBfBfBfBfBfECBByZ0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzB34BgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CBCBBBt-UBruHBt+UB1iVBviVBCBBBCBBBCBBB3hVB5-UB9hVB7hVCCBBCCBBI9jVB9jVBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBICBBBCBBECBBN-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOC-lOG-lOzoeCBBBCBBBCBBBCBBBCBBBCBl8kCBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBTCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBnECBBBCBBBCBBBCBBBCBBBCBBBCBBDCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBKCBBBCBBBnglCBCBBBCBBBCBBBCBBBCBBECBBBvyyCDCBBBCBBBgDCCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBn0yCB90yCB10yCBh0yCBn0yCCjxyCBzyyCBpxyCBg6BBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBB-CBl0yCBvjlCBCBBBCBBBt2yCBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBhkzCZCBB9a-5Bd-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCm6TCBB7gBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCH-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BmlBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvChDwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCFvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvC1DuCBuCBuCBuCBuCBuCBuCBuCBuCBuCBuCCuCBuCBuCBuCBuCBuCBuCBuCBuCBuCBuCBuCBuCBuCBuCCuCBuCBuCBuCBuCBuCBuCCuCBuCCtCBtCBtCBtCBtCBtCBtCBtCBtCBtCBtCCtCBtCBtCBtCBtCBtCBtCBtCBtCBtCBtCBtCBtCBtCBtCCtCBtCBtCBtCBtCBtCBtCCtCBtCk2BgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEO-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-D+CgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCL-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-B74CgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BhrVgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BhB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BD1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BtxekCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjC")), this._CASE_ORBIT;
+              return this._CASE_ORBIT || (this._CASE_ORBIT = ew("rCgCIgCY+rQI4QiCuuBLgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCCgCBgCBgCBgCBgCBgCBgCB+7OB-BB-BB-BB-BB-BBskQB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BC-BB-BB-BB-BB-BB-BB-BByHBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBDCBBBCBBBCBBCCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBCCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBxHBCBBBCBBBCBBB3SBmMBkNBCBBBCBBB8MBCBBB6MB6MBCBBC+EB0MB2MBCBBB6MB+MBiGBmNBiNBCBBBmKBikzCBmNBqNBkIBsNBCBBBCBBBCBBB0NBCBBB0NDCBBB0NBCBBByNByNBCBBBCBBB2NBCBBDCBBCwDFCBCBDBCBCBDBCBCBDBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBB9EBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBCCBCBDBCBBBhGBvDBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBjICCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBH2iVBCBBBlKBwiVB+jVB+jVBCBBBlMBqEBuEBCBBBCBBBCBBBCBBBCBBB+hVB4hVB8hVBjNB7MC5MB5MCzMC1MB+0yCE5MB20yCC9MBu2yCBwyyCBo0yCChNBlNBo0yCBu-UBi0yCDlNC6-UBpNDrNIu+UDzNCm0yCBzNE0yyCBzNBpEBxNBxNBtEG1NLqxyCBkxyCnFoFrBCBBBCBBDCBBEkIBkIBkICoHHsCCqCBqCBqCCgEC+DB+DBmkOBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCC+BBgCBgCBgCBgCBgCBgCBgCBgCBrCBpCBpCBpCBmjOB-BB8BB-BB-BBgEB-BB-BByBBqgOBsDB-BBtwBB-BB-BB-BBsBBgDBCB-BB-BB-BBeB-BB-BB61OB-BB-BB-DB9DB9DBQB7DBmCE9CBrDBPBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBrFB-EBOBnHB3FB-FCCBBBNBCBBCjIBjIBjIBgFBgFBgFBgFBgFBgFBgFBgFBgFBgFBgFBgFBgFBgFBgFBgFBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCB-BB-BB8kMB-BB6kMB-BB-BB-BB-BB-BB-BB-BB-BB-BBokMB-BB-BBkkMBkkMB-BB-BB-BB-BB-BB-BB-BB4jMB-BB-BB-BB-BB-BB-EB-EB-EB-EB-EB-EB-EB-EB-EB-EB-EB-EB-EB-EB-EB-EBCBBBCBoiMBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBJCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBeBCBBBCBBBCBBBCBBBCBBBCBBBCBBBdBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBCgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDL-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-C64CgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOBgmOCgmOGgmODg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FBg8FDg8FBg8FBg8FhVg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBg9rCBQBQBQBQBQBQDPBPBPBPBPBPjkC7mMB5mMBnmMBjmMBCBlmMB3lMBpiMBk8kCBCBBG-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FB-7FD-7FB-7FB-7F6FoglCEsuHRwjlCyDCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCB0DBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBG1DD97OCCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBQBQBQBQBQBQBQBQBPBPBPBPBPBPBPBPBQBQBQBQBQBQDPBPBPBPBPBPDQBQBQBQBQBQBQBQBPBPBPBPBPBPBPBPBQBQBQBQBQBQBQBQBPBPBPBPBPBPBPBPBQBQBQBQBQBQDPBPBPBPBPBPEQCQCQCQCPCPCPCPBQBQBQBQBQBQBQBQBPBPBPBPBPBPBPBPB0EB0EBsFBsFBsFBsFBoGBoGBgIBgIBgHBgHB8HB8HDQBQBQBQBQBQBQBQBPBPBPBPBPBPBPBPBQBQBQBQBQBQBQBQBPBPBPBPBPBPBPBPBQBQBQBQBQBQBQBQBPBPBPBPBPBPBPBPBQBQCSFPBPBzEBzEBRCxnOFSFrFBrFBrFBrFBREQBQClkOFPBPBnGBnGFQBQCljOCODPBPB-GB-GBNHSF-HB-HB7HB7HBRqJ53OE9tQBrmQH4Bc3BSgBBgBBgBBgBBgBBgBBgBBgBBgBBgBBgBBgBBgBBgBBgBBgBBfBfBfBfBfBfBfBfBfBfBfBfBfBfBfBfECBByZ0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BB0BBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzBBzB34BgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDBgDB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CB-CBCBBBt-UBruHBt+UB1iVBviVBCBBBCBBBCBBB3hVB5-UB9hVB7hVCCBBCCBBI9jVB9jVBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBICBBBCBBECBBN-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOB-lOC-lOG-lOzoeCBBBCBBBCBBBCBBBCBBBCBl8kCBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBTCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBnECBBBCBBBCBBBCBBBCBBBCBBBCBBDCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBKCBBBCBBBnglCBCBBBCBBBCBBBCBBBCBBECBBBvyyCDCBBBCBBBgDCCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBn0yCB90yCB10yCBh0yCBn0yCCjxyCBzyyCBpxyCBg6BBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBB-CBl0yCBvjlCBCBBBCBBBt2yCBCBBBCBBBCBBBCBBBCBBBCBBBCBBBCBBBhkzCZCBB9a-5Bd-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCB-8rCm6TCBB7gBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCH-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BmlBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvChDwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCBwCFvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvCBvC1DuCBuCBuCBuCBuCBuCBuCBuCBuCBuCBuCCuCBuCBuCBuCBuCBuCBuCBuCBuCBuCBuCBuCBuCBuCBuCCuCBuCBuCBuCBuCBuCBuCCuCBuCCtCBtCBtCBtCBtCBtCBtCBtCBtCBtCBtCCtCBtCBtCBtCBtCBtCBtCBtCBtCBtCBtCBtCBtCBtCBtCCtCBtCBtCBtCBtCBtCBtCCtCBtCk2BgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEBgEO-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-DB-D+CgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCL-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-B74CgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BhrVgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCBgCB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BB-BhB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BB2BD1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BB1BtxekCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBkCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjCBjC")), this._CASE_ORBIT;
             }
           }, {
             key: "Print",
@@ -16353,8 +16464,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return Ce;
         }(), M(_Ce, "MAX_RUNE", 1114111), M(_Ce, "MAX_ASCII", 127), M(_Ce, "MAX_LATIN1", 255), M(_Ce, "MAX_BMP", 65535), M(_Ce, "MIN_FOLD", 65), M(_Ce, "MAX_FOLD", 125251), M(_Ce, "MIN_HIGH_SURROGATE", 55296), M(_Ce, "MAX_HIGH_SURROGATE", 56319), M(_Ce, "MIN_LOW_SURROGATE", 56320), M(_Ce, "MAX_LOW_SURROGATE", 57343), M(_Ce, "MIN_SUPPLEMENTARY_CODE_POINT", 65536), _Ce),
         el = 256,
-        PC = new Uint8Array(el);
-      for (var _n3 = 0; _n3 < el; _n3++) PC[_n3] = 97 <= _n3 && _n3 <= 122 || 65 <= _n3 && _n3 <= 90 || 48 <= _n3 && _n3 <= 57 || _n3 === 95 ? 1 : 0;
+        NC = new Uint8Array(el);
+      for (var _n3 = 0; _n3 < el; _n3++) NC[_n3] = 97 <= _n3 && _n3 <= 122 || 65 <= _n3 && _n3 <= 90 || 48 <= _n3 && _n3 <= 57 || _n3 === 95 ? 1 : 0;
       var zc = null,
         Wc = null,
         _De,
@@ -16419,7 +16530,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             return String.fromCodePoint(e);
           };
           De.isWordRune = function isWordRune(e) {
-            return e < el ? PC[e] === 1 : !1;
+            return e < el ? NC[e] === 1 : !1;
           };
           De.emptyOpContext = function emptyOpContext(e, t) {
             var r = 0;
@@ -16482,7 +16593,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           return De;
         }(), M(_De, "METACHARACTERS", "\\.+*?()|[]{}^$"), M(_De, "EMPTY_BEGIN_LINE", 1), M(_De, "EMPTY_END_LINE", 2), M(_De, "EMPTY_BEGIN_TEXT", 4), M(_De, "EMPTY_END_TEXT", 8), M(_De, "EMPTY_WORD_BOUNDARY", 16), M(_De, "EMPTY_NO_WORD_BOUNDARY", 32), M(_De, "EMPTY_ALL", -1), _De),
-        NC = function NC(n, e) {
+        OC = function OC(n, e) {
           if (n === void 0) {
             n = [];
           }
@@ -16520,10 +16631,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             return this.getEncoding() === _Rn.Encoding.UTF_16;
           };
           return Rn;
-        }(), M(_Rn, "Encoding", NC(["UTF_16", "UTF_8"])), _Rn),
-        rC = /*#__PURE__*/function (_rr) {
-          _inheritsLoose(rC, _rr);
-          function rC(n) {
+        }(), M(_Rn, "Encoding", OC(["UTF_16", "UTF_8"])), _Rn),
+        sC = /*#__PURE__*/function (_rr) {
+          _inheritsLoose(sC, _rr);
+          function sC(n) {
             var _this52;
             if (n === void 0) {
               n = null;
@@ -16531,7 +16642,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             _this52 = _rr.call(this) || this, _this52.bytes = n;
             return _this52;
           }
-          var _proto62 = rC.prototype;
+          var _proto62 = sC.prototype;
           _proto62.getEncoding = function getEncoding() {
             return rr.Encoding.UTF_8;
           };
@@ -16544,11 +16655,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           _proto62.length = function length() {
             return this.bytes.length;
           };
-          return rC;
+          return sC;
         }(rr),
-        ew = /*#__PURE__*/function (_rr2) {
-          _inheritsLoose(ew, _rr2);
-          function ew(n) {
+        tw = /*#__PURE__*/function (_rr2) {
+          _inheritsLoose(tw, _rr2);
+          function tw(n) {
             var _this53;
             if (n === void 0) {
               n = null;
@@ -16556,7 +16667,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             _this53 = _rr2.call(this) || this, _this53.charSequence = n;
             return _this53;
           }
-          var _proto63 = ew.prototype;
+          var _proto63 = tw.prototype;
           _proto63.getEncoding = function getEncoding() {
             return rr.Encoding.UTF_16;
           };
@@ -16569,15 +16680,15 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           _proto63.length = function length() {
             return this.charSequence.length;
           };
-          return ew;
+          return tw;
         }(rr),
         tr = /*#__PURE__*/function () {
           function tr() {}
           tr.utf16 = function utf16(n) {
-            return new ew(n);
+            return new tw(n);
           };
           tr.utf8 = function utf8(n) {
-            return W.isByteArray(n) ? new rC(n) : new rC(W.stringToUtf8ByteArray(n));
+            return W.isByteArray(n) ? new sC(n) : new sC(W.stringToUtf8ByteArray(n));
           };
           return tr;
         }(),
@@ -16606,9 +16717,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           return Xe;
         }(),
-        tw = /*#__PURE__*/function (_Xe) {
-          _inheritsLoose(tw, _Xe);
-          function tw(n, e, t) {
+        nw = /*#__PURE__*/function (_Xe) {
+          _inheritsLoose(nw, _Xe);
+          function nw(n, e, t) {
             var _this54;
             if (e === void 0) {
               e = 0;
@@ -16619,7 +16730,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             _this54 = _Xe.call(this) || this, _this54.bytes = n, _this54.start = e, _this54.end = t;
             return _this54;
           }
-          var _proto65 = tw.prototype;
+          var _proto65 = nw.prototype;
           _proto65.hasString = function hasString(n, e) {
             var t = n.bytes;
             if (t.length === 0) return !0;
@@ -16699,11 +16810,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           _proto65.prefixLength = function prefixLength(n) {
             return n.prefixUTF8.length;
           };
-          return tw;
+          return nw;
         }(Xe),
-        nw = /*#__PURE__*/function (_Xe2) {
-          _inheritsLoose(nw, _Xe2);
-          function nw(n, e, t) {
+        rw = /*#__PURE__*/function (_Xe2) {
+          _inheritsLoose(rw, _Xe2);
+          function rw(n, e, t) {
             var _this55;
             if (e === void 0) {
               e = 0;
@@ -16714,7 +16825,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             _this55 = _Xe2.call(this) || this, _this55.charSequence = n, _this55.start = e, _this55.end = t;
             return _this55;
           }
-          var _proto66 = nw.prototype;
+          var _proto66 = rw.prototype;
           _proto66.hasString = function hasString(n, e) {
             var t = this.charSequence.indexOf(n.str, this.start + e);
             return t !== -1 && t <= this.end - n.str.length;
@@ -16743,7 +16854,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           _proto66.prefixLength = function prefixLength(n) {
             return n.prefix.length;
           };
-          return nw;
+          return rw;
         }(Xe),
         fe = /*#__PURE__*/function () {
           function fe() {}
@@ -16754,7 +16865,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             if (t === void 0) {
               t = n.length;
             }
-            return new tw(n, e, t);
+            return new nw(n, e, t);
           };
           fe.fromUTF16 = function fromUTF16(n, e, t) {
             if (e === void 0) {
@@ -16763,7 +16874,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             if (t === void 0) {
               t = n.length;
             }
-            return new nw(n, e, t);
+            return new rw(n, e, t);
           };
           return fe;
         }(),
@@ -16796,14 +16907,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           return ge;
         }(di),
-        OC = /*#__PURE__*/function (_di2) {
-          _inheritsLoose(OC, _di2);
-          function OC(n) {
+        FC = /*#__PURE__*/function (_di2) {
+          _inheritsLoose(FC, _di2);
+          function FC(n) {
             var _this58;
             _this58 = _di2.call(this, n) || this, _this58.name = "RE2JSCompileException";
             return _this58;
           }
-          return OC;
+          return FC;
         }(di),
         rt = /*#__PURE__*/function (_di3) {
           _inheritsLoose(rt, _di3);
@@ -16814,14 +16925,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }
           return rt;
         }(di),
-        rw = /*#__PURE__*/function (_di4) {
-          _inheritsLoose(rw, _di4);
-          function rw(n) {
+        sw = /*#__PURE__*/function (_di4) {
+          _inheritsLoose(sw, _di4);
+          function sw(n) {
             var _this60;
             _this60 = _di4.call(this, n) || this, _this60.name = "RE2JSFlagsException";
             return _this60;
           }
-          return rw;
+          return sw;
         }(di),
         Bi = /*#__PURE__*/function (_di5) {
           _inheritsLoose(Bi, _di5);
@@ -16833,7 +16944,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return Bi;
         }(di),
         _nr,
-        sC = (_nr = /*#__PURE__*/function () {
+        iC = (_nr = /*#__PURE__*/function () {
           nr.quoteReplacement = function quoteReplacement(e, t) {
             if (t === void 0) {
               t = !1;
@@ -17206,11 +17317,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           return ae;
         }(), M(_ae, "ALT", 1), M(_ae, "ALT_MATCH", 2), M(_ae, "CAPTURE", 3), M(_ae, "EMPTY_WIDTH", 4), M(_ae, "FAIL", 5), M(_ae, "MATCH", 6), M(_ae, "NOP", 7), M(_ae, "RUNE", 8), M(_ae, "RUNE1", 9), M(_ae, "RUNE_ANY", 10), M(_ae, "RUNE_ANY_NOT_NL", 11), M(_ae, "LB_WRITE", 12), M(_ae, "LB_CHECK", 13), _ae),
-        iC = /*#__PURE__*/function () {
-          function iC(n) {
+        aC = /*#__PURE__*/function () {
+          function aC(n) {
             this.sparse = new Int32Array(n), this.densePcs = new Int32Array(n), this.denseCaps = null, this.size = 0, this.ncap = 0;
           }
-          var _proto70 = iC.prototype;
+          var _proto70 = aC.prototype;
           _proto70.init = function init(n) {
             this.ncap = n;
             var e = this.densePcs.length * n;
@@ -17235,12 +17346,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             for (var _e4 = 0; _e4 < this.size; _e4++) _e4 !== 0 && (n += ", "), n += this.densePcs[_e4];
             return n += "}", n;
           };
-          return iC;
+          return aC;
         }(),
-        FC = /*#__PURE__*/function () {
+        LC = /*#__PURE__*/function () {
           Zc.fromRE2 = function fromRE2(e) {
             var t = new Zc();
-            return t.prog = e.prog, t.re2 = e, t.q0 = new iC(t.prog.numInst()), t.q1 = new iC(t.prog.numInst()), t.matched = !1, t.matchcap = new Int32Array(t.prog.numCap < 2 ? 2 : t.prog.numCap), t.ncap = 0, t;
+            return t.prog = e.prog, t.re2 = e, t.q0 = new aC(t.prog.numInst()), t.q1 = new aC(t.prog.numInst()), t.matched = !1, t.matchcap = new Int32Array(t.prog.numCap < 2 ? 2 : t.prog.numCap), t.ncap = 0, t;
           };
           Zc.fromMachine = function fromMachine(e) {
             return Zc.fromRE2(e.re2);
@@ -17443,24 +17554,24 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           return Zc;
         }(),
-        aC = function aC(n) {
+        oC = function oC(n) {
           var e = -2128831035;
           for (var t = 0; t < n.length; t++) e ^= n[t], e = Math.imul(e, 16777619);
           return e;
         },
-        sw = function sw(n, e) {
+        iw = function iw(n, e) {
           if (n.length !== e.length) return !1;
           for (var t = 0; t < n.length; t++) if (n[t] !== e[t]) return !1;
           return !0;
         },
-        iw = function iw(n, e, t) {
+        aw = function aw(n, e, t) {
           if (t === void 0) {
             t = [];
           }
           this.nfaStates = n, this.isMatch = e, this.matchIDs = t, this.nextLatin1 = new Array(J.MAX_LATIN1 + 1).fill(null), this.nextLatin1Anchored = new Array(J.MAX_LATIN1 + 1).fill(null), this.transKeys = [], this.transVals = [], this.lastSeen = 0;
         },
         _Xt,
-        LC = (_Xt = /*#__PURE__*/function () {
+        xC = (_Xt = /*#__PURE__*/function () {
           function Xt(e, t) {
             if (t === void 0) {
               t = 8388608;
@@ -17509,18 +17620,18 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             var t = this.computeClosure(e);
             if (!t) return null;
             var r = t.pcs,
-              s = aC(r),
+              s = oC(r),
               i = this.stateCache.get(s);
             if (i) for (var _u16 = 0; _u16 < i.length; _u16++) {
               var c = i[_u16];
-              if (sw(c.nfaStates, r)) return c.lastSeen = ++this.clock, c;
+              if (iw(c.nfaStates, r)) return c.lastSeen = ++this.clock, c;
             } else i = [], this.stateCache.set(s, i);
             if (this.failed) return null;
             if (this.stateCount >= this.stateLimit) {
               if (this.cacheClears++, this.cacheClears >= _Xt.MAX_CACHE_CLEARS) return this.failed = !0, this.stateCache.clear(), this.stateCount = 0, this.startState = null, null;
               this.evictCache(), i = this.stateCache.get(s), i || (i = [], this.stateCache.set(s, i));
             }
-            var a = new iw(r, t.isMatch, t.matchIDs);
+            var a = new aw(r, t.isMatch, t.matchIDs);
             return a.lastSeen = ++this.clock, i.push(a), this.stateCount++, a;
           };
           _proto72.evictCache = function evictCache() {
@@ -17540,7 +17651,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             for (var a = 0; a < s.length; a++) {
               var _u17 = s[a];
               _u17.nextLatin1.fill(null), _u17.nextLatin1Anchored.fill(null), _u17.transKeys.length = 0, _u17.transVals.length = 0;
-              var c = aC(_u17.nfaStates),
+              var c = oC(_u17.nfaStates),
                 l = this.stateCache.get(c);
               l || (l = [], this.stateCache.set(c, l)), l.push(_u17), this.stateCount++;
             }
@@ -17627,18 +17738,18 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           return Xt;
         }(), M(_Xt, "MAX_CACHE_CLEARS", 5), M(_Xt, "STATE_MEMORY_ESTIMATE", 838), _Xt),
-        aw = 32,
-        ow = 500,
+        ow = 32,
+        uw = 500,
         Qc = 256,
-        uw = 256 * 1024,
-        cw = /*#__PURE__*/function () {
-          function cw() {
+        cw = 256 * 1024,
+        lw = /*#__PURE__*/function () {
+          function lw() {
             this.end = 0, this.cap = new Int32Array(0), this.matchcap = new Int32Array(0), this.ncap = 0, this.jobPc = new Int32Array(Qc), this.jobArg = new Uint8Array(Qc), this.jobPos = new Int32Array(Qc), this.jobLen = 0, this.visited = new Uint32Array(0);
           }
-          var _proto73 = cw.prototype;
+          var _proto73 = lw.prototype;
           _proto73.reset = function reset(n, e, t) {
             this.end = e, this.jobLen = 0, this.ncap = t;
-            var r = n.numInst() * (e + 1) + aw - 1 >>> 5;
+            var r = n.numInst() * (e + 1) + ow - 1 >>> 5;
             this.visited.length < r ? this.visited = new Uint32Array(r) : this.visited.fill(0, 0, r), this.cap.length < t ? this.cap = new Int32Array(t).fill(-1) : this.cap.fill(-1, 0, t), this.matchcap.length < t ? this.matchcap = new Int32Array(t).fill(-1) : this.matchcap.fill(-1, 0, t);
           };
           _proto73.shouldVisit = function shouldVisit(n, e) {
@@ -17759,21 +17870,21 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
             return i && this.matchcap.length > 1 && this.matchcap[1] >= 0;
           };
-          return cw;
+          return lw;
         }(),
         co = [],
         lo = /*#__PURE__*/function () {
-          function xC() {}
-          xC.shouldBacktrack = function shouldBacktrack(e) {
-            return e.numInst() <= ow;
+          function kC() {}
+          kC.shouldBacktrack = function shouldBacktrack(e) {
+            return e.numInst() <= uw;
           };
-          xC.maxBitStateLen = function maxBitStateLen(e) {
-            return xC.shouldBacktrack(e) ? Math.floor(uw / e.numInst()) : 0;
+          kC.maxBitStateLen = function maxBitStateLen(e) {
+            return kC.shouldBacktrack(e) ? Math.floor(cw / e.numInst()) : 0;
           };
-          xC.execute = function execute(e, t, r, s, i) {
+          kC.execute = function execute(e, t, r, s, i) {
             var a = e.cond;
             if (a === W.EMPTY_ALL || (s === L.ANCHOR_START || s === L.ANCHOR_BOTH) && r !== 0 || (a & W.EMPTY_BEGIN_TEXT) !== 0 && r !== 0) return null;
-            var u = co.length > 0 ? co.pop() : new cw(),
+            var u = co.length > 0 ? co.pop() : new lw(),
               c = t.endPos();
             u.reset(e.prog, c, i);
             var l = !1;
@@ -17797,13 +17908,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             var d = i === 0 ? [] : W.toArray(u.matchcap.subarray(0, i));
             return co.push(u), d;
           };
-          return xC;
+          return kC;
         }(),
-        oC = /*#__PURE__*/function () {
-          function oC(n) {
+        uC = /*#__PURE__*/function () {
+          function uC(n) {
             this.sparse = new Uint32Array(n), this.dense = new Uint32Array(n), this.size = 0, this.nextIndex = 0;
           }
-          var _proto74 = oC.prototype;
+          var _proto74 = uC.prototype;
           _proto74.empty = function empty() {
             return this.nextIndex >= this.size;
           };
@@ -17822,9 +17933,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           _proto74.insertNew = function insertNew(n) {
             n >= this.sparse.length || (this.sparse[n] = this.size, this.dense[this.size] = n, this.size++);
           };
-          return oC;
+          return uC;
         }(),
-        lw = function lw(n, e, t, r) {
+        Bw = function Bw(n, e, t, r) {
           var s = n.length,
             i = e.length,
             a = 0,
@@ -17845,7 +17956,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             next: l
           };
         },
-        Bw = function Bw(n) {
+        hw = function hw(n) {
           this.start = n.start, this.numCap = n.numCap, this.inst = new Array(n.inst.length);
           for (var _e5 = 0; _e5 < n.inst.length; _e5++) {
             var t = n.inst[_e5],
@@ -17853,8 +17964,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             r.out = t.out, r.arg = t.arg, r.runes = t.runes ? t.runes.slice() : [], r.next = null, this.inst[_e5] = r;
           }
         },
-        hw = function hw(n) {
-          var e = new Bw(n);
+        dw = function dw(n) {
+          var e = new hw(n);
           for (var t = 0; t < e.inst.length; t++) {
             var r = e.inst[t];
             if (r.op !== O.ALT && r.op !== O.ALT_MATCH) continue;
@@ -17871,10 +17982,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }
           return e;
         },
-        dw = function dw(n) {
+        fw = function fw(n) {
           if (n.inst.length >= 1e3) return null;
-          var e = new oC(n.inst.length),
-            t = new oC(n.inst.length),
+          var e = new uC(n.inst.length),
+            t = new uC(n.inst.length),
             r = new Array(n.inst.length),
             s = new Array(n.inst.length).fill(!1),
             i = function i(a) {
@@ -17898,7 +18009,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                     l && (s[a] = !0, c.op = O.ALT_MATCH);
                     var f = r[c.out] || [],
                       m = r[c.arg] || [],
-                      v = lw(f, m, c.out, c.arg);
+                      v = Bw(f, m, c.out, c.arg);
                     if (!v) return !1;
                     r[a] = v.merged, c.next = new Uint32Array(v.next);
                     break;
@@ -17962,7 +18073,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           for (var a = 0; a < n.inst.length; a++) r[a] && (n.inst[a].runes = r[a]);
           return n;
         },
-        fw = function fw(n, e) {
+        pw = function pw(n, e) {
           for (var t = 0; t < e.inst.length; t++) {
             var r = e.inst[t];
             switch (r.op) {
@@ -17985,9 +18096,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }
         },
-        uC = /*#__PURE__*/function () {
-          function kC() {}
-          kC.compile = function compile(e) {
+        cC = /*#__PURE__*/function () {
+          function VC() {}
+          VC.compile = function compile(e) {
             if (e.start === 0 || e.numLb > 0) return null;
             var t = e.inst[e.start];
             if (t.op !== O.EMPTY_WIDTH || (t.arg & W.EMPTY_BEGIN_TEXT) === 0) return null;
@@ -18015,14 +18126,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   break;
               }
             }
-            var s = hw(e);
-            return s = dw(s), s !== null && fw(s, e), s;
+            var s = dw(e);
+            return s = fw(s), s !== null && pw(s, e), s;
           };
-          kC.next = function next(e, t) {
+          VC.next = function next(e, t) {
             var r = e.matchRunePos(t);
             return r >= 0 ? e.next[r] : e.op === O.ALT_MATCH ? e.out : 0;
           };
-          kC.execute = function execute(e, t, r, s, i) {
+          VC.execute = function execute(e, t, r, s, i) {
             var a = e.onepass;
             if (!a) return null;
             var u = new Int32Array(i).fill(-1),
@@ -18054,7 +18165,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   break;
                 case O.ALT:
                 case O.ALT_MATCH:
-                  H = kC.next(z, d);
+                  H = VC.next(z, d);
                   continue;
                 case O.FAIL:
                   return null;
@@ -18074,7 +18185,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
             return c ? i === 0 ? [] : W.toArray(u) : null;
           };
-          return kC;
+          return VC;
         }(),
         _X,
         y = (_X = /*#__PURE__*/function () {
@@ -18261,9 +18372,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             return !0;
           };
           return X;
-        }(), M(_X, "Op", NC(["NO_MATCH", "EMPTY_MATCH", "LITERAL", "CHAR_CLASS", "ANY_CHAR_NOT_NL", "ANY_CHAR", "BEGIN_LINE", "END_LINE", "BEGIN_TEXT", "END_TEXT", "WORD_BOUNDARY", "NO_WORD_BOUNDARY", "CAPTURE", "STAR", "PLUS", "QUEST", "REPEAT", "CONCAT", "ALTERNATE", "PLB", "NLB", "LEFT_PAREN", "VERTICAL_BAR"])), _X),
-        cC = /*#__PURE__*/function () {
-          function cC(n) {
+        }(), M(_X, "Op", OC(["NO_MATCH", "EMPTY_MATCH", "LITERAL", "CHAR_CLASS", "ANY_CHAR_NOT_NL", "ANY_CHAR", "BEGIN_LINE", "END_LINE", "BEGIN_TEXT", "END_TEXT", "WORD_BOUNDARY", "NO_WORD_BOUNDARY", "CAPTURE", "STAR", "PLUS", "QUEST", "REPEAT", "CONCAT", "ALTERNATE", "PLB", "NLB", "LEFT_PAREN", "VERTICAL_BAR"])), _X),
+        lC = /*#__PURE__*/function () {
+          function lC(n) {
             this.next = [Object.create(null)], this.fail = [0], this.match = [!1];
             for (var _iterator25 = _createForOfIteratorHelperLoose(n), _step25; !(_step25 = _iterator25()).done;) {
               var _t14 = _step25.value;
@@ -18289,7 +18400,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               }
             }
           }
-          var _proto76 = cC.prototype;
+          var _proto76 = lC.prototype;
           _proto76.searchUTF16 = function searchUTF16(n, e, t) {
             var r = 0;
             for (var s = e; s < t; s++) {
@@ -18308,7 +18419,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
             return !1;
           };
-          return cC;
+          return lC;
         }(),
         _kt,
         le = (_kt = /*#__PURE__*/function () {
@@ -18340,7 +18451,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           AND: 2,
           OR: 3
         }), _kt),
-        pw = /*#__PURE__*/function () {
+        Cw = /*#__PURE__*/function () {
           function Yt() {}
           Yt.build = function build(e) {
             var t = Yt.fromRegexp(e);
@@ -18434,11 +18545,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   break;
                 }
               }
-              return _i18 && _s7.length > 1 && (e.ac16 = new cC(_s7.map(function (a) {
+              return _i18 && _s7.length > 1 && (e.ac16 = new lC(_s7.map(function (a) {
                 var u = [];
                 for (var c = 0; c < a.str.length; c++) u.push(a.str.charCodeAt(c));
                 return u;
-              })), e.ac8 = new cC(_s7.map(function (a) {
+              })), e.ac8 = new lC(_s7.map(function (a) {
                 return a.bytes;
               }))), e;
             }
@@ -18455,11 +18566,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }
           this.head = n, this.tail = e;
         },
-        Cw = /*#__PURE__*/function () {
-          function Cw() {
+        gw = /*#__PURE__*/function () {
+          function gw() {
             this.inst = [], this.start = 0, this.numCap = 2, this.lbStarts = [], this.numLb = 0;
           }
-          var _proto78 = Cw.prototype;
+          var _proto78 = gw.prototype;
           _proto78.getInst = function getInst(n) {
             return this.inst[n];
           };
@@ -18523,7 +18634,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
             return n;
           };
-          return Cw;
+          return gw;
         }(),
         Bo = function Bo(n, e, t) {
           if (n === void 0) {
@@ -18537,7 +18648,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }
           this.i = n, this.out = e, this.nullable = t;
         },
-        VC = /*#__PURE__*/function () {
+        MC = /*#__PURE__*/function () {
           Ur.ANY_RUNE_NOT_NL = function ANY_RUNE_NOT_NL() {
             return [0, N.CODES.get("\n") - 1, N.CODES.get("\n") + 1, J.MAX_RUNE];
           };
@@ -18567,7 +18678,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             return t.prog.start = s, t.prog;
           };
           function Ur() {
-            this.prog = new Cw(), this.newInst(O.FAIL);
+            this.prog = new gw(), this.newInst(O.FAIL);
           }
           var _proto79 = Ur.prototype;
           _proto79.newInst = function newInst(e) {
@@ -18704,12 +18815,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   return _t21;
                 }
               default:
-                throw new OC("regexp: unhandled case in compile");
+                throw new FC("regexp: unhandled case in compile");
             }
           };
           return Ur;
         }(),
-        MC = /*#__PURE__*/function () {
+        GC = /*#__PURE__*/function () {
           function Bt() {}
           Bt.simplify = function simplify(e) {
             if (e === null) return null;
@@ -18823,25 +18934,25 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         ue = function ue(n, e) {
           this.sign = n, this.cls = e;
         },
-        lC = [48, 57],
-        BC = [9, 10, 12, 13, 32, 32],
-        hC = [48, 57, 65, 90, 95, 95, 97, 122],
-        dC = new Map([["\\d", new ue(1, lC)], ["\\D", new ue(-1, lC)], ["\\s", new ue(1, BC)], ["\\S", new ue(-1, BC)], ["\\w", new ue(1, hC)], ["\\W", new ue(-1, hC)]]),
-        fC = [48, 57, 65, 90, 97, 122],
-        pC = [65, 90, 97, 122],
-        CC = [0, 127],
-        gC = [9, 9, 32, 32],
-        mC = [0, 31, 127, 127],
-        EC = [48, 57],
-        _C = [33, 126],
-        DC = [97, 122],
-        yC = [32, 126],
-        wC = [33, 47, 58, 64, 91, 96, 123, 126],
-        IC = [9, 13, 32, 32],
-        TC = [65, 90],
-        AC = [48, 57, 65, 90, 95, 95, 97, 122],
-        vC = [48, 57, 65, 70, 97, 102],
-        bC = new Map([["[:alnum:]", new ue(1, fC)], ["[:^alnum:]", new ue(-1, fC)], ["[:alpha:]", new ue(1, pC)], ["[:^alpha:]", new ue(-1, pC)], ["[:ascii:]", new ue(1, CC)], ["[:^ascii:]", new ue(-1, CC)], ["[:blank:]", new ue(1, gC)], ["[:^blank:]", new ue(-1, gC)], ["[:cntrl:]", new ue(1, mC)], ["[:^cntrl:]", new ue(-1, mC)], ["[:digit:]", new ue(1, EC)], ["[:^digit:]", new ue(-1, EC)], ["[:graph:]", new ue(1, _C)], ["[:^graph:]", new ue(-1, _C)], ["[:lower:]", new ue(1, DC)], ["[:^lower:]", new ue(-1, DC)], ["[:print:]", new ue(1, yC)], ["[:^print:]", new ue(-1, yC)], ["[:punct:]", new ue(1, wC)], ["[:^punct:]", new ue(-1, wC)], ["[:space:]", new ue(1, IC)], ["[:^space:]", new ue(-1, IC)], ["[:upper:]", new ue(1, TC)], ["[:^upper:]", new ue(-1, TC)], ["[:word:]", new ue(1, AC)], ["[:^word:]", new ue(-1, AC)], ["[:xdigit:]", new ue(1, vC)], ["[:^xdigit:]", new ue(-1, vC)]]),
+        BC = [48, 57],
+        hC = [9, 10, 12, 13, 32, 32],
+        dC = [48, 57, 65, 90, 95, 95, 97, 122],
+        fC = new Map([["\\d", new ue(1, BC)], ["\\D", new ue(-1, BC)], ["\\s", new ue(1, hC)], ["\\S", new ue(-1, hC)], ["\\w", new ue(1, dC)], ["\\W", new ue(-1, dC)]]),
+        pC = [48, 57, 65, 90, 97, 122],
+        CC = [65, 90, 97, 122],
+        gC = [0, 127],
+        mC = [9, 9, 32, 32],
+        EC = [0, 31, 127, 127],
+        _C = [48, 57],
+        DC = [33, 126],
+        yC = [97, 122],
+        wC = [32, 126],
+        IC = [33, 47, 58, 64, 91, 96, 123, 126],
+        TC = [9, 13, 32, 32],
+        AC = [65, 90],
+        vC = [48, 57, 65, 90, 95, 95, 97, 122],
+        bC = [48, 57, 65, 70, 97, 102],
+        SC = new Map([["[:alnum:]", new ue(1, pC)], ["[:^alnum:]", new ue(-1, pC)], ["[:alpha:]", new ue(1, CC)], ["[:^alpha:]", new ue(-1, CC)], ["[:ascii:]", new ue(1, gC)], ["[:^ascii:]", new ue(-1, gC)], ["[:blank:]", new ue(1, mC)], ["[:^blank:]", new ue(-1, mC)], ["[:cntrl:]", new ue(1, EC)], ["[:^cntrl:]", new ue(-1, EC)], ["[:digit:]", new ue(1, _C)], ["[:^digit:]", new ue(-1, _C)], ["[:graph:]", new ue(1, DC)], ["[:^graph:]", new ue(-1, DC)], ["[:lower:]", new ue(1, yC)], ["[:^lower:]", new ue(-1, yC)], ["[:print:]", new ue(1, wC)], ["[:^print:]", new ue(-1, wC)], ["[:punct:]", new ue(1, IC)], ["[:^punct:]", new ue(-1, IC)], ["[:space:]", new ue(1, TC)], ["[:^space:]", new ue(-1, TC)], ["[:upper:]", new ue(1, AC)], ["[:^upper:]", new ue(-1, AC)], ["[:word:]", new ue(1, vC)], ["[:^word:]", new ue(-1, vC)], ["[:xdigit:]", new ue(1, bC)], ["[:^xdigit:]", new ue(-1, bC)]]),
         vn = /*#__PURE__*/function () {
           Sn.charClassToString = function charClassToString(e, t) {
             var r = "[";
@@ -18993,11 +19104,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           return Sn;
         }(),
-        gw = /*#__PURE__*/function () {
-          function gw(n) {
+        mw = /*#__PURE__*/function () {
+          function mw(n) {
             this.str = n, this.position = 0;
           }
-          var _proto81 = gw.prototype;
+          var _proto81 = mw.prototype;
           _proto81.pos = function pos() {
             return this.position;
           };
@@ -19032,10 +19143,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           _proto81.toString = function toString() {
             return this.rest();
           };
-          return gw;
+          return mw;
         }(),
         _G,
-        GC = (_G = /*#__PURE__*/function () {
+        UC = (_G = /*#__PURE__*/function () {
           G.unicodeTable = function unicodeTable(e) {
             return e === "Any" ? {
               tab: _G.ANY_TABLE,
@@ -19550,7 +19661,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             var e = -1,
               t = -1,
               r = -1,
-              s = new gw(this.wholeRegexp);
+              s = new mw(this.wholeRegexp);
             for (; s.more();) {
               var i = -1;
               e: switch (s.peek()) {
@@ -19776,7 +19887,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             if ((this.flags & L.PERL_X) === 0 || !e.more() || e.pop() !== N.CODES.get("\\") || !e.more()) return !1;
             e.pop();
             var s = e.from(r),
-              i = dC.has(s) ? dC.get(s) : null;
+              i = fC.has(s) ? fC.get(s) : null;
             return i === null ? !1 : (t.appendGroup(i, (this.flags & L.FOLD_CASE) !== 0), !0);
           };
           _proto82.parseNamedClass = function parseNamedClass(e, t) {
@@ -19785,7 +19896,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             if (s < 0) return !1;
             var i = r.substring(0, s + 2);
             e.skipString(i);
-            var a = bC.has(i) ? bC.get(i) : null;
+            var a = SC.has(i) ? SC.get(i) : null;
             if (a === null) throw new ge(_G.ERR_INVALID_CHAR_RANGE, i);
             return t.appendGroup(a, (this.flags & L.FOLD_CASE) !== 0), !0;
           };
@@ -19849,7 +19960,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           return G;
         }(), M(_G, "ERR_INTERNAL_ERROR", "regexp/syntax: internal error"), M(_G, "ERR_INVALID_CHAR_RANGE", "invalid character class range"), M(_G, "ERR_INVALID_ESCAPE", "invalid escape sequence"), M(_G, "ERR_INVALID_NAMED_CAPTURE", "invalid named capture"), M(_G, "ERR_INVALID_PERL_OP", "invalid or unsupported Perl syntax"), M(_G, "ERR_INVALID_REPEAT_OP", "invalid nested repetition operator"), M(_G, "ERR_INVALID_REPEAT_SIZE", "invalid repeat count"), M(_G, "ERR_MISSING_BRACKET", "missing closing ]"), M(_G, "ERR_MISSING_PAREN", "missing closing )"), M(_G, "ERR_MISSING_REPEAT_ARGUMENT", "missing argument to repetition operator"), M(_G, "ERR_TRAILING_BACKSLASH", "trailing backslash at end of expression"), M(_G, "ERR_DUPLICATE_NAMED_CAPTURE", "duplicate capture group name"), M(_G, "ERR_UNEXPECTED_PAREN", "unexpected )"), M(_G, "ERR_NESTING_DEPTH", "expression nests too deeply"), M(_G, "ERR_LARGE", "expression too large"), M(_G, "ERR_INVALID_CAPTURE_IN_LOOKBEHIND", "invalid capture in lookbehind"), M(_G, "MAX_HEIGHT", 1e3), M(_G, "MAX_SIZE", 3355443), M(_G, "MAX_RUNES", 33554432), M(_G, "ANY_TABLE", new _C2(new Uint32Array([0, J.MAX_RUNE, 1]))), M(_G, "ASCII_TABLE", new _C2(new Uint32Array([0, 127, 1]))), M(_G, "ASCII_FOLD_TABLE", new _C2(new Uint32Array([0, 127, 1, 383, 383, 1, 8490, 8490, 1]))), _G),
-        mw = /*#__PURE__*/function () {
+        Ew = /*#__PURE__*/function () {
           er.initTest = function initTest(e) {
             var t = er.compile(e),
               r = new er(t.expr, t.prog, t.numSubexp, t.longest);
@@ -19862,11 +19973,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             return er.compileImpl(e, L.POSIX, !0);
           };
           er.compileImpl = function compileImpl(e, t, r) {
-            var s = GC.parse(e, t),
+            var s = UC.parse(e, t),
               i = s.maxCap();
-            s = MC.simplify(s);
-            var a = pw.build(s),
-              u = VC.compileRegexp(s),
+            s = GC.simplify(s);
+            var a = Cw.build(s),
+              u = MC.compileRegexp(s),
               c = new er(e, u, i, r);
             c.prefilter = a.type === le.Type.NONE ? null : a;
             var _u$prefix = u.prefix(),
@@ -19884,7 +19995,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             if (s === void 0) {
               s = 0;
             }
-            this.expr = e, this.prog = t, this.numSubexp = r, this.longest = s, this.cond = t.startCond(), this.prefix = null, this.prefixUTF8 = null, this.prefixComplete = !1, this.prefixRune = 0, this.machinePool = [], this.dfa = new LC(this.prog), this.onepass = uC.compile(this.prog), this.prefilter = null;
+            this.expr = e, this.prog = t, this.numSubexp = r, this.longest = s, this.cond = t.startCond(), this.prefix = null, this.prefixUTF8 = null, this.prefixComplete = !1, this.prefixRune = 0, this.machinePool = [], this.dfa = new xC(this.prog), this.onepass = cC.compile(this.prog), this.prefilter = null;
           }
           var _proto83 = er.prototype;
           _proto83.matchPrefixComplete = function matchPrefixComplete(e, t, r, s) {
@@ -19913,7 +20024,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           _proto83.executeEngine = function executeEngine(e, t, r, s) {
             if (this.prefixComplete && (s === 0 || this.numSubexp === 0)) return this.matchPrefixComplete(e, t, r, s);
             if (this.prefilter !== null && r === L.UNANCHORED && !this.prefilter.eval(e, t)) return null;
-            if (this.onepass !== null) return uC.execute(this, e, t, r, s);
+            if (this.onepass !== null) return cC.execute(this, e, t, r, s);
             if (s > 0) return this.prog.numLb === 0 && e.endPos() <= lo.maxBitStateLen(this.prog) ? lo.execute(this, e, t, r, s) : this.doExecuteNFA(e, t, r, s);
             if (this.prog.numLb === 0) {
               var i = this.dfa.match(e, t, r);
@@ -19942,7 +20053,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           _proto83.doExecuteNFA = function doExecuteNFA(e, t, r, s) {
             var i = this.get();
-            i || (i = FC.fromRE2(this)), i.init(s);
+            i || (i = LC.fromRE2(this)), i.init(s);
             var a = i.match(e, t, r) ? i.submatches() : null;
             return this.put(i), a;
           };
@@ -20124,14 +20235,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }
           var _proto84 = bt.prototype;
           _proto84.add = function add(e) {
-            if (this.prog) throw new OC("Cannot add patterns after compile");
+            if (this.prog) throw new FC("Cannot add patterns after compile");
             var t = e;
             (this.jsFlags & vt.CASE_INSENSITIVE) !== 0 && (t = "(?i)" + t), (this.jsFlags & vt.DOTALL) !== 0 && (t = "(?s)" + t), (this.jsFlags & vt.MULTILINE) !== 0 && (t = "(?m)" + t);
-            var r = GC.parse(t, this.re2Flags);
-            return this.regexps.push(MC.simplify(r)), this.regexps.length - 1;
+            var r = UC.parse(t, this.re2Flags);
+            return this.regexps.push(GC.simplify(r)), this.regexps.length - 1;
           };
           _proto84.compile = function compile() {
-            this.prog || (this.prog = VC.compileSet(this.regexps), this.dfa = new LC(this.prog, this.maxMem), this.dummyRe2 = {
+            this.prog || (this.prog = MC.compileSet(this.regexps), this.dfa = new xC(this.prog, this.maxMem), this.dummyRe2 = {
               prog: this.prog,
               cond: this.prog.startCond(),
               prefix: "",
@@ -20146,12 +20257,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             this.anchor === _bt.ANCHOR_START ? r = L.ANCHOR_START : this.anchor === _bt.ANCHOR_BOTH && (r = L.ANCHOR_BOTH);
             var s = this.dfa.matchSet(t, 0, r);
             if (s !== null) return s;
-            var i = FC.fromRE2(this.dummyRe2);
+            var i = LC.fromRE2(this.dummyRe2);
             return i.init(0), i.matchSet(t, 0, r);
           };
           return bt;
         }(), M(_bt, "UNANCHORED", L.UNANCHORED), M(_bt, "ANCHOR_START", L.ANCHOR_START), M(_bt, "ANCHOR_BOTH", L.ANCHOR_BOTH), _bt),
-        Ew = /*#__PURE__*/function () {
+        _w = /*#__PURE__*/function () {
           function Hr() {}
           Hr.isHexadecimal = function isHexadecimal(e) {
             return "0" <= e && e <= "9" || "A" <= e && e <= "F" || "a" <= e && e <= "f";
@@ -20306,21 +20417,21 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             if (t === void 0) {
               t = !1;
             }
-            return sC.quoteReplacement(e, t);
+            return iC.quoteReplacement(e, t);
           };
           me.translateRegExp = function translateRegExp(e) {
-            return Ew.translate(e);
+            return _w.translate(e);
           };
           me.compile = function compile(e, t) {
             if (t === void 0) {
               t = 0;
             }
             var r = e;
-            if ((t & _me.CASE_INSENSITIVE) !== 0 && (r = "(?i)" + r), (t & _me.DOTALL) !== 0 && (r = "(?s)" + r), (t & _me.MULTILINE) !== 0 && (r = "(?m)" + r), (t & ~(_me.MULTILINE | _me.DOTALL | _me.CASE_INSENSITIVE | _me.DISABLE_UNICODE_GROUPS | _me.LONGEST_MATCH | _me.LOOKBEHINDS)) !== 0) throw new rw("Flags should only be a combination of MULTILINE, DOTALL, CASE_INSENSITIVE, DISABLE_UNICODE_GROUPS, LONGEST_MATCH, LOOKBEHINDS");
+            if ((t & _me.CASE_INSENSITIVE) !== 0 && (r = "(?i)" + r), (t & _me.DOTALL) !== 0 && (r = "(?s)" + r), (t & _me.MULTILINE) !== 0 && (r = "(?m)" + r), (t & ~(_me.MULTILINE | _me.DOTALL | _me.CASE_INSENSITIVE | _me.DISABLE_UNICODE_GROUPS | _me.LONGEST_MATCH | _me.LOOKBEHINDS)) !== 0) throw new sw("Flags should only be a combination of MULTILINE, DOTALL, CASE_INSENSITIVE, DISABLE_UNICODE_GROUPS, LONGEST_MATCH, LOOKBEHINDS");
             var s = L.PERL;
             (t & _me.DISABLE_UNICODE_GROUPS) !== 0 && (s &= ~L.UNICODE_GROUPS), (t & _me.LOOKBEHINDS) !== 0 && (s |= L.LOOKBEHIND);
             var i = new _me(e, t);
-            return i.re2Input = mw.compileImpl(r, s, (t & _me.LONGEST_MATCH) !== 0), i;
+            return i.re2Input = Ew.compileImpl(r, s, (t & _me.LONGEST_MATCH) !== 0), i;
           };
           me.matches = function matches(e, t) {
             return _me.compile(e).testExact(t);
@@ -20351,7 +20462,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             return this.testExact(e);
           };
           _proto85.matcher = function matcher(e) {
-            return W.isByteArray(e) && (e = tr.utf8(e)), new sC(this, e);
+            return W.isByteArray(e) && (e = tr.utf8(e)), new iC(this, e);
           };
           _proto85.test = function test(e) {
             return W.isByteArray(e) ? this.re2Input.matchUTF8(e) : this.re2Input.match(e);
@@ -20487,7 +20598,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                                                                                                                                                                                                                                                                                       * limitations under the License.
                                                                                                                                                                                                                                                                                       */
       var ws = "12.19.0";
-      function wg(n) {
+      function Ig(n) {
         ws = n;
       } /**
         * @license
@@ -20578,9 +20689,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         */
       function Q(n, e, t) {
         var r = "Unexpected state";
-        typeof e == "string" ? r = e : t = e, Ig(n, r, t);
+        typeof e == "string" ? r = e : t = e, Tg(n, r, t);
       }
-      function Ig(n, e, t) {
+      function Tg(n, e, t) {
         var r = "FIRESTORE (" + ws + ") INTERNAL ASSERTION FAILED: " + e + " (ID: " + n.toString(16) + ")";
         if (t !== void 0) try {
           r += " CONTEXT: " + JSON.stringify(t);
@@ -20591,7 +20702,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       }
       function _Y(n, e, t, r) {
         var s = "Unexpected state";
-        typeof t == "string" ? s = t : r = t, n || Ig(e, s, r);
+        typeof t == "string" ? s = t : r = t, n || Tg(e, s, r);
       }
       function ie(n, e) {
         return n;
@@ -20611,7 +20722,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      function _w(n) {
+      function Dw(n) {
         var e = typeof self < "u" && (self.crypto || self.msCrypto),
           t = new Uint8Array(n);
         if (e && typeof e.getRandomValues == "function") e.getRandomValues(t);else for (var r = 0; r < n; r++) t[r] = Math.floor(256 * Math.random());
@@ -20639,7 +20750,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             t = 62 * Math.floor(4.129032258064516),
             r = "";
           for (; r.length < 20;) {
-            var s = _w(40);
+            var s = Dw(40);
             for (var i = 0; i < s.length; ++i) r.length < 20 && s[i] < t && (r += e.charAt(s[i] % 62));
           }
           return r;
@@ -20658,11 +20769,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }
         return se(n.length, e.length);
       }
-      var Dw = 55296,
-        yw = 57343;
+      var yw = 55296,
+        ww = 57343;
       function tl(n) {
         var e = n.charCodeAt(0);
-        return e >= Dw && e <= yw;
+        return e >= yw && e <= ww;
       }
       function es(n, e, t) {
         return n.length === e.length && n.every(function (r, s) {
@@ -21264,7 +21375,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           return n;
         }(yo),
-        ww = /^[_a-zA-Z][_a-zA-Z0-9]*$/,
+        Iw = /^[_a-zA-Z][_a-zA-Z0-9]*$/,
         pt = /*#__PURE__*/function (_yo2) {
           _inheritsLoose(jr, _yo2);
           function jr() {
@@ -21275,7 +21386,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             return new jr(e, t, r);
           };
           jr.isValidIdentifier = function isValidIdentifier(e) {
-            return ww.test(e);
+            return Iw.test(e);
           };
           _proto94.canonicalString = function canonicalString() {
             return this.toArray().map(function (e) {
@@ -21389,12 +21500,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       function br(n, e) {
         for (var t in n) Object.prototype.hasOwnProperty.call(n, t) && e(t, n[t]);
       }
-      function Tg(n, e) {
+      function Ag(n, e) {
         var t = [];
         for (var r in n) Object.prototype.hasOwnProperty.call(n, r) && t.push(e(n[r], r, n));
         return t;
       }
-      function Ag(n) {
+      function vg(n) {
         for (var _e8 in n) if (Object.prototype.hasOwnProperty.call(n, _e8)) return !1;
         return !0;
       } /**
@@ -21474,13 +21585,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
            * See the License for the specific language governing permissions and
            * limitations under the License.
            */
-      function Iw(n, e, t) {
+      function Tw(n, e, t) {
         if (!t) throw new K(x.INVALID_ARGUMENT, "Function " + n + "() cannot be called with an empty " + e + ".");
       }
-      function vg(n, e, t, r) {
+      function bg(n, e, t, r) {
         if (e === !0 && r === !0) throw new K(x.INVALID_ARGUMENT, n + " and " + t + " cannot be used together.");
       }
-      function UC(n) {
+      function HC(n) {
         if (!Z.isDocumentKey(n)) throw new K(x.INVALID_ARGUMENT, "Invalid document reference. Document references must have an even number of segments, but " + n + " has " + n.length + ".");
       }
       function Qi(n) {
@@ -21529,7 +21640,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      function Pe(n, e) {
+      function Ne(n, e) {
         var t = {
           typeString: n
         };
@@ -21575,8 +21686,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      var HC = -62135596800,
-        qC = 1e6,
+      var qC = -62135596800,
+        jC = 1e6,
         Ie = /*#__PURE__*/function () {
           n.now = function now() {
             return n.fromMillis(Date.now());
@@ -21586,7 +21697,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           n.fromMillis = function fromMillis(e) {
             var t = Math.floor(e / 1e3),
-              r = Math.floor((e - 1e3 * t) * qC);
+              r = Math.floor((e - 1e3 * t) * jC);
             return new n(t, r);
           };
           n.fromInstant = function fromInstant(e) {
@@ -21604,7 +21715,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           function n(e, t) {
             if (this.seconds = e, this.nanoseconds = t, t < 0) throw new K(x.INVALID_ARGUMENT, "Timestamp nanoseconds out of range: " + t);
             if (t >= 1e9) throw new K(x.INVALID_ARGUMENT, "Timestamp nanoseconds out of range: " + t);
-            if (e < HC) throw new K(x.INVALID_ARGUMENT, "Timestamp seconds out of range: " + e);
+            if (e < qC) throw new K(x.INVALID_ARGUMENT, "Timestamp seconds out of range: " + e);
             if (e >= 253402300800) throw new K(x.INVALID_ARGUMENT, "Timestamp seconds out of range: " + e);
           }
           var _proto97 = n.prototype;
@@ -21612,7 +21723,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             return new Date(this.toMillis());
           };
           _proto97.toMillis = function toMillis() {
-            return 1e3 * this.seconds + this.nanoseconds / qC;
+            return 1e3 * this.seconds + this.nanoseconds / jC;
           };
           _proto97.toInstant = function toInstant() {
             if (typeof Temporal > "u" || !Temporal.Instant) throw new K(x.FAILED_PRECONDITION, "The Temporal object is not available in the current environment.");
@@ -21639,15 +21750,15 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             if (Yi(e, n._jsonSchema)) return new n(e.seconds, e.nanoseconds);
           };
           _proto97.valueOf = function valueOf() {
-            var e = this.seconds - HC;
+            var e = this.seconds - qC;
             return String(e).padStart(12, "0") + "." + String(this.nanoseconds).padStart(9, "0");
           };
           return n;
         }();
       Ie._jsonSchemaVersion = "firestore/timestamp/1.0", Ie._jsonSchema = {
-        type: Pe("string", Ie._jsonSchemaVersion),
-        seconds: Pe("number"),
-        nanoseconds: Pe("number")
+        type: Ne("string", Ie._jsonSchemaVersion),
+        seconds: Ne("number"),
+        nanoseconds: Ne("number")
       }; /**
          * @license
          * Copyright 2023 Google LLC
@@ -21703,7 +21814,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                                                    * See the License for the specific language governing permissions and
                                                    * limitations under the License.
                                                    */
-      var Ne = /*#__PURE__*/function (_Symbol$iterator) {
+      var Oe = /*#__PURE__*/function (_Symbol$iterator) {
         function n(e) {
           this.binaryString = e;
         }
@@ -21764,12 +21875,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         };
         return n;
       }(Symbol.iterator);
-      Ne.EMPTY_BYTE_STRING = new Ne("");
-      var Tw = new RegExp(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.(\d+))?Z$/);
+      Oe.EMPTY_BYTE_STRING = new Oe("");
+      var Aw = new RegExp(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.(\d+))?Z$/);
       function an(n) {
         if (_Y(!!n, 39018), typeof n == "string") {
           var _e10 = 0,
-            t = Tw.exec(n);
+            t = Aw.exec(n);
           if (_Y(!!t, 46558, {
             timestamp: n
           }), t[1]) {
@@ -21791,7 +21902,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         return typeof n == "number" ? n : typeof n == "string" ? Number(n) : 0;
       }
       function on(n) {
-        return typeof n == "string" ? Ne.fromBase64String(n) : Ne.fromUint8Array(n);
+        return typeof n == "string" ? Oe.fromBase64String(n) : Oe.fromUint8Array(n);
       } /**
         * @license
         * Copyright 2020 Google LLC
@@ -21808,20 +21919,20 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      var bg = "server_timestamp",
-        Sg = "__type__",
-        Rg = "__previous_value__",
-        Pg = "__local_write_time__";
+      var Sg = "server_timestamp",
+        Rg = "__type__",
+        Pg = "__previous_value__",
+        Ng = "__local_write_time__";
       function Xi(n) {
-        var _Sg, _n$mapValue;
-        return ((_Sg = ((n == null || (_n$mapValue = n.mapValue) == null ? void 0 : _n$mapValue.fields) || {})[Sg]) == null ? void 0 : _Sg.stringValue) === bg;
+        var _Rg, _n$mapValue;
+        return ((_Rg = ((n == null || (_n$mapValue = n.mapValue) == null ? void 0 : _n$mapValue.fields) || {})[Rg]) == null ? void 0 : _Rg.stringValue) === Sg;
       }
       function Zi(n) {
-        var e = n.mapValue.fields[Rg];
+        var e = n.mapValue.fields[Pg];
         return Xi(e) ? Zi(e) : e;
       }
       function ns(n) {
-        var e = an(n.mapValue.fields[Pg].timestampValue);
+        var e = an(n.mapValue.fields[Ng].timestampValue);
         return new Ie(e.seconds, e.nanos);
       } /**
         * @license
@@ -21862,7 +21973,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }]);
           return n;
         }();
-      function Ng(n, e) {
+      function Og(n, e) {
         if (!Object.prototype.hasOwnProperty.apply(n.options, ["projectId"])) throw new K(x.INVALID_ARGUMENT, '"projectId" not provided in firebase.initializeApp.');
         return new wi(n.options.projectId, e);
       } /**
@@ -21881,17 +21992,17 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      var Aw = -1;
+      var vw = -1;
       function ea(n) {
         return n == null;
       }
       function rs(n) {
         return n === 0 && 1 / n == -1 / 0;
       }
-      function vw(n) {
+      function bw(n) {
         return typeof n == "number" && Number.isInteger(n) && !rs(n) && n <= Number.MAX_SAFE_INTEGER && n >= Number.MIN_SAFE_INTEGER;
       }
-      function bw(n) {
+      function Sw(n) {
         return typeof n == "string";
       } /**
         * @license
@@ -21910,12 +22021,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * limitations under the License.
         */
       var Wh = "__type__",
-        Og = "__max__",
+        Fg = "__max__",
         fo = {
           mapValue: {
             fields: {
               __type__: {
-                stringValue: Og
+                stringValue: Fg
               }
             }
           }
@@ -21931,15 +22042,15 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         He = {
           booleanValue: !1
         };
-      function Oe(n) {
-        return "nullValue" in n ? 0 : "booleanValue" in n ? 1 : "integerValue" in n || "doubleValue" in n ? 2 : "timestampValue" in n ? 3 : "stringValue" in n ? 5 : "bytesValue" in n ? 6 : "referenceValue" in n ? 7 : "geoPointValue" in n ? 8 : "arrayValue" in n ? 9 : "mapValue" in n ? Xi(n) ? 4 : Fg(n) ? 9007199254740991 : Ti(n) ? 10 : 11 : Q(28295, {
+      function Fe(n) {
+        return "nullValue" in n ? 0 : "booleanValue" in n ? 1 : "integerValue" in n || "doubleValue" in n ? 2 : "timestampValue" in n ? 3 : "stringValue" in n ? 5 : "bytesValue" in n ? 6 : "referenceValue" in n ? 7 : "geoPointValue" in n ? 8 : "arrayValue" in n ? 9 : "mapValue" in n ? Xi(n) ? 4 : Lg(n) ? 9007199254740991 : Ti(n) ? 10 : 11 : Q(28295, {
           value: n
         });
       }
       function wt(n, e, t) {
         if (n === e) return !0;
-        var r = Oe(n);
-        if (r !== Oe(e)) return !1;
+        var r = Fe(n);
+        if (r !== Fe(e)) return !1;
         switch (r) {
           case 0:
           case 9007199254740991:
@@ -22004,8 +22115,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       }
       function at(n, e) {
         if (n === e) return 0;
-        var t = Oe(n),
-          r = Oe(e);
+        var t = Fe(n),
+          r = Fe(e);
         if (t !== r) return se(t, r);
         switch (t) {
           case 0:
@@ -22020,9 +22131,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               return u < c ? -1 : u > c ? 1 : u === c ? 0 : isNaN(u) ? isNaN(c) ? 0 : -1 : 1;
             }(n, e);
           case 3:
-            return jC(n.timestampValue, e.timestampValue);
+            return KC(n.timestampValue, e.timestampValue);
           case 4:
-            return jC(ns(n), ns(e));
+            return KC(ns(n), ns(e));
           case 5:
             return ol(n.stringValue, e.stringValue);
           case 6:
@@ -22047,7 +22158,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               return u !== 0 ? u : se(Ee(i.longitude), Ee(a.longitude));
             }(n.geoPointValue, e.geoPointValue);
           case 9:
-            return KC(n.arrayValue, e.arrayValue);
+            return JC(n.arrayValue, e.arrayValue);
           case 10:
             return function (i, a, _u$lr, _c$lr, _l$values, _d$values) {
               var u = i.fields || {},
@@ -22055,7 +22166,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 l = (_u$lr = u[lr]) == null ? void 0 : _u$lr.arrayValue,
                 d = (_c$lr = c[lr]) == null ? void 0 : _c$lr.arrayValue,
                 f = se((l == null || (_l$values = l.values) == null ? void 0 : _l$values.length) || 0, (d == null || (_d$values = d.values) == null ? void 0 : _d$values.length) || 0);
-              return f !== 0 ? f : KC(l, d);
+              return f !== 0 ? f : JC(l, d);
             }(n.mapValue, e.mapValue);
           case 11:
             return function (i, a) {
@@ -22081,14 +22192,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             });
         }
       }
-      function jC(n, e) {
+      function KC(n, e) {
         if (typeof n == "string" && typeof e == "string" && n.length === e.length) return se(n, e);
         var t = an(n),
           r = an(e),
           s = se(t.seconds, r.seconds);
         return s !== 0 ? s : se(t.nanos, r.nanos);
       }
-      function KC(n, e) {
+      function JC(n, e) {
         var t = n.values || [],
           r = e.values || [];
         for (var s = 0; s < t.length && s < r.length; ++s) {
@@ -22132,7 +22243,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         });
       }
       function mo(n) {
-        switch (Oe(n)) {
+        switch (Fe(n)) {
           case 0:
           case 1:
             return 4;
@@ -22227,8 +22338,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }
         return _extends({}, n);
       }
-      function Fg(n) {
-        return (((n.mapValue || {}).fields || {}).__type__ || {}).stringValue === Og;
+      function Lg(n) {
+        return (((n.mapValue || {}).fields || {}).__type__ || {}).stringValue === Fg;
       }
       var Cb = {
         mapValue: {
@@ -22363,7 +22474,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         };
       }
       function Yh(n, e, t) {
-        return vw(e) ? $h(e) : du(n, e);
+        return bw(e) ? $h(e) : du(n, e);
       } /**
         * @license
         * Copyright 2018 Google LLC
@@ -22383,35 +22494,35 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       var os = function os() {
         this._ = void 0;
       };
-      function Sw(n, e, t) {
+      function Rw(n, e, t) {
         return n instanceof Br ? function (s, i, _fields2) {
           var a = {
-            fields: (_fields2 = {}, _fields2[Sg] = {
-              stringValue: bg
-            }, _fields2[Pg] = {
+            fields: (_fields2 = {}, _fields2[Rg] = {
+              stringValue: Sg
+            }, _fields2[Ng] = {
               timestampValue: {
                 seconds: s.seconds,
                 nanos: s.nanoseconds
               }
             }, _fields2)
           };
-          return i && Xi(i) && (i = Zi(i)), i && (a.fields[Rg] = i), {
+          return i && Xi(i) && (i = Zi(i)), i && (a.fields[Pg] = i), {
             mapValue: a
           };
-        }(t, e) : n instanceof hr ? Lg(n, e) : n instanceof dr ? xg(n, e) : n instanceof fr ? function (s, i) {
-          var a = Pw(s, i),
+        }(t, e) : n instanceof hr ? xg(n, e) : n instanceof dr ? kg(n, e) : n instanceof fr ? function (s, i) {
+          var a = Nw(s, i),
             u = Ao(a) + Ao(s.h);
           return Vt(a) && Vt(s.h) ? $h(u) : du(s.serializer, u);
         }(n, e) : n instanceof us ? function (s, i) {
-          return JC(s, i, Math.min);
+          return zC(s, i, Math.min);
         }(n, e) : n instanceof cs ? function (s, i) {
-          return JC(s, i, Math.max);
+          return zC(s, i, Math.max);
         }(n, e) : void 0;
       }
-      function Rw(n, e, t) {
-        return n instanceof hr ? Lg(n, e) : n instanceof dr ? xg(n, e) : t;
+      function Pw(n, e, t) {
+        return n instanceof hr ? xg(n, e) : n instanceof dr ? kg(n, e) : t;
       }
-      function Pw(n, e) {
+      function Nw(n, e) {
         return n instanceof fr ? Fn(e) ? e : {
           integerValue: 0
         } : null;
@@ -22432,8 +22543,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }
           return hr;
         }(os);
-      function Lg(n, e) {
-        var t = kg(e);
+      function xg(n, e) {
+        var t = Vg(e);
         var _loop3 = function _loop3() {
           var r = _step48.value;
           t.some(function (s) {
@@ -22458,8 +22569,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }
         return dr;
       }(os);
-      function xg(n, e) {
-        var t = kg(e);
+      function kg(n, e) {
+        var t = Vg(e);
         var _loop4 = function _loop4() {
           var r = _step49.value;
           t = t.filter(function (s) {
@@ -22505,7 +22616,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }
           return cs;
         }(Ai);
-      function JC(n, e, t) {
+      function zC(n, e, t) {
         if (!Fn(e)) return n.h;
         var r = t(Ao(e), Ao(n.h));
         return Vt(e) && Vt(n.h) ? $h(r) : du(n.serializer, r);
@@ -22513,7 +22624,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       function Ao(n) {
         return Ee(n.integerValue || n.doubleValue);
       }
-      function kg(n) {
+      function Vg(n) {
         return as(n) && n.arrayValue.values ? n.arrayValue.values.slice() : [];
       } /**
         * @license
@@ -22534,7 +22645,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       var Bl = function Bl(e, t) {
         this.field = e, this.transform = t;
       };
-      function Nw(n, e) {
+      function Ow(n, e) {
         return n.field.isEqual(e.field) && function (r, s) {
           return r instanceof hr && s instanceof hr || r instanceof dr && s instanceof dr ? es(r.elements, s.elements, wt) : r instanceof fr && s instanceof fr || r instanceof us && s instanceof us || r instanceof cs && s instanceof cs ? wt(r.h, s.h) : r instanceof Br && s instanceof Br;
         }(n.transform, e.transform);
@@ -22568,7 +22679,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         return n.updateTime !== void 0 ? e.isFoundDocument() && e.version.isEqual(n.updateTime) : n.exists === void 0 || n.exists === e.isFoundDocument();
       }
       var ls = function ls() {};
-      function Vg(n, e) {
+      function Mg(n, e) {
         if (!n.hasLocalMutations || e && e.fields.length === 0) return null;
         if (e === null) return n.isNoDocument() ? new Bs(n.key, St.none()) : new pr(n.key, n.data, St.none());
         {
@@ -22585,16 +22696,16 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return new un(n.key, r, new Rt(s.toArray()), St.none());
         }
       }
-      function Ow(n, e, t) {
+      function Fw(n, e, t) {
         n instanceof pr ? function (s, i, a) {
           var u = s.value.clone(),
-            c = WC(s.fieldTransforms, i, a.transformResults);
+            c = QC(s.fieldTransforms, i, a.transformResults);
           u.setAll(c), i.convertToFoundDocument(a.version, u).setHasCommittedMutations();
         }(n, e, t) : n instanceof un ? function (s, i, a) {
           if (!Eo(s.precondition, i)) return void i.convertToUnknownDocument(a.version);
-          var u = WC(s.fieldTransforms, i, a.transformResults),
+          var u = QC(s.fieldTransforms, i, a.transformResults),
             c = i.data;
-          c.setAll(Mg(s)), c.setAll(u), i.convertToFoundDocument(a.version, c).setHasCommittedMutations();
+          c.setAll(Gg(s)), c.setAll(u), i.convertToFoundDocument(a.version, c).setHasCommittedMutations();
         }(n, e, t) : function (s, i, a) {
           i.convertToNoDocument(a.version).setHasCommittedMutations();
         }(0, e, t);
@@ -22603,23 +22714,23 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         return n instanceof pr ? function (i, a, u, c) {
           if (!Eo(i.precondition, a)) return u;
           var l = i.value.clone(),
-            d = QC(i.fieldTransforms, c, a);
+            d = $C(i.fieldTransforms, c, a);
           return l.setAll(d), a.convertToFoundDocument(a.version, l).setHasLocalMutations(), null;
         }(n, e, t, r) : n instanceof un ? function (i, a, u, c) {
           if (!Eo(i.precondition, a)) return u;
-          var l = QC(i.fieldTransforms, c, a),
+          var l = $C(i.fieldTransforms, c, a),
             d = a.data;
-          return d.setAll(Mg(i)), d.setAll(l), a.convertToFoundDocument(a.version, d).setHasLocalMutations(), u === null ? null : u.unionWith(i.fieldMask.fields).unionWith(i.fieldTransforms.map(function (f) {
+          return d.setAll(Gg(i)), d.setAll(l), a.convertToFoundDocument(a.version, d).setHasLocalMutations(), u === null ? null : u.unionWith(i.fieldMask.fields).unionWith(i.fieldTransforms.map(function (f) {
             return f.field;
           }));
         }(n, e, t, r) : function (i, a, u) {
           return Eo(i.precondition, a) ? (a.convertToNoDocument(a.version).setHasLocalMutations(), null) : u;
         }(n, e, t);
       }
-      function zC(n, e) {
+      function WC(n, e) {
         return n.type === e.type && !!n.key.isEqual(e.key) && !!n.precondition.isEqual(e.precondition) && !!function (r, s) {
           return r === void 0 && s === void 0 || !(!r || !s) && es(r, s, function (i, a) {
-            return Nw(i, a);
+            return Ow(i, a);
           });
         }(n.fieldTransforms, e.fieldTransforms) && (n.type === 0 ? n.value.isEqual(e.value) : n.type !== 1 || n.data.isEqual(e.data) && n.fieldMask.isEqual(e.fieldMask));
       }
@@ -22655,7 +22766,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           return un;
         }(ls);
-      function Mg(n) {
+      function Gg(n) {
         var e = new Map();
         return n.fieldMask.fields.forEach(function (t) {
           if (!t.isEmpty()) {
@@ -22664,7 +22775,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }
         }), e;
       }
-      function WC(n, e, t) {
+      function QC(n, e, t) {
         var r = new Map();
         _Y(n.length === t.length, 32656, {
           T: t.length,
@@ -22674,17 +22785,17 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           var i = n[s],
             a = i.transform,
             _u41 = e.data.field(i.field);
-          r.set(i.field, Rw(a, _u41, t[s]));
+          r.set(i.field, Pw(a, _u41, t[s]));
         }
         return r;
       }
-      function QC(n, e, t) {
+      function $C(n, e, t) {
         var r = new Map();
         for (var _iterator51 = _createForOfIteratorHelperLoose(n), _step51; !(_step51 = _iterator51()).done;) {
           var s = _step51.value;
           var i = s.transform,
             a = t.data.field(s.field);
-          r.set(s.field, Sw(i, a, e));
+          r.set(s.field, Rw(i, a, e));
         }
         return r;
       }
@@ -22732,7 +22843,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       var Cr = function Cr(e, t) {
         this.position = e, this.inclusive = t;
       };
-      function $C(n, e, t) {
+      function YC(n, e, t) {
         var r = 0;
         for (var s = 0; s < n.position.length; s++) {
           var i = e[s],
@@ -22741,7 +22852,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }
         return r;
       }
-      function YC(n, e) {
+      function XC(n, e) {
         if (n === null) return e === null;
         if (e === null || n.inclusive !== e.inclusive || n.position.length !== e.position.length) return !1;
         for (var t = 0; t < n.position.length; t++) if (!wt(n.position[t], e.position[t])) return !1;
@@ -22763,7 +22874,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * limitations under the License.
         */
       var bo = function bo() {},
-        Re = /*#__PURE__*/function (_bo) {
+        Pe = /*#__PURE__*/function (_bo) {
           _inheritsLoose(n, _bo);
           function n(e, t, r) {
             var _this73;
@@ -22779,7 +22890,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           var _proto106 = n.prototype;
           _proto106.matches = function matches(e) {
             var t = e.data.field(this.field);
-            return this.op === "!=" ? t !== null && t.nullValue === void 0 && this.matchesComparison(at(t, this.value)) : t !== null && Oe(this.value) === Oe(t) && this.matchesComparison(at(t, this.value));
+            return this.op === "!=" ? t !== null && t.nullValue === void 0 && this.matchesComparison(at(t, this.value)) : t !== null && Fe(this.value) === Fe(t) && this.matchesComparison(at(t, this.value));
           };
           _proto106.matchesComparison = function matchesComparison(e) {
             switch (this.op) {
@@ -22824,7 +22935,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           var _proto107 = n.prototype;
           _proto107.matches = function matches(e) {
-            return Gg(this) ? this.filters.find(function (t) {
+            return Ug(this) ? this.filters.find(function (t) {
               return !t.matches(e);
             }) === void 0 : this.filters.find(function (t) {
               return t.matches(e);
@@ -22840,13 +22951,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           return n;
         }(bo);
-      function Gg(n) {
+      function Ug(n) {
         return n.op === "and";
       }
-      function Ug(n) {
-        return Fw(n) && Gg(n);
+      function Hg(n) {
+        return Lw(n) && Ug(n);
       }
-      function Fw(n) {
+      function Lw(n) {
         for (var _iterator52 = _createForOfIteratorHelperLoose(n.filters), _step52; !(_step52 = _iterator52()).done;) {
           var _e14 = _step52.value;
           if (_e14 instanceof Pt) return !1;
@@ -22854,8 +22965,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         return !0;
       }
       function hl(n) {
-        if (n instanceof Re) return n.field.canonicalString() + n.op.toString() + is(n.value);
-        if (Ug(n)) return n.filters.map(function (e) {
+        if (n instanceof Pe) return n.field.canonicalString() + n.op.toString() + is(n.value);
+        if (Hg(n)) return n.filters.map(function (e) {
           return hl(e);
         }).join(",");
         {
@@ -22865,27 +22976,27 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return n.op + "(" + _e15 + ")";
         }
       }
-      function Hg(n, e) {
-        return n instanceof Re ? function (r, s) {
-          return s instanceof Re && r.op === s.op && r.field.isEqual(s.field) && wt(r.value, s.value);
+      function qg(n, e) {
+        return n instanceof Pe ? function (r, s) {
+          return s instanceof Pe && r.op === s.op && r.field.isEqual(s.field) && wt(r.value, s.value);
         }(n, e) : n instanceof Pt ? function (r, s) {
           return s instanceof Pt && r.op === s.op && r.filters.length === s.filters.length ? r.filters.reduce(function (i, a, u) {
-            return i && Hg(a, s.filters[u]);
+            return i && qg(a, s.filters[u]);
           }, !0) : !1;
         }(n, e) : void Q(19439);
       }
-      function qg(n) {
-        return n instanceof Re ? function (t) {
+      function jg(n) {
+        return n instanceof Pe ? function (t) {
           return t.field.canonicalString() + " " + t.op + " " + is(t.value);
         }(n) : n instanceof Pt ? function (t) {
-          return t.op.toString() + " {" + t.getFilters().map(qg).join(" ,") + "}";
+          return t.op.toString() + " {" + t.getFilters().map(jg).join(" ,") + "}";
         }(n) : "Filter";
       }
-      var dl = /*#__PURE__*/function (_Re) {
-          _inheritsLoose(dl, _Re);
+      var dl = /*#__PURE__*/function (_Pe) {
+          _inheritsLoose(dl, _Pe);
           function dl(e, t, r) {
             var _this75;
-            _this75 = _Re.call(this, e, t, r) || this, _this75.key = Z.fromName(r.referenceValue);
+            _this75 = _Pe.call(this, e, t, r) || this, _this75.key = Z.fromName(r.referenceValue);
             return _this75;
           }
           var _proto108 = dl.prototype;
@@ -22894,12 +23005,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             return this.matchesComparison(t);
           };
           return dl;
-        }(Re),
-        fl = /*#__PURE__*/function (_Re2) {
-          _inheritsLoose(fl, _Re2);
+        }(Pe),
+        fl = /*#__PURE__*/function (_Pe2) {
+          _inheritsLoose(fl, _Pe2);
           function fl(e, t) {
             var _this76;
-            _this76 = _Re2.call(this, e, "in", t) || this, _this76.keys = jg("in", t);
+            _this76 = _Pe2.call(this, e, "in", t) || this, _this76.keys = Kg("in", t);
             return _this76;
           }
           var _proto109 = fl.prototype;
@@ -22909,12 +23020,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             });
           };
           return fl;
-        }(Re),
-        pl = /*#__PURE__*/function (_Re3) {
-          _inheritsLoose(pl, _Re3);
+        }(Pe),
+        pl = /*#__PURE__*/function (_Pe3) {
+          _inheritsLoose(pl, _Pe3);
           function pl(e, t) {
             var _this77;
-            _this77 = _Re3.call(this, e, "not-in", t) || this, _this77.keys = jg("not-in", t);
+            _this77 = _Pe3.call(this, e, "not-in", t) || this, _this77.keys = Kg("not-in", t);
             return _this77;
           }
           var _proto110 = pl.prototype;
@@ -22924,17 +23035,17 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             });
           };
           return pl;
-        }(Re);
-      function jg(n, e) {
+        }(Pe);
+      function Kg(n, e) {
         var _e$arrayValue;
         return (((_e$arrayValue = e.arrayValue) == null ? void 0 : _e$arrayValue.values) || []).map(function (t) {
           return Z.fromName(t.referenceValue);
         });
       }
-      var Cl = /*#__PURE__*/function (_Re4) {
-          _inheritsLoose(Cl, _Re4);
+      var Cl = /*#__PURE__*/function (_Pe4) {
+          _inheritsLoose(Cl, _Pe4);
           function Cl(e, t) {
-            return _Re4.call(this, e, "array-contains", t) || this;
+            return _Pe4.call(this, e, "array-contains", t) || this;
           }
           var _proto111 = Cl.prototype;
           _proto111.matches = function matches(e) {
@@ -22942,11 +23053,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             return as(t) && Ii(t.arrayValue, this.value);
           };
           return Cl;
-        }(Re),
-        gl = /*#__PURE__*/function (_Re5) {
-          _inheritsLoose(gl, _Re5);
+        }(Pe),
+        gl = /*#__PURE__*/function (_Pe5) {
+          _inheritsLoose(gl, _Pe5);
           function gl(e, t) {
-            return _Re5.call(this, e, "in", t) || this;
+            return _Pe5.call(this, e, "in", t) || this;
           }
           var _proto112 = gl.prototype;
           _proto112.matches = function matches(e) {
@@ -22954,11 +23065,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             return t !== null && Ii(this.value.arrayValue, t);
           };
           return gl;
-        }(Re),
-        ml = /*#__PURE__*/function (_Re6) {
-          _inheritsLoose(ml, _Re6);
+        }(Pe),
+        ml = /*#__PURE__*/function (_Pe6) {
+          _inheritsLoose(ml, _Pe6);
           function ml(e, t) {
-            return _Re6.call(this, e, "not-in", t) || this;
+            return _Pe6.call(this, e, "not-in", t) || this;
           }
           var _proto113 = ml.prototype;
           _proto113.matches = function matches(e) {
@@ -22969,11 +23080,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             return t !== null && t.nullValue === void 0 && !Ii(this.value.arrayValue, t);
           };
           return ml;
-        }(Re),
-        El = /*#__PURE__*/function (_Re7) {
-          _inheritsLoose(El, _Re7);
+        }(Pe),
+        El = /*#__PURE__*/function (_Pe7) {
+          _inheritsLoose(El, _Pe7);
           function El(e, t) {
-            return _Re7.call(this, e, "array-contains-any", t) || this;
+            return _Pe7.call(this, e, "array-contains-any", t) || this;
           }
           var _proto114 = El.prototype;
           _proto114.matches = function matches(e) {
@@ -22984,7 +23095,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             });
           };
           return El;
-        }(Re); /**
+        }(Pe); /**
                * @license
                * Copyright 2022 Google LLC
                *
@@ -23006,7 +23117,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }
         this.field = e, this.dir = t;
       };
-      function Lw(n, e) {
+      function xw(n, e) {
         return n.dir === e.dir && n.field.isEqual(e.field);
       } /**
         * @license
@@ -23160,13 +23271,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
            * limitations under the License.
            */
       var vi = -1;
-      function xw(n, e) {
+      function kw(n, e) {
         var t = n.toTimestamp().seconds,
           r = n.toTimestamp().nanoseconds + 1,
           s = te.fromTimestamp(r === 1e9 ? new Ie(t + 1, 0) : new Ie(t, r));
         return new mr(s, Z.empty(), e);
       }
-      function kw(n) {
+      function Vw(n) {
         return new mr(n.readTime, n.key, vi);
       }
       var mr = /*#__PURE__*/function () {
@@ -23181,7 +23292,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         };
         return n;
       }();
-      function Vw(n, e) {
+      function Mw(n, e) {
         var t = n.readTime.compareTo(e.readTime);
         return t !== 0 ? t : (t = Z.comparator(n.documentKey, e.documentKey), t !== 0 ? t : se(n.largestBatchId, e.largestBatchId));
       } /**
@@ -23221,7 +23332,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }
         this.path = e, this.collectionGroup = t, this.orderBy = r, this.filters = s, this.limit = i, this.startAt = a, this.endAt = u, this.R = null;
       };
-      function XC(n, e, t, r, s, i, a) {
+      function ZC(n, e, t, r, s, i, a) {
         if (e === void 0) {
           e = null;
         }
@@ -23242,7 +23353,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }
         return new _l(n, e, t, r, s, i, a);
       }
-      function Kg(n) {
+      function Jg(n) {
         var e = ie(n);
         if (e.R === null) {
           var t = e.path.canonicalString();
@@ -23260,17 +23371,17 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }
         return e.R;
       }
-      function Jg(n, e) {
+      function zg(n, e) {
         if (n.limit !== e.limit || n.orderBy.length !== e.orderBy.length) return !1;
-        for (var t = 0; t < n.orderBy.length; t++) if (!Lw(n.orderBy[t], e.orderBy[t])) return !1;
+        for (var t = 0; t < n.orderBy.length; t++) if (!xw(n.orderBy[t], e.orderBy[t])) return !1;
         if (n.filters.length !== e.filters.length) return !1;
-        for (var _t27 = 0; _t27 < n.filters.length; _t27++) if (!Hg(n.filters[_t27], e.filters[_t27])) return !1;
-        return n.collectionGroup === e.collectionGroup && !!n.path.isEqual(e.path) && !!YC(n.startAt, e.startAt) && YC(n.endAt, e.endAt);
+        for (var _t27 = 0; _t27 < n.filters.length; _t27++) if (!qg(n.filters[_t27], e.filters[_t27])) return !1;
+        return n.collectionGroup === e.collectionGroup && !!n.path.isEqual(e.path) && !!XC(n.startAt, e.startAt) && XC(n.endAt, e.endAt);
       }
       function sr(n) {
         return !!n.isCorePipeline;
       }
-      function zg(n) {
+      function Wg(n) {
         return !!n.path && Z.isDocumentKey(n.path) && n.collectionGroup === null && n.filters.length === 0;
       } /**
         * @license
@@ -23312,19 +23423,19 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }
         this.path = e, this.collectionGroup = t, this.explicitOrderBy = r, this.filters = s, this.limit = i, this.limitType = a, this.startAt = u, this.endAt = c, this.A = null, this.V = null, this.m = null, this.startAt, this.endAt;
       };
-      function Mw(n, e, t, r, s, i, a, u) {
+      function Gw(n, e, t, r, s, i, a, u) {
         return new hs(n, e, t, r, s, i, a, u);
       }
       function fu(n) {
         return new hs(n);
       }
-      function ZC(n) {
+      function eg(n) {
         return n.filters.length === 0 && n.limit === null && n.startAt == null && n.endAt == null && (n.explicitOrderBy.length === 0 || n.explicitOrderBy.length === 1 && n.explicitOrderBy[0].field.isKeyField());
       }
-      function Gw(n) {
+      function Uw(n) {
         return Z.isDocumentKey(n.path) && n.collectionGroup === null && n.filters.length === 0;
       }
-      function Wg(n) {
+      function Qg(n) {
         return n.collectionGroup !== null;
       }
       function $r(n) {
@@ -23352,10 +23463,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       }
       function Gt(n) {
         var e = ie(n);
-        return e.V || (e.V = Uw(e, $r(n))), e.V;
+        return e.V || (e.V = Hw(e, $r(n))), e.V;
       }
-      function Uw(n, e) {
-        if (n.limitType === "F") return XC(n.path, n.collectionGroup, e, n.filters, n.limit, n.startAt, n.endAt);
+      function Hw(n, e) {
+        if (n.limitType === "F") return ZC(n.path, n.collectionGroup, e, n.filters, n.limit, n.startAt, n.endAt);
         {
           e = e.map(function (s) {
             var i = s.dir === "desc" ? "asc" : "desc";
@@ -23363,20 +23474,20 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           });
           var t = n.endAt ? new Cr(n.endAt.position, n.endAt.inclusive) : null,
             r = n.startAt ? new Cr(n.startAt.position, n.startAt.inclusive) : null;
-          return XC(n.path, n.collectionGroup, e, n.filters, n.limit, t, r);
+          return ZC(n.path, n.collectionGroup, e, n.filters, n.limit, t, r);
         }
       }
       function Ro(n, e, t) {
         return new hs(n.path, n.collectionGroup, n.explicitOrderBy.slice(), n.filters.slice(), e, t, n.startAt, n.endAt);
       }
-      function Hw(n, e) {
-        return Jg(Gt(n), Gt(e)) && n.limitType === e.limitType;
+      function qw(n, e) {
+        return zg(Gt(n), Gt(e)) && n.limitType === e.limitType;
       }
       function mi(n) {
         return "Query(target=" + function (t) {
           var r = t.path.canonicalString();
           return t.collectionGroup !== null && (r += " collectionGroup=" + t.collectionGroup), t.filters.length > 0 && (r += ", filters: [" + t.filters.map(function (s) {
-            return qg(s);
+            return jg(s);
           }).join(", ") + "]"), ea(t.limit) || (r += ", limit: " + t.limit), t.orderBy.length > 0 && (r += ", orderBy: [" + t.orderBy.map(function (s) {
             return function (a) {
               return a.field.canonicalString() + " (" + a.dir + ")";
@@ -23406,10 +23517,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return !0;
         }(n, e) && function (r, s) {
           return !(r.startAt && !function (a, u, c) {
-            var l = $C(a, u, c);
+            var l = YC(a, u, c);
             return a.inclusive ? l <= 0 : l < 0;
           }(r.startAt, $r(r), s) || r.endAt && !function (a, u, c) {
-            var l = $C(a, u, c);
+            var l = YC(a, u, c);
             return a.inclusive ? l >= 0 : l > 0;
           }(r.endAt, $r(r), s));
         }(n, e);
@@ -23419,14 +23530,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           var r = !1;
           for (var _iterator56 = _createForOfIteratorHelperLoose($r(n)), _step56; !(_step56 = _iterator56()).done;) {
             var s = _step56.value;
-            var i = qw(s, e, t);
+            var i = jw(s, e, t);
             if (i !== 0) return i;
             r = r || s.field.isKeyField();
           }
           return 0;
         };
       }
-      function qw(n, e, t) {
+      function jw(n, e, t) {
         var r = n.field.isKeyField() ? Z.comparator(e.key, t.key) : function (i, a, u) {
           var c = a.data.field(i),
             l = u.data.field(i);
@@ -23476,8 +23587,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
          * See the License for the specific language governing permissions and
          * limitations under the License.
          */
-      var be, ce;
-      function jw(n) {
+      var Se, ce;
+      function Kw(n) {
         switch (n) {
           case x.OK:
             return Q(64938);
@@ -23505,42 +23616,42 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             });
         }
       }
-      function Qg(n) {
+      function $g(n) {
         if (n === void 0) return sn("GRPC error has no .code"), x.UNKNOWN;
         switch (n) {
-          case be.OK:
+          case Se.OK:
             return x.OK;
-          case be.CANCELLED:
+          case Se.CANCELLED:
             return x.CANCELLED;
-          case be.UNKNOWN:
+          case Se.UNKNOWN:
             return x.UNKNOWN;
-          case be.DEADLINE_EXCEEDED:
+          case Se.DEADLINE_EXCEEDED:
             return x.DEADLINE_EXCEEDED;
-          case be.RESOURCE_EXHAUSTED:
+          case Se.RESOURCE_EXHAUSTED:
             return x.RESOURCE_EXHAUSTED;
-          case be.INTERNAL:
+          case Se.INTERNAL:
             return x.INTERNAL;
-          case be.UNAVAILABLE:
+          case Se.UNAVAILABLE:
             return x.UNAVAILABLE;
-          case be.UNAUTHENTICATED:
+          case Se.UNAUTHENTICATED:
             return x.UNAUTHENTICATED;
-          case be.INVALID_ARGUMENT:
+          case Se.INVALID_ARGUMENT:
             return x.INVALID_ARGUMENT;
-          case be.NOT_FOUND:
+          case Se.NOT_FOUND:
             return x.NOT_FOUND;
-          case be.ALREADY_EXISTS:
+          case Se.ALREADY_EXISTS:
             return x.ALREADY_EXISTS;
-          case be.PERMISSION_DENIED:
+          case Se.PERMISSION_DENIED:
             return x.PERMISSION_DENIED;
-          case be.FAILED_PRECONDITION:
+          case Se.FAILED_PRECONDITION:
             return x.FAILED_PRECONDITION;
-          case be.ABORTED:
+          case Se.ABORTED:
             return x.ABORTED;
-          case be.OUT_OF_RANGE:
+          case Se.OUT_OF_RANGE:
             return x.OUT_OF_RANGE;
-          case be.UNIMPLEMENTED:
+          case Se.UNIMPLEMENTED:
             return x.UNIMPLEMENTED;
-          case be.DATA_LOSS:
+          case Se.DATA_LOSS:
             return x.DATA_LOSS;
           default:
             return Q(39323, {
@@ -23548,7 +23659,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             });
         }
       }
-      (ce = be || (be = {}))[ce.OK = 0] = "OK", ce[ce.CANCELLED = 1] = "CANCELLED", ce[ce.UNKNOWN = 2] = "UNKNOWN", ce[ce.INVALID_ARGUMENT = 3] = "INVALID_ARGUMENT", ce[ce.DEADLINE_EXCEEDED = 4] = "DEADLINE_EXCEEDED", ce[ce.NOT_FOUND = 5] = "NOT_FOUND", ce[ce.ALREADY_EXISTS = 6] = "ALREADY_EXISTS", ce[ce.PERMISSION_DENIED = 7] = "PERMISSION_DENIED", ce[ce.UNAUTHENTICATED = 16] = "UNAUTHENTICATED", ce[ce.RESOURCE_EXHAUSTED = 8] = "RESOURCE_EXHAUSTED", ce[ce.FAILED_PRECONDITION = 9] = "FAILED_PRECONDITION", ce[ce.ABORTED = 10] = "ABORTED", ce[ce.OUT_OF_RANGE = 11] = "OUT_OF_RANGE", ce[ce.UNIMPLEMENTED = 12] = "UNIMPLEMENTED", ce[ce.INTERNAL = 13] = "INTERNAL", ce[ce.UNAVAILABLE = 14] = "UNAVAILABLE", ce[ce.DATA_LOSS = 15] = "DATA_LOSS"; /**
+      (ce = Se || (Se = {}))[ce.OK = 0] = "OK", ce[ce.CANCELLED = 1] = "CANCELLED", ce[ce.UNKNOWN = 2] = "UNKNOWN", ce[ce.INVALID_ARGUMENT = 3] = "INVALID_ARGUMENT", ce[ce.DEADLINE_EXCEEDED = 4] = "DEADLINE_EXCEEDED", ce[ce.NOT_FOUND = 5] = "NOT_FOUND", ce[ce.ALREADY_EXISTS = 6] = "ALREADY_EXISTS", ce[ce.PERMISSION_DENIED = 7] = "PERMISSION_DENIED", ce[ce.UNAUTHENTICATED = 16] = "UNAUTHENTICATED", ce[ce.RESOURCE_EXHAUSTED = 8] = "RESOURCE_EXHAUSTED", ce[ce.FAILED_PRECONDITION = 9] = "FAILED_PRECONDITION", ce[ce.ABORTED = 10] = "ABORTED", ce[ce.OUT_OF_RANGE = 11] = "OUT_OF_RANGE", ce[ce.UNIMPLEMENTED = 12] = "UNIMPLEMENTED", ce[ce.INTERNAL = 13] = "INTERNAL", ce[ce.UNAVAILABLE = 14] = "UNAVAILABLE", ce[ce.DATA_LOSS = 15] = "DATA_LOSS"; /**
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          * @license
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          * Copyright 2017 Google LLC
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          *
@@ -23609,7 +23720,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           });
         };
         _proto117.isEmpty = function isEmpty() {
-          return Ag(this.inner);
+          return vg(this.inner);
         };
         _proto117.size = function size() {
           return this.innerSize;
@@ -23631,13 +23742,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
            * See the License for the specific language governing permissions and
            * limitations under the License.
            */
-      var Kw = new Te(Z.comparator);
+      var Jw = new Te(Z.comparator);
       function ft() {
-        return Kw;
+        return Jw;
       }
-      var $g = new Te(Z.comparator);
+      var Yg = new Te(Z.comparator);
       function Kr() {
-        var e = $g;
+        var e = Yg;
         for (var _len21 = arguments.length, n = new Array(_len21), _key21 = 0; _key21 < _len21; _key21++) {
           n[_key21] = arguments[_key21];
         }
@@ -23647,8 +23758,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }
         return e;
       }
-      function Jw(n) {
-        var e = $g;
+      function zw(n) {
+        var e = Yg;
         return n.forEach(function (t, r) {
           return e = e.insert(t, r.overlayedDocument);
         }), e;
@@ -23656,7 +23767,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       function Pn() {
         return Ei();
       }
-      function Yg() {
+      function Xg() {
         return Ei();
       }
       function Ei() {
@@ -23666,9 +23777,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return n.isEqual(e);
         });
       }
-      var zw = new Ve(Z.comparator);
+      var Ww = new Ve(Z.comparator);
       function oe() {
-        var e = zw;
+        var e = Ww;
         for (var _len22 = arguments.length, n = new Array(_len22), _key22 = 0; _key22 < _len22; _key22++) {
           n[_key22] = arguments[_key22];
         }
@@ -23678,9 +23789,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }
         return e;
       }
-      var Ww = new Ve(se);
-      function Qw() {
-        return Ww;
+      var Qw = new Ve(se);
+      function $w() {
+        return Qw;
       } /**
         * @license
         * Copyright 2023 Google LLC
@@ -23697,7 +23808,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      function Yw() {
+      function Xw() {
         return new TextEncoder();
       } /**
         * @license
@@ -23715,13 +23826,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      var Xw = new Qt([4294967295, 4294967295], 0);
-      function eg(n) {
-        var e = Yw().encode(n),
+      var Zw = new Qt([4294967295, 4294967295], 0);
+      function tg(n) {
+        var e = Xw().encode(n),
           t = new Uc();
         return t.update(e), new Uint8Array(t.digest());
       }
-      function tg(n) {
+      function ng(n) {
         var e = new DataView(n.buffer),
           t = e.getUint32(0, !0),
           r = e.getUint32(4, !0),
@@ -23740,17 +23851,17 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           var _proto118 = n.prototype;
           _proto118.v = function v(e, t, r) {
             var s = e.add(t.multiply(Qt.fromNumber(r)));
-            return s.compare(Xw) === 1 && (s = new Qt([s.getBits(0), s.getBits(1)], 0)), s.modulo(this.S).toNumber();
+            return s.compare(Zw) === 1 && (s = new Qt([s.getBits(0), s.getBits(1)], 0)), s.modulo(this.S).toNumber();
           };
           _proto118.D = function D(e) {
             return !!(this.bitmap[Math.floor(e / 8)] & 1 << e % 8);
           };
           _proto118.mightContain = function mightContain(e) {
             if (this.p === 0) return !1;
-            var t = eg(e),
-              _tg = tg(t),
-              r = _tg[0],
-              s = _tg[1];
+            var t = tg(e),
+              _ng = ng(t),
+              r = _ng[0],
+              s = _ng[1];
             for (var i = 0; i < this.hashCount; i++) {
               var a = this.v(r, s, i);
               if (!this.D(a)) return !1;
@@ -23767,10 +23878,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           _proto118.insert = function insert(e) {
             if (this.p === 0) return;
-            var t = eg(e),
-              _tg2 = tg(t),
-              r = _tg2[0],
-              s = _tg2[1];
+            var t = tg(e),
+              _ng2 = ng(t),
+              r = _ng2[0],
+              s = _ng2[1];
             for (var i = 0; i < this.hashCount; i++) {
               var a = this.v(r, s, i);
               this.C(a);
@@ -23849,7 +23960,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         },
         No = function No(e, t, r, s) {
           if (r === void 0) {
-            r = Ne.EMPTY_BYTE_STRING;
+            r = Oe.EMPTY_BYTE_STRING;
           }
           if (s === void 0) {
             s = null;
@@ -23858,7 +23969,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         },
         Oo = /*#__PURE__*/function () {
           function Oo(e) {
-            this.targetId = e, this.N = 0, this.L = ng(), this.B = Ne.EMPTY_BYTE_STRING, this.U = !1, this.k = !0;
+            this.targetId = e, this.N = 0, this.L = rg(), this.B = Oe.EMPTY_BYTE_STRING, this.U = !1, this.k = !0;
           }
           var _proto119 = Oo.prototype;
           _proto119.K = function K(e) {
@@ -23887,7 +23998,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }), new Si(this.B, this.U, e, t, r);
           };
           _proto119.G = function G() {
-            this.k = !1, this.L = ng();
+            this.k = !1, this.L = rg();
           };
           _proto119.j = function j(e, t) {
             this.k = !0, this.L = this.L.insert(e, t);
@@ -23981,7 +24092,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           _proto120.Ee = function Ee(e) {
             var _e$getPipelineDocumen;
-            return sr(e) ? e.getPipelineSourceType() === "documents" && ((_e$getPipelineDocumen = e.getPipelineDocuments()) == null ? void 0 : _e$getPipelineDocumen.length) === 1 : zg(e);
+            return sr(e) ? e.getPipelineSourceType() === "documents" && ((_e$getPipelineDocumen = e.getPipelineDocuments()) == null ? void 0 : _e$getPipelineDocumen.length) === 1 : Wg(e);
           };
           _proto120.he = function he(e) {
             var t = e.targetId,
@@ -24128,14 +24239,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       function po() {
         return new Te(Z.comparator);
       }
-      function ng() {
+      function rg() {
         return new Te(Z.comparator);
       }
-      var Zw = {
+      var eI = {
           asc: "ASCENDING",
           desc: "DESCENDING"
         },
-        eI = {
+        tI = {
           "<": "LESS_THAN",
           "<=": "LESS_THAN_OR_EQUAL",
           ">": "GREATER_THAN",
@@ -24147,7 +24258,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           "not-in": "NOT_IN",
           "array-contains-any": "ARRAY_CONTAINS_ANY"
         },
-        tI = {
+        nI = {
           and: "AND",
           or: "OR"
         },
@@ -24169,7 +24280,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         var e = an(n);
         return new Ie(e.seconds, e.nanos);
       }
-      function Xg(n, e) {
+      function Zg(n, e) {
         return n.useProto3Json ? e.toBase64() : e.toUint8Array();
       }
       function _o(n, e) {
@@ -24187,9 +24298,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }(n).child("documents");
         return e === void 0 ? t : t.child(e);
       }
-      function Zg(n) {
+      function em(n) {
         var e = _he.fromString(n);
-        return _Y(sm(e), 10190, {
+        return _Y(im(e), 10190, {
           key: e.toString()
         }), e;
       }
@@ -24197,33 +24308,33 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         return ed(n.databaseId, e.path);
       }
       function Di(n, e) {
-        var t = Zg(e);
+        var t = em(e);
         if (t.get(1) !== n.databaseId.projectId) throw new K(x.INVALID_ARGUMENT, "Tried to deserialize key from different project: " + t.get(1) + " vs " + n.databaseId.projectId);
         if (t.get(3) !== n.databaseId.database) throw new K(x.INVALID_ARGUMENT, "Tried to deserialize key from different database: " + t.get(3) + " vs " + n.databaseId.database);
-        return new Z(tm(t));
+        return new Z(nm(t));
       }
-      function em(n, e) {
+      function tm(n, e) {
         return ed(n.databaseId, e);
       }
-      function nI(n) {
-        var e = Zg(n);
-        return e.length === 4 ? _he.emptyPath() : tm(e);
+      function rI(n) {
+        var e = em(n);
+        return e.length === 4 ? _he.emptyPath() : nm(e);
       }
-      function rg(n) {
+      function sg(n) {
         return new _he(["projects", n.databaseId.projectId, "databases", n.databaseId.database]).canonicalString();
       }
-      function tm(n) {
+      function nm(n) {
         return _Y(n.length > 4 && n.get(4) === "documents", 29091, {
           key: n.toString()
         }), n.popFirst(5);
       }
-      function sg(n, e, t) {
+      function ig(n, e, t) {
         return {
           name: Ri(n, e),
           fields: t.value.mapValue.fields
         };
       }
-      function rI(n, e) {
+      function sI(n, e) {
         return "found" in e ? function (r, s) {
           _Y(!!s.found, 43571), s.found.name, s.found.updateTime;
           var i = Di(r, s.found.name),
@@ -24244,7 +24355,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           result: e
         });
       }
-      function sI(n, e) {
+      function iI(n, e) {
         var t;
         if ("targetChange" in e) {
           e.targetChange;
@@ -24255,11 +24366,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }(e.targetChange.targetChangeType || "NO_CHANGE"),
             s = e.targetChange.targetIds || [],
             i = function (l, d) {
-              return l.useProto3Json ? (_Y(d === void 0 || typeof d == "string", 58123), Ne.fromBase64String(d || "")) : (_Y(d === void 0 || d instanceof Buffer || d instanceof Uint8Array, 16193), Ne.fromUint8Array(d || new Uint8Array()));
+              return l.useProto3Json ? (_Y(d === void 0 || typeof d == "string", 58123), Oe.fromBase64String(d || "")) : (_Y(d === void 0 || d instanceof Buffer || d instanceof Uint8Array, 16193), Oe.fromUint8Array(d || new Uint8Array()));
             }(n, e.targetChange.resumeToken),
             a = e.targetChange.cause,
             _u43 = a && function (l) {
-              var d = l.code === void 0 ? x.UNKNOWN : Qg(l.code);
+              var d = l.code === void 0 ? x.UNKNOWN : $g(l.code);
               return new K(d, l.message || "");
             }(a);
           t = new No(r, s, i, _u43 || null);
@@ -24313,15 +24424,15 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }
         return t;
       }
-      function iI(n, e) {
+      function aI(n, e) {
         var t;
         if (e instanceof pr) t = {
-          update: sg(n, e.key, e.value)
+          update: ig(n, e.key, e.value)
         };else if (e instanceof Bs) t = {
           "delete": Ri(n, e.key)
         };else if (e instanceof un) t = {
-          update: sg(n, e.key, e.data),
-          updateMask: fI(e.fieldMask)
+          update: ig(n, e.key, e.data),
+          updateMask: pI(e.fieldMask)
         };else {
           if (!(e instanceof vo)) return Q(16599, {
             be: e.type
@@ -24373,12 +24484,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           } : Q(27497);
         }(n, e.precondition)), t;
       }
-      function aI(n, e) {
+      function oI(n, e) {
         return {
-          documents: [em(n, e.path)]
+          documents: [tm(n, e.path)]
         };
       }
-      function oI(n, e) {
+      function uI(n, e) {
         var t = {
             structuredQuery: {}
           },
@@ -24389,9 +24500,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           allDescendants: !0
         }]) : (s = r.popLast(), t.structuredQuery.from = [{
           collectionId: r.lastSegment()
-        }]), t.parent = em(n, s);
+        }]), t.parent = tm(n, s);
         var i = function (l) {
-          if (l.length !== 0) return rm(Pt.create(l, "and"));
+          if (l.length !== 0) return sm(Pt.create(l, "and"));
         }(e.filters);
         i && (t.structuredQuery.where = i);
         var a = function (l) {
@@ -24399,7 +24510,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             return function (m) {
               return {
                 field: Jr(m.field),
-                direction: BI(m.dir)
+                direction: hI(m.dir)
               };
             }(d);
           });
@@ -24421,8 +24532,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           parent: s
         };
       }
-      function uI(n) {
-        var e = nI(n.parent),
+      function cI(n) {
+        var e = rI(n.parent),
           t = n.structuredQuery,
           r = t.from ? t.from.length : 0,
           s = null;
@@ -24433,8 +24544,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }
         var i = [];
         t.where && (i = function (f) {
-          var m = nm(f);
-          return m instanceof Pt && Ug(m) ? m.getFilters() : [m];
+          var m = rm(f);
+          return m instanceof Pt && Hg(m) ? m.getFilters() : [m];
         }(t.where));
         var a = [];
         t.orderBy && (a = function (f) {
@@ -24469,9 +24580,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           var m = !f.before,
             v = f.values || [];
           return new Cr(v, m);
-        }(t.endAt)), Mw(e, s, a, i, u, "F", c, l);
+        }(t.endAt)), Gw(e, s, a, i, u, "F", c, l);
       }
-      function cI(n, e) {
+      function lI(n, e) {
         var t = function (s) {
           switch (s) {
             case "TargetPurposeListen":
@@ -24492,7 +24603,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           "goog-listen-tags": t
         };
       }
-      function lI(n, e) {
+      function BI(n, e) {
         return {
           structuredPipeline: {
             pipeline: {
@@ -24503,27 +24614,27 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }
         };
       }
-      function nm(n) {
+      function rm(n) {
         return n.unaryFilter !== void 0 ? function (t) {
           switch (t.unaryFilter.op) {
             case "IS_NAN":
               var r = zr(t.unaryFilter.field);
-              return Re.create(r, "==", {
+              return Pe.create(r, "==", {
                 doubleValue: NaN
               });
             case "IS_NULL":
               var s = zr(t.unaryFilter.field);
-              return Re.create(s, "==", {
+              return Pe.create(s, "==", {
                 nullValue: "NULL_VALUE"
               });
             case "IS_NOT_NAN":
               var i = zr(t.unaryFilter.field);
-              return Re.create(i, "!=", {
+              return Pe.create(i, "!=", {
                 doubleValue: NaN
               });
             case "IS_NOT_NULL":
               var a = zr(t.unaryFilter.field);
-              return Re.create(a, "!=", {
+              return Pe.create(a, "!=", {
                 nullValue: "NULL_VALUE"
               });
             case "OPERATOR_UNSPECIFIED":
@@ -24532,7 +24643,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               return Q(60726);
           }
         }(n) : n.fieldFilter !== void 0 ? function (t) {
-          return Re.create(zr(t.fieldFilter.field), function (s) {
+          return Pe.create(zr(t.fieldFilter.field), function (s) {
             switch (s) {
               case "EQUAL":
                 return "==";
@@ -24562,7 +24673,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }(t.fieldFilter.op), t.fieldFilter.value);
         }(n) : n.compositeFilter !== void 0 ? function (t) {
           return Pt.create(t.compositeFilter.filters.map(function (r) {
-            return nm(r);
+            return rm(r);
           }), function (s) {
             switch (s) {
               case "AND":
@@ -24577,14 +24688,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           filter: n
         });
       }
-      function BI(n) {
-        return Zw[n];
-      }
       function hI(n) {
         return eI[n];
       }
       function dI(n) {
         return tI[n];
+      }
+      function fI(n) {
+        return nI[n];
       }
       function Jr(n) {
         return {
@@ -24594,8 +24705,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       function zr(n) {
         return pt.fromServerFormat(n.fieldPath);
       }
-      function rm(n) {
-        return n instanceof Re ? function (t) {
+      function sm(n) {
+        return n instanceof Pe ? function (t) {
           if (t.op === "==") {
             if (ot(t.value)) return {
               unaryFilter: {
@@ -24626,17 +24737,17 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return {
             fieldFilter: {
               field: Jr(t.field),
-              op: hI(t.op),
+              op: dI(t.op),
               value: t.value
             }
           };
         }(n) : n instanceof Pt ? function (t) {
           var r = t.getFilters().map(function (s) {
-            return rm(s);
+            return sm(s);
           });
           return r.length === 1 ? r[0] : {
             compositeFilter: {
-              op: dI(t.op),
+              op: fI(t.op),
               filters: r
             }
           };
@@ -24644,7 +24755,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           filter: n
         });
       }
-      function fI(n) {
+      function pI(n) {
         var e = [];
         return n.fields.forEach(function (t) {
           return e.push(t.canonicalString());
@@ -24652,10 +24763,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           fieldPaths: e
         };
       }
-      function sm(n) {
+      function im(n) {
         return n.length >= 4 && n.get(0) === "projects" && n.get(2) === "databases";
       }
-      function im(n) {
+      function am(n) {
         return !!n && typeof n._toProto == "function" && n._protoValueType === "ProtoValue";
       }
       function Pi(n, e) {
@@ -24669,7 +24780,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           mapValue: t
         };
       }
-      function am(n) {
+      function om(n) {
         return {
           stringValue: n
         };
@@ -24713,13 +24824,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }
         n.fromBase64String = function fromBase64String(e) {
           try {
-            return new n(Ne.fromBase64String(e));
+            return new n(Oe.fromBase64String(e));
           } catch (t) {
             throw new K(x.INVALID_ARGUMENT, "Failed to construct data from Base64 string: " + t);
           }
         };
         n.fromUint8Array = function fromUint8Array(e) {
-          return new n(Ne.fromUint8Array(e));
+          return new n(Oe.fromUint8Array(e));
         };
         var _proto121 = n.prototype;
         _proto121.toBase64 = function toBase64() {
@@ -24746,8 +24857,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         return n;
       }();
       Ut._jsonSchemaVersion = "firestore/bytes/1.0", Ut._jsonSchema = {
-        type: Pe("string", Ut._jsonSchemaVersion),
-        bytes: Pe("string")
+        type: Ne("string", Ut._jsonSchemaVersion),
+        bytes: Ne("string")
       }; /**
          * @license
          * Copyright 2020 Google LLC
@@ -24778,7 +24889,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         };
         return Er;
       }();
-      function om() {
+      function um() {
         return new Er(ts);
       } /**
         * @license
@@ -24851,9 +24962,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         return n;
       }();
       tn._jsonSchemaVersion = "firestore/geoPoint/1.0", tn._jsonSchema = {
-        type: Pe("string", tn._jsonSchemaVersion),
-        latitude: Pe("number"),
-        longitude: Pe("number")
+        type: Ne("string", tn._jsonSchemaVersion),
+        latitude: Ne("number"),
+        longitude: Ne("number")
       }; /**
          * @license
          * Copyright 2017 Google LLC
@@ -25123,7 +25234,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           return Vo;
         }();
-      function um(n) {
+      function cm(n) {
         var e = {};
         return n.timeoutSeconds !== void 0 && (e.timeoutSeconds = n.timeoutSeconds), e;
       } /**
@@ -25164,7 +25275,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
            * See the License for the specific language governing permissions and
            * limitations under the License.
            */
-      var ig = "ConnectivityMonitor",
+      var ag = "ConnectivityMonitor",
         Mo = /*#__PURE__*/function () {
           function Mo() {
             var _this91 = this;
@@ -25185,14 +25296,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             window.addEventListener("online", this.We), window.addEventListener("offline", this.ze);
           };
           _proto132.Ge = function Ge() {
-            j(ig, "Network connectivity changed: AVAILABLE");
+            j(ag, "Network connectivity changed: AVAILABLE");
             for (var _iterator61 = _createForOfIteratorHelperLoose(this.He), _step61; !(_step61 = _iterator61()).done;) {
               var _e16 = _step61.value;
               _e16(0);
             }
           };
           _proto132.je = function je() {
-            j(ig, "Network connectivity changed: UNAVAILABLE");
+            j(ag, "Network connectivity changed: UNAVAILABLE");
             for (var _iterator62 = _createForOfIteratorHelperLoose(this.He), _step62; !(_step62 = _iterator62()).done;) {
               var _e17 = _step62.value;
               _e17(1);
@@ -25240,7 +25351,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * limitations under the License.
         */
       var nl = "RestConnection",
-        pI = {
+        CI = {
           BatchGetDocuments: "batchGet",
           Commit: "commit",
           RunQuery: "runQuery",
@@ -25290,7 +25401,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           };
           _proto133.rt = function rt(e, t) {
-            var r = pI[e],
+            var r = CI[e],
               s = this.Xe + "/v1/" + t + ":" + r;
             return this.databaseInfo.apiKey && (s = s + "?key=" + encodeURIComponent(this.databaseInfo.apiKey)), s;
           };
@@ -25496,8 +25607,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   j(ze, "RPC '" + e + "' stream " + s + " received error:", z);
                   var Be = z.status,
                     Ae = function (ye) {
-                      var I = be[ye];
-                      if (I !== void 0) return Qg(I);
+                      var I = Se[ye];
+                      if (I !== void 0) return $g(I);
                     }(Be),
                     ve = z.message;
                   Be === "NOT_FOUND" && ve.includes("database") && ve.includes("does not exist") && ve.includes(_this93.databaseId.database) && yt("Database '" + _this93.databaseId.database + "' not found. Please check your project configuration."), Ae === void 0 && (Ae = x.INTERNAL, ve = "Unknown error status: " + Be + " with message " + z.message), m = !0, v.Vt(new K(Ae, ve)), d.close();
@@ -25543,7 +25654,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                * See the License for the specific language governing permissions and
                * limitations under the License.
                */
-      function CI(n) {
+      function gI(n) {
         return new Go(n);
       }
       Go.yt = !1;
@@ -25603,7 +25714,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
            * See the License for the specific language governing permissions and
            * limitations under the License.
            */
-      var ag = "PersistentStream",
+      var og = "PersistentStream",
         Fl = /*#__PURE__*/function () {
           function Fl(e, t, r, s, i, a, u, c) {
             this.Ct = e, this.Kt = r, this.Qt = s, this.connection = i, this.authCredentialsProvider = a, this.appCheckCredentialsProvider = u, this.listener = c, this.state = 0, this.Wt = 0, this.Gt = null, this.zt = null, this.stream = null, this.jt = 0, this.Ht = new Ni(e, t);
@@ -25760,13 +25871,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             })));
           };
           _proto137.cn = function cn(e) {
-            return j(ag, "close with error: " + e), this.stream = null, this.close(4, e);
+            return j(og, "close with error: " + e), this.stream = null, this.close(4, e);
           };
           _proto137.an = function an(e) {
             var _this99 = this;
             return function (t) {
               _this99.Ct.enqueueAndForget(function () {
-                return _this99.Wt === e ? t() : (j(ag, "stream callback skipped by getCloseGuardedDispatcher."), Promise.resolve());
+                return _this99.Wt === e ? t() : (j(og, "stream callback skipped by getCloseGuardedDispatcher."), Promise.resolve());
               });
             };
           };
@@ -25788,7 +25899,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           _proto138.onNext = function onNext(e) {
             this.Ht.reset();
-            var t = sI(this.serializer, e),
+            var t = iI(this.serializer, e),
               r = function (i) {
                 if (!("targetChange" in i)) return te.min();
                 var a = i.targetChange;
@@ -25798,17 +25909,17 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           _proto138.Pn = function Pn(e) {
             var t = {};
-            t.database = rg(this.serializer), t.addTarget = function (i, a) {
+            t.database = sg(this.serializer), t.addTarget = function (i, a) {
               var u,
                 c = a.target;
               if (u = sr(c) ? {
-                pipelineQuery: lI(i, c)
-              } : zg(c) ? {
-                documents: aI(i, c)
+                pipelineQuery: BI(i, c)
+              } : Wg(c) ? {
+                documents: oI(i, c)
               } : {
-                query: oI(i, c).Se
+                query: uI(i, c).Se
               }, u.targetId = a.targetId, a.resumeToken.approximateByteSize() > 0) {
-                u.resumeToken = Xg(i, a.resumeToken);
+                u.resumeToken = Zg(i, a.resumeToken);
                 var l = Tl(i, a.expectedCount);
                 l !== null && (u.expectedCount = l);
               } else if (a.snapshotVersion.compareTo(te.min()) > 0) {
@@ -25818,12 +25929,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               }
               return u;
             }(this.serializer, e);
-            var r = cI(this.serializer, e);
+            var r = lI(this.serializer, e);
             r && (t.labels = r), this.nn(t);
           };
           _proto138.In = function In(e) {
             var t = {};
-            t.database = rg(this.serializer), t.removeTarget = e, this.nn(t);
+            t.database = sg(this.serializer), t.removeTarget = e, this.nn(t);
           };
           return Ll;
         }(Fl); /**
@@ -25879,7 +25990,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           return kl;
         }(xl);
-      function gI(n, e, t, r) {
+      function mI(n, e, t, r) {
         return new kl(n, e, t, r);
       } /**
         * @license
@@ -25897,10 +26008,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      var mI = "ComponentProvider",
-        og = new Map();
-      function EI(n, e, t, r, s) {
-        return new ul(n, e, t, s.host, s.ssl, s.experimentalForceLongPolling, s.experimentalAutoDetectLongPolling, um(s.experimentalLongPollingOptions), s.useFetchStreams, s.isUsingEmulator, r, s._customHeaders, s.grpcFlowControlWindow);
+      var EI = "ComponentProvider",
+        ug = new Map();
+      function _I(n, e, t, r, s) {
+        return new ul(n, e, t, s.host, s.ssl, s.experimentalForceLongPolling, s.experimentalAutoDetectLongPolling, cm(s.experimentalLongPollingOptions), s.useFetchStreams, s.isUsingEmulator, r, s._customHeaders, s.grpcFlowControlWindow);
       } /**
         * @license
         * Copyright 2018 Google LLC
@@ -25917,13 +26028,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      var ug = {
+      var cg = {
           didRun: !1,
           sequenceNumbersCollected: 0,
           targetsRemoved: 0,
           documentsRemoved: 0
         },
-        cm = 41943040,
+        lm = 41943040,
         Dt = /*#__PURE__*/function () {
           n.withCacheSize = function withCacheSize(e) {
             return new n(e, n.DEFAULT_COLLECTION_PERCENTILE, n.DEFAULT_MAX_SEQUENCE_NUMBERS_TO_COLLECT);
@@ -25933,7 +26044,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }
           return n;
         }();
-      Dt.DEFAULT_COLLECTION_PERCENTILE = 10, Dt.DEFAULT_MAX_SEQUENCE_NUMBERS_TO_COLLECT = 1e3, Dt.DEFAULT = new Dt(cm, Dt.DEFAULT_COLLECTION_PERCENTILE, Dt.DEFAULT_MAX_SEQUENCE_NUMBERS_TO_COLLECT), Dt.DISABLED = new Dt(-1, 0, 0); /**
+      Dt.DEFAULT_COLLECTION_PERCENTILE = 10, Dt.DEFAULT_MAX_SEQUENCE_NUMBERS_TO_COLLECT = 1e3, Dt.DEFAULT = new Dt(lm, Dt.DEFAULT_COLLECTION_PERCENTILE, Dt.DEFAULT_MAX_SEQUENCE_NUMBERS_TO_COLLECT), Dt.DISABLED = new Dt(-1, 0, 0); /**
                                                                                                                                                                                                                                       * @license
                                                                                                                                                                                                                                       * Copyright 2018 Google LLC
                                                                                                                                                                                                                                       *
@@ -25984,7 +26095,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   * See the License for the specific language governing permissions and
                   * limitations under the License.
                   */
-      var _I = "The current tab is not in the required state to perform this operation. It might be necessary to refresh the browser tab.",
+      var DI = "The current tab is not in the required state to perform this operation. It might be necessary to refresh the browser tab.",
         Vl = /*#__PURE__*/function () {
           function Vl() {
             this.onCommittedListeners = [];
@@ -26038,7 +26149,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return _regeneratorRuntime().wrap(function _callee189$(_context190) {
             while (1) switch (_context190.prev = _context190.next) {
               case 0:
-                if (!(n.code !== x.FAILED_PRECONDITION || n.message !== _I)) {
+                if (!(n.code !== x.FAILED_PRECONDITION || n.message !== DI)) {
                   _context190.next = 2;
                   break;
                 }
@@ -26189,7 +26300,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
            * See the License for the specific language governing permissions and
            * limitations under the License.
            */
-      function DI(n) {
+      function yI(n) {
         var e = n.match(/Android ([\d.]+)/i),
           t = e ? e[1].split(".").slice(0, 2).join(".") : "-1";
         return Number(t);
@@ -26212,9 +26323,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      var cg = "LruGarbageCollector",
-        yI = 1048576;
-      function lg(_ref42, _ref43) {
+      var lg = "LruGarbageCollector",
+        wI = 1048576;
+      function Bg(_ref42, _ref43) {
         var n = _ref42[0],
           e = _ref42[1];
         var t = _ref43[0],
@@ -26224,7 +26335,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       }
       var Ml = /*#__PURE__*/function () {
           function Ml(e) {
-            this.Yn = e, this.buffer = new Ve(lg), this.Zn = 0;
+            this.Yn = e, this.buffer = new Ve(Bg), this.Zn = 0;
           }
           var _proto143 = Ml.prototype;
           _proto143.Xn = function Xn() {
@@ -26234,7 +26345,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             var t = [e, this.Xn()];
             if (this.buffer.size < this.Yn) this.buffer = this.buffer.add(t);else {
               var r = this.buffer.last();
-              lg(t, r) < 0 && (this.buffer = this.buffer["delete"](r).add(t));
+              Bg(t, r) < 0 && (this.buffer = this.buffer["delete"](r).add(t));
             }
           };
           _createClass(Ml, [{
@@ -26258,7 +26369,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           _proto144.nr = function nr(e) {
             var _this109 = this;
-            j(cg, "Garbage collection scheduled in " + e + "ms"), this.tr = this.asyncQueue.enqueueAfterDelay("lru_garbage_collection", e, /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee111() {
+            j(lg, "Garbage collection scheduled in " + e + "ms"), this.tr = this.asyncQueue.enqueueAfterDelay("lru_garbage_collection", e, /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee111() {
               return _regeneratorRuntime().wrap(function _callee111$(_context112) {
                 while (1) switch (_context112.prev = _context112.next) {
                   case 0:
@@ -26276,7 +26387,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                       _context112.next = 12;
                       break;
                     }
-                    j(cg, "Ignoring IndexedDB error during garbage collection: ", _context112.t0);
+                    j(lg, "Ignoring IndexedDB error during garbage collection: ", _context112.t0);
                     _context112.next = 14;
                     break;
                   case 12:
@@ -26332,8 +26443,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           _proto145.collect = function collect(e, t) {
             var _this111 = this;
-            return this.params.cacheSizeCollectionThreshold === -1 ? (j("LruGarbageCollector", "Garbage collection skipped; disabled"), k.resolve(ug)) : this.getCacheSize(e).next(function (r) {
-              return r < _this111.params.cacheSizeCollectionThreshold ? (j("LruGarbageCollector", "Garbage collection skipped; Cache size " + r + " is lower than threshold " + _this111.params.cacheSizeCollectionThreshold), ug) : _this111._r(e, t);
+            return this.params.cacheSizeCollectionThreshold === -1 ? (j("LruGarbageCollector", "Garbage collection skipped; disabled"), k.resolve(cg)) : this.getCacheSize(e).next(function (r) {
+              return r < _this111.params.cacheSizeCollectionThreshold ? (j("LruGarbageCollector", "Garbage collection skipped; Cache size " + r + " is lower than threshold " + _this111.params.cacheSizeCollectionThreshold), cg) : _this111._r(e, t);
             });
           };
           _proto145.getCacheSize = function getCacheSize(e) {
@@ -26366,7 +26477,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           return Ul;
         }();
-      function wI(n, e) {
+      function II(n, e) {
         return new Ul(n, e);
       } /**
         * @license
@@ -26384,20 +26495,20 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      var lm = "firestore.googleapis.com",
-        Bg = !0,
+      var Bm = "firestore.googleapis.com",
+        hg = !0,
         Uo = /*#__PURE__*/function () {
           function Uo(e) {
             var _e$ssl, _e$experimentalLongPo;
             if (e.host === void 0) {
               if (e.ssl !== void 0) throw new K(x.INVALID_ARGUMENT, "Can't provide ssl option if host option is not set");
-              this.host = lm, this.ssl = Bg;
-            } else this.host = e.host, this.ssl = (_e$ssl = e.ssl) != null ? _e$ssl : Bg;
-            if (this.isUsingEmulator = e.emulatorOptions !== void 0, this.credentials = e.credentials, this.ignoreUndefinedProperties = !!e.ignoreUndefinedProperties, this.localCache = e.localCache, e._customHeaders && (this._customHeaders = _extends({}, e._customHeaders)), e.cacheSizeBytes === void 0) this.cacheSizeBytes = cm;else {
-              if (e.cacheSizeBytes !== -1 && e.cacheSizeBytes < yI) throw new K(x.INVALID_ARGUMENT, "cacheSizeBytes must be at least 1048576");
+              this.host = Bm, this.ssl = hg;
+            } else this.host = e.host, this.ssl = (_e$ssl = e.ssl) != null ? _e$ssl : hg;
+            if (this.isUsingEmulator = e.emulatorOptions !== void 0, this.credentials = e.credentials, this.ignoreUndefinedProperties = !!e.ignoreUndefinedProperties, this.localCache = e.localCache, e._customHeaders && (this._customHeaders = _extends({}, e._customHeaders)), e.cacheSizeBytes === void 0) this.cacheSizeBytes = lm;else {
+              if (e.cacheSizeBytes !== -1 && e.cacheSizeBytes < wI) throw new K(x.INVALID_ARGUMENT, "cacheSizeBytes must be at least 1048576");
               this.cacheSizeBytes = e.cacheSizeBytes;
             }
-            if (vg("experimentalForceLongPolling", e.experimentalForceLongPolling, "experimentalAutoDetectLongPolling", e.experimentalAutoDetectLongPolling), this.experimentalForceLongPolling = !!e.experimentalForceLongPolling, this.experimentalForceLongPolling ? this.experimentalAutoDetectLongPolling = !1 : e.experimentalAutoDetectLongPolling === void 0 ? this.experimentalAutoDetectLongPolling = !0 : this.experimentalAutoDetectLongPolling = !!e.experimentalAutoDetectLongPolling, this.experimentalLongPollingOptions = um((_e$experimentalLongPo = e.experimentalLongPollingOptions) != null ? _e$experimentalLongPo : {}), function (r) {
+            if (bg("experimentalForceLongPolling", e.experimentalForceLongPolling, "experimentalAutoDetectLongPolling", e.experimentalAutoDetectLongPolling), this.experimentalForceLongPolling = !!e.experimentalForceLongPolling, this.experimentalForceLongPolling ? this.experimentalAutoDetectLongPolling = !1 : e.experimentalAutoDetectLongPolling === void 0 ? this.experimentalAutoDetectLongPolling = !0 : this.experimentalAutoDetectLongPolling = !!e.experimentalAutoDetectLongPolling, this.experimentalLongPollingOptions = cm((_e$experimentalLongPo = e.experimentalLongPollingOptions) != null ? _e$experimentalLongPo : {}), function (r) {
               if (r.timeoutSeconds !== void 0) {
                 if (isNaN(r.timeoutSeconds)) throw new K(x.INVALID_ARGUMENT, "invalid long polling timeout: " + r.timeoutSeconds + " (must not be NaN)");
                 if (r.timeoutSeconds < 5) throw new K(x.INVALID_ARGUMENT, "invalid long polling timeout: " + r.timeoutSeconds + " (minimum allowed value is 5)");
@@ -26494,8 +26605,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           _proto147._terminate = function _terminate() {
             return function (t) {
-              var r = og.get(t);
-              r && (j(mI, "Removing Datastore"), og["delete"](t), r.terminate());
+              var r = ug.get(t);
+              r && (j(EI, "Removing Datastore"), ug["delete"](t), r.terminate());
             }(this), Promise.resolve();
           };
           _createClass(td, [{
@@ -26517,7 +26628,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }]);
           return td;
         }();
-      function Bm(n, e, t, r) {
+      function hm(n, e, t, r) {
         if (r === void 0) {
           r = {};
         }
@@ -26528,7 +26639,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             emulatorOptions: n._getEmulatorOptions()
           }),
           u = e + ":" + t;
-        s && wa("https://" + u), i.host !== lm && i.host !== u && yt("Host has been set in both settings() and connectFirestoreEmulator(), emulator host will be used.");
+        s && wa("https://" + u), i.host !== Bm && i.host !== u && yt("Host has been set in both settings() and connectFirestoreEmulator(), emulator host will be used.");
         var c = _extends({}, i, {
           host: u,
           ssl: s,
@@ -26612,8 +26723,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return n;
         }();
       qe._jsonSchemaVersion = "firestore/documentReference/1.0", qe._jsonSchema = {
-        type: Pe("string", qe._jsonSchemaVersion),
-        referencePath: Pe("string")
+        type: Ne("string", qe._jsonSchemaVersion),
+        referencePath: Ne("string")
       };
       var fs = /*#__PURE__*/function (_Ho) {
         _inheritsLoose(n, _Ho);
@@ -26645,18 +26756,18 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }]);
         return n;
       }(Ho);
-      function hm(n, e) {
+      function dm(n, e) {
         for (var _len24 = arguments.length, t = new Array(_len24 > 2 ? _len24 - 2 : 0), _key24 = 2; _key24 < _len24; _key24++) {
           t[_key24 - 2] = arguments[_key24];
         }
-        if (n = Le(n), arguments.length === 1 && (e = Zr.newId()), Iw("doc", "path", e), n instanceof td) {
+        if (n = be(n), arguments.length === 1 && (e = Zr.newId()), Tw("doc", "path", e), n instanceof td) {
           var r = _he.fromString.apply(_he, [e].concat(t));
-          return UC(r), new qe(n, null, new Z(r));
+          return HC(r), new qe(n, null, new Z(r));
         }
         {
           if (!(n instanceof qe || n instanceof fs)) throw new K(x.INVALID_ARGUMENT, "Expected first argument to doc() to be a CollectionReference, a DocumentReference or FirebaseFirestore");
           var _r28 = n._path.child(_he.fromString.apply(_he, [e].concat(t)));
-          return UC(_r28), new qe(n.firestore, n instanceof fs ? n.converter : null, new Z(_r28));
+          return HC(_r28), new qe(n.firestore, n instanceof fs ? n.converter : null, new Z(_r28));
         }
       } /**
         * @license
@@ -26725,8 +26836,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         return n;
       }();
       Ct._jsonSchemaVersion = "firestore/vectorValue/1.0", Ct._jsonSchema = {
-        type: Pe("string", Ct._jsonSchemaVersion),
-        vectorValues: Pe("object")
+        type: Ne("string", Ct._jsonSchemaVersion),
+        vectorValues: Ne("object")
       }; /**
          * @license
          * Copyright 2017 Google LLC
@@ -26743,7 +26854,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
          * See the License for the specific language governing permissions and
          * limitations under the License.
          */
-      var II = /^__.*__$/,
+      var TI = /^__.*__$/,
         Hl = /*#__PURE__*/function () {
           function Hl(e, t, r) {
             this.data = e, this.fieldMask = t, this.fieldTransforms = r;
@@ -26764,7 +26875,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           return qo;
         }();
-      function dm(n) {
+      function fm(n) {
         switch (n) {
           case 0:
           case 2:
@@ -26826,7 +26937,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           _proto154.validatePathSegment = function validatePathSegment(e) {
             if (e.length === 0) throw this.createError("Document fields must not be empty");
-            if (dm(this.dataSource) && II.test(e)) throw this.createError('Document fields cannot begin and end with "__"');
+            if (fm(this.dataSource) && TI.test(e)) throw this.createError('Document fields cannot begin and end with "__"');
           };
           _createClass(n, [{
             key: "path",
@@ -26861,18 +26972,18 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           return jl;
         }();
-      function fm(n) {
+      function pm(n) {
         var e = n._freezeSettings(),
           t = Cu(n._databaseId);
         return new jl(n._databaseId, !!e.ignoreUndefinedProperties, t);
       }
-      function pm(n, e, t, r, s, i) {
+      function Cm(n, e, t, r, s, i) {
         if (i === void 0) {
           i = {};
         }
         var a = n.createContext(i.merge || i.mergeFields ? 2 : 0, e, t, s);
         nd("Data must be an object, but it was:", a, r);
-        var u = mm(r, a),
+        var u = Em(r, a),
           c,
           l;
         if (i.merge) c = new Rt(a.fieldMask), l = a.fieldTransforms;else if (i.mergeFields) {
@@ -26881,7 +26992,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             var f = _step64.value;
             var m = yr(e, f, t);
             if (!a.contains(m)) throw new K(x.INVALID_ARGUMENT, "Field '" + m + "' is specified in your field mask but missing from your input data.");
-            Dm(d, m) || d.push(m);
+            ym(d, m) || d.push(m);
           }
           c = new Rt(d), l = a.fieldTransforms.filter(function (f) {
             return c.covers(f.field);
@@ -26918,14 +27029,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         };
         return n;
       }(_r);
-      function Cm(n, e, t, r) {
+      function gm(n, e, t, r) {
         var s = n.createContext(1, e, t);
         nd("Data must be an object, but it was:", s, r);
         var i = [],
           a = Ze.empty();
         br(r, function (c, l) {
           var d = rd(e, c, t);
-          l = Le(l);
+          l = be(l);
           var f = s.childContextForFieldPath(d);
           if (l instanceof jo) i.push(d);else {
             var m = Dr(l, f);
@@ -26935,7 +27046,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         var u = new Rt(i);
         return new qo(a, u, s.fieldTransforms);
       }
-      function gm(n, e, t, r, s, i) {
+      function mm(n, e, t, r, s, i) {
         var a = n.createContext(1, e, t),
           u = [yr(e, r, t)],
           c = [s];
@@ -26943,10 +27054,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         for (var m = 0; m < i.length; m += 2) u.push(yr(e, i[m])), c.push(i[m + 1]);
         var l = [],
           d = Ze.empty();
-        for (var _m8 = u.length - 1; _m8 >= 0; --_m8) if (!Dm(l, u[_m8])) {
+        for (var _m8 = u.length - 1; _m8 >= 0; --_m8) if (!ym(l, u[_m8])) {
           var v = u[_m8],
             R = c[_m8];
-          R = Le(R);
+          R = be(R);
           var V = a.childContextForFieldPath(v);
           if (R instanceof jo) l.push(v);else {
             var H = Dr(R, V);
@@ -26957,9 +27068,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         return new qo(d, f, a.fieldTransforms);
       }
       function Dr(n, e, t) {
-        if (_m(n = Le(n))) return nd("Unsupported field value:", e, n), mm(n, e);
+        if (Dm(n = be(n))) return nd("Unsupported field value:", e, n), Em(n, e);
         if (n instanceof _r) return function (s, i) {
-          if (!dm(i.dataSource)) throw i.createError(s._methodName + "() can only be used with update() and set()");
+          if (!fm(i.dataSource)) throw i.createError(s._methodName + "() can only be used with update() and set()");
           if (!i.path) throw i.createError(s._methodName + "() is not currently supported inside arrays");
           var a = s._toFieldTransform(i);
           a && i.fieldTransforms.push(a);
@@ -26985,7 +27096,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }(n, e);
         }
         return function (s, i, a) {
-          if ((s = Le(s)) === null) return {
+          if ((s = be(s)) === null) return {
             nullValue: "NULL_VALUE"
           };
           if (typeof s == "number") return Yh(i.serializer, s);
@@ -27007,7 +27118,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               timestampValue: _i(i.serializer, _u49)
             };
           }
-          if (Em(s)) {
+          if (_m(s)) {
             var _u50 = Ie.fromInstant(s),
               c = new Ie(_u50.seconds, 1e3 * Math.floor(_u50.nanoseconds / 1e3));
             return {
@@ -27021,7 +27132,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           };
           if (s instanceof Ut) return {
-            bytesValue: Xg(i.serializer, s._byteString)
+            bytesValue: Zg(i.serializer, s._byteString)
           };
           if (s instanceof qe) {
             var _u51 = i.databaseId,
@@ -27048,13 +27159,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               }
             };
           }(s, i);
-          if (im(s)) return s._toProto(i.serializer);
+          if (am(s)) return s._toProto(i.serializer);
           throw i.createError("Unsupported field value: " + hu(s));
         }(n, e);
       }
-      function mm(n, e) {
+      function Em(n, e) {
         var t = {};
-        return Ag(n) ? e.path && e.path.length > 0 && e.fieldMask.push(e.path) : br(n, function (r, s) {
+        return vg(n) ? e.path && e.path.length > 0 && e.fieldMask.push(e.path) : br(n, function (r, s) {
           var i = Dr(s, e.childContextForField(r));
           i != null && (t[r] = i);
         }), {
@@ -27063,29 +27174,29 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }
         };
       }
-      function Em(n) {
+      function _m(n) {
         if (typeof n != "object" || n === null) return !1;
         if (typeof Temporal < "u" && typeof Temporal.Instant == "function" && n instanceof Temporal.Instant) return !0;
         var e = n;
         return e[Symbol.toStringTag] === "Temporal.Instant" && typeof e.t == "bigint";
       }
-      function _m(n) {
-        return !(typeof n != "object" || n === null || n instanceof Array || n instanceof Date || n instanceof Ie || n instanceof tn || n instanceof Ut || n instanceof qe || n instanceof _r || n instanceof Ct || Em(n) || im(n));
+      function Dm(n) {
+        return !(typeof n != "object" || n === null || n instanceof Array || n instanceof Date || n instanceof Ie || n instanceof tn || n instanceof Ut || n instanceof qe || n instanceof _r || n instanceof Ct || _m(n) || am(n));
       }
       function nd(n, e, t) {
-        if (!_m(t) || !Qi(t)) {
+        if (!Dm(t) || !Qi(t)) {
           var r = hu(t);
           throw r === "an object" ? e.createError(n + " a custom object") : e.createError(n + " " + r);
         }
       }
       function yr(n, e, t) {
-        if ((e = Le(e)) instanceof Er) return e._internalPath;
+        if ((e = be(e)) instanceof Er) return e._internalPath;
         if (typeof e == "string") return rd(n, e);
         throw Ko("Field path arguments must be of type string or ", n, !1, void 0, t);
       }
-      var TI = new RegExp("[~\\*/\\[\\]]");
+      var AI = new RegExp("[~\\*/\\[\\]]");
       function rd(n, e, t) {
-        if (e.search(TI) >= 0) throw Ko("Invalid field path (" + e + "). Paths must not contain '~', '*', '/', '[', or ']'", n, !1, void 0, t);
+        if (e.search(AI) >= 0) throw Ko("Invalid field path (" + e + "). Paths must not contain '~', '*', '/', '[', or ']'", n, !1, void 0, t);
         try {
           return _construct(Er, e.split("."))._internalPath;
         } catch (_unused47) {
@@ -27100,12 +27211,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         var c = "";
         return (i || a) && (c += " (found", i && (c += " in field " + r), a && (c += " in document " + s), c += ")"), new K(x.INVALID_ARGUMENT, u + n + c);
       }
-      function Dm(n, e) {
+      function ym(n, e) {
         return n.some(function (t) {
           return t.isEqual(e);
         });
       }
-      function AI(n) {
+      function vI(n) {
         return typeof n._readUserData == "function";
       } /**
         * @license
@@ -27149,7 +27260,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           var _s$value$mapValue$fie;
           var s = this._getKnownOptions(t, e);
           if (r) {
-            var i = new Map(Tg(r, function (a, u) {
+            var i = new Map(Ag(r, function (a, u) {
               return [pt.fromServerFormat(u), a !== void 0 ? Dr(a, e) : null];
             }));
             s.setAll(i);
@@ -27173,7 +27284,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
            * See the License for the specific language governing permissions and
            * limitations under the License.
            */
-      function vI(n) {
+      function bI(n) {
         return typeof n == "object" && n !== null && !!("nullValue" in n && (n.nullValue === null || n.nullValue === "NULL_VALUE") || "booleanValue" in n && (n.booleanValue === null || typeof n.booleanValue == "boolean") || "integerValue" in n && (n.integerValue === null || typeof n.integerValue == "number" || typeof n.integerValue == "string") || "doubleValue" in n && (n.doubleValue === null || typeof n.doubleValue == "number") || "timestampValue" in n && (n.timestampValue === null || function (t) {
           return typeof t == "object" && t !== null && "seconds" in t && (t.seconds === null || typeof t.seconds == "number" || typeof t.seconds == "string") && "nanos" in t && (t.nanos === null || typeof t.nanos == "number");
         }(n.timestampValue)) || "stringValue" in n && (n.stringValue === null || typeof n.stringValue == "string") || "bytesValue" in n && (n.bytesValue === null || n.bytesValue instanceof Uint8Array) || "referenceValue" in n && (n.referenceValue === null || typeof n.referenceValue == "string") || "geoPointValue" in n && (n.geoPointValue === null || function (t) {
@@ -27203,10 +27314,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      function ym() {
+      function wm() {
         return new Kl("serverTimestamp");
       }
-      function wm(n) {
+      function Im(n) {
         return new Ct(n);
       } /**
         * @license
@@ -27226,16 +27337,16 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         */
       function U(n) {
         var e;
-        return n instanceof ln ? n : (e = Qi(n) ? RI(n) : n instanceof Array ? PI(n) : Im(n, void 0), e);
+        return n instanceof ln ? n : (e = Qi(n) ? PI(n) : n instanceof Array ? NI(n) : Tm(n, void 0), e);
       }
       function rl(n) {
         if (n instanceof ln) return n;
         if (n instanceof Ct) return Oi(n);
-        if (Array.isArray(n)) return Oi(wm(n));
+        if (Array.isArray(n)) return Oi(Im(n));
         throw new Error("Unsupported value: " + typeof n);
       }
       function sd(n) {
-        return bw(n) ? bI(n) : U(n);
+        return Sw(n) ? SI(n) : U(n);
       }
       var ln = /*#__PURE__*/function () {
           function ln() {
@@ -27656,10 +27767,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             return t && r.push(U(t)), new F("timestamp_trunc", r);
           };
           _proto159.ascending = function ascending() {
-            return NI(this);
+            return OI(this);
           };
           _proto159.descending = function descending() {
-            return OI(this);
+            return FI(this);
           };
           _proto159.as = function as(e) {
             return new zl(this, e, "as");
@@ -27781,11 +27892,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }]);
           return wr;
         }(ln);
-      function bI(n) {
-        return SI(n, "field");
+      function SI(n) {
+        return RI(n, "field");
       }
-      function SI(n, e) {
-        return new wr(typeof n == "string" ? ts === n ? om()._internalPath : yr("field", n) : n._internalPath, e);
+      function RI(n, e) {
+        return new wr(typeof n == "string" ? ts === n ? um()._internalPath : yr("field", n) : n._internalPath, e);
       }
       var ps = /*#__PURE__*/function (_ln3) {
         _inheritsLoose(n, _ln3);
@@ -27808,14 +27919,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         _proto165._readUserData = function _readUserData(e) {
           e = this._methodName ? e.contextWith({
             methodName: this._methodName
-          }) : e, vI(this._protoValue) || (this._protoValue = Dr(this.value, e));
+          }) : e, bI(this._protoValue) || (this._protoValue = Dr(this.value, e));
         };
         return n;
       }(ln);
       function Oi(n, e) {
-        return Im(n, "constant");
+        return Tm(n, "constant");
       }
-      function Im(n, e) {
+      function Tm(n, e) {
         var t = new ps(n, e);
         return typeof n == "boolean" ? new zo(t) : t;
       }
@@ -27918,7 +28029,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }
           return Wl;
         }(Ln);
-      function RI(n, e) {
+      function PI(n, e) {
         var t = [];
         for (var r in n) if (Object.prototype.hasOwnProperty.call(n, r)) {
           var s = n[r];
@@ -27926,17 +28037,17 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }
         return new F("map", t, "map");
       }
-      function PI(n) {
+      function NI(n) {
         return function (t, r) {
           return new F("array", t.map(function (s) {
             return U(s);
           }), r);
         }(n, "array");
       }
-      function NI(n) {
+      function OI(n) {
         return new Wo(sd(n), "ascending", "ascending");
       }
-      function OI(n) {
+      function FI(n) {
         return new Wo(sd(n), "descending", "descending");
       }
       var Wo = /*#__PURE__*/function () {
@@ -27948,7 +28059,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return {
             mapValue: {
               fields: {
-                direction: am(this.direction),
+                direction: om(this.direction),
                 expression: this.expr._toProto(e)
               }
             }
@@ -28356,7 +28467,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return ki;
         }(et);
       function xn(n, e) {
-        return AI(n) ? n._readUserData(e) : Array.isArray(n) ? n.forEach(function (t) {
+        return vI(n) ? n._readUserData(e) : Array.isArray(n) ? n.forEach(function (t) {
           return t._readUserData(e);
         }) : n instanceof Map ? n.forEach(function (t) {
           return t._readUserData(e);
@@ -28391,7 +28502,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return id(this);
         };
         _proto184.getPipelineCollectionId = function getPipelineCollectionId() {
-          return FI(this);
+          return LI(this);
         };
         _proto184.getPipelineDocuments = function getPipelineDocuments() {
           return Yl(this);
@@ -28419,7 +28530,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       function id(n) {
         if (Nn(n) === "collection_group") return n.stages[0].collectionId;
       }
-      function FI(n) {
+      function LI(n) {
         switch (Nn(n)) {
           case "collection":
             return _he.fromString(mu(n)).lastSegment();
@@ -28468,11 +28579,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       function yi(n) {
         if (!n.yr()) return n.value;
       }
-      function Tm(n) {
+      function Am(n) {
         return n instanceof Ln ? n._expr : n;
       }
       function ee(n) {
-        if ((n = Tm(n)) instanceof wr) return new Xl(n);
+        if ((n = Am(n)) instanceof wr) return new Xl(n);
         if (n instanceof ps) return new Zl(n);
         if (n instanceof or) return new eB(n);
         if (n instanceof F) {
@@ -28608,8 +28719,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       function qt(n) {
         return BigInt(n.integerValue);
       }
-      var LI = BigInt("0x7fffffffffffffff"),
-        xI = -BigInt("0x8000000000000000"),
+      var xI = BigInt("0x7fffffffffffffff"),
+        kI = -BigInt("0x8000000000000000"),
         Tr = /*#__PURE__*/function () {
           function Tr(e) {
             this.expr = e;
@@ -28641,7 +28752,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               var _i36 = this.vr(r, s);
               return _i36 === void 0 ? T.mr() : typeof _i36 == "number" ? T.newValue({
                 doubleValue: _i36
-              }) : _i36 < xI || _i36 > LI ? T.mr() : T.newValue({
+              }) : _i36 < kI || _i36 > xI ? T.mr() : T.newValue({
                 integerValue: "" + _i36
               });
             }
@@ -28650,7 +28761,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return Tr;
         }();
       function Bn(n, e) {
-        return Oe(n) !== Oe(e) ? "TYPE_MISMATCH" : ot(n) || ot(e) ? "NOT_EQ" : dt(n) && dt(e) ? "EQ" : dt(n) || dt(e) ? "NULL" : as(n) && as(e) ? function (r, s, _r$values, _s$values) {
+        return Fe(n) !== Fe(e) ? "TYPE_MISMATCH" : ot(n) || ot(e) ? "NOT_EQ" : dt(n) && dt(e) ? "EQ" : dt(n) || dt(e) ? "NULL" : as(n) && as(e) ? function (r, s, _r$values, _s$values) {
           if (((_r$values = r.values) == null ? void 0 : _r$values.length) !== ((_s$values = s.values) == null ? void 0 : _s$values.length)) return "NOT_EQ";
           var i = !1;
           for (var a = 0; a < ((_r$values$length = (_r$values2 = r.values) == null ? void 0 : _r$values2.length) != null ? _r$values$length : 0); a++) {
@@ -29152,7 +29263,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           var _proto211 = EB.prototype;
           _proto211.Fr = function Fr(e, t) {
             if (e.wr() && t.wr()) return T.newValue(it);
-            if (e.wr() || t.wr() || ot(e.value) || ot(t.value) || Oe(e.value) !== Oe(t.value)) return T.newValue(He);
+            if (e.wr() || t.wr() || ot(e.value) || ot(t.value) || Fe(e.value) !== Fe(t.value)) return T.newValue(He);
             switch (Bn(e.value, t.value)) {
               case "EQ":
                 return T.newValue(it);
@@ -29204,7 +29315,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }
           var _proto213 = DB.prototype;
           _proto213.Fr = function Fr(e, t) {
-            return Oe(e.value) !== Oe(t.value) || ot(e.value) || ot(t.value) ? T.newValue(He) : T.newValue({
+            return Fe(e.value) !== Fe(t.value) || ot(e.value) || ot(t.value) ? T.newValue(He) : T.newValue({
               booleanValue: at(e.value, t.value) < 0
             });
           };
@@ -29219,7 +29330,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }
           var _proto214 = yB.prototype;
           _proto214.Fr = function Fr(e, t) {
-            return Oe(e.value) !== Oe(t.value) || ot(e.value) || ot(t.value) ? T.newValue(He) : Bn(e.value, t.value) === "EQ" ? T.newValue(it) : T.newValue({
+            return Fe(e.value) !== Fe(t.value) || ot(e.value) || ot(t.value) ? T.newValue(He) : Bn(e.value, t.value) === "EQ" ? T.newValue(it) : T.newValue({
               booleanValue: at(e.value, t.value) < 0
             });
           };
@@ -29234,7 +29345,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }
           var _proto215 = wB.prototype;
           _proto215.Fr = function Fr(e, t) {
-            return Oe(e.value) !== Oe(t.value) || ot(e.value) || ot(t.value) ? T.newValue(He) : T.newValue({
+            return Fe(e.value) !== Fe(t.value) || ot(e.value) || ot(t.value) ? T.newValue(He) : T.newValue({
               booleanValue: at(e.value, t.value) > 0
             });
           };
@@ -29249,7 +29360,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }
           var _proto216 = IB.prototype;
           _proto216.Fr = function Fr(e, t) {
-            return Oe(e.value) !== Oe(t.value) || ot(e.value) || ot(t.value) ? T.newValue(He) : Bn(e.value, t.value) === "EQ" ? T.newValue(it) : T.newValue({
+            return Fe(e.value) !== Fe(t.value) || ot(e.value) || ot(t.value) ? T.newValue(He) : Bn(e.value, t.value) === "EQ" ? T.newValue(it) : T.newValue({
               booleanValue: at(e.value, t.value) > 0
             });
           };
@@ -29469,9 +29580,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   var _r$value4;
                   var s = (_r$value4 = r.value) == null ? void 0 : _r$value4.bytesValue;
                   if (typeof s == "string") {
-                    var i = Ne.fromBase64String(s).toUint8Array();
+                    var i = Oe.fromBase64String(s).toUint8Array();
                     return i.reverse(), T.newValue({
-                      bytesValue: Ne.fromUint8Array(i).toBase64()
+                      bytesValue: Oe.fromUint8Array(i).toBase64()
                     });
                   }
                   return T.newValue({
@@ -29574,7 +29685,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   var _r$value6;
                   var s = (_r$value6 = r.value) == null ? void 0 : _r$value6.bytesValue;
                   return typeof s == "string" ? T.newValue({
-                    integerValue: Ne.fromBase64String(s).toUint8Array().length
+                    integerValue: Oe.fromBase64String(s).toUint8Array().length
                   }) : T.newValue({
                     integerValue: new Uint8Array(s).length
                   });
@@ -30027,21 +30138,21 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         Gi = BigInt(253402300799),
         eu = BigInt(1e3),
         On = BigInt(1e6),
-        kI = Mi * eu,
-        VI = Gi * eu + BigInt(999),
-        MI = Mi * On,
-        GI = Gi * On + BigInt(999999);
+        VI = Mi * eu,
+        MI = Gi * eu + BigInt(999),
+        GI = Mi * On,
+        UI = Gi * On + BigInt(999999);
       function ad(n) {
-        return n >= MI && n <= GI;
+        return n >= GI && n <= UI;
       }
-      function Am(n) {
+      function vm(n) {
         return n >= Mi && n <= Gi;
       }
       function Ui(n, e) {
         var t = BigInt(n);
         return !(t < Mi || t > Gi) && !(e < 0 || e >= 1e9) && (t !== Mi || e === 0) && !(t === Gi && e > 999999999);
       }
-      function vm(n, e) {
+      function bm(n, e) {
         return e < 0 ? {
           seconds: n - 1,
           nanos: e + 1e9
@@ -30082,7 +30193,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             if (!ad(e)) return T.mr();
             var t = Number(e / On),
               r = Number(e % On * BigInt(1e3)),
-              s = vm(t, r);
+              s = bm(t, r);
             return t = s.seconds, r = s.nanos, Ui(t, r) ? T.newValue({
               timestampValue: {
                 seconds: t,
@@ -30100,11 +30211,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           var _proto248 = ZB.prototype;
           _proto248.toTimestamp = function toTimestamp(e) {
             if (!function (a) {
-              return a >= kI && a <= VI;
+              return a >= VI && a <= MI;
             }(e)) return T.mr();
             var t = Number(e / eu),
               r = Number(e % eu * BigInt(1e6)),
-              s = vm(t, r);
+              s = bm(t, r);
             return t = s.seconds, r = s.nanos, Ui(t, r) ? T.newValue({
               timestampValue: {
                 seconds: t,
@@ -30121,7 +30232,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }
           var _proto249 = eh.prototype;
           _proto249.toTimestamp = function toTimestamp(e) {
-            if (!Am(e)) return T.mr();
+            if (!vm(e)) return T.mr();
             var t = Number(e);
             return T.newValue({
               timestampValue: {
@@ -30193,7 +30304,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           var _proto253 = rh.prototype;
           _proto253.Nr = function Nr(e) {
             var t = BigInt(e.seconds);
-            return Am(t) ? T.newValue({
+            return vm(t) ? T.newValue({
               integerValue: t.toString()
             }) : T.mr();
           };
@@ -30358,7 +30469,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                * limitations under the License.
                */
       function ji(n) {
-        if ((n = Tm(n)) instanceof wr) return "fld(" + n.fieldName + ")";
+        if ((n = Am(n)) instanceof wr) return "fld(" + n.fieldName + ")";
         if (n instanceof ps) return "cst(" + function (t) {
           return t === null ? "null" : typeof t == "number" ? t.toString() : typeof t == "string" ? "\"" + t + "\"" : t instanceof qe ? "ref(" + t.path + ")" : t instanceof Ct ? "vec(" + JSON.stringify(t) + ")" : JSON.stringify(t);
         }(n.value) + ")";
@@ -30366,7 +30477,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         if (n.expressionType === "ListOfExpressions") return "list([" + n.cr.map(ji).join(",") + "])";
         throw new Error("Unrecognized expr " + JSON.stringify(n, null, 2));
       }
-      function UI(n) {
+      function HI(n) {
         if (n instanceof Qo) return n._name + "(" + go(n.fields) + ")";
         if (n instanceof $o) {
           var _e21 = n._name + "(" + go(n.accumulators) + ")";
@@ -30395,31 +30506,31 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       }
       function nn(n) {
         return n.stages.map(function (e) {
-          return UI(e);
+          return HI(e);
         }).join("|");
       }
-      function bm(n, e) {
+      function Sm(n, e) {
         return nn(n) === nn(e);
       }
       function ke(n) {
         return n instanceof We;
       }
-      function hg(n) {
+      function dg(n) {
         return ke(n) ? nn(n) : mi(n);
       }
-      function Sm(n) {
+      function Rm(n) {
         return ke(n) ? nn(n) : function (t) {
-          return Kg(Gt(t)) + "|lt:" + t.limitType;
+          return Jg(Gt(t)) + "|lt:" + t.limitType;
         }(n);
       }
       function Eu(n, e) {
-        return n instanceof We && e instanceof We ? bm(n, e) : !(n instanceof We && !(e instanceof We) || !(n instanceof We) && e instanceof We) && Hw(n, e);
+        return n instanceof We && e instanceof We ? Sm(n, e) : !(n instanceof We && !(e instanceof We) || !(n instanceof We) && e instanceof We) && qw(n, e);
       }
-      function Rm(n) {
-        return sr(n) ? nn(n) : Kg(n);
+      function Pm(n) {
+        return sr(n) ? nn(n) : Jg(n);
       }
-      function Pm(n, e) {
-        return n instanceof We && e instanceof We ? bm(n, e) : !(n instanceof We && !(e instanceof We) || !(n instanceof We) && e instanceof We) && Jg(n, e);
+      function Nm(n, e) {
+        return n instanceof We && e instanceof We ? Sm(n, e) : !(n instanceof We && !(e instanceof We) || !(n instanceof We) && e instanceof We) && zg(n, e);
       } /**
         * @license
         * Copyright 2017 Google LLC
@@ -30445,7 +30556,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           var r = t.mutationResults;
           for (var s = 0; s < this.mutations.length; s++) {
             var i = this.mutations[s];
-            i.key.isEqual(e.key) && Ow(i, e, r[s]);
+            i.key.isEqual(e.key) && Fw(i, e, r[s]);
           }
         };
         _proto257.applyToLocalView = function applyToLocalView(e, t) {
@@ -30461,13 +30572,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         };
         _proto257.applyToLocalDocumentSet = function applyToLocalDocumentSet(e, t) {
           var _this143 = this;
-          var r = Yg();
+          var r = Xg();
           return this.mutations.forEach(function (s) {
             var i = e.get(s.key),
               a = i.overlayedDocument,
               u = _this143.applyToLocalView(a, i.mutatedFields);
             u = t.has(s.key) ? null : u;
-            var c = Vg(a, u);
+            var c = Mg(a, u);
             c !== null && r.set(s.key, c), a.isValidDocument() || a.convertToNoDocument(te.min());
           }), r;
         };
@@ -30478,9 +30589,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         };
         _proto257.isEqual = function isEqual(e) {
           return this.batchId === e.batchId && es(this.mutations, e.mutations, function (t, r) {
-            return zC(t, r);
+            return WC(t, r);
           }) && es(this.baseMutations, e.baseMutations, function (t, r) {
-            return zC(t, r);
+            return WC(t, r);
           });
         };
         return ah;
@@ -30500,13 +30611,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
            * See the License for the specific language governing permissions and
            * limitations under the License.
            */
-      var Nm = "";
-      function HI(n) {
+      var Om = "";
+      function qI(n) {
         var e = "";
-        for (var t = 0; t < n.length; t++) e.length > 0 && (e = dg(e)), e = qI(n.get(t), e);
-        return dg(e);
+        for (var t = 0; t < n.length; t++) e.length > 0 && (e = fg(e)), e = jI(n.get(t), e);
+        return fg(e);
       }
-      function qI(n, e) {
+      function jI(n, e) {
         var t = e,
           r = n.length;
         for (var s = 0; s < r; s++) {
@@ -30515,7 +30626,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             case "\0":
               t += "";
               break;
-            case Nm:
+            case Om:
               t += "";
               break;
             default:
@@ -30524,8 +30635,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }
         return t;
       }
-      function dg(n) {
-        return n + Nm + "";
+      function fg(n) {
+        return n + Om + "";
       } /**
         * @license
         * Copyright 2020 Google LLC
@@ -30612,7 +30723,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             a = te.min();
           }
           if (u === void 0) {
-            u = Ne.EMPTY_BYTE_STRING;
+            u = Oe.EMPTY_BYTE_STRING;
           }
           if (c === void 0) {
             c = null;
@@ -30652,8 +30763,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       var uh = function uh(e) {
         this.$r = e;
       };
-      function eT(n) {
-        var e = uI({
+      function tT(n) {
+        var e = cI({
           parent: n.parent,
           structuredQuery: n.structuredQuery
         });
@@ -30852,12 +30963,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               * See the License for the specific language governing permissions and
               * limitations under the License.
               */ // Copyright 2024 Google LLC* @license
-      function Jm(n, e) {
+      function zm(n, e) {
         var t = e;
         for (var _iterator81 = _createForOfIteratorHelperLoose(n.stages), _step81; !(_step81 = _iterator81()).done;) {
           var _n$listenOptions;
           var r = _step81.value;
-          t = nT({
+          t = rT({
             serializer: n.serializer,
             serverTimestampBehavior: (_n$listenOptions = n.listenOptions) == null ? void 0 : _n$listenOptions.serverTimestampBehavior
           }, r, t);
@@ -30865,12 +30976,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         return t;
       }
       function _u(n, e) {
-        return Jm(n, [e]).length > 0;
+        return zm(n, [e]).length > 0;
       }
-      function tT(n, e) {
+      function nT(n, e) {
         return ke(n) ? _u(n, e) : pu(n, e);
       }
-      function nT(n, e, t) {
+      function rT(n, e, t) {
         if (e instanceof Cs) return function (s, i, a) {
           return a.filter(function (u) {
             return u.isFoundDocument() && "/" + u.key.getCollectionPath().canonicalString() === i.hr;
@@ -31161,10 +31272,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               var c = u.getNext(),
                 l = c.key,
                 d = c.value,
-                f = Yg();
+                f = Xg();
               d.forEach(function (m) {
                 if (!i.has(m)) {
-                  var v = Vg(t.get(m), r.get(m));
+                  var v = Mg(t.get(m), r.get(m));
                   v !== null && f.set(m, v), i = i.add(m);
                 }
               }), a.push(_this149.documentOverlayCache.saveOverlays(e, l, f));
@@ -31184,7 +31295,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           });
         };
         _proto265.getDocumentsMatchingQuery = function getDocumentsMatchingQuery(e, t, r, s) {
-          return ke(t) ? this.getDocumentsMatchingPipeline(e, t, r, s) : Gw(t) ? this.getDocumentsMatchingDocumentQuery(e, t.path) : Wg(t) ? this.getDocumentsMatchingCollectionGroupQuery(e, t, r, s) : this.getDocumentsMatchingCollectionQuery(e, t, r, s);
+          return ke(t) ? this.getDocumentsMatchingPipeline(e, t, r, s) : Uw(t) ? this.getDocumentsMatchingDocumentQuery(e, t.path) : Qg(t) ? this.getDocumentsMatchingCollectionGroupQuery(e, t, r, s) : this.getDocumentsMatchingCollectionQuery(e, t, r, s);
         };
         _proto265.getNextDocuments = function getNextDocuments(e, t, r, s) {
           var _this151 = this;
@@ -31204,7 +31315,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               }).next(function (d) {
                 return {
                   batchId: u,
-                  changes: Jw(d)
+                  changes: zw(d)
                 };
               });
             });
@@ -31362,7 +31473,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return this.Ws.set(t.name, function (s) {
             return {
               name: s.name,
-              query: eT(s.bundledQuery),
+              query: tT(s.bundledQuery),
               readTime: en(s.readTime)
             };
           }(t)), k.resolve();
@@ -31483,7 +31594,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
            */
       var gh = /*#__PURE__*/function () {
         function gh() {
-          this.sessionToken = Ne.EMPTY_BYTE_STRING;
+          this.sessionToken = Oe.EMPTY_BYTE_STRING;
         }
         var _proto268 = gh.prototype;
         _proto268.getSessionToken = function getSessionToken(e) {
@@ -31511,14 +31622,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
            */
       var Ki = /*#__PURE__*/function () {
           function Ki() {
-            this.zs = new Ve(Se.js), this.Hs = new Ve(Se.Js);
+            this.zs = new Ve(Re.js), this.Hs = new Ve(Re.Js);
           }
           var _proto269 = Ki.prototype;
           _proto269.isEmpty = function isEmpty() {
             return this.zs.isEmpty();
           };
           _proto269.addReference = function addReference(e, t) {
-            var r = new Se(e, t);
+            var r = new Re(e, t);
             this.zs = this.zs.add(r), this.Hs = this.Hs.add(r);
           };
           _proto269.Ys = function Ys(e, t) {
@@ -31528,7 +31639,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             });
           };
           _proto269.removeReference = function removeReference(e, t) {
-            this.Zs(new Se(e, t));
+            this.Zs(new Re(e, t));
           };
           _proto269.Xs = function Xs(e, t) {
             var _this159 = this;
@@ -31539,8 +31650,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           _proto269.e_ = function e_(e) {
             var _this160 = this;
             var t = new Z(new _he([])),
-              r = new Se(t, e),
-              s = new Se(t, e + 1),
+              r = new Re(t, e),
+              s = new Re(t, e + 1),
               i = [];
             return this.Hs.forEachInRange([r, s], function (a) {
               _this160.Zs(a), i.push(a.key);
@@ -31557,31 +31668,31 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           _proto269.n_ = function n_(e) {
             var t = new Z(new _he([])),
-              r = new Se(t, e),
-              s = new Se(t, e + 1),
+              r = new Re(t, e),
+              s = new Re(t, e + 1),
               i = oe();
             return this.Hs.forEachInRange([r, s], function (a) {
               i = i.add(a.key);
             }), i;
           };
           _proto269.containsKey = function containsKey(e) {
-            var t = new Se(e, 0),
+            var t = new Re(e, 0),
               r = this.zs.firstAfterOrEqual(t);
             return r !== null && e.isEqual(r.key);
           };
           return Ki;
         }(),
-        Se = /*#__PURE__*/function () {
-          function Se(e, t) {
+        Re = /*#__PURE__*/function () {
+          function Re(e, t) {
             this.key = e, this.r_ = t;
           }
-          Se.js = function js(e, t) {
+          Re.js = function js(e, t) {
             return Z.comparator(e.key, t.key) || se(e.r_, t.r_);
           };
-          Se.Js = function Js(e, t) {
+          Re.Js = function Js(e, t) {
             return se(e.r_, t.r_) || Z.comparator(e.key, t.key);
           };
-          return Se;
+          return Re;
         }(); /**
              * @license
              * Copyright 2017 Google LLC
@@ -31600,7 +31711,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
              */
       var mh = /*#__PURE__*/function () {
         function mh(e, t) {
-          this.indexManager = e, this.referenceDelegate = t, this.mutationQueue = [], this.Gr = 1, this.i_ = new Ve(Se.js);
+          this.indexManager = e, this.referenceDelegate = t, this.mutationQueue = [], this.Gr = 1, this.i_ = new Ve(Re.js);
         }
         var _proto270 = mh.prototype;
         _proto270.checkEmpty = function checkEmpty(e) {
@@ -31613,7 +31724,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           this.mutationQueue.push(a);
           for (var _iterator86 = _createForOfIteratorHelperLoose(s), _step86; !(_step86 = _iterator86()).done;) {
             var _u59 = _step86.value;
-            this.i_ = this.i_.add(new Se(_u59.key, i)), this.indexManager.addToCollectionParentIndex(e, _u59.key.path.popLast());
+            this.i_ = this.i_.add(new Re(_u59.key, i)), this.indexManager.addToCollectionParentIndex(e, _u59.key.path.popLast());
           }
           return k.resolve(a);
         };
@@ -31627,15 +31738,15 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return k.resolve(this.mutationQueue.length > i ? this.mutationQueue[i] : null);
         };
         _proto270.getHighestUnacknowledgedBatchId = function getHighestUnacknowledgedBatchId() {
-          return k.resolve(this.mutationQueue.length === 0 ? Aw : this.Gr - 1);
+          return k.resolve(this.mutationQueue.length === 0 ? vw : this.Gr - 1);
         };
         _proto270.getAllMutationBatches = function getAllMutationBatches(e) {
           return k.resolve(this.mutationQueue.slice());
         };
         _proto270.getAllMutationBatchesAffectingDocumentKey = function getAllMutationBatchesAffectingDocumentKey(e, t) {
           var _this162 = this;
-          var r = new Se(t, 0),
-            s = new Se(t, Number.POSITIVE_INFINITY),
+          var r = new Re(t, 0),
+            s = new Re(t, Number.POSITIVE_INFINITY),
             i = [];
           return this.i_.forEachInRange([r, s], function (a) {
             var u = _this162.s_(a.r_);
@@ -31646,8 +31757,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           var _this163 = this;
           var r = new Ve(se);
           return t.forEach(function (s) {
-            var i = new Se(s, 0),
-              a = new Se(s, Number.POSITIVE_INFINITY);
+            var i = new Re(s, 0),
+              a = new Re(s, Number.POSITIVE_INFINITY);
             _this163.i_.forEachInRange([i, a], function (u) {
               r = r.add(u.r_);
             });
@@ -31658,7 +31769,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             s = r.length + 1,
             i = r;
           Z.isDocumentKey(i) || (i = i.child(""));
-          var a = new Se(new Z(i), 0),
+          var a = new Re(new Z(i), 0),
             u = new Ve(se);
           return this.i_.forEachWhile(function (c) {
             var l = c.key.path;
@@ -31678,7 +31789,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           _Y(this.a_(t.batchId, "removed") === 0, 55003), this.mutationQueue.shift();
           var r = this.i_;
           return k.forEach(t.mutations, function (s) {
-            var i = new Se(s.key, t.batchId);
+            var i = new Re(s.key, t.batchId);
             return r = r["delete"](i), _this165.referenceDelegate.markPotentiallyOrphaned(e, s.key);
           }).next(function () {
             _this165.i_ = r;
@@ -31686,7 +31797,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         };
         _proto270.Hr = function Hr(e) {};
         _proto270.containsKey = function containsKey(e, t) {
-          var r = new Se(t, 0),
+          var r = new Re(t, 0),
             s = this.i_.firstAfterOrEqual(r);
           return k.resolve(t.isEqual(s && s.key));
         };
@@ -31777,7 +31888,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 d = _l$getNext.key,
                 f = _l$getNext.value.document;
               if (!i.isPrefixOf(d.path)) break;
-              d.path.length > i.length + 1 || Vw(kw(f), r) <= 0 || (s.has(f.key) || a(f)) && (u = u.insert(f.key, f.mutableCopy()));
+              d.path.length > i.length + 1 || Mw(Vw(f), r) <= 0 || (s.has(f.key) || a(f)) && (u = u.insert(f.key, f.mutableCopy()));
             }
             return k.resolve(u);
           };
@@ -31838,8 +31949,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       var Dh = /*#__PURE__*/function () {
         function Dh(e) {
           this.persistence = e, this.l_ = new cn(function (t) {
-            return Rm(t);
-          }, Pm), this.lastRemoteSnapshotVersion = te.min(), this.highestTargetId = 0, this.E_ = 0, this.h_ = new Ki(), this.targetCount = 0, this.T_ = Ar.ws();
+            return Pm(t);
+          }, Nm), this.lastRemoteSnapshotVersion = te.min(), this.highestTargetId = 0, this.E_ = 0, this.h_ = new Ki(), this.targetCount = 0, this.T_ = Ar.ws();
         }
         var _proto273 = Dh.prototype;
         _proto273.forEachTarget = function forEachTarget(e, t) {
@@ -32082,10 +32193,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         su = /*#__PURE__*/function () {
           function n(e, t) {
             this.persistence = e, this.D_ = new cn(function (r) {
-              return HI(r.path);
+              return qI(r.path);
             }, function (r, s) {
               return r.isEqual(s);
-            }), this.garbageCollector = wI(this, t);
+            }), this.garbageCollector = II(this, t);
           }
           n.b_ = function b_(e, t) {
             return new n(e, t);
@@ -32242,7 +32353,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
            * See the License for the specific language governing permissions and
            * limitations under the License.
            */
-      function rT(n, e) {
+      function sT(n, e) {
         return Z.comparator(n.key, e.key);
       } /**
         * @license
@@ -32294,7 +32405,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       var Ah = /*#__PURE__*/function () {
         function Ah() {
           this.po = !1, this.yo = !1, this.wo = 100, this.bo = function () {
-            return Nf() ? 8 : DI(Ge()) > 0 ? 6 : 4;
+            return Nf() ? 8 : yI(Ge()) > 0 ? 6 : 4;
           }();
         }
         var _proto278 = Ah.prototype;
@@ -32329,7 +32440,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           var _this181 = this;
           if (ke(t)) return k.resolve(null);
           var r = t;
-          if (ZC(r)) return k.resolve(null);
+          if (eg(r)) return k.resolve(null);
           var s = Gt(r);
           return this.indexManager.getIndexType(e, s).next(function (i) {
             return i === 0 ? null : (r.limit !== null && i === 1 && (r = Ro(r, null, "F"), s = Gt(r)), _this181.indexManager.getDocumentsMatchingTarget(e, s).next(function (a) {
@@ -32355,16 +32466,16 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               }
             }
             return !0;
-          }(t) : ZC(t)) || s.isEqual(te.min()) ? k.resolve(null) : this.So.getDocuments(e, r).next(function (i) {
+          }(t) : eg(t)) || s.isEqual(te.min()) ? k.resolve(null) : this.So.getDocuments(e, r).next(function (i) {
             var a = _this182.Fo(t, i);
-            return _this182.Oo(t, a, r, s) ? k.resolve(null) : (qr() <= re.DEBUG && j("QueryEngine", "Re-using previous result from %s to execute query: %s", s.toString(), hg(t)), _this182.Mo(e, a, t, xw(s, vi)).next(function (u) {
+            return _this182.Oo(t, a, r, s) ? k.resolve(null) : (qr() <= re.DEBUG && j("QueryEngine", "Re-using previous result from %s to execute query: %s", s.toString(), dg(t)), _this182.Mo(e, a, t, kw(s, vi)).next(function (u) {
               return u;
             }));
           });
         };
         _proto278.Fo = function Fo(e, t) {
           var r, s;
-          return ke(e) ? (r = new Ve(rT), s = function s(i) {
+          return ke(e) ? (r = new Ve(sT), s = function s(i) {
             return _u(e, i);
           }) : (r = new Ve(Xh(e)), s = function s(i) {
             return pu(e, i);
@@ -32384,7 +32495,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return !!i && (i.hasPendingWrites || i.version.compareTo(s) > 0);
         };
         _proto278.xo = function xo(e, t, r) {
-          return qr() <= re.DEBUG && j("QueryEngine", "Using full collection scan to execute query:", hg(t)), this.So.getDocumentsMatchingQuery(e, t, mr.min(), r);
+          return qr() <= re.DEBUG && j("QueryEngine", "Using full collection scan to execute query:", dg(t)), this.So.getDocumentsMatchingQuery(e, t, mr.min(), r);
         };
         _proto278.Mo = function Mo(e, t, r, s) {
           return this.So.getDocumentsMatchingQuery(e, r, s).next(function (i) {
@@ -32411,12 +32522,12 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
            * limitations under the License.
            */
       var ud = "LocalStore",
-        sT = 3e8,
+        iT = 3e8,
         vh = /*#__PURE__*/function () {
           function vh(e, t, r, s) {
             this.persistence = e, this.No = t, this.serializer = s, this.Lo = new Te(se), this.Bo = new cn(function (i) {
-              return Rm(i);
-            }, Pm), this.Uo = new Map(), this.ko = e.getRemoteDocumentCache(), this.V_ = e.getTargetCache(), this.f_ = e.getBundleCache(), this.qo(r);
+              return Pm(i);
+            }, Nm), this.Uo = new Map(), this.ko = e.getRemoteDocumentCache(), this.V_ = e.getTargetCache(), this.f_ = e.getBundleCache(), this.qo(r);
           }
           var _proto279 = vh.prototype;
           _proto279.qo = function qo(e) {
@@ -32430,14 +32541,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           return vh;
         }();
-      function iT(n, e, t, r) {
+      function aT(n, e, t, r) {
         return new vh(n, e, t, r);
       }
-      function zm(_x224, _x225) {
-        return _zm.apply(this, arguments);
+      function Wm(_x224, _x225) {
+        return _Wm.apply(this, arguments);
       }
-      function _zm() {
-        _zm = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee190(n, e) {
+      function _Wm() {
+        _Wm = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee190(n, e) {
           var t;
           return _regeneratorRuntime().wrap(function _callee190$(_context191) {
             while (1) switch (_context191.prev = _context191.next) {
@@ -32485,15 +32596,15 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee190);
         }));
-        return _zm.apply(this, arguments);
+        return _Wm.apply(this, arguments);
       }
-      function Wm(n) {
+      function Qm(n) {
         var e = ie(n);
         return e.persistence.runTransaction("Get last remote snapshot version", "readonly", function (t) {
           return e.V_.getLastRemoteSnapshotVersion(t);
         });
       }
-      function aT(n, e) {
+      function oT(n, e) {
         var t = ie(n),
           r = e.snapshotVersion,
           s = t.Lo;
@@ -32510,15 +32621,15 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               return t.V_.addMatchingKeys(i, d.addedDocuments, f);
             }));
             var v = m.withSequenceNumber(i.currentSequenceNumber);
-            e.targetMismatches.get(f) !== null ? v = v.withResumeToken(Ne.EMPTY_BYTE_STRING, te.min()).withLastLimboFreeSnapshotVersion(te.min()) : d.resumeToken.approximateByteSize() > 0 && (v = v.withResumeToken(d.resumeToken, r)), s = s.insert(f, v), function (V, H, z) {
-              return V.resumeToken.approximateByteSize() === 0 || H.snapshotVersion.toMicroseconds() - V.snapshotVersion.toMicroseconds() >= sT ? !0 : z.addedDocuments.size + z.modifiedDocuments.size + z.removedDocuments.size > 0;
+            e.targetMismatches.get(f) !== null ? v = v.withResumeToken(Oe.EMPTY_BYTE_STRING, te.min()).withLastLimboFreeSnapshotVersion(te.min()) : d.resumeToken.approximateByteSize() > 0 && (v = v.withResumeToken(d.resumeToken, r)), s = s.insert(f, v), function (V, H, z) {
+              return V.resumeToken.approximateByteSize() === 0 || H.snapshotVersion.toMicroseconds() - V.snapshotVersion.toMicroseconds() >= iT ? !0 : z.addedDocuments.size + z.modifiedDocuments.size + z.removedDocuments.size > 0;
             }(m, v, d) && u.push(t.V_.updateTargetData(i, v));
           });
           var c = ft(),
             l = oe();
           if (e.documentUpdates.forEach(function (d) {
             e.resolvedLimboDocuments.has(d) && u.push(t.persistence.referenceDelegate.updateLimboDocument(i, d));
-          }), u.push(oT(i, a, e.documentUpdates).next(function (d) {
+          }), u.push(uT(i, a, e.documentUpdates).next(function (d) {
             c = d.Ko, l = d.Qo;
           })), !r.isEqual(te.min())) {
             var d = t.V_.getLastRemoteSnapshotVersion(i).next(function (f) {
@@ -32537,7 +32648,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return t.Lo = s, i;
         });
       }
-      function oT(n, e, t) {
+      function uT(n, e, t) {
         var r = oe(),
           s = oe();
         return t.forEach(function (i) {
@@ -32553,7 +32664,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
         });
       }
-      function uT(n, e) {
+      function cT(n, e) {
         var t = ie(n);
         return t.persistence.runTransaction("Allocate target", "readwrite", function (r) {
           var s;
@@ -32612,7 +32723,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }));
         return _bh.apply(this, arguments);
       }
-      function fg(n, e, t) {
+      function pg(n, e, t) {
         var r = ie(n),
           s = te.min(),
           i = oe();
@@ -32628,14 +32739,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }).next(function () {
             return r.No.getDocumentsMatchingQuery(a, e, t ? s : te.min(), t ? i : oe());
           }).next(function (u) {
-            return cT(r, u), {
+            return lT(r, u), {
               documents: u,
               Wo: i
             };
           });
         });
       }
-      function cT(n, e) {
+      function lT(n, e) {
         e.forEach(function (t, r) {
           var s = r.key.getCollectionGroup(),
             i = n.Uo.get(s) || te.min();
@@ -32839,7 +32950,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       function Ph(n, e) {
         return n.oa.get(e) || void 0;
       }
-      function Qm(n, e) {
+      function $m(n, e) {
         var t = ie(n),
           r = Ph(t, e.targetId);
         if (r !== void 0 && t._a.has(r)) return;
@@ -32859,7 +32970,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         var t = ie(n),
           r = Ts(t),
           s = Ph(t, e);
-        j(hn, "remoteStoreUnlisten removing mapping of SDK target ID to remote", e, s), t._a["delete"](s), t.oa["delete"](e), t.aa["delete"](s), r.Yt() && $m(t, s), t._a.size === 0 && (r.Yt() ? r.en() : na(t) && t.Ta.set("Unknown"));
+        j(hn, "remoteStoreUnlisten removing mapping of SDK target ID to remote", e, s), t._a["delete"](s), t.oa["delete"](e), t.aa["delete"](s), r.Yt() && Ym(t, s), t._a.size === 0 && (r.Yt() ? r.en() : na(t) && t.Ta.set("Unknown"));
       }
       function ld(n, e) {
         if (n.Pa.J(e.targetId), e.resumeToken.approximateByteSize() > 0 || e.snapshotVersion.compareTo(te.min()) > 0) {
@@ -32870,7 +32981,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }
         Ts(n).Pn(e);
       }
-      function $m(n, e) {
+      function Ym(n, e) {
         n.Pa.J(e), Ts(n).In(e);
       }
       function Bd(n) {
@@ -32893,14 +33004,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
       function na(n) {
         return ie(n).la.size === 0;
       }
-      function Ym(n) {
+      function Xm(n) {
         n.Pa = void 0;
       }
-      function lT(_x232) {
-        return _lT.apply(this, arguments);
+      function BT(_x232) {
+        return _BT.apply(this, arguments);
       }
-      function _lT() {
-        _lT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee194(n) {
+      function _BT() {
+        _BT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee194(n) {
           return _regeneratorRuntime().wrap(function _callee194$(_context195) {
             while (1) switch (_context195.prev = _context195.next) {
               case 0:
@@ -32911,13 +33022,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee194);
         }));
-        return _lT.apply(this, arguments);
-      }
-      function BT(_x233) {
         return _BT.apply(this, arguments);
       }
-      function _BT() {
-        _BT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee195(n) {
+      function hT(_x233) {
+        return _hT.apply(this, arguments);
+      }
+      function _hT() {
+        _hT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee195(n) {
           return _regeneratorRuntime().wrap(function _callee195$(_context196) {
             while (1) switch (_context196.prev = _context196.next) {
               case 0:
@@ -32930,30 +33041,30 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee195);
         }));
-        return _BT.apply(this, arguments);
-      }
-      function hT(_x234, _x235) {
         return _hT.apply(this, arguments);
       }
-      function _hT() {
-        _hT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee196(n, e) {
+      function dT(_x234, _x235) {
+        return _dT.apply(this, arguments);
+      }
+      function _dT() {
+        _dT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee196(n, e) {
           return _regeneratorRuntime().wrap(function _callee196$(_context197) {
             while (1) switch (_context197.prev = _context197.next) {
               case 0:
-                Ym(n), hd(n) ? (n.Ta.ra(e), Bd(n)) : n.Ta.set("Unknown");
+                Xm(n), hd(n) ? (n.Ta.ra(e), Bd(n)) : n.Ta.set("Unknown");
               case 1:
               case "end":
                 return _context197.stop();
             }
           }, _callee196);
         }));
-        return _hT.apply(this, arguments);
-      }
-      function dT(_x236, _x237, _x238) {
         return _dT.apply(this, arguments);
       }
-      function _dT() {
-        _dT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee198(n, e, t) {
+      function fT(_x236, _x237, _x238) {
+        return _fT.apply(this, arguments);
+      }
+      function _fT() {
+        _fT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee198(n, e, t) {
           var r;
           return _regeneratorRuntime().wrap(function _callee198$(_context199) {
             while (1) switch (_context199.prev = _context199.next) {
@@ -33013,7 +33124,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 _context199.t0 = _context199["catch"](1);
                 j(hn, "Failed to remove targets %s: %s ", e.targetIds.join(","), _context199.t0);
                 _context199.next = 11;
-                return pg(n, _context199.t0);
+                return Cg(n, _context199.t0);
               case 11:
                 _context199.next = 29;
                 break;
@@ -33024,7 +33135,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 }
                 _context199.prev = 14;
                 _context199.next = 17;
-                return Wm(n.localStore);
+                return Qm(n.localStore);
               case 17:
                 r = _context199.sent;
                 _context199.t1 = t.compareTo(r) >= 0;
@@ -33043,7 +33154,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   }), u.targetMismatches.forEach(function (l, d) {
                     var f = i._a.get(l);
                     if (!f) return;
-                    i._a.set(l, f.withResumeToken(Ne.EMPTY_BYTE_STRING, f.snapshotVersion)), $m(i, l);
+                    i._a.set(l, f.withResumeToken(Oe.EMPTY_BYTE_STRING, f.snapshotVersion)), Ym(i, l);
                     var m = new Es(f.target, l, d, f.sequenceNumber);
                     ld(i, m);
                   });
@@ -33069,20 +33180,20 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 _context199.t2 = _context199["catch"](14);
                 j(hn, "Failed to raise snapshot:", _context199.t2);
                 _context199.next = 29;
-                return pg(n, _context199.t2);
+                return Cg(n, _context199.t2);
               case 29:
               case "end":
                 return _context199.stop();
             }
           }, _callee198, null, [[1, 6], [14, 24]]);
         }));
-        return _dT.apply(this, arguments);
+        return _fT.apply(this, arguments);
       }
-      function pg(_x239, _x240, _x241) {
-        return _pg.apply(this, arguments);
+      function Cg(_x239, _x240, _x241) {
+        return _Cg.apply(this, arguments);
       }
-      function _pg() {
-        _pg = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee200(n, e, t) {
+      function _Cg() {
+        _Cg = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee200(n, e, t) {
           return _regeneratorRuntime().wrap(function _callee200$(_context201) {
             while (1) switch (_context201.prev = _context201.next) {
               case 0:
@@ -33098,7 +33209,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               case 5:
                 n.Ta.set("Offline");
                 t || (t = function t() {
-                  return Wm(n.localStore);
+                  return Qm(n.localStore);
                 });
                 n.asyncQueue.enqueueRetryable( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee199() {
                   return _regeneratorRuntime().wrap(function _callee199$(_context200) {
@@ -33123,13 +33234,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee200);
         }));
-        return _pg.apply(this, arguments);
-      }
-      function Cg(_x242, _x243) {
         return _Cg.apply(this, arguments);
       }
-      function _Cg() {
-        _Cg = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee201(n, e) {
+      function gg(_x242, _x243) {
+        return _gg.apply(this, arguments);
+      }
+      function _gg() {
+        _gg = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee201(n, e) {
           var t, r;
           return _regeneratorRuntime().wrap(function _callee201$(_context202) {
             while (1) switch (_context202.prev = _context202.next) {
@@ -33154,13 +33265,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee201);
         }));
-        return _Cg.apply(this, arguments);
+        return _gg.apply(this, arguments);
       }
-      function fT(_x244, _x245) {
-        return _fT.apply(this, arguments);
+      function pT(_x244, _x245) {
+        return _pT.apply(this, arguments);
       }
-      function _fT() {
-        _fT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee202(n, e) {
+      function _pT() {
+        _pT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee202(n, e) {
           var t;
           return _regeneratorRuntime().wrap(function _callee202$(_context203) {
             while (1) switch (_context203.prev = _context203.next) {
@@ -33193,17 +33304,17 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee202);
         }));
-        return _fT.apply(this, arguments);
+        return _pT.apply(this, arguments);
       }
       function Ts(n) {
         return n.Ia || (n.Ia = function (t, r, s) {
           var i = ie(t);
           return i.pn(), new Ll(r, i.connection, i.authCredentials, i.appCheckCredentials, i.serializer, s);
         }(n.datastore, n.asyncQueue, {
-          ct: lT.bind(null, n),
-          Et: BT.bind(null, n),
-          Tt: hT.bind(null, n),
-          Tn: dT.bind(null, n)
+          ct: BT.bind(null, n),
+          Et: hT.bind(null, n),
+          Tt: dT.bind(null, n),
+          Tn: fT.bind(null, n)
         }), n.Ea.push( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee115(e) {
           return _regeneratorRuntime().wrap(function _callee115$(_context116) {
             while (1) switch (_context116.prev = _context116.next) {
@@ -33219,7 +33330,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 _context116.next = 6;
                 return n.Ia.stop();
               case 6:
-                Ym(n);
+                Xm(n);
               case 7:
               case "end":
                 return _context116.stop();
@@ -33328,7 +33439,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }]);
         return n;
       }();
-      function Xm(n, e) {
+      function Zm(n, e) {
         if (sn("AsyncQueue", e + ": " + n), Is(n)) return new K(x.UNAVAILABLE, e + ": " + n);
         throw n;
       } /**
@@ -33394,7 +33505,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                  */
       var iu = /*#__PURE__*/function () {
         function iu() {
-          this.activeTargetIds = Qw();
+          this.activeTargetIds = $w();
         }
         var _proto283 = iu.prototype;
         _proto283.Ba = function Ba(e) {
@@ -33669,14 +33780,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }(),
         xh = /*#__PURE__*/function () {
           function xh() {
-            this.queries = gg(), this.onlineState = "Unknown", this.Du = new Set();
+            this.queries = mg(), this.onlineState = "Unknown", this.Du = new Set();
           }
           var _proto289 = xh.prototype;
           _proto289.terminate = function terminate() {
             (function (t, r) {
               var s = ie(t),
                 i = s.queries;
-              s.queries = gg(), i.forEach(function (a, u) {
+              s.queries = mg(), i.forEach(function (a, u) {
                 for (var _iterator89 = _createForOfIteratorHelperLoose(u.bu), _step89; !(_step89 = _iterator89()).done;) {
                   var c = _step89.value;
                   c.onError(r);
@@ -33686,16 +33797,16 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           return xh;
         }();
-      function gg() {
+      function mg() {
         return new cn(function (n) {
-          return Sm(n);
+          return Rm(n);
         }, Eu);
       }
-      function pT(_x247, _x248) {
-        return _pT.apply(this, arguments);
+      function CT(_x247, _x248) {
+        return _CT.apply(this, arguments);
       }
-      function _pT() {
-        _pT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee203(n, e) {
+      function _CT() {
+        _CT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee203(n, e) {
           var t, r, s, i, _u69;
           return _regeneratorRuntime().wrap(function _callee203$(_context204) {
             while (1) switch (_context204.prev = _context204.next) {
@@ -33727,7 +33838,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               case 18:
                 _context204.prev = 18;
                 _context204.t1 = _context204["catch"](2);
-                _u69 = Xm(_context204.t1, "Initialization of query '" + (ke(e.query) ? nn(e.query) : mi(e.query)) + "' failed");
+                _u69 = Zm(_context204.t1, "Initialization of query '" + (ke(e.query) ? nn(e.query) : mi(e.query)) + "' failed");
                 return _context204.abrupt("return", void e.onError(_u69));
               case 22:
                 t.queries.set(s, i), i.bu.push(e), e.xu(t.onlineState), i.wu && e.Cu(i.wu) && dd(t);
@@ -33737,13 +33848,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee203, null, [[2, 18]]);
         }));
-        return _pT.apply(this, arguments);
-      }
-      function CT(_x249, _x250) {
         return _CT.apply(this, arguments);
       }
-      function _CT() {
-        _CT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee204(n, e) {
+      function gT(_x249, _x250) {
+        return _gT.apply(this, arguments);
+      }
+      function _gT() {
+        _gT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee204(n, e) {
           var t, r, s, i, a;
           return _regeneratorRuntime().wrap(function _callee204$(_context205) {
             while (1) switch (_context205.prev = _context205.next) {
@@ -33770,9 +33881,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee204);
         }));
-        return _CT.apply(this, arguments);
+        return _gT.apply(this, arguments);
       }
-      function gT(n, e) {
+      function mT(n, e) {
         var t = ie(n),
           r = !1;
         for (var _iterator90 = _createForOfIteratorHelperLoose(e), _step90; !(_step90 = _iterator90()).done;) {
@@ -33789,7 +33900,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }
         r && dd(t);
       }
-      function mT(n, e, t) {
+      function ET(n, e, t) {
         var r = ie(n),
           s = r.queries.get(e);
         if (s) {
@@ -33905,7 +34016,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               l = _this$tc[1];
             e.inorderTraversal(function (f, m) {
               var v = s.get(f),
-                R = tT(_this189.query, m) ? m : null,
+                R = nT(_this189.query, m) ? m : null,
                 V = !!v && _this189.mutatedKeys.has(v.key),
                 H = !!R && (R.hasLocalMutations || _this189.mutatedKeys.has(R.key) && R.hasCommittedMutations),
                 z = !1;
@@ -33929,7 +34040,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               a.forEach(function (R) {
                 return f.push(R);
               });
-              var m = Jm(this.query, f),
+              var m = zm(this.query, f),
                 v = new Ji(Bh(this.query));
               for (var _iterator94 = _createForOfIteratorHelperLoose(m), _step94; !(_step94 = _iterator94()).done;) {
                 var R = _step94.value;
@@ -34077,7 +34188,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         Hh = /*#__PURE__*/function () {
           function Hh(e, t, r, s, i, a) {
             this.localStore = e, this.remoteStore = t, this.eventManager = r, this.sharedClientState = s, this.currentUser = i, this.maxConcurrentLimboResolutions = a, this.hc = {}, this.Tc = new cn(function (u) {
-              return Sm(u);
+              return Rm(u);
             }, Eu), this.Pc = new Map(), this.Ic = new Set(), this.Rc = new Te(Z.comparator), this.Ac = new Map(), this.Vc = new Ki(), this.dc = {}, this.fc = new Map(), this.mc = Ar.bs(), this.onlineState = "Unknown", this.gc = void 0;
           }
           _createClass(Hh, [{
@@ -34088,11 +34199,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }]);
           return Hh;
         }();
-      function ET(_x251, _x252, _x253) {
-        return _ET.apply(this, arguments);
+      function _T(_x251, _x252, _x253) {
+        return _T2.apply(this, arguments);
       }
-      function _ET() {
-        _ET = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee205(n, e, t) {
+      function _T2() {
+        _T2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee205(n, e, t) {
           var r, s, i;
           return _regeneratorRuntime().wrap(function _callee205$(_context206) {
             while (1) switch (_context206.prev = _context206.next) {
@@ -34100,7 +34211,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 if (t === void 0) {
                   t = !0;
                 }
-                r = rE(n), i = r.Tc.get(e);
+                r = sE(n), i = r.Tc.get(e);
                 if (!i) {
                   _context206.next = 6;
                   break;
@@ -34110,7 +34221,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 break;
               case 6:
                 _context206.next = 8;
-                return Zm(r, e, t, !0);
+                return eE(r, e, t, !0);
               case 8:
                 s = _context206.sent;
               case 9:
@@ -34121,39 +34232,39 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee205);
         }));
-        return _ET.apply(this, arguments);
-      }
-      function _T(_x254, _x255) {
         return _T2.apply(this, arguments);
       }
-      function _T2() {
-        _T2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee206(n, e) {
+      function DT(_x254, _x255) {
+        return _DT.apply(this, arguments);
+      }
+      function _DT() {
+        _DT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee206(n, e) {
           var t;
           return _regeneratorRuntime().wrap(function _callee206$(_context207) {
             while (1) switch (_context207.prev = _context207.next) {
               case 0:
-                t = rE(n);
+                t = sE(n);
                 _context207.next = 3;
-                return Zm(t, e, !0, !1);
+                return eE(t, e, !0, !1);
               case 3:
               case "end":
                 return _context207.stop();
             }
           }, _callee206);
         }));
-        return _T2.apply(this, arguments);
+        return _DT.apply(this, arguments);
       }
-      function Zm(_x256, _x257, _x258, _x259) {
-        return _Zm.apply(this, arguments);
+      function eE(_x256, _x257, _x258, _x259) {
+        return _eE.apply(this, arguments);
       }
-      function _Zm() {
-        _Zm = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee207(n, e, t, r) {
+      function _eE() {
+        _eE = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee207(n, e, t, r) {
           var s, i, a, u;
           return _regeneratorRuntime().wrap(function _callee207$(_context208) {
             while (1) switch (_context208.prev = _context208.next) {
               case 0:
                 _context208.next = 2;
-                return uT(n.localStore, ke(e) ? e : Gt(e));
+                return cT(n.localStore, ke(e) ? e : Gt(e));
               case 2:
                 s = _context208.sent;
                 i = s.targetId;
@@ -34164,11 +34275,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   break;
                 }
                 _context208.next = 9;
-                return DT(n, e, i, a === "current", s.resumeToken);
+                return yT(n, e, i, a === "current", s.resumeToken);
               case 9:
                 u = _context208.sent;
               case 10:
-                n.isPrimaryClient && t && Qm(n.remoteStore, s);
+                n.isPrimaryClient && t && $m(n.remoteStore, s);
                 return _context208.abrupt("return", u);
               case 12:
               case "end":
@@ -34176,13 +34287,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee207);
         }));
-        return _Zm.apply(this, arguments);
+        return _eE.apply(this, arguments);
       }
-      function DT(_x260, _x261, _x262, _x263, _x264) {
-        return _DT.apply(this, arguments);
+      function yT(_x260, _x261, _x262, _x263, _x264) {
+        return _yT.apply(this, arguments);
       }
-      function _DT() {
-        _DT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee209(n, e, t, r, s) {
+      function _yT() {
+        _yT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee209(n, e, t, r, s) {
           var i, a, u, c, l, d;
           return _regeneratorRuntime().wrap(function _callee209$(_context210) {
             while (1) switch (_context210.prev = _context210.next) {
@@ -34200,7 +34311,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                             break;
                           }
                           _context209.next = 5;
-                          return fg(V.localStore, H.query, !1).then(function (_ref69) {
+                          return pg(V.localStore, H.query, !1).then(function (_ref69) {
                             var I = _ref69.documents;
                             return H.view.Xu(I, Ae);
                           });
@@ -34208,7 +34319,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                           Ae = _context209.sent;
                         case 6:
                           ve = Be && Be.targetChanges.get(H.targetId), ut = Be && Be.targetMismatches.get(H.targetId) != null, ye = H.view.applyChanges(Ae, V.isPrimaryClient, ve, ut);
-                          return _context209.abrupt("return", (Eg(V, H.targetId, ye.ac), ye.snapshot));
+                          return _context209.abrupt("return", (_g(V, H.targetId, ye.ac), ye.snapshot));
                         case 8:
                         case "end":
                           return _context209.stop();
@@ -34217,14 +34328,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   }))(n, f, m, v);
                 };
                 _context210.next = 3;
-                return fg(n.localStore, e, !0);
+                return pg(n.localStore, e, !0);
               case 3:
                 i = _context210.sent;
                 a = new Mh(e, i.Wo);
                 u = a.Xu(i.documents);
                 c = Si.createSynthesizedTargetChangeForCurrentChange(t, r && n.onlineState !== "Offline", s);
                 l = a.applyChanges(u, n.isPrimaryClient, c);
-                Eg(n, t, l.ac);
+                _g(n, t, l.ac);
                 d = new Gh(e, t, a);
                 return _context210.abrupt("return", (n.Tc.set(e, d), n.Pc.has(t) ? n.Pc.get(t).push(e) : n.Pc.set(t, [e]), l.snapshot));
               case 11:
@@ -34233,13 +34344,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee209);
         }));
-        return _DT.apply(this, arguments);
-      }
-      function yT(_x265, _x266, _x267) {
         return _yT.apply(this, arguments);
       }
-      function _yT() {
-        _yT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee210(n, e, t) {
+      function wT(_x265, _x266, _x267) {
+        return _wT.apply(this, arguments);
+      }
+      function _wT() {
+        _wT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee210(n, e, t) {
           var r, s, i;
           return _regeneratorRuntime().wrap(function _callee210$(_context211) {
             while (1) switch (_context211.prev = _context211.next) {
@@ -34280,13 +34391,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee210);
         }));
-        return _yT.apply(this, arguments);
-      }
-      function wT(_x268, _x269) {
         return _wT.apply(this, arguments);
       }
-      function _wT() {
-        _wT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee211(n, e) {
+      function IT(_x268, _x269) {
+        return _IT.apply(this, arguments);
+      }
+      function _IT() {
+        _IT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee211(n, e) {
           var t, r, s;
           return _regeneratorRuntime().wrap(function _callee211$(_context212) {
             while (1) switch (_context212.prev = _context212.next) {
@@ -34299,13 +34410,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee211);
         }));
-        return _wT.apply(this, arguments);
+        return _IT.apply(this, arguments);
       }
-      function eE(_x270, _x271) {
-        return _eE.apply(this, arguments);
+      function tE(_x270, _x271) {
+        return _tE.apply(this, arguments);
       }
-      function _eE() {
-        _eE = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee212(n, e) {
+      function _tE() {
+        _tE = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee212(n, e) {
           var t, r;
           return _regeneratorRuntime().wrap(function _callee212$(_context213) {
             while (1) switch (_context213.prev = _context213.next) {
@@ -34313,7 +34424,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 t = ie(n);
                 _context213.prev = 1;
                 _context213.next = 4;
-                return aT(t.localStore, e);
+                return oT(t.localStore, e);
               case 4:
                 r = _context213.sent;
                 e.targetChanges.forEach(function (s, i) {
@@ -34321,7 +34432,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   a && (_Y(s.addedDocuments.size + s.modifiedDocuments.size + s.removedDocuments.size <= 1, 22616), s.addedDocuments.size > 0 ? a.Ec = !0 : s.modifiedDocuments.size > 0 ? _Y(a.Ec, 14607) : s.removedDocuments.size > 0 && (_Y(a.Ec, 42227), a.Ec = !1));
                 });
                 _context213.next = 8;
-                return nE(t, r, e);
+                return rE(t, r, e);
               case 8:
                 _context213.next = 14;
                 break;
@@ -34336,9 +34447,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee212, null, [[1, 10]]);
         }));
-        return _eE.apply(this, arguments);
+        return _tE.apply(this, arguments);
       }
-      function mg(n, e, t) {
+      function Eg(n, e, t) {
         var r = ie(n);
         if (r.isPrimaryClient && t === 0 || !r.isPrimaryClient && t === 1) {
           var s = [];
@@ -34358,11 +34469,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }(r.eventManager, e), s.length && r.hc.Tn(s), r.onlineState = e, r.isPrimaryClient && r.sharedClientState.setOnlineState(e);
         }
       }
-      function IT(_x272, _x273, _x274) {
-        return _IT.apply(this, arguments);
+      function TT(_x272, _x273, _x274) {
+        return _TT.apply(this, arguments);
       }
-      function _IT() {
-        _IT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee213(n, e, t) {
+      function _TT() {
+        _TT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee213(n, e, t) {
           var r, s, i, a, _u70, c;
           return _regeneratorRuntime().wrap(function _callee213$(_context214) {
             while (1) switch (_context214.prev = _context214.next) {
@@ -34378,7 +34489,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 a = a.insert(i, gt.newNoDocument(i, te.min()));
                 _u70 = oe().add(i), c = new bi(te.min(), new Map(), new Te(se), a, ft(), _u70);
                 _context214.next = 9;
-                return eE(r, c);
+                return tE(r, c);
               case 9:
                 r.Rc = r.Rc.remove(i);
                 r.Ac["delete"](e);
@@ -34396,7 +34507,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee213);
         }));
-        return _IT.apply(this, arguments);
+        return _TT.apply(this, arguments);
       }
       function qh(n, e, t) {
         if (t === void 0) {
@@ -34408,23 +34519,23 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           n.Tc["delete"](r), t && n.hc.wc(r, t);
         }
         n.Pc["delete"](e), n.isPrimaryClient && n.Vc.e_(e).forEach(function (r) {
-          n.Vc.containsKey(r) || tE(n, r);
+          n.Vc.containsKey(r) || nE(n, r);
         });
       }
-      function tE(n, e) {
+      function nE(n, e) {
         n.Ic["delete"](e.path.canonicalString());
         var t = n.Rc.get(e);
         t !== null && (cd(n.remoteStore, t), n.Rc = n.Rc.remove(e), n.Ac["delete"](t), pd(n));
       }
-      function Eg(n, e, t) {
+      function _g(n, e, t) {
         for (var _iterator97 = _createForOfIteratorHelperLoose(t), _step97; !(_step97 = _iterator97()).done;) {
           var r = _step97.value;
-          r instanceof ou ? (n.Vc.addReference(r.key, e), TT(n, r)) : r instanceof uu ? (j(fd, "Document no longer in limbo: " + r.key), n.Vc.removeReference(r.key, e), n.Vc.containsKey(r.key) || tE(n, r.key)) : Q(19791, {
+          r instanceof ou ? (n.Vc.addReference(r.key, e), AT(n, r)) : r instanceof uu ? (j(fd, "Document no longer in limbo: " + r.key), n.Vc.removeReference(r.key, e), n.Vc.containsKey(r.key) || nE(n, r.key)) : Q(19791, {
             bc: r
           });
         }
       }
-      function TT(n, e) {
+      function AT(n, e) {
         var t = e.key,
           r = t.path.canonicalString();
         n.Rc.get(t) || n.Ic.has(r) || (j(fd, "New document in limbo: " + t), n.Ic.add(r), pd(n));
@@ -34435,14 +34546,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           n.Ic["delete"](_e23);
           var t = new Z(_he.fromString(_e23)),
             r = n.mc.next();
-          n.Ac.set(r, new Uh(t)), n.Rc = n.Rc.insert(t, r), Qm(n.remoteStore, new Es(Gt(fu(t.path)), r, "TargetPurposeLimboResolution", ds.wn));
+          n.Ac.set(r, new Uh(t)), n.Rc = n.Rc.insert(t, r), $m(n.remoteStore, new Es(Gt(fu(t.path)), r, "TargetPurposeLimboResolution", ds.wn));
         }
       }
-      function nE(_x275, _x276, _x277) {
-        return _nE.apply(this, arguments);
+      function rE(_x275, _x276, _x277) {
+        return _rE.apply(this, arguments);
       }
-      function _nE() {
-        _nE = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee215(n, e, t) {
+      function _rE() {
+        _rE = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee215(n, e, t) {
           var r, s, i, a;
           return _regeneratorRuntime().wrap(function _callee215$(_context216) {
             while (1) switch (_context216.prev = _context216.next) {
@@ -34525,13 +34636,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee215);
         }));
-        return _nE.apply(this, arguments);
+        return _rE.apply(this, arguments);
       }
-      function AT(_x278, _x279) {
-        return _AT.apply(this, arguments);
+      function vT(_x278, _x279) {
+        return _vT.apply(this, arguments);
       }
-      function _AT() {
-        _AT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee216(n, e) {
+      function _vT() {
+        _vT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee216(n, e) {
           var t, r;
           return _regeneratorRuntime().wrap(function _callee216$(_context217) {
             while (1) switch (_context217.prev = _context217.next) {
@@ -34543,7 +34654,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 }
                 j(fd, "User change. New user:", e.toKey());
                 _context217.next = 5;
-                return zm(t.localStore, e);
+                return Wm(t.localStore, e);
               case 5:
                 r = _context217.sent;
                 t.currentUser = e;
@@ -34556,16 +34667,16 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 })(t, "'waitForPendingWrites' promise is rejected due to a user change.");
                 t.sharedClientState.handleUserChange(e, r.removedBatchIds, r.addedBatchIds);
                 _context217.next = 11;
-                return nE(t, r.$o);
+                return rE(t, r.$o);
               case 11:
               case "end":
                 return _context217.stop();
             }
           }, _callee216);
         }));
-        return _AT.apply(this, arguments);
+        return _vT.apply(this, arguments);
       }
-      function vT(n, e) {
+      function bT(n, e) {
         var t = ie(n),
           r = t.Ac.get(e);
         if (r && r.Ec) return oe().add(r.key);
@@ -34581,9 +34692,9 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return s;
         }
       }
-      function rE(n) {
+      function sE(n) {
         var e = ie(n);
-        return e.remoteStore.remoteSyncer.applyRemoteEvent = eE.bind(null, e), e.remoteStore.remoteSyncer.getRemoteKeysForTarget = vT.bind(null, e), e.remoteStore.remoteSyncer.rejectListen = IT.bind(null, e), e.hc.Tn = gT.bind(null, e.eventManager), e.hc.wc = mT.bind(null, e.eventManager), e;
+        return e.remoteStore.remoteSyncer.applyRemoteEvent = tE.bind(null, e), e.remoteStore.remoteSyncer.getRemoteKeysForTarget = bT.bind(null, e), e.remoteStore.remoteSyncer.rejectListen = TT.bind(null, e), e.hc.Tn = mT.bind(null, e.eventManager), e.hc.wc = ET.bind(null, e.eventManager), e;
       }
       var vr = /*#__PURE__*/function () {
         function vr() {
@@ -34622,7 +34733,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return null;
         };
         _proto292.xc = function xc(e) {
-          return iT(this.persistence, new Ah(), e.initialUser, this.serializer);
+          return aT(this.persistence, new Ah(), e.initialUser, this.serializer);
         };
         _proto292.Dc = function Dc(e) {
           return new ru(wh.b_, this.serializer);
@@ -34701,11 +34812,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   this.eventManager = this.createEventManager(t);
                   this.syncEngine = this.createSyncEngine(t, !e.synchronizeTabs);
                   this.sharedClientState.onlineStateHandler = function (r) {
-                    return mg(_this194.syncEngine, r, 1);
+                    return Eg(_this194.syncEngine, r, 1);
                   };
-                  this.remoteStore.remoteSyncer.handleCredentialChange = AT.bind(null, this.syncEngine);
+                  this.remoteStore.remoteSyncer.handleCredentialChange = vT.bind(null, this.syncEngine);
                   _context119.next = 12;
-                  return fT(this.remoteStore, this.syncEngine.isPrimaryClient);
+                  return pT(this.remoteStore, this.syncEngine.isPrimaryClient);
                 case 12:
                 case "end":
                   return _context119.stop();
@@ -34724,15 +34835,15 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         };
         _proto294.createDatastore = function createDatastore(e) {
           var t = Cu(e.databaseInfo.databaseId),
-            r = CI(e.databaseInfo);
-          return gI(e.authCredentials, e.appCheckCredentials, r, t);
+            r = gI(e.databaseInfo);
+          return mI(e.authCredentials, e.appCheckCredentials, r, t);
         };
         _proto294.createRemoteStore = function createRemoteStore(e) {
           var _this195 = this;
           return function (r, s, i, a, u) {
             return new Rh(r, s, i, a, u);
           }(this.localStore, this.datastore, e.asyncQueue, function (t) {
-            return mg(_this195.syncEngine, t, 0);
+            return Eg(_this195.syncEngine, t, 0);
           }, function () {
             return Mo.Ye() ? new Mo() : new Rl();
           }());
@@ -34841,7 +34952,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                           c = _context122.sent;
                           l = new Map();
                           c.forEach(function (f) {
-                            var m = rI(a.serializer, f);
+                            var m = sI(a.serializer, f);
                             l.set(m.key.toString(), m);
                           });
                           d = [];
@@ -34916,7 +35027,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                         case 0:
                           i = ie(r), a = {
                             writes: s.map(function (u) {
-                              return iI(i.serializer, u);
+                              return aI(i.serializer, u);
                             })
                           };
                           _context124.next = 3;
@@ -35037,7 +35148,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         _proto296.qc = function qc(e) {
           if ((e == null ? void 0 : e.name) === "FirebaseError") {
             var t = e.code;
-            return t === "aborted" || t === "failed-precondition" || t === "already-exists" || !jw(t);
+            return t === "aborted" || t === "failed-precondition" || t === "already-exists" || !Kw(t);
           }
           return !1;
         };
@@ -35125,7 +35236,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   case 14:
                     _context128.prev = 14;
                     _context128.t2 = _context128["catch"](0);
-                    r = Xm(_context128.t2, "Failed to shutdown persistence");
+                    r = Zm(_context128.t2, "Failed to shutdown persistence");
                     e.reject(r);
                   case 18:
                   case "end":
@@ -35175,7 +35286,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                           break;
                         }
                         _context218.next = 4;
-                        return zm(e.localStore, s);
+                        return Wm(e.localStore, s);
                       case 4:
                         r = s;
                       case 5:
@@ -35194,18 +35305,18 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }));
         return _al.apply(this, arguments);
       }
-      function _g(_x292, _x293) {
-        return _g2.apply(this, arguments);
+      function Dg(_x292, _x293) {
+        return _Dg.apply(this, arguments);
       }
-      function _g2() {
-        _g2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee219(n, e) {
+      function _Dg() {
+        _Dg = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee219(n, e) {
           var t;
           return _regeneratorRuntime().wrap(function _callee219$(_context220) {
             while (1) switch (_context220.prev = _context220.next) {
               case 0:
                 n.asyncQueue.verifyOperationInProgress();
                 _context220.next = 3;
-                return bT(n);
+                return ST(n);
               case 3:
                 t = _context220.sent;
                 j(Mn, "Initializing OnlineComponentProvider");
@@ -35213,10 +35324,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 return e.initialize(t, n.configuration);
               case 7:
                 n.setCredentialChangeListener(function (r) {
-                  return Cg(e.remoteStore, r);
+                  return gg(e.remoteStore, r);
                 });
                 n.setAppCheckTokenChangeListener(function (r, s) {
-                  return Cg(e.remoteStore, s);
+                  return gg(e.remoteStore, s);
                 });
                 n._onlineComponents = e;
               case 10:
@@ -35225,13 +35336,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee219);
         }));
-        return _g2.apply(this, arguments);
+        return _Dg.apply(this, arguments);
       }
-      function bT(_x294) {
-        return _bT.apply(this, arguments);
+      function ST(_x294) {
+        return _ST.apply(this, arguments);
       }
-      function _bT() {
-        _bT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee220(n) {
+      function _ST() {
+        _ST = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee220(n) {
           var t;
           return _regeneratorRuntime().wrap(function _callee220$(_context221) {
             while (1) switch (_context221.prev = _context221.next) {
@@ -35281,13 +35392,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee220, null, [[3, 8]]);
         }));
-        return _bT.apply(this, arguments);
+        return _ST.apply(this, arguments);
       }
-      function sE(_x295) {
-        return _sE.apply(this, arguments);
+      function iE(_x295) {
+        return _iE.apply(this, arguments);
       }
-      function _sE() {
-        _sE = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee221(n) {
+      function _iE() {
+        _iE = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee221(n) {
           return _regeneratorRuntime().wrap(function _callee221$(_context222) {
             while (1) switch (_context222.prev = _context222.next) {
               case 0:
@@ -35302,14 +35413,14 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                 }
                 j(Mn, "Using user provided OnlineComponentProvider");
                 _context222.next = 6;
-                return _g(n, n._uninitializedComponentsProvider._online);
+                return Dg(n, n._uninitializedComponentsProvider._online);
               case 6:
                 _context222.next = 11;
                 break;
               case 8:
                 j(Mn, "Using default OnlineComponentProvider");
                 _context222.next = 11;
-                return _g(n, new Ds());
+                return Dg(n, new Ds());
               case 11:
                 return _context222.abrupt("return", n._onlineComponents);
               case 12:
@@ -35318,37 +35429,37 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
           }, _callee221);
         }));
-        return _sE.apply(this, arguments);
+        return _iE.apply(this, arguments);
       }
-      function ST(n) {
-        return sE(n).then(function (e) {
+      function RT(n) {
+        return iE(n).then(function (e) {
           return e.datastore;
         });
       }
-      function RT(_x296) {
-        return _RT.apply(this, arguments);
+      function PT(_x296) {
+        return _PT.apply(this, arguments);
       }
-      function _RT() {
-        _RT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee222(n) {
+      function _PT() {
+        _PT = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee222(n) {
           var e, t;
           return _regeneratorRuntime().wrap(function _callee222$(_context223) {
             while (1) switch (_context223.prev = _context223.next) {
               case 0:
                 _context223.next = 2;
-                return sE(n);
+                return iE(n);
               case 2:
                 e = _context223.sent;
                 t = e.eventManager;
-                return _context223.abrupt("return", (t.onListen = ET.bind(null, e.syncEngine), t.onUnlisten = yT.bind(null, e.syncEngine), t.onFirstRemoteStoreListen = _T.bind(null, e.syncEngine), t.onLastRemoteStoreUnlisten = wT.bind(null, e.syncEngine), t));
+                return _context223.abrupt("return", (t.onListen = _T.bind(null, e.syncEngine), t.onUnlisten = wT.bind(null, e.syncEngine), t.onFirstRemoteStoreListen = DT.bind(null, e.syncEngine), t.onLastRemoteStoreUnlisten = IT.bind(null, e.syncEngine), t));
               case 5:
               case "end":
                 return _context223.stop();
             }
           }, _callee222);
         }));
-        return _RT.apply(this, arguments);
+        return _PT.apply(this, arguments);
       }
-      function iE(n, e, t) {
+      function aE(n, e, t) {
         if (t === void 0) {
           t = {};
         }
@@ -35361,7 +35472,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                   var d = new Nh({
                       next: function next(m) {
                         d.Va(), a.enqueueAndForget(function () {
-                          return CT(i, f);
+                          return gT(i, f);
                         });
                         var v = m.docs.has(u);
                         !v && m.fromCache ? l.reject(new K(x.UNAVAILABLE, "Failed to get document because the client is offline.")) : v && m.fromCache && c && c.source === "server" ? l.reject(new K(x.UNAVAILABLE, 'Failed to get document from server. (However, this document does exist in the local cache. Run again without setting source to "server" to retrieve the cached document.)')) : l.resolve(m);
@@ -35374,10 +35485,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                       includeMetadataChanges: !0,
                       waitForSyncWhenOnline: !0
                     });
-                  return pT(i, f);
+                  return CT(i, f);
                 };
                 _context129.next = 3;
-                return RT(n);
+                return PT(n);
               case 3:
                 _context129.t1 = _context129.sent;
                 _context129.t2 = n.asyncQueue;
@@ -35392,7 +35503,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }, _callee128);
         }))), r.promise;
       }
-      function aE(n, e, t) {
+      function oE(n, e, t) {
         var r = new Ht();
         return n.asyncQueue.enqueueAndForget( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee129() {
           var s;
@@ -35400,7 +35511,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             while (1) switch (_context130.prev = _context130.next) {
               case 0:
                 _context130.next = 2;
-                return ST(n);
+                return RT(n);
               case 2:
                 s = _context130.sent;
                 new Kh(n.asyncQueue, s, t, e, r).Lc();
@@ -35437,7 +35548,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           _proto298.data = function data() {
             if (this._document) {
               if (this._converter) {
-                var _e24 = new PT(this._firestore, this._userDataWriter, this._key, this._document, null);
+                var _e24 = new NT(this._firestore, this._userDataWriter, this._key, this._document, null);
                 return this._converter.fromFirestore(_e24);
               }
               return this._userDataWriter.convertValue(this._document.data.value);
@@ -35466,16 +35577,16 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }]);
           return ra;
         }(),
-        PT = /*#__PURE__*/function (_ra) {
-          _inheritsLoose(PT, _ra);
-          function PT() {
+        NT = /*#__PURE__*/function (_ra) {
+          _inheritsLoose(NT, _ra);
+          function NT() {
             return _ra.apply(this, arguments) || this;
           }
-          var _proto299 = PT.prototype;
+          var _proto299 = NT.prototype;
           _proto299.data = function data() {
             return _ra.prototype.data.call(this);
           };
-          return PT;
+          return NT;
         }(ra); /**
                * @license
                * Copyright 2020 Google LLC
@@ -35499,7 +35610,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           if (t === void 0) {
             t = "none";
           }
-          switch (Oe(e)) {
+          switch (Fe(e)) {
             case 0:
               return null;
             case 1:
@@ -35576,7 +35687,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         };
         _proto300.convertDocumentKey = function convertDocumentKey(e, t) {
           var r = _he.fromString(e);
-          _Y(sm(r), 9688, {
+          _Y(im(r), 9688, {
             name: e
           });
           var s = new wi(r.get(1), r.get(3)),
@@ -35600,7 +35711,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
            * See the License for the specific language governing permissions and
            * limitations under the License.
            */
-      function oE(n, e, t) {
+      function uE(n, e, t) {
         var r;
         return r = n ? t && (t.merge || t.mergeFields) ? n.toFirestore(e, t) : n.toFirestore(e) : e, r;
       }
@@ -35636,7 +35747,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
              * See the License for the specific language governing permissions and
              * limitations under the License.
              */
-      var Dg = "AsyncQueue",
+      var yg = "AsyncQueue",
         Bu = /*#__PURE__*/function () {
           function Bu(e) {
             var _this205 = this;
@@ -35645,7 +35756,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             }
             this.$c = [], this.Kc = !1, this.Qc = [], this.Wc = null, this.Gc = !1, this.zc = !1, this.jc = [], this.Ht = new Ni(this, "async_queue_retry"), this.Hc = function () {
               var r = il();
-              r && j(Dg, "Visibility state changed to " + r.visibilityState), _this205.Ht.$t();
+              r && j(yg, "Visibility state changed to " + r.visibilityState), _this205.Ht.$t();
             }, this.Jc = e;
             var t = il();
             t && typeof t.addEventListener == "function" && t.addEventListener("visibilitychange", this.Hc);
@@ -35707,7 +35818,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                     }
                     throw _context131.t0;
                   case 12:
-                    j(Dg, "Operation failed with retryable error: " + _context131.t0);
+                    j(yg, "Operation failed with retryable error: " + _context131.t0);
                   case 13:
                     this.$c.length > 0 && this.Ht.kt(function () {
                       return _this208.Xc();
@@ -35727,7 +35838,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
             var _this209 = this;
             var t = this.Jc.then(function () {
               return _this209.Gc = !0, e()["catch"](function (r) {
-                throw _this209.Wc = r, _this209.Gc = !1, sn("INTERNAL UNHANDLED ERROR: ", yg(r)), r;
+                throw _this209.Wc = r, _this209.Gc = !1, sn("INTERNAL UNHANDLED ERROR: ", wg(r)), r;
               }).then(function (r) {
                 return _this209.Gc = !1, r;
               });
@@ -35744,7 +35855,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           };
           _proto302.Yc = function Yc() {
             this.Wc && Q(47125, {
-              tl: yg(this.Wc)
+              tl: wg(this.Wc)
             });
           };
           _proto302.verifyOperationInProgress = function verifyOperationInProgress() {};
@@ -35808,7 +35919,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }]);
           return Bu;
         }();
-      function yg(n) {
+      function wg(n) {
         var e = n.message || "";
         return n.stack && (e = n.stack.includes(n.message) ? n.stack : n.message + "\n" + n.stack), e;
       } /**
@@ -35878,7 +35989,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         }();
         return ys;
       }(td);
-      function uE(n, e) {
+      function cE(n, e) {
         var t = typeof n == "object" ? n : Aa(),
           r = typeof n == "string" ? n : e || To,
           s = Ks(t, "firestore").getImmediate({
@@ -35886,18 +35997,18 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           });
         if (!s._initialized) {
           var i = Tf("firestore");
-          i && Bm.apply(void 0, [s].concat(i));
+          i && hm.apply(void 0, [s].concat(i));
         }
         return s;
       }
       function Cd(n) {
         if (n._terminated) throw new K(x.FAILED_PRECONDITION, "The client has already been terminated.");
-        return n._firestoreClient || NT(n), n._firestoreClient;
+        return n._firestoreClient || OT(n), n._firestoreClient;
       }
-      function NT(n) {
+      function OT(n) {
         var _n$_app2, _n$_app3, _e$localCache, _e$localCache2;
         var e = n._freezeSettings(),
-          t = EI(n._databaseId, ((_n$_app2 = n._app) == null ? void 0 : _n$_app2.options.appId) || "", n._persistenceKey, (_n$_app3 = n._app) == null ? void 0 : _n$_app3.options.apiKey, e);
+          t = _I(n._databaseId, ((_n$_app2 = n._app) == null ? void 0 : _n$_app2.options.appId) || "", n._persistenceKey, (_n$_app3 = n._app) == null ? void 0 : _n$_app3.options.apiKey, e);
         n._componentsProvider || (_e$localCache = e.localCache) != null && _e$localCache._offlineComponentProvider && (_e$localCache2 = e.localCache) != null && _e$localCache2._onlineComponentProvider && (n._componentsProvider = {
           _offline: e.localCache._offlineComponentProvider,
           _online: e.localCache._onlineComponentProvider
@@ -36022,10 +36133,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           return n;
         }(ra);
       rn._jsonSchemaVersion = "firestore/documentSnapshot/1.0", rn._jsonSchema = {
-        type: Pe("string", rn._jsonSchemaVersion),
-        bundleSource: Pe("string", "DocumentSnapshot"),
-        bundleName: Pe("string"),
-        bundle: Pe("string")
+        type: Ne("string", rn._jsonSchemaVersion),
+        bundleSource: Ne("string", "DocumentSnapshot"),
+        bundleName: Ne("string"),
+        bundle: Ne("string")
       };
       var ur = /*#__PURE__*/function (_rn) {
           _inheritsLoose(ur, _rn);
@@ -36081,7 +36192,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                     l = -1,
                     d = -1;
                   return u.type !== 0 && (l = _a28.indexOf(u.doc.key), _a28 = _a28["delete"](u.doc.key)), u.type !== 1 && (_a28 = _a28.add(u.doc), d = _a28.indexOf(u.doc.key)), {
-                    type: OT(u.type),
+                    type: FT(u.type),
                     doc: c,
                     oldIndex: l,
                     newIndex: d
@@ -36123,7 +36234,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           }]);
           return n;
         }();
-      function OT(n) {
+      function FT(n) {
         switch (n) {
           case 0:
             return "added";
@@ -36154,10 +36265,10 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * limitations under the License.
         */
       Xr._jsonSchemaVersion = "firestore/querySnapshot/1.0", Xr._jsonSchema = {
-        type: Pe("string", Xr._jsonSchemaVersion),
-        bundleSource: Pe("string", "QuerySnapshot"),
-        bundleName: Pe("string"),
-        bundle: Pe("string")
+        type: Ne("string", Xr._jsonSchemaVersion),
+        bundleSource: Ne("string", "QuerySnapshot"),
+        bundleName: Ne("string"),
+        bundle: Ne("string")
       }; /**
          * @license
          * Copyright 2017 Google LLC
@@ -36234,7 +36345,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
                      * See the License for the specific language governing permissions and
                      * limitations under the License.
                      */
-      var FT = {
+      var LT = {
         maxAttempts: 5
       }; /**
          * @license
@@ -36253,7 +36364,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
          * limitations under the License.
          */
       function sa(n, e) {
-        if ((n = Le(n)).firestore !== e) throw new K(x.INVALID_ARGUMENT, "Provided document reference is from a different Firestore instance.");
+        if ((n = be(n)).firestore !== e) throw new K(x.INVALID_ARGUMENT, "Provided document reference is from a different Firestore instance.");
         return n;
       } /**
         * @license
@@ -36271,11 +36382,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      var LT = /*#__PURE__*/function () {
-        function LT(e, t) {
-          this._firestore = e, this._transaction = t, this._dataReader = fm(e);
+      var xT = /*#__PURE__*/function () {
+        function xT(e, t) {
+          this._firestore = e, this._transaction = t, this._dataReader = pm(e);
         }
-        var _proto309 = LT.prototype;
+        var _proto309 = xT.prototype;
         _proto309.get = function get(e) {
           var _this217 = this;
           var t = sa(e, this._firestore),
@@ -36292,8 +36403,8 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         };
         _proto309.set = function set(e, t, r) {
           var s = sa(e, this._firestore),
-            i = oE(s.converter, t, r),
-            a = pm(this._dataReader, "Transaction.set", s._key, i, s.converter !== null, r);
+            i = uE(s.converter, t, r),
+            a = Cm(this._dataReader, "Transaction.set", s._key, i, s.converter !== null, r);
           return this._transaction.set(s._key, a), this;
         };
         _proto309.update = function update(e, t, r) {
@@ -36302,13 +36413,13 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           for (var _len33 = arguments.length, s = new Array(_len33 > 3 ? _len33 - 3 : 0), _key33 = 3; _key33 < _len33; _key33++) {
             s[_key33 - 3] = arguments[_key33];
           }
-          return a = typeof (t = Le(t)) == "string" || t instanceof Er ? gm(this._dataReader, "Transaction.update", i._key, t, r, s) : Cm(this._dataReader, "Transaction.update", i._key, t), this._transaction.update(i._key, a), this;
+          return a = typeof (t = be(t)) == "string" || t instanceof Er ? mm(this._dataReader, "Transaction.update", i._key, t, r, s) : gm(this._dataReader, "Transaction.update", i._key, t), this._transaction.update(i._key, a), this;
         };
         _proto309["delete"] = function _delete(e) {
           var t = sa(e, this._firestore);
           return this._transaction["delete"](t._key), this;
         };
-        return LT;
+        return xT;
       }(); /**
            * @license
            * Copyright 2020 Google LLC
@@ -36325,11 +36436,11 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
            * See the License for the specific language governing permissions and
            * limitations under the License.
            */
-      var gd = /*#__PURE__*/function (_LT) {
-        _inheritsLoose(gd, _LT);
+      var gd = /*#__PURE__*/function (_xT) {
+        _inheritsLoose(gd, _xT);
         function gd(e, t) {
           var _this218;
-          _this218 = _LT.call(this, e, t) || this, _this218._firestore = e;
+          _this218 = _xT.call(this, e, t) || this, _this218._firestore = e;
           return _this218;
         }
         var _proto310 = gd.prototype;
@@ -36337,20 +36448,20 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
           var _this219 = this;
           var t = sa(e, this._firestore),
             r = new Wi(this._firestore);
-          return _LT.prototype.get.call(this, e).then(function (s) {
+          return _xT.prototype.get.call(this, e).then(function (s) {
             return new rn(_this219._firestore, r, t._key, s._document, new Zt(!1, !1), t.converter);
           });
         };
         return gd;
-      }(LT);
-      function xT(n, e, t) {
+      }(xT);
+      function kT(n, e, t) {
         n = $i(n, ys);
-        var r = _extends({}, FT, t);
+        var r = _extends({}, LT, t);
         (function (a) {
           if (a.maxAttempts < 1) throw new K(x.INVALID_ARGUMENT, "Max attempts must be at least 1");
         })(r);
         var s = Cd(n);
-        return aE(s, function (i) {
+        return oE(s, function (i) {
           return e(new gd(n, i));
         }, r);
       } /**
@@ -36369,17 +36480,17 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
         * See the License for the specific language governing permissions and
         * limitations under the License.
         */
-      function kT(n) {
+      function VT(n) {
         n = $i(n, qe);
         var e = $i(n.firestore, ys),
           t = Cd(e);
-        return iE(t, n._key, {
+        return aE(t, n._key, {
           source: "server"
         }).then(function (r) {
-          return VT(e, n, r);
+          return MT(e, n, r);
         });
       }
-      function VT(n, e, t) {
+      function MT(n, e, t) {
         var r = t.docs.get(e._key),
           s = new Wi(n);
         return new rn(n, s, e._key, r, new Zt(t.hasPendingWrites, t.fromCache), e.converter);
@@ -36429,21 +36540,21 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
               * See the License for the specific language governing permissions and
               * limitations under the License.
               */
-      var cE = "@firebase/firestore",
-        lE = "4.17.2";
+      var lE = "@firebase/firestore",
+        BE = "4.17.2";
       (function (e, t) {
         if (t === void 0) {
           t = !0;
         }
-        wg(Dn), _n(new mt("firestore", function (r, _ref57) {
+        Ig(Dn), _n(new mt("firestore", function (r, _ref57) {
           var s = _ref57.instanceIdentifier,
             i = _ref57.options;
           var a = r.getProvider("app").getImmediate(),
-            u = new ys(new xo(r.getProvider("auth-internal")), new Vo(a, r.getProvider("app-check-internal")), Ng(a, s), a);
+            u = new ys(new xo(r.getProvider("auth-internal")), new Vo(a, r.getProvider("app-check-internal")), Og(a, s), a);
           return i = _extends({
             useFetchStreams: t
           }, i), u._setSettings(i), u;
-        }, "PUBLIC").setMultipleInstances(!0)), Tt(cE, lE, e), Tt(cE, lE, "esm2020");
+        }, "PUBLIC").setMultipleInstances(!0)), Tt(lE, BE, e), Tt(lE, BE, "esm2020");
       })();
       cclegacy._RF.pop();
     }
@@ -36451,7 +36562,7 @@ System.register("chunks:///_virtual/firebase-sdk.js", ['./rollupPluginModLoBabel
 });
 
 System.register("chunks:///_virtual/FirebaseCloud.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './firebase-sdk.js', './NativeServices.ts', './FirebaseConfig.ts', './LiveOps.ts'], function (exports) {
-  var _asyncToGenerator, _regeneratorRuntime, _extends, cclegacy, sys, z_, Wf, eC, uE, $p, Mr, Yp, Gp, kT, hm, xT, ym, nativeCall, FIREBASE_CONFIG, validatePolicy;
+  var _asyncToGenerator, _regeneratorRuntime, _extends, cclegacy, sys, W_, Wf, tC, cE, jp, Yp, Mr, Xp, Gp, VT, dm, kT, wm, nativeCall, FIREBASE_CONFIG, validatePolicy;
   return {
     setters: [function (module) {
       _asyncToGenerator = module.asyncToGenerator;
@@ -36461,18 +36572,19 @@ System.register("chunks:///_virtual/FirebaseCloud.ts", ['./rollupPluginModLoBabe
       cclegacy = module.cclegacy;
       sys = module.sys;
     }, function (module) {
-      z_ = module.getApps;
+      W_ = module.getApps;
       Wf = module.initializeApp;
-      eC = module.getAuth;
-      uE = module.getFirestore;
-      $p = module.signInWithPopup;
+      tC = module.getAuth;
+      cE = module.getFirestore;
+      jp = module.signOut;
+      Yp = module.signInWithPopup;
       Mr = module.GoogleAuthProvider;
-      Yp = module.linkWithPopup;
+      Xp = module.linkWithPopup;
       Gp = module.signInAnonymously;
-      kT = module.getDocFromServer;
-      hm = module.doc;
-      xT = module.runTransaction;
-      ym = module.serverTimestamp;
+      VT = module.getDocFromServer;
+      dm = module.doc;
+      kT = module.runTransaction;
+      wm = module.serverTimestamp;
     }, function (module) {
       nativeCall = module.nativeCall;
     }, function (module) {
@@ -36492,24 +36604,107 @@ System.register("chunks:///_virtual/FirebaseCloud.ts", ['./rollupPluginModLoBabe
         }
         var _proto = FirebaseCloud.prototype;
         _proto.prepareAuth = function prepareAuth() {
-          var app = z_().find(function (a) {
+          var app = W_().find(function (a) {
             return a.name === 'tapWar';
           }) || Wf(FIREBASE_CONFIG, 'tapWar');
-          this.auth = eC(app);
-          this.db = uE(app);
-        };
-        _proto.loginGuest = /*#__PURE__*/function () {
-          var _loginGuest = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
+          this.auth = tC(app);
+          this.db = cE(app);
+        }
+        /** Restore only an existing Firebase user; never create an account or open OAuth here. */;
+        _proto.resume = /*#__PURE__*/
+        function () {
+          var _resume = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
+            var _user, user;
             return _regeneratorRuntime().wrap(function _callee$(_context) {
               while (1) switch (_context.prev = _context.next) {
                 case 0:
-                  _context.next = 2;
-                  return this.connect();
-                case 2:
+                  if (!(sys.isNative && sys.os === sys.OS.ANDROID)) {
+                    _context.next = 9;
+                    break;
+                  }
+                  _context.next = 3;
+                  return nativeCall('resumeSession', {}, 30000);
+                case 3:
+                  _user = _context.sent;
+                  if (_user.uid) {
+                    _context.next = 6;
+                    break;
+                  }
+                  return _context.abrupt("return", null);
+                case 6:
+                  this.uid = _user.uid;
+                  this.connecting = Promise.resolve(this.uid);
+                  return _context.abrupt("return", _user.method);
+                case 9:
+                  this.prepareAuth();
+                  _context.next = 12;
+                  return this.auth.authStateReady();
+                case 12:
+                  user = this.auth.currentUser;
+                  if (user) {
+                    _context.next = 15;
+                    break;
+                  }
+                  return _context.abrupt("return", null);
+                case 15:
+                  this.uid = user.uid;
+                  this.connecting = Promise.resolve(this.uid);
+                  return _context.abrupt("return", user.isAnonymous ? 'guest' : 'google');
+                case 18:
                 case "end":
                   return _context.stop();
               }
             }, _callee, this);
+          }));
+          function resume() {
+            return _resume.apply(this, arguments);
+          }
+          return resume;
+        }();
+        _proto.logout = /*#__PURE__*/function () {
+          var _logout = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
+            return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+              while (1) switch (_context2.prev = _context2.next) {
+                case 0:
+                  if (!(sys.isNative && sys.os === sys.OS.ANDROID)) {
+                    _context2.next = 5;
+                    break;
+                  }
+                  _context2.next = 3;
+                  return nativeCall('logout', {}, 30000);
+                case 3:
+                  _context2.next = 8;
+                  break;
+                case 5:
+                  this.prepareAuth();
+                  _context2.next = 8;
+                  return jp(this.auth);
+                case 8:
+                  this.uid = '';
+                  this.connecting = null;
+                case 10:
+                case "end":
+                  return _context2.stop();
+              }
+            }, _callee2, this);
+          }));
+          function logout() {
+            return _logout.apply(this, arguments);
+          }
+          return logout;
+        }();
+        _proto.loginGuest = /*#__PURE__*/function () {
+          var _loginGuest = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+            return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+              while (1) switch (_context3.prev = _context3.next) {
+                case 0:
+                  _context3.next = 2;
+                  return this.connect();
+                case 2:
+                case "end":
+                  return _context3.stop();
+              }
+            }, _callee3, this);
           }));
           function loginGuest() {
             return _loginGuest.apply(this, arguments);
@@ -36517,70 +36712,70 @@ System.register("chunks:///_virtual/FirebaseCloud.ts", ['./rollupPluginModLoBabe
           return loginGuest;
         }();
         _proto.loginGoogle = /*#__PURE__*/function () {
-          var _loginGoogle = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(allowSwitch) {
+          var _loginGoogle = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4(allowSwitch) {
             var user, current, provider, result;
-            return _regeneratorRuntime().wrap(function _callee2$(_context2) {
-              while (1) switch (_context2.prev = _context2.next) {
+            return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+              while (1) switch (_context4.prev = _context4.next) {
                 case 0:
                   if (allowSwitch === void 0) {
                     allowSwitch = false;
                   }
-                  _context2.prev = 1;
+                  _context4.prev = 1;
                   if (!(sys.isNative && sys.os === sys.OS.ANDROID)) {
-                    _context2.next = 9;
+                    _context4.next = 9;
                     break;
                   }
-                  _context2.next = 5;
+                  _context4.next = 5;
                   return nativeCall('googleLogin', {
                     allowSwitch: allowSwitch
                   }, 180000);
                 case 5:
-                  user = _context2.sent;
+                  user = _context4.sent;
                   this.uid = user.uid;
                   this.connecting = Promise.resolve(this.uid);
-                  return _context2.abrupt("return");
+                  return _context4.abrupt("return");
                 case 9:
                   this.prepareAuth();
-                  _context2.next = 12;
+                  _context4.next = 12;
                   return this.auth.authStateReady();
                 case 12:
                   current = this.auth.currentUser, provider = new Mr();
                   if (!(current != null && current.isAnonymous && !allowSwitch)) {
-                    _context2.next = 19;
+                    _context4.next = 19;
                     break;
                   }
-                  _context2.next = 16;
-                  return Yp(current, provider);
+                  _context4.next = 16;
+                  return Xp(current, provider);
                 case 16:
-                  _context2.t0 = _context2.sent;
-                  _context2.next = 22;
+                  _context4.t0 = _context4.sent;
+                  _context4.next = 22;
                   break;
                 case 19:
-                  _context2.next = 21;
-                  return $p(this.auth, provider);
+                  _context4.next = 21;
+                  return Yp(this.auth, provider);
                 case 21:
-                  _context2.t0 = _context2.sent;
+                  _context4.t0 = _context4.sent;
                 case 22:
-                  result = _context2.t0;
+                  result = _context4.t0;
                   this.uid = result.user.uid;
                   this.connecting = Promise.resolve(this.uid);
-                  _context2.next = 32;
+                  _context4.next = 32;
                   break;
                 case 27:
-                  _context2.prev = 27;
-                  _context2.t1 = _context2["catch"](1);
-                  if (!((_context2.t1 == null ? void 0 : _context2.t1.code) === 'auth/credential-already-in-use')) {
-                    _context2.next = 31;
+                  _context4.prev = 27;
+                  _context4.t1 = _context4["catch"](1);
+                  if (!((_context4.t1 == null ? void 0 : _context4.t1.code) === 'auth/credential-already-in-use')) {
+                    _context4.next = 31;
                     break;
                   }
                   throw Error('ops.googleCollision');
                 case 31:
-                  throw this.error(_context2.t1);
+                  throw this.error(_context4.t1);
                 case 32:
                 case "end":
-                  return _context2.stop();
+                  return _context4.stop();
               }
-            }, _callee2, this, [[1, 27]]);
+            }, _callee4, this, [[1, 27]]);
           }));
           function loginGoogle(_x) {
             return _loginGoogle.apply(this, arguments);
@@ -36588,44 +36783,44 @@ System.register("chunks:///_virtual/FirebaseCloud.ts", ['./rollupPluginModLoBabe
           return loginGoogle;
         }();
         _proto.connectOnce = /*#__PURE__*/function () {
-          var _connectOnce = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+          var _connectOnce = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
             var auth, user;
-            return _regeneratorRuntime().wrap(function _callee3$(_context3) {
-              while (1) switch (_context3.prev = _context3.next) {
+            return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+              while (1) switch (_context5.prev = _context5.next) {
                 case 0:
                   if (!(sys.isNative && sys.os === sys.OS.ANDROID)) {
-                    _context3.next = 6;
+                    _context5.next = 6;
                     break;
                   }
-                  _context3.next = 3;
+                  _context5.next = 3;
                   return nativeCall('authenticate', {}, 30000);
                 case 3:
-                  auth = _context3.sent;
+                  auth = _context5.sent;
                   this.uid = auth.uid;
-                  return _context3.abrupt("return", this.uid);
+                  return _context5.abrupt("return", this.uid);
                 case 6:
                   this.prepareAuth();
-                  _context3.next = 9;
+                  _context5.next = 9;
                   return this.auth.authStateReady();
                 case 9:
-                  _context3.t0 = this.auth.currentUser;
-                  if (_context3.t0) {
-                    _context3.next = 14;
+                  _context5.t0 = this.auth.currentUser;
+                  if (_context5.t0) {
+                    _context5.next = 14;
                     break;
                   }
-                  _context3.next = 13;
+                  _context5.next = 13;
                   return Gp(this.auth);
                 case 13:
-                  _context3.t0 = _context3.sent.user;
+                  _context5.t0 = _context5.sent.user;
                 case 14:
-                  user = _context3.t0;
+                  user = _context5.t0;
                   this.uid = user.uid;
-                  return _context3.abrupt("return", this.uid);
+                  return _context5.abrupt("return", this.uid);
                 case 17:
                 case "end":
-                  return _context3.stop();
+                  return _context5.stop();
               }
-            }, _callee3, this);
+            }, _callee5, this);
           }));
           function connectOnce() {
             return _connectOnce.apply(this, arguments);
@@ -36633,21 +36828,21 @@ System.register("chunks:///_virtual/FirebaseCloud.ts", ['./rollupPluginModLoBabe
           return connectOnce;
         }();
         _proto.connect = /*#__PURE__*/function () {
-          var _connect = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+          var _connect = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
             var _this = this;
-            return _regeneratorRuntime().wrap(function _callee4$(_context4) {
-              while (1) switch (_context4.prev = _context4.next) {
+            return _regeneratorRuntime().wrap(function _callee6$(_context6) {
+              while (1) switch (_context6.prev = _context6.next) {
                 case 0:
                   if (!this.connecting) this.connecting = this.connectOnce()["catch"](function (e) {
                     _this.connecting = null;
                     throw _this.error(e);
                   });
-                  return _context4.abrupt("return", this.connecting);
+                  return _context6.abrupt("return", this.connecting);
                 case 2:
                 case "end":
-                  return _context4.stop();
+                  return _context6.stop();
               }
-            }, _callee4, this);
+            }, _callee6, this);
           }));
           function connect() {
             return _connect.apply(this, arguments);
@@ -36658,46 +36853,46 @@ System.register("chunks:///_virtual/FirebaseCloud.ts", ['./rollupPluginModLoBabe
           return /^(online|error|ops|entry)\./.test((e == null ? void 0 : e.message) || '') ? e : Error(['auth/popup-closed-by-user', 'auth/cancelled-popup-request'].includes(e == null ? void 0 : e.code) ? 'entry.cancelled' : (e == null ? void 0 : e.code) === 'auth/popup-blocked' ? 'entry.popupBlocked' : (e == null ? void 0 : e.code) === 'auth/unauthorized-domain' ? 'entry.domainBlocked' : (e == null ? void 0 : e.code) === 'auth/operation-not-allowed' ? 'ops.googleUnconfigured' : (e == null ? void 0 : e.code) === 'permission-denied' ? 'online.auth' : 'online.unreachable');
         };
         _proto.load = /*#__PURE__*/function () {
-          var _load = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+          var _load = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
             var _data, snap, data;
-            return _regeneratorRuntime().wrap(function _callee5$(_context5) {
-              while (1) switch (_context5.prev = _context5.next) {
+            return _regeneratorRuntime().wrap(function _callee7$(_context7) {
+              while (1) switch (_context7.prev = _context7.next) {
                 case 0:
-                  _context5.prev = 0;
-                  _context5.next = 3;
+                  _context7.prev = 0;
+                  _context7.next = 3;
                   return this.connect();
                 case 3:
                   if (!sys.isNative) {
-                    _context5.next = 8;
+                    _context7.next = 8;
                     break;
                   }
-                  _context5.next = 6;
+                  _context7.next = 6;
                   return nativeCall('cloudLoad', {}, 30000);
                 case 6:
-                  _data = _context5.sent;
-                  return _context5.abrupt("return", {
+                  _data = _context7.sent;
+                  return _context7.abrupt("return", {
                     version: _data.version,
                     state: _data.payload ? JSON.parse(_data.payload) : null
                   });
                 case 8:
-                  _context5.next = 10;
-                  return kT(hm(this.db, 'players', this.uid, 'backups', 'main'));
+                  _context7.next = 10;
+                  return VT(dm(this.db, 'players', this.uid, 'backups', 'main'));
                 case 10:
-                  snap = _context5.sent;
+                  snap = _context7.sent;
                   data = snap.data();
-                  return _context5.abrupt("return", {
+                  return _context7.abrupt("return", {
                     version: (data == null ? void 0 : data.version) || 0,
                     state: data != null && data.payload ? JSON.parse(data.payload) : null
                   });
                 case 15:
-                  _context5.prev = 15;
-                  _context5.t0 = _context5["catch"](0);
-                  throw this.error(_context5.t0);
+                  _context7.prev = 15;
+                  _context7.t0 = _context7["catch"](0);
+                  throw this.error(_context7.t0);
                 case 18:
                 case "end":
-                  return _context5.stop();
+                  return _context7.stop();
               }
-            }, _callee5, this, [[0, 15]]);
+            }, _callee7, this, [[0, 15]]);
           }));
           function load() {
             return _load.apply(this, arguments);
@@ -36705,51 +36900,51 @@ System.register("chunks:///_virtual/FirebaseCloud.ts", ['./rollupPluginModLoBabe
           return load;
         }();
         _proto.linkGoogle = /*#__PURE__*/function () {
-          var _linkGoogle = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+          var _linkGoogle = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
             var uid;
-            return _regeneratorRuntime().wrap(function _callee6$(_context6) {
-              while (1) switch (_context6.prev = _context6.next) {
+            return _regeneratorRuntime().wrap(function _callee8$(_context8) {
+              while (1) switch (_context8.prev = _context8.next) {
                 case 0:
-                  _context6.next = 2;
+                  _context8.next = 2;
                   return this.connect();
                 case 2:
-                  _context6.prev = 2;
+                  _context8.prev = 2;
                   if (!sys.isNative) {
-                    _context6.next = 7;
+                    _context8.next = 7;
                     break;
                   }
-                  _context6.next = 6;
+                  _context8.next = 6;
                   return nativeCall('linkGoogle', {}, 180000);
                 case 6:
-                  return _context6.abrupt("return");
+                  return _context8.abrupt("return");
                 case 7:
                   uid = this.uid;
-                  _context6.next = 10;
-                  return Yp(this.auth.currentUser, new Mr());
+                  _context8.next = 10;
+                  return Xp(this.auth.currentUser, new Mr());
                 case 10:
                   if (!(this.auth.currentUser.uid !== uid)) {
-                    _context6.next = 12;
+                    _context8.next = 12;
                     break;
                   }
                   throw Error('online.auth');
                 case 12:
-                  _context6.next = 19;
+                  _context8.next = 19;
                   break;
                 case 14:
-                  _context6.prev = 14;
-                  _context6.t0 = _context6["catch"](2);
-                  if (!((_context6.t0 == null ? void 0 : _context6.t0.code) === 'auth/credential-already-in-use')) {
-                    _context6.next = 18;
+                  _context8.prev = 14;
+                  _context8.t0 = _context8["catch"](2);
+                  if (!((_context8.t0 == null ? void 0 : _context8.t0.code) === 'auth/credential-already-in-use')) {
+                    _context8.next = 18;
                     break;
                   }
                   throw Error('ops.googleCollision');
                 case 18:
-                  throw this.error(_context6.t0);
+                  throw this.error(_context8.t0);
                 case 19:
                 case "end":
-                  return _context6.stop();
+                  return _context8.stop();
               }
-            }, _callee6, this, [[2, 14]]);
+            }, _callee8, this, [[2, 14]]);
           }));
           function linkGoogle() {
             return _linkGoogle.apply(this, arguments);
@@ -36762,41 +36957,41 @@ System.register("chunks:///_virtual/FirebaseCloud.ts", ['./rollupPluginModLoBabe
           return bridge === window.location.origin + '/firebase-operations' ? bridge : '';
         };
         _proto.policy = /*#__PURE__*/function () {
-          var _policy = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
+          var _policy = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
             var snap;
-            return _regeneratorRuntime().wrap(function _callee7$(_context7) {
-              while (1) switch (_context7.prev = _context7.next) {
+            return _regeneratorRuntime().wrap(function _callee9$(_context9) {
+              while (1) switch (_context9.prev = _context9.next) {
                 case 0:
-                  _context7.next = 2;
+                  _context9.next = 2;
                   return this.connect();
                 case 2:
                   if (!(sys.isNative || this.operationsBridge())) {
-                    _context7.next = 8;
+                    _context9.next = 8;
                     break;
                   }
-                  _context7.t0 = validatePolicy;
-                  _context7.next = 6;
+                  _context9.t0 = validatePolicy;
+                  _context9.next = 6;
                   return this.operationsRequest('/operations');
                 case 6:
-                  _context7.t1 = _context7.sent;
-                  return _context7.abrupt("return", (0, _context7.t0)(_context7.t1));
+                  _context9.t1 = _context9.sent;
+                  return _context9.abrupt("return", (0, _context9.t0)(_context9.t1));
                 case 8:
-                  _context7.next = 10;
-                  return kT(hm(this.db, 'operations', 'live'));
+                  _context9.next = 10;
+                  return VT(dm(this.db, 'operations', 'live'));
                 case 10:
-                  snap = _context7.sent;
+                  snap = _context9.sent;
                   if (snap.exists()) {
-                    _context7.next = 13;
+                    _context9.next = 13;
                     break;
                   }
                   throw Error('online.unconfigured');
                 case 13:
-                  return _context7.abrupt("return", validatePolicy(snap.data()));
+                  return _context9.abrupt("return", validatePolicy(snap.data()));
                 case 14:
                 case "end":
-                  return _context7.stop();
+                  return _context9.stop();
               }
-            }, _callee7, this);
+            }, _callee9, this);
           }));
           function policy() {
             return _policy.apply(this, arguments);
@@ -36804,55 +36999,55 @@ System.register("chunks:///_virtual/FirebaseCloud.ts", ['./rollupPluginModLoBabe
           return policy;
         }();
         _proto.operationsRequest = /*#__PURE__*/function () {
-          var _operationsRequest = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8(path, data) {
+          var _operationsRequest = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10(path, data) {
             var token, bridge, abort, timer, base, r, body;
-            return _regeneratorRuntime().wrap(function _callee8$(_context8) {
-              while (1) switch (_context8.prev = _context8.next) {
+            return _regeneratorRuntime().wrap(function _callee10$(_context10) {
+              while (1) switch (_context10.prev = _context10.next) {
                 case 0:
                   if (!(sys.isNative && sys.os === sys.OS.ANDROID)) {
-                    _context8.next = 6;
+                    _context10.next = 6;
                     break;
                   }
-                  _context8.next = 3;
+                  _context10.next = 3;
                   return this.connect();
                 case 3:
-                  _context8.next = 5;
+                  _context10.next = 5;
                   return nativeCall('operationsRequest', _extends({
                     path: path
                   }, data ? {
                     data: data
                   } : {}), 30000);
                 case 5:
-                  return _context8.abrupt("return", _context8.sent.result);
+                  return _context10.abrupt("return", _context10.sent.result);
                 case 6:
-                  _context8.next = 8;
+                  _context10.next = 8;
                   return this.connect();
                 case 8:
                   if (!sys.isNative) {
-                    _context8.next = 14;
+                    _context10.next = 14;
                     break;
                   }
-                  _context8.next = 11;
+                  _context10.next = 11;
                   return nativeCall('authenticate', {}, 30000);
                 case 11:
-                  _context8.t0 = _context8.sent.token;
-                  _context8.next = 17;
+                  _context10.t0 = _context10.sent.token;
+                  _context10.next = 17;
                   break;
                 case 14:
-                  _context8.next = 16;
+                  _context10.next = 16;
                   return this.auth.currentUser.getIdToken();
                 case 16:
-                  _context8.t0 = _context8.sent;
+                  _context10.t0 = _context10.sent;
                 case 17:
-                  token = _context8.t0;
+                  token = _context10.t0;
                   // LAN HTML may opt into a same-origin bridge; never send an auth token to a configured third-party host.
                   bridge = this.operationsBridge(); // The bridge gives its upstream 15 seconds; let it return before aborting on slower devices.
                   abort = new AbortController(), timer = setTimeout(function () {
                     return abort.abort();
                   }, bridge ? 20000 : 10000);
                   base = bridge || 'https://asia-northeast3-ttsofts-tapwar.cloudfunctions.net/operations';
-                  _context8.prev = 21;
-                  _context8.next = 24;
+                  _context10.prev = 21;
+                  _context10.next = 24;
                   return fetch(base + path, _extends({
                     method: data ? 'POST' : 'GET',
                     headers: {
@@ -36865,31 +37060,31 @@ System.register("chunks:///_virtual/FirebaseCloud.ts", ['./rollupPluginModLoBabe
                     signal: abort.signal
                   }));
                 case 24:
-                  r = _context8.sent;
-                  _context8.next = 27;
+                  r = _context10.sent;
+                  _context10.next = 27;
                   return r.json();
                 case 27:
-                  body = _context8.sent;
+                  body = _context10.sent;
                   if (r.ok) {
-                    _context8.next = 30;
+                    _context10.next = 30;
                     break;
                   }
                   throw Error(body.error || 'online.serverError');
                 case 30:
-                  return _context8.abrupt("return", body);
+                  return _context10.abrupt("return", body);
                 case 33:
-                  _context8.prev = 33;
-                  _context8.t1 = _context8["catch"](21);
-                  throw this.error(_context8.t1);
+                  _context10.prev = 33;
+                  _context10.t1 = _context10["catch"](21);
+                  throw this.error(_context10.t1);
                 case 36:
-                  _context8.prev = 36;
+                  _context10.prev = 36;
                   clearTimeout(timer);
-                  return _context8.finish(36);
+                  return _context10.finish(36);
                 case 39:
                 case "end":
-                  return _context8.stop();
+                  return _context10.stop();
               }
-            }, _callee8, this, [[21, 33, 36, 39]]);
+            }, _callee10, this, [[21, 33, 36, 39]]);
           }));
           function operationsRequest(_x2, _x3) {
             return _operationsRequest.apply(this, arguments);
@@ -36897,49 +37092,49 @@ System.register("chunks:///_virtual/FirebaseCloud.ts", ['./rollupPluginModLoBabe
           return operationsRequest;
         }();
         _proto.save = /*#__PURE__*/function () {
-          var _save = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10(state, expectedVersion) {
+          var _save = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12(state, expectedVersion) {
             var payload, ref;
-            return _regeneratorRuntime().wrap(function _callee10$(_context10) {
-              while (1) switch (_context10.prev = _context10.next) {
+            return _regeneratorRuntime().wrap(function _callee12$(_context12) {
+              while (1) switch (_context12.prev = _context12.next) {
                 case 0:
                   payload = JSON.stringify(state);
                   if (!((typeof TextEncoder !== 'undefined' ? new TextEncoder().encode(payload).length : payload.length * 3) > 900000)) {
-                    _context10.next = 3;
+                    _context12.next = 3;
                     break;
                   }
                   throw Error('error.full');
                 case 3:
-                  _context10.prev = 3;
-                  _context10.next = 6;
+                  _context12.prev = 3;
+                  _context12.next = 6;
                   return this.connect();
                 case 6:
                   if (!sys.isNative) {
-                    _context10.next = 10;
+                    _context12.next = 10;
                     break;
                   }
-                  _context10.next = 9;
+                  _context12.next = 9;
                   return nativeCall('cloudSave', {
                     payload: payload,
                     version: expectedVersion
                   }, 30000);
                 case 9:
-                  return _context10.abrupt("return");
+                  return _context12.abrupt("return");
                 case 10:
-                  ref = hm(this.db, 'players', this.uid, 'backups', 'main');
-                  _context10.next = 13;
-                  return xT(this.db, /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9(tx) {
+                  ref = dm(this.db, 'players', this.uid, 'backups', 'main');
+                  _context12.next = 13;
+                  return kT(this.db, /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11(tx) {
                     var _snap$data;
                     var snap, version;
-                    return _regeneratorRuntime().wrap(function _callee9$(_context9) {
-                      while (1) switch (_context9.prev = _context9.next) {
+                    return _regeneratorRuntime().wrap(function _callee11$(_context11) {
+                      while (1) switch (_context11.prev = _context11.next) {
                         case 0:
-                          _context9.next = 2;
+                          _context11.next = 2;
                           return tx.get(ref);
                         case 2:
-                          snap = _context9.sent;
+                          snap = _context11.sent;
                           version = ((_snap$data = snap.data()) == null ? void 0 : _snap$data.version) || 0;
                           if (!(version !== expectedVersion)) {
-                            _context9.next = 6;
+                            _context11.next = 6;
                             break;
                           }
                           throw Error('online.saveConflict');
@@ -36947,26 +37142,26 @@ System.register("chunks:///_virtual/FirebaseCloud.ts", ['./rollupPluginModLoBabe
                           tx.set(ref, {
                             version: version + 1,
                             payload: payload,
-                            updatedAt: ym()
+                            updatedAt: wm()
                           });
                         case 7:
                         case "end":
-                          return _context9.stop();
+                          return _context11.stop();
                       }
-                    }, _callee9);
+                    }, _callee11);
                   })));
                 case 13:
-                  _context10.next = 18;
+                  _context12.next = 18;
                   break;
                 case 15:
-                  _context10.prev = 15;
-                  _context10.t0 = _context10["catch"](3);
-                  throw this.error(_context10.t0);
+                  _context12.prev = 15;
+                  _context12.t0 = _context12["catch"](3);
+                  throw this.error(_context12.t0);
                 case 18:
                 case "end":
-                  return _context10.stop();
+                  return _context12.stop();
               }
-            }, _callee10, this, [[3, 15]]);
+            }, _callee12, this, [[3, 15]]);
           }));
           function save(_x4, _x5) {
             return _save.apply(this, arguments);
@@ -42984,7 +43179,9 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './MilitaryTheme.ts'], func
       });
       Object.assign(translations.ko, {
         "entry.subtitle": "작은 불씨에서 시작되는 끝없는 원정",
-        "entry.start": "터치해서 시작",
+        "entry.start": "게임 시작",
+        "entry.logout": "로그아웃",
+        "entry.logoutBody": "진행을 저장하고 타이틀로 돌아갑니다. Google에 연결하지 않은 게스트 계정은 로그아웃 후 다시 접속할 수 없습니다. 계속할까요?",
         "entry.titleHint": "용사를 키우고, 동료와 함께 탑을 오르세요.",
         "entry.version": "TT Softs · v{version}",
         "entry.consentTitle": "게임 이용 동의",
@@ -43045,7 +43242,9 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './MilitaryTheme.ts'], func
       });
       Object.assign(translations.en, {
         "entry.subtitle": "An endless expedition starts with one ember",
-        "entry.start": "Tap to Start",
+        "entry.start": "Start Game",
+        "entry.logout": "Log out",
+        "entry.logoutBody": "Save progress and return to the title. A guest account that is not linked to Google cannot be accessed again after logout. Continue?",
         "entry.titleHint": "Grow your guardian. Climb the tower together.",
         "entry.version": "TT Softs · v{version}",
         "entry.consentTitle": "Before You Play",
@@ -45437,6 +45636,13 @@ System.register("chunks:///_virtual/Online.ts", ['./rollupPluginModLoBabelHelper
           }
           return request;
         }();
+        _proto.logout = function logout() {
+          this.storage.setItem('ember-online-token', '');
+          this.storage.setItem('ember-online-id', '');
+          this.storage.setItem('ember-online-pending', '{}');
+          this.token = '';
+          this.accountId = '';
+        };
         _proto.recover = /*#__PURE__*/function () {
           var _recover = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(token, accountId) {
             var previous, boot;
@@ -45883,105 +46089,142 @@ System.register("chunks:///_virtual/OperationsClient.ts", ['./rollupPluginModLoB
             }, _callee4, null, [[9, 17, 21, 24]]);
           })));
         };
-        _proto.replaceProgress = function replaceProgress(state) {
+        _proto.endSession = function endSession() {
           var _this3 = this;
           return this.serial( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
-            var payload, version, next, result, stored;
             return _regeneratorRuntime().wrap(function _callee5$(_context5) {
               while (1) switch (_context5.prev = _context5.next) {
                 case 0:
-                  if (!_this3.conflict) {
-                    _context5.next = 2;
+                  _this3.busy = true;
+                  _context5.prev = 1;
+                  if (!_this3.local) {
+                    _context5.next = 6;
+                    break;
+                  }
+                  _this3.a.onlineService.logout();
+                  _context5.next = 8;
+                  break;
+                case 6:
+                  _context5.next = 8;
+                  return _this3.a.cloud.logout();
+                case 8:
+                  _this3.ready = false;
+                  _this3.uid = '';
+                  _this3.version = 0;
+                  _this3.reads = [];
+                  _this3.mails = [];
+                  _this3.conflict = false;
+                  _this3.elapsed = 0;
+                case 15:
+                  _context5.prev = 15;
+                  _this3.busy = false;
+                  return _context5.finish(15);
+                case 18:
+                case "end":
+                  return _context5.stop();
+              }
+            }, _callee5, null, [[1,, 15, 18]]);
+          })));
+        };
+        _proto.replaceProgress = function replaceProgress(state) {
+          var _this4 = this;
+          return this.serial( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+            var payload, version, next, result, stored;
+            return _regeneratorRuntime().wrap(function _callee6$(_context6) {
+              while (1) switch (_context6.prev = _context6.next) {
+                case 0:
+                  if (!_this4.conflict) {
+                    _context6.next = 2;
                     break;
                   }
                   throw Error('online.saveConflict');
                 case 2:
-                  if (!(!_this3.ready || _this3.uid !== _this3.identity)) {
-                    _context5.next = 4;
+                  if (!(!_this4.ready || _this4.uid !== _this4.identity)) {
+                    _context6.next = 4;
                     break;
                   }
                   throw Error('online.auth');
                 case 4:
-                  _this3.a.game.validate(state);
-                  _this3.busy = true;
-                  payload = JSON.parse(JSON.stringify(state)), version = _this3.version;
-                  _context5.prev = 7;
-                  _context5.prev = 8;
-                  _context5.next = 11;
-                  return _this3.request('/account/save', {
+                  _this4.a.game.validate(state);
+                  _this4.busy = true;
+                  payload = JSON.parse(JSON.stringify(state)), version = _this4.version;
+                  _context6.prev = 7;
+                  _context6.prev = 8;
+                  _context6.next = 11;
+                  return _this4.request('/account/save', {
                     state: payload,
                     version: version,
-                    key: _this3.a.id('prototype-replace')
+                    key: _this4.a.id('prototype-replace')
                   });
                 case 11:
-                  result = _context5.sent;
+                  result = _context6.sent;
                   next = result.version;
-                  _context5.next = 23;
+                  _context6.next = 23;
                   break;
                 case 15:
-                  _context5.prev = 15;
-                  _context5.t0 = _context5["catch"](8);
-                  _context5.next = 19;
-                  return _this3.request('/account/save');
+                  _context6.prev = 15;
+                  _context6.t0 = _context6["catch"](8);
+                  _context6.next = 19;
+                  return _this4.request('/account/save');
                 case 19:
-                  stored = _context5.sent;
+                  stored = _context6.sent;
                   if (!(stored.version !== version + 1 || JSON.stringify(stored.state) !== JSON.stringify(payload))) {
-                    _context5.next = 22;
+                    _context6.next = 22;
                     break;
                   }
-                  throw _context5.t0;
+                  throw _context6.t0;
                 case 22:
                   next = stored.version;
                 case 23:
-                  _this3.version = next;
-                  _this3.a.game.s = payload;
-                  _this3.a.game.revision++;
-                  _this3.revision = _this3.a.game.revision;
-                  _this3.elapsed = 0;
-                  if (_this3.a.game.persist()) {
-                    _context5.next = 30;
+                  _this4.version = next;
+                  _this4.a.game.s = payload;
+                  _this4.a.game.revision++;
+                  _this4.revision = _this4.a.game.revision;
+                  _this4.elapsed = 0;
+                  if (_this4.a.game.persist()) {
+                    _context6.next = 30;
                     break;
                   }
                   throw Error('error.storage');
                 case 30:
-                  _context5.next = 36;
+                  _context6.next = 36;
                   break;
                 case 32:
-                  _context5.prev = 32;
-                  _context5.t1 = _context5["catch"](7);
-                  if (_context5.t1.message === 'online.saveConflict') _this3.conflict = true;
-                  throw _context5.t1;
+                  _context6.prev = 32;
+                  _context6.t1 = _context6["catch"](7);
+                  if (_context6.t1.message === 'online.saveConflict') _this4.conflict = true;
+                  throw _context6.t1;
                 case 36:
-                  _context5.prev = 36;
-                  _this3.busy = false;
-                  return _context5.finish(36);
+                  _context6.prev = 36;
+                  _this4.busy = false;
+                  return _context6.finish(36);
                 case 39:
                 case "end":
-                  return _context5.stop();
+                  return _context6.stop();
               }
-            }, _callee5, null, [[7, 32, 36, 39], [8, 15]]);
+            }, _callee6, null, [[7, 32, 36, 39], [8, 15]]);
           })));
         };
         _proto.read = /*#__PURE__*/function () {
-          var _read = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6(id) {
-            var _this4 = this;
-            return _regeneratorRuntime().wrap(function _callee6$(_context6) {
-              while (1) switch (_context6.prev = _context6.next) {
+          var _read = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7(id) {
+            var _this5 = this;
+            return _regeneratorRuntime().wrap(function _callee7$(_context7) {
+              while (1) switch (_context7.prev = _context7.next) {
                 case 0:
-                  _context6.next = 2;
+                  _context7.next = 2;
                   return this.serial(function () {
-                    return _this4.request('/operations/read', {
+                    return _this5.request('/operations/read', {
                       id: id,
-                      key: _this4.a.id('notice-read')
+                      key: _this5.a.id('notice-read')
                     });
                   });
                 case 2:
                   if (!this.reads.includes(id)) this.reads.push(id);
                 case 3:
                 case "end":
-                  return _context6.stop();
+                  return _context7.stop();
               }
-            }, _callee6, this);
+            }, _callee7, this);
           }));
           function read(_x2) {
             return _read.apply(this, arguments);
@@ -45989,26 +46232,26 @@ System.register("chunks:///_virtual/OperationsClient.ts", ['./rollupPluginModLoB
           return read;
         }();
         _proto.inbox = /*#__PURE__*/function () {
-          var _inbox = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
-            return _regeneratorRuntime().wrap(function _callee7$(_context7) {
-              while (1) switch (_context7.prev = _context7.next) {
+          var _inbox = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
+            return _regeneratorRuntime().wrap(function _callee8$(_context8) {
+              while (1) switch (_context8.prev = _context8.next) {
                 case 0:
                   if (this.ready) {
-                    _context7.next = 2;
+                    _context8.next = 2;
                     break;
                   }
                   throw Error('online.unreachable');
                 case 2:
-                  _context7.next = 4;
+                  _context8.next = 4;
                   return this.request('/operations/mail');
                 case 4:
-                  this.mails = _context7.sent;
-                  return _context7.abrupt("return", this.mails);
+                  this.mails = _context8.sent;
+                  return _context8.abrupt("return", this.mails);
                 case 6:
                 case "end":
-                  return _context7.stop();
+                  return _context8.stop();
               }
-            }, _callee7, this);
+            }, _callee8, this);
           }));
           function inbox() {
             return _inbox.apply(this, arguments);
@@ -46016,69 +46259,69 @@ System.register("chunks:///_virtual/OperationsClient.ts", ['./rollupPluginModLoB
           return inbox;
         }();
         _proto.claim = /*#__PURE__*/function () {
-          var _claim = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9(id) {
-            var _this5 = this;
-            return _regeneratorRuntime().wrap(function _callee9$(_context9) {
-              while (1) switch (_context9.prev = _context9.next) {
+          var _claim = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10(id) {
+            var _this6 = this;
+            return _regeneratorRuntime().wrap(function _callee10$(_context10) {
+              while (1) switch (_context10.prev = _context10.next) {
                 case 0:
-                  _context9.next = 2;
+                  _context10.next = 2;
                   return this.save();
                 case 2:
-                  return _context9.abrupt("return", this.serial( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
+                  return _context10.abrupt("return", this.serial( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
                     var result;
-                    return _regeneratorRuntime().wrap(function _callee8$(_context8) {
-                      while (1) switch (_context8.prev = _context8.next) {
+                    return _regeneratorRuntime().wrap(function _callee9$(_context9) {
+                      while (1) switch (_context9.prev = _context9.next) {
                         case 0:
-                          if (!_this5.conflict) {
-                            _context8.next = 2;
+                          if (!_this6.conflict) {
+                            _context9.next = 2;
                             break;
                           }
                           throw Error('online.saveConflict');
                         case 2:
-                          _this5.busy = true;
-                          _context8.prev = 3;
-                          _context8.next = 6;
-                          return _this5.request('/operations/mail/claim', {
+                          _this6.busy = true;
+                          _context9.prev = 3;
+                          _context9.next = 6;
+                          return _this6.request('/operations/mail/claim', {
                             id: id,
-                            version: _this5.version,
+                            version: _this6.version,
                             key: 'mail-claim-' + id
                           });
                         case 6:
-                          result = _context8.sent;
-                          if (_this5.a.extensions.restore(result.state)) {
-                            _context8.next = 9;
+                          result = _context9.sent;
+                          if (_this6.a.extensions.restore(result.state)) {
+                            _context9.next = 9;
                             break;
                           }
                           throw Error('error.save');
                         case 9:
-                          _this5.version = result.version;
-                          _this5.revision = _this5.a.game.revision;
-                          _context8.next = 13;
-                          return _this5.inbox();
+                          _this6.version = result.version;
+                          _this6.revision = _this6.a.game.revision;
+                          _context9.next = 13;
+                          return _this6.inbox();
                         case 13:
-                          _this5.a.draw();
-                          _context8.next = 20;
+                          _this6.a.draw();
+                          _context9.next = 20;
                           break;
                         case 16:
-                          _context8.prev = 16;
-                          _context8.t0 = _context8["catch"](3);
-                          if (['online.saveConflict', 'online.unreachable'].includes(_context8.t0.message)) _this5.conflict = true;
-                          throw _context8.t0;
+                          _context9.prev = 16;
+                          _context9.t0 = _context9["catch"](3);
+                          if (['online.saveConflict', 'online.unreachable'].includes(_context9.t0.message)) _this6.conflict = true;
+                          throw _context9.t0;
                         case 20:
-                          _context8.prev = 20;
-                          _this5.busy = false;
-                          return _context8.finish(20);
+                          _context9.prev = 20;
+                          _this6.busy = false;
+                          return _context9.finish(20);
                         case 23:
                         case "end":
-                          return _context8.stop();
+                          return _context9.stop();
                       }
-                    }, _callee8, null, [[3, 16, 20, 23]]);
+                    }, _callee9, null, [[3, 16, 20, 23]]);
                   }))));
                 case 3:
                 case "end":
-                  return _context9.stop();
+                  return _context10.stop();
               }
-            }, _callee9, this);
+            }, _callee10, this);
           }));
           function claim(_x3) {
             return _claim.apply(this, arguments);
@@ -46086,26 +46329,26 @@ System.register("chunks:///_virtual/OperationsClient.ts", ['./rollupPluginModLoB
           return claim;
         }();
         _proto["delete"] = /*#__PURE__*/function () {
-          var _delete2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10(id) {
-            var _this6 = this;
-            return _regeneratorRuntime().wrap(function _callee10$(_context10) {
-              while (1) switch (_context10.prev = _context10.next) {
+          var _delete2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11(id) {
+            var _this7 = this;
+            return _regeneratorRuntime().wrap(function _callee11$(_context11) {
+              while (1) switch (_context11.prev = _context11.next) {
                 case 0:
-                  _context10.next = 2;
+                  _context11.next = 2;
                   return this.serial(function () {
-                    return _this6.request('/operations/mail/delete', {
+                    return _this7.request('/operations/mail/delete', {
                       id: id,
-                      key: _this6.a.id('mail-delete')
+                      key: _this7.a.id('mail-delete')
                     });
                   });
                 case 2:
-                  _context10.next = 4;
+                  _context11.next = 4;
                   return this.inbox();
                 case 4:
                 case "end":
-                  return _context10.stop();
+                  return _context11.stop();
               }
-            }, _callee10, this);
+            }, _callee11, this);
           }));
           function _delete(_x4) {
             return _delete2.apply(this, arguments);
@@ -46137,11 +46380,11 @@ System.register("chunks:///_virtual/OperationsClient.ts", ['./rollupPluginModLoB
           if (this.ready) void this.flushErrors();
         };
         _proto.flushErrors = /*#__PURE__*/function () {
-          var _flushErrors = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
-            var _this7 = this;
+          var _flushErrors = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12() {
+            var _this8 = this;
             var entries, _loop, _ret, _iterator, _step;
-            return _regeneratorRuntime().wrap(function _callee11$(_context12) {
-              while (1) switch (_context12.prev = _context12.next) {
+            return _regeneratorRuntime().wrap(function _callee12$(_context13) {
+              while (1) switch (_context13.prev = _context13.next) {
                 case 0:
                   entries = [];
                   try {
@@ -46149,54 +46392,54 @@ System.register("chunks:///_virtual/OperationsClient.ts", ['./rollupPluginModLoB
                   } catch (_unused2) {}
                   _loop = /*#__PURE__*/_regeneratorRuntime().mark(function _loop() {
                     var item;
-                    return _regeneratorRuntime().wrap(function _loop$(_context11) {
-                      while (1) switch (_context11.prev = _context11.next) {
+                    return _regeneratorRuntime().wrap(function _loop$(_context12) {
+                      while (1) switch (_context12.prev = _context12.next) {
                         case 0:
                           item = _step.value;
-                          _context11.prev = 1;
-                          _context11.next = 4;
-                          return _this7.request('/operations/error', item);
+                          _context12.prev = 1;
+                          _context12.next = 4;
+                          return _this8.request('/operations/error', item);
                         case 4:
                           entries = entries.filter(function (e) {
                             return e.id !== item.id;
                           });
                           sys.localStorage.setItem('outrun-errors', JSON.stringify(entries));
-                          _context11.next = 11;
+                          _context12.next = 11;
                           break;
                         case 8:
-                          _context11.prev = 8;
-                          _context11.t0 = _context11["catch"](1);
-                          return _context11.abrupt("return", {
+                          _context12.prev = 8;
+                          _context12.t0 = _context12["catch"](1);
+                          return _context12.abrupt("return", {
                             v: void 0
                           });
                         case 11:
                         case "end":
-                          return _context11.stop();
+                          return _context12.stop();
                       }
                     }, _loop, null, [[1, 8]]);
                   });
                   _iterator = _createForOfIteratorHelperLoose(entries);
                 case 4:
                   if ((_step = _iterator()).done) {
-                    _context12.next = 11;
+                    _context13.next = 11;
                     break;
                   }
-                  return _context12.delegateYield(_loop(), "t0", 6);
+                  return _context13.delegateYield(_loop(), "t0", 6);
                 case 6:
-                  _ret = _context12.t0;
+                  _ret = _context13.t0;
                   if (!_ret) {
-                    _context12.next = 9;
+                    _context13.next = 9;
                     break;
                   }
-                  return _context12.abrupt("return", _ret.v);
+                  return _context13.abrupt("return", _ret.v);
                 case 9:
-                  _context12.next = 4;
+                  _context13.next = 4;
                   break;
                 case 11:
                 case "end":
-                  return _context12.stop();
+                  return _context13.stop();
               }
-            }, _callee11);
+            }, _callee12);
           }));
           function flushErrors() {
             return _flushErrors.apply(this, arguments);
