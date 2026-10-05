@@ -1,0 +1,154 @@
+[
+  {
+    "source": "art/crimson/source/terrain.png",
+    "file": "assets/resources/ui/pastel/terrain/ledge-0.png",
+    "crop": [
+      0,
+      0,
+      627,
+      314
+    ],
+    "visibleCrop": [
+      41,
+      149,
+      594,
+      299
+    ],
+    "walkingSurfaceY": 185,
+    "walkingSurfaceNormalizedY": 0.134062,
+    "sha256": "e7ad6f49212c160efe1ba3c79960d0a9d8e38893204a0c66aef9cb1930b53ed2"
+  },
+  {
+    "source": "art/crimson/source/terrain.png",
+    "file": "assets/resources/ui/pastel/terrain/ledge-1.png",
+    "crop": [
+      627,
+      0,
+      1254,
+      314
+    ],
+    "visibleCrop": [
+      29,
+      114,
+      588,
+      310
+    ],
+    "walkingSurfaceY": 186,
+    "walkingSurfaceNormalizedY": 0.089126,
+    "sha256": "e9d01e2ae1c2478b568084220824c8ad988cf45fb167fa7bd87cf00a106a786f"
+  },
+  {
+    "source": "art/crimson/source/terrain.png",
+    "file": "assets/resources/ui/pastel/terrain/ledge-2.png",
+    "crop": [
+      0,
+      314,
+      627,
+      627
+    ],
+    "visibleCrop": [
+      41,
+      145,
+      592,
+      297
+    ],
+    "walkingSurfaceY": 490,
+    "walkingSurfaceNormalizedY": 0.158871,
+    "sha256": "c90c4e725c378d2a4b71e830994486823119177e852c7fe208e2c24af1a815d8"
+  },
+  {
+    "source": "art/crimson/source/terrain.png",
+    "file": "assets/resources/ui/pastel/terrain/ledge-3.png",
+    "crop": [
+      627,
+      314,
+      1254,
+      627
+    ],
+    "visibleCrop": [
+      32,
+      137,
+      592,
+      313
+    ],
+    "walkingSurfaceY": 493,
+    "walkingSurfaceNormalizedY": 0.161133,
+    "sha256": "c9ce976137e384f352a87f91732331a9964780ee8ae4b3e57b97e7658a7f7808"
+  },
+  {
+    "source": "art/crimson/source/terrain.png",
+    "file": "assets/resources/ui/pastel/terrain/ground-0.png",
+    "crop": [
+      0,
+      627,
+      627,
+      940
+    ],
+    "visibleCrop": [
+      32,
+      61,
+      605,
+      291
+    ],
+    "walkingSurfaceY": 737,
+    "walkingSurfaceNormalizedY": 0.259724,
+    "sha256": "06855d6cb26fa3c5c5c5252fd995e5058b1e90de7d0932ae5607bf577d026a3b"
+  },
+  {
+    "source": "art/crimson/source/terrain.png",
+    "file": "assets/resources/ui/pastel/terrain/ground-1.png",
+    "crop": [
+      627,
+      627,
+      1254,
+      940
+    ],
+    "visibleCrop": [
+      29,
+      0,
+      602,
+      293
+    ],
+    "walkingSurfaceY": 740,
+    "walkingSurfaceNormalizedY": 0.108209,
+    "sha256": "38c1d615a9bc6886f44d3309db28e9c80d255822d852cc01e38197663cca1181"
+  },
+  {
+    "source": "art/crimson/source/terrain.png",
+    "file": "assets/resources/ui/pastel/terrain/ground-2.png",
+    "crop": [
+      0,
+      940,
+      627,
+      1254
+    ],
+    "visibleCrop": [
+      34,
+      35,
+      605,
+      240
+    ],
+    "walkingSurfaceY": 1018,
+    "walkingSurfaceNormalizedY": 0.233232,
+    "sha256": "d3c672b49561987611ee0cc906c48acdfc613a207f89121d3e9a1968514d7e6e"
+  },
+  {
+    "source": "art/crimson/source/terrain.png",
+    "file": "assets/resources/ui/pastel/terrain/ground-3.png",
+    "crop": [
+      627,
+      940,
+      1254,
+      1254
+    ],
+    "visibleCrop": [
+      25,
+      33,
+      595,
+      245
+    ],
+    "walkingSurfaceY": 1020,
+    "walkingSurfaceNormalizedY": 0.23109,
+    "sha256": "704ee055e7fd4cf3e3c1320fea6a6aa19250cc27407aac5509a147f89b12d36d"
+  }
+]

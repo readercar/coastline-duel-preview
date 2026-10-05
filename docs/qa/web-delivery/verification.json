@@ -1,0 +1,29 @@
+{
+  "builtAt": "2026-10-04T07:00:20.055273+00:00",
+  "engine": "Cocos Creator 3.8.8",
+  "startScene": "assets/scenes/Main.scene",
+  "config": "config/build-web.json",
+  "build": "Cocos web-mobile Finished; npm run build exit 0",
+  "directory": "build/web-mobile",
+  "files": 310,
+  "uncompressedBytes": 48576144,
+  "archive": {
+    "path": "dist/tapwar-web-2026-10-04.zip",
+    "bytes": 13010747,
+    "sha256": "eddfd3cc3e46d54562627f2f38dd71222ef5a32c56352e7bfe096c3e8c344c84",
+    "integrity": "ZipFile.testzip passed"
+  },
+  "preview": "http://127.0.0.1:8850/",
+  "previewServer": "Project server, isolated .prototype-entry-qa data; no public deployment",
+  "runtime": {
+    "titleRendered": true,
+    "browser": "Codex In-app Browser",
+    "viewport": [
+      1280,
+      720
+    ],
+    "warnings": 0,
+    "errors": 0,
+    "screenshot": "title.png"
+  }
+}

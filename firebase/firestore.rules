@@ -1,6 +1,20 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    match /operations/live { allow get: if true; allow write, list: if false; }
+    match /players/{uid}/messageReads/{id} { allow read: if request.auth != null && request.auth.uid == uid; allow write: if false; }
+    match /players/{uid}/mailReceipts/{id} { allow read: if request.auth != null && request.auth.uid == uid; allow write: if false; }
+    match /mailRewards/{id} { allow read, write: if false; }
+    match /clientErrors/{id} {
+      allow get: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid','code','message','version','platform','createdAt'])
+        && request.resource.data.code is string && request.resource.data.code.size() <= 80
+        && request.resource.data.message is string && request.resource.data.message.size() <= 1000
+        && request.resource.data.version is string && request.resource.data.version.size() <= 24
+        && request.resource.data.platform in ['web','android','ios'] && request.resource.data.createdAt == request.time;
+      allow list, update, delete: if false;
+    }
     match /players/{uid}/backups/main {
       allow get: if request.auth != null && request.auth.uid == uid;
       allow create: if request.auth != null && request.auth.uid == uid

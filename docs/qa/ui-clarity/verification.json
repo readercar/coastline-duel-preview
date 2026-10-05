@@ -1,0 +1,88 @@
+{
+  "recordedAt": "2026-10-04T15:07:26.002365+00:00",
+  "build": {
+    "name": "tapWar",
+    "version": "0.1.0",
+    "builtAt": "2026-10-04T15:00:29.958Z",
+    "engine": "Cocos Creator 3.8.8"
+  },
+  "engine": "Cocos Creator 3.8.8",
+  "url": "https://readercar.github.io/coastline-duel-preview/docs/web/",
+  "commit": "721da4e5adddfa925251bbc019d3873d03e444b1",
+  "pagesStatus": "built",
+  "changes": [
+    "Saturated cyan/gold/green/coral UI on dark slate surfaces; approved pixel world and actors retained",
+    "Readable compact sans-serif UI, display face reserved for large title",
+    "Consistent pixel action icons, icon-and-number stats, icon navigation",
+    "Equipment multiplier comparison, percentage difference, equip/lock/sell states; protected sale blocked",
+    "Hero/pet/relic detail stats and actions use icons; optional explanations retained",
+    "Required documents retain readable text; active confirmation uses dark text",
+    "Enemy name and health moved above health bar to remain readable at low health; web assets have version hashes"
+  ],
+  "checks": {
+    "typescript": "passed",
+    "tests": {
+      "core": 81,
+      "server": 28,
+      "failed": 0
+    },
+    "public": {
+      "guestEntry": "passed",
+      "readToEndConsentFlow": "passed on prototype documents",
+      "optionalNotificationsDeclined": "entry still allowed",
+      "battle": "passed",
+      "upgrade": "passed",
+      "recruit": "passed",
+      "tutorial": "all six steps completed",
+      "collapseExpand": "passed",
+      "guestRestoreAfterReload": "guardian 2, Rowen 1 and completed tutorial observed",
+      "locales": [
+        "ko",
+        "en"
+      ],
+      "viewports": [
+        "1920x817",
+        "360x640"
+      ],
+      "runtimeErrors": [],
+      "finalReload": "Latest build loaded; guest save restored and offline reward claimed",
+      "runtimeWarnings": []
+    },
+    "local": {
+      "tabs": [
+        "master",
+        "heroes",
+        "equipment",
+        "spirits",
+        "relics",
+        "shop"
+      ],
+      "locales": [
+        "ko",
+        "en"
+      ],
+      "details": [
+        "equipment",
+        "hero",
+        "pet",
+        "relic"
+      ],
+      "equipComparison": "1.45 → 2.20, +51.7%; after equip 2.20 → 2.20, 0%",
+      "lockState": "green selected lock and muted sale state observed",
+      "protectedSale": "explanation toast; no sale prompt",
+      "data": "Synthetic fixture seeded only into a clone of the local QA database; original database retained",
+      "historicalWarning": "Deprecated enableRetina was removed during iteration; this warning predates the final build",
+      "runtimeErrors": [],
+      "runtimeWarnings": [],
+      "healthText": "Name and health visible above bar at low health in final build"
+    },
+    "webAssetVersioning": "md5Cache enabled; main index.7adc8.js and config.7adc8.json deployed"
+  },
+  "limitations": [
+    "No new Google OAuth or physical Android test in this UI iteration; prior verification remains in docs/qa/firebase-google",
+    "Long-press explanations implemented but not exercised; information buttons visually checked and ordinary tap controls exercised",
+    "Final document typography/active color change compiled and deployed after initial public consent-flow check"
+  ],
+  "motionSheetsGenerated": false,
+  "pagesUpdatedAt": "2026-10-04T15:01:34Z"
+}

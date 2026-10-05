@@ -1,0 +1,110 @@
+{
+  "verifiedAt": "2026-10-03T18:31:42.420872+00:00",
+  "engine": "Cocos Creator 3.8.8",
+  "language": "TypeScript",
+  "startScene": "assets/scenes/Main.scene",
+  "scope": "Actual prototype entry UI, progressive onboarding and responsive management panel; accepted existing static art reused.",
+  "preview": "http://127.0.0.1:8850/",
+  "qaData": ".prototype-entry-qa (isolated local SQLite, ignored)",
+  "entry": {
+    "ko": "Required terms and privacy read-to-end, consent, notification allowed, guest, loading, first-play guide passed.",
+    "en": "Required terms and privacy read-to-end, consent, notification declined, guest, loading, first-play guide passed.",
+    "beforeConsentAccounts": 0,
+    "guestAccountsAfterBothLanguages": 2,
+    "returningPlayer": "Current consent and notification choices retained; server save restored master 2, Rowen 1 and tutorial step 7; no repeated first-play popup.",
+    "documents": "20pt sans-serif body measured after render; scroll end and fixed footer verified; review preserves in-game background.",
+    "google": "Historical initial check: missing provider/OAuth/domain caused recoverable failure. Resolved and superseded by docs/qa/firebase-google/verification.json (actual Google login and same-UID server restore passed)."
+  },
+  "tutorial": {
+    "actionSteps": [
+      "Tap battle 3 times",
+      "Upgrade guardian",
+      "Open companions",
+      "Hire Rowen",
+      "Hide menu",
+      "Show menu"
+    ],
+    "serverPersistedSteps": {
+      "en": 7,
+      "ko": 7
+    },
+    "skipReplayAndMigration": "Core tests cover replay baselines, migration, persistence and restored step advancement.",
+    "firstBoss": "30-second boss and retry guidance verified."
+  },
+  "unlocks": {
+    "tabsBestStage": {
+      "guardian": 1,
+      "companions": 1,
+      "shop": 3,
+      "spirits": 8,
+      "equipment": 15,
+      "relics": 60
+    },
+    "display": "Unavailable tabs dimmed and padlocked, next locked list item retained, distant menu features hidden.",
+    "lockedPetPopup": "Stage 8 condition verified visually.",
+    "rebirthRetention": "Best-stage gate covered by core tests."
+  },
+  "layout": {
+    "viewports": [
+      [
+        360,
+        640
+      ],
+      [
+        320,
+        640
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "tallPreviewCssScale": 0.8,
+    "designWidth": 480,
+    "designHeightRange": [
+      854,
+      1120
+    ],
+    "managementHeight": 300,
+    "navHeight": 56,
+    "fold": "Verified both directions; battle expands; ally name and mana separated from handle.",
+    "touchBoundary": "Final build verified at both 480-design-width preview and 360×640: central collapse and upper handle touches respond; battle touch excludes the whole handle.",
+    "safeAreas": "Native safe-area offsets implemented; physical notch/insets not verified."
+  },
+  "validation": {
+    "tests": {
+      "core": 81,
+      "server": 28,
+      "total": 109,
+      "failed": 0
+    },
+    "web": "Build succeeded",
+    "android": "Gradle assembleDebug BUILD SUCCESSFUL",
+    "diffWhitespace": "git diff --check passed",
+    "runtime": "No game runtime errors or warnings after final reload; one expected Firebase unauthorized-domain warning on Google attempt. See runtime-logs.json.",
+    "responsiveRuntime": "No warnings or errors after the final responsive reload; see responsive-runtime-logs.json."
+  },
+  "apk": {
+    "path": "/Users/dhlee/dhlee/work/OutRun/build/android/proj/build/tapWar/outputs/apk/debug/tapWar-debug.apk",
+    "bytes": 97327923,
+    "sha256": "d174d00258490bcc2ddea0ef681df0bd70da1af9995c43993583957ba808b58b"
+  },
+  "art": {
+    "newGeneratedAssets": 0,
+    "source": "Existing accepted ChatGPT original downloads; art/pastel/provenance.json and import-manifest.json. Original TT Softs CI reused.",
+    "motionSheetsGenerated": false,
+    "screenshotsUse": "QA evidence only, never game assets."
+  },
+  "limitations": [
+    "Initial Google configuration/profile blocker was resolved on 2026-10-04; see docs/qa/firebase-google/verification.json.",
+    "Physical Android Google sign-in, OS notification permissions/FCM delivery and safe-area behavior were not tested.",
+    "Terms and privacy copy is a prototype draft, not a finalized release legal document."
+  ],
+  "productionWrites": "No production notice, reward mail, push broadcast or store release performed during entry work.",
+  "proof": "overview-ko.jpg: actual title, login, tutorial and collapsed menu captures.",
+  "followup": {
+    "verification": "../firebase-google/verification.json",
+    "google": "Enabled under 미정 / admin.ttsoft@gmail.com; actual web Google authentication, same UID, master 2/tutorial step 3 restored.",
+    "android": "Rebuilt with project OAuth configuration; current APK hash and bytes are in the follow-up report."
+  }
+}

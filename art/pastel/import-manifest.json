@@ -1,0 +1,1067 @@
+[
+  {
+    "file": "assets/resources/ui/pastel/actors/guardian.png",
+    "source": "actors.png",
+    "crop": [
+      0,
+      0,
+      330,
+      320
+    ],
+    "visibleCrop": [
+      44,
+      73,
+      321,
+      309
+    ],
+    "size": 192,
+    "sha256": "0160509e8454174e14d68f9f238ef00302ea46ce3563812bac070cfc7ba4084f"
+  },
+  {
+    "file": "assets/resources/ui/pastel/actors/rowen.png",
+    "source": "actors.png",
+    "crop": [
+      330,
+      0,
+      637,
+      320
+    ],
+    "visibleCrop": [
+      49,
+      57,
+      275,
+      312
+    ],
+    "size": 192,
+    "sha256": "3596f327e0ac708309ee028eb211cf54a3a6eeabbf8a4ee018e5f369973eca85"
+  },
+  {
+    "file": "assets/resources/ui/pastel/actors/kael.png",
+    "source": "actors.png",
+    "crop": [
+      637,
+      0,
+      955,
+      320
+    ],
+    "visibleCrop": [
+      23,
+      61,
+      266,
+      312
+    ],
+    "size": 192,
+    "sha256": "45ae8af64adb692afa72c909f1e4f8609877236add2118b9e224fbc49c962d64"
+  },
+  {
+    "file": "assets/resources/ui/pastel/actors/sera.png",
+    "source": "actors.png",
+    "crop": [
+      955,
+      0,
+      1254,
+      320
+    ],
+    "visibleCrop": [
+      61,
+      63,
+      235,
+      312
+    ],
+    "size": 192,
+    "sha256": "47b95f8993314486b28c31cb7461803ce790cabfbb02d3114da2db08085b1a09"
+  },
+  {
+    "file": "assets/resources/ui/pastel/actors/golem.png",
+    "source": "actors.png",
+    "crop": [
+      0,
+      320,
+      330,
+      630
+    ],
+    "visibleCrop": [
+      24,
+      15,
+      323,
+      301
+    ],
+    "size": 192,
+    "sha256": "5e7d33d582ebd5670898b081105fb976d0c71add187687fbcb3700bc861d20d1"
+  },
+  {
+    "file": "assets/resources/ui/pastel/actors/forest-wolf.png",
+    "source": "actors.png",
+    "crop": [
+      330,
+      320,
+      637,
+      630
+    ],
+    "visibleCrop": [
+      23,
+      72,
+      276,
+      310
+    ],
+    "size": 192,
+    "sha256": "27997353a9d1650be9a3065f85cbb410a3673d76afac37b2cae0a1c5d0706c95"
+  },
+  {
+    "file": "assets/resources/ui/pastel/actors/spectral-knight.png",
+    "source": "actors.png",
+    "crop": [
+      637,
+      320,
+      955,
+      630
+    ],
+    "visibleCrop": [
+      10,
+      8,
+      278,
+      297
+    ],
+    "size": 192,
+    "sha256": "263afe9bfc531e83de8866172ee9c2f14404a0d0c6d7bd4addc6256bc4d808cf"
+  },
+  {
+    "file": "assets/resources/ui/pastel/actors/flame-spirit.png",
+    "source": "actors.png",
+    "crop": [
+      955,
+      320,
+      1254,
+      630
+    ],
+    "visibleCrop": [
+      44,
+      14,
+      267,
+      308
+    ],
+    "size": 192,
+    "sha256": "176831d377d1d1c538c63f9656cc3f202b991c4d0c25858b2b78f8f419940b1e"
+  },
+  {
+    "file": "assets/resources/ui/pastel/actors/ember-fox.png",
+    "source": "actors.png",
+    "crop": [
+      0,
+      630,
+      330,
+      909
+    ],
+    "visibleCrop": [
+      32,
+      22,
+      291,
+      268
+    ],
+    "size": 192,
+    "sha256": "63e83657e99e10481fc3a914f0591dcefc7975ee08b5bb60f33d721dc20ab31d"
+  },
+  {
+    "file": "assets/resources/ui/pastel/actors/stone-hawk.png",
+    "source": "actors.png",
+    "crop": [
+      330,
+      630,
+      637,
+      909
+    ],
+    "visibleCrop": [
+      5,
+      0,
+      281,
+      279
+    ],
+    "size": 192,
+    "sha256": "37d8f827fb94ec13f269b9e834ab126a9b3de0fc74821bc41e81398235cd98b9"
+  },
+  {
+    "file": "assets/resources/ui/pastel/actors/shade-wolf.png",
+    "source": "actors.png",
+    "crop": [
+      637,
+      630,
+      955,
+      909
+    ],
+    "visibleCrop": [
+      3,
+      28,
+      285,
+      279
+    ],
+    "size": 192,
+    "sha256": "1e6c1cf3ea89673af4adfefa9c9063d27119f7747afd63637918c32966897b9c"
+  },
+  {
+    "file": "assets/resources/ui/pastel/actors/fairy.png",
+    "source": "actors.png",
+    "crop": [
+      955,
+      630,
+      1254,
+      909
+    ],
+    "visibleCrop": [
+      58,
+      12,
+      230,
+      279
+    ],
+    "size": 192,
+    "sha256": "dee41537876fdbfa57144ab2df391b178711aa187f54ee339144e5c359dc14ea"
+  },
+  {
+    "file": "assets/resources/ui/pastel/actors/skeleton.png",
+    "source": "actors.png",
+    "crop": [
+      0,
+      909,
+      330,
+      1254
+    ],
+    "visibleCrop": [
+      24,
+      13,
+      304,
+      300
+    ],
+    "size": 192,
+    "sha256": "055b5c9e488e606753c9d5aaed2939bd41a5763a864f87a3bc689debbbe786fd"
+  },
+  {
+    "file": "assets/resources/ui/pastel/actors/tree-boss.png",
+    "source": "actors.png",
+    "crop": [
+      330,
+      909,
+      637,
+      1254
+    ],
+    "visibleCrop": [
+      5,
+      0,
+      295,
+      303
+    ],
+    "size": 192,
+    "sha256": "f757fee8713280f58062f2042b0f705eaf5ab4da5caa1ceef65f4ab15228c4e2"
+  },
+  {
+    "file": "assets/resources/ui/pastel/actors/ice-boss.png",
+    "source": "actors.png",
+    "crop": [
+      637,
+      909,
+      955,
+      1254
+    ],
+    "visibleCrop": [
+      6,
+      0,
+      300,
+      303
+    ],
+    "size": 192,
+    "sha256": "8cbd130ef8d5700c7d51d24abdf6cd7ec75efe433fc69337b442883586855418"
+  },
+  {
+    "file": "assets/resources/ui/pastel/actors/crystal-boss.png",
+    "source": "actors.png",
+    "crop": [
+      955,
+      909,
+      1254,
+      1254
+    ],
+    "visibleCrop": [
+      4,
+      0,
+      287,
+      301
+    ],
+    "size": 192,
+    "sha256": "d073a90548f08633c87c4bdbb16e0773b7ab5e000dbb1ba9d59434612b968fb9"
+  },
+  {
+    "file": "assets/resources/ui/pastel/icons/sword.png",
+    "source": "icons.png",
+    "crop": [
+      0,
+      0,
+      319,
+      357
+    ],
+    "visibleCrop": [
+      41,
+      66,
+      309,
+      330
+    ],
+    "size": 96,
+    "sha256": "ecc57387180b1356b42e545336ee67dfae1be5d4f78e8bbf914f0e2a552a8b77"
+  },
+  {
+    "file": "assets/resources/ui/pastel/icons/adventurer.png",
+    "source": "icons.png",
+    "crop": [
+      319,
+      0,
+      630,
+      357
+    ],
+    "visibleCrop": [
+      20,
+      51,
+      290,
+      348
+    ],
+    "size": 96,
+    "sha256": "95c8f8df6afd2d9865eddb19b6146690039251f064bdb30cadeb20d8a6a713a6"
+  },
+  {
+    "file": "assets/resources/ui/pastel/icons/armor.png",
+    "source": "icons.png",
+    "crop": [
+      630,
+      0,
+      956,
+      357
+    ],
+    "visibleCrop": [
+      7,
+      91,
+      304,
+      330
+    ],
+    "size": 96,
+    "sha256": "5085ce7e258cdbc91be91638954c85e1b1a561596621360a2bd1cd421c3e0838"
+  },
+  {
+    "file": "assets/resources/ui/pastel/icons/fox.png",
+    "source": "icons.png",
+    "crop": [
+      956,
+      0,
+      1254,
+      357
+    ],
+    "visibleCrop": [
+      19,
+      44,
+      267,
+      352
+    ],
+    "size": 96,
+    "sha256": "1c3c59b310e9dbba97743ab082fa85f93ffaf5f8365f20f192db02ccebc35cf5"
+  },
+  {
+    "file": "assets/resources/ui/pastel/icons/heart.png",
+    "source": "icons.png",
+    "crop": [
+      0,
+      357,
+      319,
+      640
+    ],
+    "visibleCrop": [
+      43,
+      46,
+      294,
+      260
+    ],
+    "size": 96,
+    "sha256": "7c1c8a01dc8a3a3d55a6437b159fcf109a2247ce3e6f2c999113deb1f75021fc"
+  },
+  {
+    "file": "assets/resources/ui/pastel/icons/chest.png",
+    "source": "icons.png",
+    "crop": [
+      319,
+      357,
+      630,
+      640
+    ],
+    "visibleCrop": [
+      19,
+      45,
+      288,
+      259
+    ],
+    "size": 96,
+    "sha256": "01cfac3cf0586e43cba1b78171bdadf6574968f85fb1fc0ba1c9d558f7edfa8b"
+  },
+  {
+    "file": "assets/resources/ui/pastel/icons/cards.png",
+    "source": "icons.png",
+    "crop": [
+      630,
+      357,
+      956,
+      640
+    ],
+    "visibleCrop": [
+      0,
+      45,
+      306,
+      257
+    ],
+    "size": 96,
+    "sha256": "e8aa7570be68cab00c2425c99f4ce3d0608af9c9ef6677c970859263af44d9dc"
+  },
+  {
+    "file": "assets/resources/ui/pastel/icons/lightning.png",
+    "source": "icons.png",
+    "crop": [
+      956,
+      357,
+      1254,
+      640
+    ],
+    "visibleCrop": [
+      47,
+      32,
+      240,
+      279
+    ],
+    "size": 96,
+    "sha256": "98c2cb7da74e6c8d7875085b42668641209060640d106df6ef320c2401a1f1f4"
+  },
+  {
+    "file": "assets/resources/ui/pastel/icons/trophy.png",
+    "source": "icons.png",
+    "crop": [
+      0,
+      640,
+      319,
+      916
+    ],
+    "visibleCrop": [
+      40,
+      19,
+      297,
+      255
+    ],
+    "size": 96,
+    "sha256": "9f38f202ccdc77f13c1473925666ee98c1e0d75b2e7c07dd844b85b2c9a4afef"
+  },
+  {
+    "file": "assets/resources/ui/pastel/icons/mail.png",
+    "source": "icons.png",
+    "crop": [
+      319,
+      640,
+      630,
+      916
+    ],
+    "visibleCrop": [
+      31,
+      49,
+      282,
+      232
+    ],
+    "size": 96,
+    "sha256": "325306d4738eb29fdc3d80c59b00fff5e8fa0eb91704fc37f7a1a69391575b9a"
+  },
+  {
+    "file": "assets/resources/ui/pastel/icons/settings.png",
+    "source": "icons.png",
+    "crop": [
+      630,
+      640,
+      956,
+      916
+    ],
+    "visibleCrop": [
+      29,
+      20,
+      285,
+      276
+    ],
+    "size": 96,
+    "sha256": "9da8dff5f7e4be2b0d82574354829bd8389f821a7ed9126134b78af548c2febd"
+  },
+  {
+    "file": "assets/resources/ui/pastel/icons/rebirth.png",
+    "source": "icons.png",
+    "crop": [
+      956,
+      640,
+      1254,
+      916
+    ],
+    "visibleCrop": [
+      24,
+      2,
+      262,
+      269
+    ],
+    "size": 96,
+    "sha256": "37e7179952981f08db9c6619cd9dfec57640757d6aa5d458e5f70719faab669c"
+  },
+  {
+    "file": "assets/resources/ui/pastel/icons/egg.png",
+    "source": "icons.png",
+    "crop": [
+      0,
+      916,
+      319,
+      1254
+    ],
+    "visibleCrop": [
+      41,
+      20,
+      283,
+      289
+    ],
+    "size": 96,
+    "sha256": "a45dbaaa01a81a7b97aef2b07e60a7ae760bf3bdf427a469f34785acd1541306"
+  },
+  {
+    "file": "assets/resources/ui/pastel/icons/scroll.png",
+    "source": "icons.png",
+    "crop": [
+      319,
+      916,
+      630,
+      1254
+    ],
+    "visibleCrop": [
+      14,
+      11,
+      291,
+      296
+    ],
+    "size": 96,
+    "sha256": "ea51b6eda2e3e74bd7d56ec650635dcbb82645205aa43630d75afe43004c96a2"
+  },
+  {
+    "file": "assets/resources/ui/pastel/icons/flag.png",
+    "source": "icons.png",
+    "crop": [
+      630,
+      916,
+      956,
+      1254
+    ],
+    "visibleCrop": [
+      45,
+      0,
+      286,
+      288
+    ],
+    "size": 96,
+    "sha256": "8bad33d81ee1a46faeb210825228de75af53389e017630f393e0f1c5ac0677d2"
+  },
+  {
+    "file": "assets/resources/ui/pastel/icons/lock.png",
+    "source": "icons.png",
+    "crop": [
+      956,
+      916,
+      1254,
+      1254
+    ],
+    "visibleCrop": [
+      24,
+      22,
+      256,
+      290
+    ],
+    "size": 96,
+    "sha256": "204d91553e343b69b9bc9b5c9aa8c84421e9591530f421b76c47297bea952126"
+  },
+  {
+    "file": "assets/resources/ui/pastel/popup/primary.png",
+    "source": "surfaces-flat.png",
+    "crop": [
+      0,
+      0,
+      418,
+      418
+    ],
+    "visibleCrop": null,
+    "size": 128,
+    "sha256": "eedb84e87326ae61584a54b252bf9515235e28f632e7aca768051adaf3b5c6ab"
+  },
+  {
+    "file": "assets/resources/ui/pastel/popup/secondary.png",
+    "source": "surfaces-flat.png",
+    "crop": [
+      418,
+      0,
+      836,
+      418
+    ],
+    "visibleCrop": null,
+    "size": 128,
+    "sha256": "fc16e1cfc4e71f60c1ed08c3f3b1d8cadec00f08653900100933ed9b362117f9"
+  },
+  {
+    "file": "assets/resources/ui/pastel/popup/quiet.png",
+    "source": "surfaces-flat.png",
+    "crop": [
+      836,
+      0,
+      1254,
+      418
+    ],
+    "visibleCrop": null,
+    "size": 128,
+    "sha256": "6d621d0470e7b61a69cc35203183b09ed9529baded90911b34739423702da0e7"
+  },
+  {
+    "file": "assets/resources/ui/pastel/popup/selected.png",
+    "source": "surfaces-flat.png",
+    "crop": [
+      0,
+      418,
+      418,
+      836
+    ],
+    "visibleCrop": null,
+    "size": 128,
+    "sha256": "ccdbb7dee4fb6e70080bce797540cda80291bfd373f7504992655d32f1cdb30e"
+  },
+  {
+    "file": "assets/resources/ui/pastel/popup/disabled.png",
+    "source": "surfaces-flat.png",
+    "crop": [
+      418,
+      418,
+      836,
+      836
+    ],
+    "visibleCrop": null,
+    "size": 128,
+    "sha256": "792c375511bf82d7c90edf3474404ba107c37b1c9d5420bceb560b5534288f4b"
+  },
+  {
+    "file": "assets/resources/ui/pastel/popup/danger.png",
+    "source": "surfaces-flat.png",
+    "crop": [
+      836,
+      418,
+      1254,
+      836
+    ],
+    "visibleCrop": null,
+    "size": 128,
+    "sha256": "08f158524ac28441e5c202e3b9f6bbf0a69ec40c3d8c32636fbf71cb82841bf2"
+  },
+  {
+    "file": "assets/resources/ui/pastel/popup/panel.png",
+    "source": "surfaces-flat.png",
+    "crop": [
+      0,
+      836,
+      418,
+      1254
+    ],
+    "visibleCrop": null,
+    "size": 128,
+    "sha256": "ea1fff9908ec44a82443eb9199b60c43f4c7e38af87a7a03b7885bc55fb70c23"
+  },
+  {
+    "file": "assets/resources/ui/pastel/popup/card.png",
+    "source": "surfaces-flat.png",
+    "crop": [
+      418,
+      836,
+      836,
+      1254
+    ],
+    "visibleCrop": null,
+    "size": 128,
+    "sha256": "0f0e8999b9ee6808b1a3198d948ce87babb27038a47cbc875cfcd4fecd044ef5"
+  },
+  {
+    "file": "assets/resources/ui/pastel/popup/slate.png",
+    "source": "surfaces-flat.png",
+    "crop": [
+      836,
+      836,
+      1254,
+      1254
+    ],
+    "visibleCrop": null,
+    "size": 128,
+    "sha256": "f6274850b0c98fd8155f137cc8997f7db5253503d900c5d6eac3290f8c0ff791"
+  },
+  {
+    "file": "assets/resources/ui/pastel/world/0.png",
+    "source": "world.png",
+    "crop": [
+      0,
+      0,
+      627,
+      627
+    ],
+    "visibleCrop": null,
+    "size": 480,
+    "sha256": "6daf21df679ec4ba078d6502da7995b192bc83c695466f15148d3aa774bd7783"
+  },
+  {
+    "file": "assets/resources/ui/pastel/world/1.png",
+    "source": "world.png",
+    "crop": [
+      627,
+      0,
+      1254,
+      627
+    ],
+    "visibleCrop": null,
+    "size": 480,
+    "sha256": "c6e52402153240a34e08fdbf6010b02695481e9dd70e9e16e36752c9bdf930ff"
+  },
+  {
+    "file": "assets/resources/ui/pastel/world/2.png",
+    "source": "world.png",
+    "crop": [
+      0,
+      627,
+      627,
+      1254
+    ],
+    "visibleCrop": null,
+    "size": 480,
+    "sha256": "90fc203b399c3de41896fc16019a4b69355a063b2081668b28538e31261c3780"
+  },
+  {
+    "file": "assets/resources/ui/pastel/world/3.png",
+    "source": "world.png",
+    "crop": [
+      627,
+      627,
+      1254,
+      1254
+    ],
+    "visibleCrop": null,
+    "size": 480,
+    "sha256": "9c862cef8d1f95fed839ca8c4ecf2edb5e8cfd26def22fc864345202ace3aa15"
+  },
+  {
+    "file": "assets/resources/ui/pastel/faces/guardian.png",
+    "source": "faces.png",
+    "crop": [
+      0,
+      0,
+      314,
+      350
+    ],
+    "visibleCrop": [
+      15,
+      46,
+      302,
+      335
+    ],
+    "size": 96,
+    "sha256": "45984529939f140044345534e5a55628eedbad4d4472da32229f84ee089d10ea"
+  },
+  {
+    "file": "assets/resources/ui/pastel/faces/rowen.png",
+    "source": "faces.png",
+    "crop": [
+      314,
+      0,
+      627,
+      350
+    ],
+    "visibleCrop": [
+      7,
+      56,
+      300,
+      335
+    ],
+    "size": 96,
+    "sha256": "067b451965c5ef7c88adf673d5e99c8e8956292fe29dc9d132d0265655fe9c09"
+  },
+  {
+    "file": "assets/resources/ui/pastel/faces/kael.png",
+    "source": "faces.png",
+    "crop": [
+      627,
+      0,
+      941,
+      350
+    ],
+    "visibleCrop": [
+      13,
+      63,
+      306,
+      335
+    ],
+    "size": 96,
+    "sha256": "61705e9347d8d621ee42be7208f235920ead103632f87927e2895cfda3c0c2b9"
+  },
+  {
+    "file": "assets/resources/ui/pastel/faces/sera.png",
+    "source": "faces.png",
+    "crop": [
+      941,
+      0,
+      1254,
+      350
+    ],
+    "visibleCrop": [
+      12,
+      45,
+      296,
+      336
+    ],
+    "size": 96,
+    "sha256": "2ee4daf0878b97fa530ebab8ec3f61f507518d5f4e16097e7b66dc29a8e00680"
+  },
+  {
+    "file": "assets/resources/ui/pastel/faces/blade.png",
+    "source": "faces.png",
+    "crop": [
+      0,
+      350,
+      314,
+      630
+    ],
+    "visibleCrop": [
+      37,
+      10,
+      289,
+      269
+    ],
+    "size": 96,
+    "sha256": "d9820d29171ddbf26cee4dc7533f0fc6f1d4eb2fbc65b96ab437e41ff7f821fc"
+  },
+  {
+    "file": "assets/resources/ui/pastel/faces/helmet.png",
+    "source": "faces.png",
+    "crop": [
+      314,
+      350,
+      627,
+      630
+    ],
+    "visibleCrop": [
+      24,
+      13,
+      260,
+      280
+    ],
+    "size": 96,
+    "sha256": "a238122ca97dcd80181a9e021bad5032ed4dcb69b3bc4aa85a988208ecee0042"
+  },
+  {
+    "file": "assets/resources/ui/pastel/faces/breastplate.png",
+    "source": "faces.png",
+    "crop": [
+      627,
+      350,
+      941,
+      630
+    ],
+    "visibleCrop": [
+      13,
+      31,
+      302,
+      266
+    ],
+    "size": 96,
+    "sha256": "0f788cc40a87df2586770ffa41cb65b5c2bc9934377474e8d35378042125f9ac"
+  },
+  {
+    "file": "assets/resources/ui/pastel/faces/aura.png",
+    "source": "faces.png",
+    "crop": [
+      941,
+      350,
+      1254,
+      630
+    ],
+    "visibleCrop": [
+      43,
+      16,
+      272,
+      274
+    ],
+    "size": 96,
+    "sha256": "cadf72d72cc08c8825840a4fd218b7b6cfd0afecd185b67fc2185261945b72bb"
+  },
+  {
+    "file": "assets/resources/ui/pastel/faces/ember-fox.png",
+    "source": "faces.png",
+    "crop": [
+      0,
+      630,
+      314,
+      930
+    ],
+    "visibleCrop": [
+      22,
+      3,
+      314,
+      288
+    ],
+    "size": 96,
+    "sha256": "ce8ea087c9bbf810edf02066e201c4071e392c5f1516b18f165b0221581ee7ca"
+  },
+  {
+    "file": "assets/resources/ui/pastel/faces/stone-hawk.png",
+    "source": "faces.png",
+    "crop": [
+      314,
+      630,
+      627,
+      930
+    ],
+    "visibleCrop": [
+      0,
+      0,
+      300,
+      279
+    ],
+    "size": 96,
+    "sha256": "7d15466a73bcc685589f7aa0dca7bc4524c60dcfe7e497f30f84500362d9507a"
+  },
+  {
+    "file": "assets/resources/ui/pastel/faces/shade-wolf.png",
+    "source": "faces.png",
+    "crop": [
+      627,
+      630,
+      941,
+      930
+    ],
+    "visibleCrop": [
+      7,
+      13,
+      303,
+      286
+    ],
+    "size": 96,
+    "sha256": "e1b446e82fee76a97b685ed7c7dbfae8411266191888bbd371ba9003a0f3e181"
+  },
+  {
+    "file": "assets/resources/ui/pastel/faces/crown.png",
+    "source": "faces.png",
+    "crop": [
+      941,
+      630,
+      1254,
+      930
+    ],
+    "visibleCrop": [
+      25,
+      56,
+      292,
+      261
+    ],
+    "size": 96,
+    "sha256": "bf6b17662393b07a357b8ac8dcf8e1570a815aa6a0dad479dfd3d3caf73dfffa"
+  },
+  {
+    "file": "assets/resources/ui/pastel/faces/compass.png",
+    "source": "faces.png",
+    "crop": [
+      0,
+      930,
+      314,
+      1254
+    ],
+    "visibleCrop": [
+      32,
+      8,
+      296,
+      272
+    ],
+    "size": 96,
+    "sha256": "890e6a6f5f1fa37e3864e70827577221ff8ce2247e4d707a796d9ca496937be5"
+  },
+  {
+    "file": "assets/resources/ui/pastel/faces/gems.png",
+    "source": "faces.png",
+    "crop": [
+      314,
+      930,
+      627,
+      1254
+    ],
+    "visibleCrop": [
+      26,
+      16,
+      292,
+      268
+    ],
+    "size": 96,
+    "sha256": "228d6799b60ec6122261c4f188b7d1aeee464ca476b85afebf24a8fc4d60240a"
+  },
+  {
+    "file": "assets/resources/ui/pastel/faces/supplies.png",
+    "source": "faces.png",
+    "crop": [
+      627,
+      930,
+      941,
+      1254
+    ],
+    "visibleCrop": [
+      27,
+      16,
+      284,
+      274
+    ],
+    "size": 96,
+    "sha256": "8b35d83bda3cb319615dc5ab124347bdbe765eaacb51ae119fa5f957095da3f3"
+  },
+  {
+    "file": "assets/resources/ui/pastel/faces/laurel.png",
+    "source": "faces.png",
+    "crop": [
+      941,
+      930,
+      1254,
+      1254
+    ],
+    "visibleCrop": [
+      18,
+      17,
+      298,
+      273
+    ],
+    "size": 96,
+    "sha256": "3a5db0b3ea11f7f56df1ab19a360ea79b38c334bb7d2473945fd41cfa23da3fc"
+  },
+  {
+    "file": "assets/resources/ui/pastel/skins/panel.png",
+    "source": "surfaces-flat.png",
+    "crop": null,
+    "visibleCrop": null,
+    "size": 128,
+    "sha256": "0f0e8999b9ee6808b1a3198d948ce87babb27038a47cbc875cfcd4fecd044ef5"
+  },
+  {
+    "file": "assets/resources/ui/pastel/skins/teal.png",
+    "source": "surfaces-flat.png",
+    "crop": null,
+    "visibleCrop": null,
+    "size": 128,
+    "sha256": "fc16e1cfc4e71f60c1ed08c3f3b1d8cadec00f08653900100933ed9b362117f9"
+  },
+  {
+    "file": "assets/resources/ui/pastel/skins/orange.png",
+    "source": "surfaces-flat.png",
+    "crop": null,
+    "visibleCrop": null,
+    "size": 128,
+    "sha256": "eedb84e87326ae61584a54b252bf9515235e28f632e7aca768051adaf3b5c6ab"
+  },
+  {
+    "file": "assets/resources/ui/pastel/skins/neutral.png",
+    "source": "surfaces-flat.png",
+    "crop": null,
+    "visibleCrop": null,
+    "size": 128,
+    "sha256": "792c375511bf82d7c90edf3474404ba107c37b1c9d5420bceb560b5534288f4b"
+  }
+]

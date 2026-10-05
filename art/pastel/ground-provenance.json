@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-04",
+  "route": "Logged-in Chrome 덕하 profile, new ChatGPT tab, original PNG download",
+  "conversation": "https://chatgpt.com/c/6ac1dfa5-0a4c-83ec-97f7-dc605379ec74",
+  "originalDownload": "파스텔 픽셀 플랫폼 타일셋.png",
+  "original": "art/pastel/source/ground-original.png",
+  "sha256": "55f938930dc7abcca4a9f193b8aed14c3841345d7047c7721a19ad66a50bf851",
+  "dimensions": [
+    1254,
+    1254
+  ],
+  "actualAlpha": [
+    0,
+    255
+  ],
+  "accepted": true,
+  "staticSprites": 4,
+  "promptSummary": "2x2 atlas of broad continuous foreground terrain floors with flat perspective top planes and dense rock fronts; mint grass, peach canyon, aqua snow, mint ruins; crisp pastel 16-bit pixels; no characters, UI, animation or text. Full prompt retained in source conversation.",
+  "inspection": "Original downloaded and opened locally. Real alpha verified. Cropped sprites preserve alpha and aspect ratio with nearest sampling. Central walking rows calibrated per biome."
+}

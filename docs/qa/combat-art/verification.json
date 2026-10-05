@@ -1,0 +1,200 @@
+{
+  "verifiedAt": "2026-10-04",
+  "engine": "Cocos Creator 3.8.8",
+  "scene": "assets/scenes/Main.scene",
+  "output": "build/web-mobile",
+  "names": {
+    "heroes": 24,
+    "spirits": 12,
+    "relics": 30,
+    "spells": 6,
+    "guardianTitle": "Ridge Guardian / 능선 수호자",
+    "referenceExactNameMatches": 0,
+    "stableSaveIds": true
+  },
+  "art": {
+    "sprites": 9,
+    "original": "art/pastel/source/combat-fx-original.png",
+    "route": "Chrome 덕하 ChatGPT original download",
+    "actualAlpha": true,
+    "staticAtlas": true,
+    "characterMotionSheets": false,
+    "nearestFiltering": true,
+    "runtimePaths": [
+      "tap slash and impact",
+      "hit particles",
+      "three ally projectile roles",
+      "spell cast ring and shards",
+      "defeat burst and debris"
+    ]
+  },
+  "validation": {
+    "typescript": "passed",
+    "coreTests": 81,
+    "serverTests": 28,
+    "webBuild": "passed",
+    "runtime": {
+      "reports": [
+        {
+          "locale": "ko",
+          "spriteCap": 72,
+          "allSprites": true,
+          "damage": true,
+          "cleanup": 0,
+          "effectsOff": true,
+          "errors": []
+        },
+        {
+          "locale": "en",
+          "spriteCap": 72,
+          "allSprites": true,
+          "damage": true,
+          "cleanup": 0,
+          "effectsOff": true,
+          "errors": []
+        }
+      ],
+      "errors": []
+    },
+    "viewports": [
+      [
+        390,
+        844
+      ],
+      [
+        320,
+        640
+      ]
+    ],
+    "localeScreens": [
+      "ko guardian/companions/spirits/relics",
+      "en guardian/companions/spirits/relics",
+      "short ko companions",
+      "short en companions/spirits/relics"
+    ],
+    "visualInspection": "Opened original, derived contact, ko/en rendered game captures and short browser view. Names fit list columns; VFX preserve actor visibility and pastel palette.",
+    "limitations": "Local desktop Chrome QA; native device rendering not verified. Isolated runtime fixture bypasses entry for visual testing only and makes no server/account writes."
+  },
+  "screens": [
+    {
+      "path": "docs/qa/combat-art/screens/outrun-browser-ally-shots-ko.jpg",
+      "sha256": "7369e455408309050db02631614c94f5ca207530a1773108935bb75bceb44c8d"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-browser-companions-en.jpg",
+      "sha256": "b5eb026cc479bf36b996e22dfd55072289ee7347c11371202e2c4663ead0e63b"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-browser-companions-ko.jpg",
+      "sha256": "65282ea01717f6008bdceba4ce3231c4e760b980aa52bc96c47d1c99c20f9c8b"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-browser-defeat-ko.jpg",
+      "sha256": "cd468520bbfef8f246e48f47124159e78d2aec162dfb68dfde3d97d1485e2f69"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-browser-magic-ko.jpg",
+      "sha256": "215237eb411b6bf13c39951f61e589e33b574afd1b94a2e732bbd850f237ae4d"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-browser-relics-en.jpg",
+      "sha256": "1caf37052829e0c27626bf0b3a8e06fc2697ba651f9b7479d97c3bacf341bc82"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-browser-relics-ko.jpg",
+      "sha256": "8b02df2ccec061d703512469cf97626ad0bf2ac5898a3ab284f5d0cb8f588c48"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-browser-short-companions-en.jpg",
+      "sha256": "9117e2be316fd25ec3bcd86dba4bb199792d60a622303b9ce28f185a671cd081"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-browser-short-companions-ko.jpg",
+      "sha256": "5e22356c5689c9a7b0b13ec888eed350e7f6259472d16b2d3b6d0ddfb7908d19"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-browser-short-relics-en.jpg",
+      "sha256": "c0805fb4968a990e64194a8b747050d578df6fb331be128c33edeb4d16ed2294"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-browser-short-spirits-en.jpg",
+      "sha256": "76e9f81a861ff5c9a95700e8d6a01308543ae0ec5e6f5c89db6eb6688bdef620"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-browser-spirits-en.jpg",
+      "sha256": "1b87d9f03f48e11236bc07c5fa9174a6d1547b5c564331e1568264ac2225ccdd"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-browser-spirits-ko.jpg",
+      "sha256": "85a3746587787adb8215b2a7d74536199dfcd22c996feb4b5be38da443e920c9"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-browser-tap-hit-en.jpg",
+      "sha256": "9b304c92bb42f5c3fc6de679bd4b6f4d3f265e7190d8a53f97de320bdc495532"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-browser-tap-hit-ko.jpg",
+      "sha256": "29a39ec9d6607476025b1b08dd353696759e671bef434dbd3d4f36bce25e377b"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-game-ally-shots-ko.jpg",
+      "sha256": "79c2b6b51ebb8fa892e71a32784272a8f17237478c12e37105472e60204671a5"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-game-companions-en.jpg",
+      "sha256": "53c323537626eda38a6d6d4289bec23b0c17b15986f5ebda80135feceba82712"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-game-companions-ko.jpg",
+      "sha256": "380bc80ab7f3ef7a34e1d704d043b907a89b6bf1fb4d52f9765b2e77c876ce1f"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-game-defeat-ko.jpg",
+      "sha256": "ae20332f78b9c88d9c366c840dda072c86207b78da042911e29dc9671ead948b"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-game-magic-ko.jpg",
+      "sha256": "c76b27170dbe8173dfa5d7912fcefe7d2594aecfc26d0a2f6026eb8c0e50b77b"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-game-relics-en.jpg",
+      "sha256": "55e6365324db6fcdb3652e2f7343067f62b193f1166560328cef924d05940dc6"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-game-relics-ko.jpg",
+      "sha256": "f8e89ba5669f3c167cb30d3102f94b3f2baa65dee3ec474fd0630552d7751c3e"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-game-short-companions-en.jpg",
+      "sha256": "cab3f4229f9ee927ddca650ced3dfd543204b2531467cc81bc5581d4c969504f"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-game-short-companions-ko.jpg",
+      "sha256": "82acaa67250d5854b1b954e8ef504356739bb7803563ef7f3597a9dff7e60fc5"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-game-short-relics-en.jpg",
+      "sha256": "99c5dee54bbb4de9ebd724cbb8ac6552f4e6b23416a7ce3704a297c0664bbacd"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-game-short-spirits-en.jpg",
+      "sha256": "2454dcec1a9b6717703f8a9a2945af101e5917b9796279da40e93287b2b377aa"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-game-spirits-en.jpg",
+      "sha256": "c0c33e5f19446cc34d661856e6c584ae3641964b9814d880b3f7230bf3ea2965"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-game-spirits-ko.jpg",
+      "sha256": "5901c18676ae9403314eb2928dcef1e03f19d367e880b5dd859db32c0234034c"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-game-tap-hit-en.jpg",
+      "sha256": "70d4f8a499a0e3b96dff88742c549d0ce53d16b6abfd56da6e4b4bd89ff19de9"
+    },
+    {
+      "path": "docs/qa/combat-art/screens/outrun-game-tap-hit-ko.jpg",
+      "sha256": "71c3f1fc52c75db380d27aee140a45d242039a47b023f48e016a0842cb29ffb8"
+    }
+  ]
+}

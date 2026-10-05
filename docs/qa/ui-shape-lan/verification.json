@@ -1,0 +1,79 @@
+{
+  "recordedAt": "2026-10-04T15:49:33.269472+00:00",
+  "version": "0.1.0",
+  "engine": "Cocos Creator 3.8.8",
+  "startScene": "assets/scenes/Main.scene",
+  "build": "build/web-mobile",
+  "mainBundle": "index.63225.js",
+  "urls": {
+    "wifi": "http://192.168.45.201:8880/",
+    "ethernet": "http://192.168.55.170:8880/"
+  },
+  "server": "Detached Node process; scripts/share-lan.cjs; restart with npm run share:lan",
+  "style": [
+    "Crumble open pastel surfaces and contrast balance",
+    "Persona 5 reference: asymmetrical title silhouettes, slanted primary buttons, diamond stage badges, raised selected tabs",
+    "Ivory open management surface, ink navigation, focused peach/sky/lavender/sage/gold accents",
+    "Original approved actor and world sprites retained; no new bitmap or motion sheets generated",
+    "Icon/number stats; artifact effect shows actual level/enchantment multiplier"
+  ],
+  "checks": {
+    "typescript": "passed",
+    "tests": {
+      "core": 81,
+      "server": 28,
+      "failed": 0
+    },
+    "build": "finished 2026-10-05 00:46:03 KST",
+    "locales": [
+      "ko",
+      "en"
+    ],
+    "tabs": [
+      "guardian",
+      "heroes",
+      "equipment",
+      "spirits",
+      "relics",
+      "shop"
+    ],
+    "details": [
+      "equipment",
+      "hero",
+      "pet",
+      "artifact"
+    ],
+    "smallScreen": "360x640 local QA; collapse/expand exercised, override reset",
+    "lan": [
+      "Wi-Fi IPv4 HTTP200",
+      "Guest Firebase authentication and production operations/save calls via same-origin fixed-upstream bridge",
+      "Prototype documents read to end; notification decline permits entry",
+      "Battle taps, guardian upgrade, recruit Rowen, all six tutorial steps completed",
+      "Reload restores guardian2, Rowen1 and completed tutorial; offline reward claimed"
+    ],
+    "protectedSale": "Locked/equipped item shows protection toast and no sale prompt",
+    "artifactValues": "Level4 ×1.88 and level2 ×1.44 visually verified KO/EN",
+    "runtime": {
+      "lan": [],
+      "qa": []
+    },
+    "bridgeSecurity": [
+      "Fixed Firebase upstream only; same-origin frontend bridge only",
+      "Unapproved paths404; anonymous save401; policy200",
+      "No auth tokens stored/logged by LAN proxy",
+      "Source maps404"
+    ]
+  },
+  "limitations": [
+    "Actual phone on Wi-Fi not available for remote-device verification; IP tested in Chrome on this Mac",
+    "Google OAuth at private IP not tested; use guest for LAN preview",
+    "LAN URL requires Mac awake and server running; router client isolation can prevent other devices connecting",
+    "Physical Android not rebuilt in this iteration",
+    "Long-press hint gesture not exercised"
+  ],
+  "references": [
+    "docs/art-references/cookierun-crumble/",
+    "docs/art-references/atlus/sources.json"
+  ],
+  "data": "All-tab QA uses synthetic fixture in cloned .prototype-ui-clarity-qa database. LAN guest uses its own actual Firebase UID and save."
+}

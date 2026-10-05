@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-03",
+  "engine": "Cocos Creator 3.8.8",
+  "typescript": "passed",
+  "web_mobile_build": "passed",
+  "render_checks": {
+    "screens": 116,
+    "locales": [
+      "ko",
+      "en"
+    ],
+    "checks": 232,
+    "passed": true,
+    "missing_assets": [],
+    "button_overlap_failures": []
+  },
+  "physical_click_checks": [
+    "Skill node opens its detail popup",
+    "Plus changes draft level 0 to 1",
+    "Minus changes draft level 1 to 0",
+    "Back restores the skill tree",
+    "Close removes popup and 50% dim"
+  ],
+  "actual_original_download": {
+    "path": "art/ui/source/popup-v2-original.png",
+    "download_source": "/Users/dhlee/Downloads/광택 UI 버튼과 패널 스프라이트 시트.png",
+    "size": [
+      887,
+      1774
+    ],
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "sha256": "8e74a70c6570b84d49851e170544b6cfc5d91db2e40b130f671994e3cc2b4df6"
+  },
+  "screenshots": "art/ui/qa-popup-v2/screens",
+  "gallery": "art/ui/qa-popup-v2/gallery.html"
+}

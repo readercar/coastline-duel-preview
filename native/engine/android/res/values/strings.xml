@@ -1,2 +1,4 @@
 <resources>
+<string name="push_channel_name">Game notices</string><string name="push_channel_description">New game notices</string>
+<string name="google_web_client_id" translatable="false">721865585447-kf17q8d9ovu01u9rojvqqht0h1r1g1o3.apps.googleusercontent.com</string>
 </resources>

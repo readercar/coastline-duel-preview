@@ -1,0 +1,17 @@
+{
+  "build": "Cocos Creator 3.8.8 web-mobile 2026-10-05 09:24 KST",
+  "tests": {
+    "core": 85,
+    "server": 28,
+    "failed": 0
+  },
+  "verified": [
+    "LAN guest entry",
+    "KO and EN main UI and settings popup",
+    "Generated plus asset visible and guardian level 3 to 4 after click",
+    "Button contours, icon badges, tab separators",
+    "No browser warnings or errors"
+  ],
+  "artSource": "../../..//art/crimson/upgrade-plus-provenance.json",
+  "lan": "http://192.168.45.201:8880/"
+}

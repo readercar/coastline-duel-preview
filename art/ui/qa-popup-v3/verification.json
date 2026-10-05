@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-03",
+  "revision": 3,
+  "reason": "Ivory popup background did not match the supplied CookieRun Crumble in-game reference.",
+  "typescript": "passed",
+  "cocos_web_mobile_build": "passed",
+  "screens": 116,
+  "checks": 232,
+  "locales": [
+    "ko",
+    "en"
+  ],
+  "passed": true,
+  "black_dim_alpha": 128,
+  "loaded_sprites": 45,
+  "actual_original": {
+    "path": "art/ui/source/popup-v3-original.png",
+    "download_source": "/Users/dhlee/Downloads/청록색 게임 UI 패널 2x2 시트.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "sha256": "58322f7b4071b6b13bb75efbc13c6d868e9b49f90df6bebd80faf9641a53457c"
+  },
+  "references": [
+    "docs/art-references/cookierun-crumble/05-research-tree.png",
+    "docs/art-references/cookierun-crumble/08-equipment-comparison.png"
+  ]
+}

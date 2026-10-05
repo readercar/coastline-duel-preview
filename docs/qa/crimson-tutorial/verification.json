@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-05T01:41:30.052156",
+  "build": "Cocos Creator 3.8.8 web-mobile",
+  "indexSha256": "2602f7b923b78c6f11f7e7ac7305be7787e6cd0ee3b5297803e5a4c971be8101",
+  "lanStatus": 200,
+  "tests": {
+    "core": 85,
+    "server": 28,
+    "failed": 0
+  },
+  "visuallyVerified": [
+    "Korean tutorial upgrade, heroes, recruit, fold, unfold transitions",
+    "Saved tutorial resumed after reload",
+    "English pet and equipment unlock guides",
+    "Equipment popup first-use highlight and 50 percent dim",
+    "Applied red/black/white world, actors, portraits, icons and terrain"
+  ],
+  "consoleWarningsAndErrors": 0,
+  "limitation": "360x640 viewport override did not affect existing Chrome tab; no small-viewport verification claimed. Latest rebuild only shortens Korean step 6 copy.",
+  "screens": [
+    "screens/tutorial-upgrade.png",
+    "screens/equipment-first-use.png",
+    "screens/ui-review.png"
+  ]
+}

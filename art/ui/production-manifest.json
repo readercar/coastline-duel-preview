@@ -1,0 +1,118 @@
+{
+  "date": "2026-10-03",
+  "engine": "Cocos Creator 3.8.8",
+  "language": "TypeScript",
+  "start_scene": "assets/scenes/Main.scene",
+  "design_resolution": [
+    480,
+    960
+  ],
+  "build": "build/web-mobile",
+  "approved_mockup": "docs/art-mockups/crumble-style-v1",
+  "style_reference": "docs/art-references/cookierun-crumble",
+  "creation_method": "ChatGPT UI in a new Chrome window using logged-in 덕하 profile; actual original PNG downloads imported. No built-in ImageGen or API used.",
+  "production_conversation": "https://chatgpt.com/c/6ac0bd0e-7628-83e8-b9b1-75499f372fef",
+  "briefs": {
+    "skins": "2 by 2 equal square UI tiles: cream panel, teal secondary button, orange primary button, tan neutral button. Chocolate pixel outlines and restrained bevels, quiet flat interiors, warm limited palette. No text or symbols.",
+    "icons": "4 by 4 equal-cell transparent retro pixel RPG icon atlas: sword, adult adventurer, armor, fox; amber heart, chest, cards, lightning; trophy, mail, settings, rebirth; egg, scroll, flag, lock. Distinct angular silhouettes; no text; actual transparent background."
+  },
+  "originals": [
+    {
+      "path": "art/ui/source/portraits-original.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "sha256": "d06c67d0b1ed831f49c48efb700702249006a129da69ffe27cacbecf2bfbd1b0"
+    },
+    {
+      "path": "art/ui/source/ui-icons-original.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "sha256": "bb8074da2cec4db3bb38ee25a3da6e75b8fd56494c38ee3a1897ca9ae12a3ebb"
+    },
+    {
+      "path": "art/ui/source/ui-skins-original.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "sha256": "e4adc9a3b049433c46515008b0dccd8038968acec1178b6222c50d71c4533b1c"
+    },
+    {
+      "path": "art/ui/source/popup-v2-original.png",
+      "download_source": "/Users/dhlee/Downloads/광택 UI 버튼과 패널 스프라이트 시트.png",
+      "size": [
+        887,
+        1774
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "sha256": "8e74a70c6570b84d49851e170544b6cfc5d91db2e40b130f671994e3cc2b4df6"
+    },
+    {
+      "path": "art/ui/source/popup-v3-original.png",
+      "download_source": "/Users/dhlee/Downloads/청록색 게임 UI 패널 2x2 시트.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "sha256": "58322f7b4071b6b13bb75efbc13c6d868e9b49f90df6bebd80faf9641a53457c"
+    }
+  ],
+  "preparation": "Equal-cell crops and resizing only, using scripts/import-ui-art.py. Original alpha preserved. Runtime nearest filtering, clamp edges and 9-slice skins.",
+  "assets": {
+    "skins": 4,
+    "icons": 16,
+    "portraits": 16,
+    "font": {
+      "path": "assets/resources/ui/fonts/RixYeoljeongdo-Regular.ttf",
+      "family": "RixYeoljeongdo / Rix열정도 Regular",
+      "source": "/Users/dhlee/Desktop/RIXYEOLJEONGDO REGULAR (1).TTF",
+      "sha256": "46bb7f688ea2c823c06ad855453a2eec059db4010754d609ddebe2117a011cd5"
+    },
+    "popup_surfaces": 8,
+    "total_sprites": 48,
+    "popup_revision_3_surfaces": 4,
+    "runtime_loaded_sprites": 45
+  },
+  "company_ci": {
+    "original": "/Users/dhlee/dhlee/work/inmypocket/in-my-pocket-slots/assets/resources/branding/tt-softs-ci.png",
+    "path": "assets/resources/branding/tt-softs-ci.png",
+    "original_reused": true
+  },
+  "popup": {
+    "black_dim_alpha": 128,
+    "width": 432,
+    "screen_width": 480,
+    "side_margin": 24,
+    "revision": 3,
+    "production_conversation": "https://chatgpt.com/c/6ac0d9e9-b0dc-83e8-af47-19041db08cf9",
+    "source_reference": [
+      "docs/art-references/cookierun-crumble/05-research-tree.png",
+      "docs/art-references/cookierun-crumble/08-equipment-comparison.png"
+    ],
+    "brief": "Corrected ivory misinterpretation. Deep teal panel #194e59 to #0a303d with restrained cyan rim; slate inner card #315e65 to #25474e; low-emphasis dark teal button; equipment slate panel #354f56 to #253c44. Crumble in-game research-screen reference directly uploaded. Quiet gradients and thin borders; actual native-alpha PNG downloaded through new Chrome 덕하 window.",
+    "preparation": "scripts/import-popup-art.py: individual alpha-bounded crops and proportional 128px resize only. Native alpha preserved. Runtime LINEAR filtering and 9-slice with 14px horizontal / 12px vertical caps.",
+    "application": "All modal backplates and inner cards; slate variant for equipment comparison; quiet buttons now dark teal; popup text mapped to white, pale mint and sunny yellow for readable contrast. Popup dimensions, dim alpha128, Rix font, button actions retained."
+  }
+}

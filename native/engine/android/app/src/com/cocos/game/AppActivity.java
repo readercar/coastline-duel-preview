@@ -73,6 +73,7 @@ public class AppActivity extends CocosActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        setIntent(intent);
         SDKWrapper.shared().onNewIntent(intent);
     }
 

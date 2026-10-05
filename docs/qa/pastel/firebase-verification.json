@@ -1,0 +1,34 @@
+{
+  "verifiedAt": "2026-10-03T15:54:37.200Z",
+  "project": "ttsofts-tapwar",
+  "function": "https://asia-northeast3-ttsofts-tapwar.cloudfunctions.net/operations",
+  "checks": [
+    "public policy",
+    "authenticated save",
+    "stale revision rejected",
+    "foreign save denied",
+    "policy writes denied",
+    "account notice receipts",
+    "private mail",
+    "simultaneous claim once",
+    "retry returns latest save",
+    "private delete",
+    "diagnostic scrub",
+    "foreign diagnostic denied",
+    "diagnostic list denied"
+  ],
+  "policy": {
+    "notices": [],
+    "minimumVersion": {
+      "web": "0",
+      "android": "0",
+      "ios": "0"
+    },
+    "requiredVersion": {},
+    "storeUrls": {
+      "web": "",
+      "android": "",
+      "ios": ""
+    }
+  }
+}

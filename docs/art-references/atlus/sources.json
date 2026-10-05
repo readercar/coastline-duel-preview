@@ -1,0 +1,20 @@
+{
+  "game": "Persona 5 Royal",
+  "source": "https://persona.atlus.com/p5r/",
+  "purpose": "Reference only; game screenshots and Atlus art are not shipped as OutRun assets",
+  "observed": [
+    "Asymmetric high-contrast silhouettes",
+    "Skewed title and selection shapes",
+    "Hierarchy defined by small accent colors and large quiet surfaces"
+  ],
+  "screenshots": [
+    {
+      "file": "persona5-school-life.png",
+      "url": "https://persona.atlus.com/p5r/resources/img/p5r/img/en/p5r/school_life_ss1_7061bd0551c9fbab690699c0f508200e.png"
+    },
+    {
+      "file": "persona5-choices.png",
+      "url": "https://persona.atlus.com/p5r/resources/img/p5r/img/en/p5r/school_life_ss5_4718dd37725cd8eb85b0cbde51e5edcf.png"
+    }
+  ]
+}

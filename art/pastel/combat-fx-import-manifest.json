@@ -1,0 +1,191 @@
+{
+  "original": "art/pastel/source/combat-fx-original.png",
+  "originalDimensions": [
+    1254,
+    1254
+  ],
+  "originalSha256": "b66a33cdcfa322326b787e11266bc3b7ec44912051e7aa96065b415436dd254d",
+  "transforms": "3x3 cell crop, alpha-visible bounds, centered padding, nearest resize; original retained unchanged",
+  "sprites": [
+    {
+      "file": "assets/resources/ui/pastel/effects/slash.png",
+      "crop": [
+        0,
+        0,
+        418,
+        418
+      ],
+      "visibleCrop": [
+        52,
+        69,
+        412,
+        409
+      ],
+      "dimensions": [
+        128,
+        128
+      ],
+      "sha256": "06df987f0321bae61a18a6b60b4f5e7a4f929379e3d57f09ead05eb14cf9c9fc"
+    },
+    {
+      "file": "assets/resources/ui/pastel/effects/impact.png",
+      "crop": [
+        418,
+        0,
+        836,
+        418
+      ],
+      "visibleCrop": [
+        59,
+        66,
+        401,
+        407
+      ],
+      "dimensions": [
+        128,
+        128
+      ],
+      "sha256": "f9d4d53f9b1030a13879a75502d160c46287518f3cfa4a30f6c36cd2b1de8734"
+    },
+    {
+      "file": "assets/resources/ui/pastel/effects/sparkle.png",
+      "crop": [
+        836,
+        0,
+        1254,
+        418
+      ],
+      "visibleCrop": [
+        79,
+        97,
+        343,
+        390
+      ],
+      "dimensions": [
+        128,
+        128
+      ],
+      "sha256": "9f4ac76241e680b2e8001b5c1d0a96fc138cabdbf1491e8362320930610fbac6"
+    },
+    {
+      "file": "assets/resources/ui/pastel/effects/arrow.png",
+      "crop": [
+        0,
+        418,
+        418,
+        836
+      ],
+      "visibleCrop": [
+        60,
+        117,
+        418,
+        309
+      ],
+      "dimensions": [
+        128,
+        128
+      ],
+      "sha256": "3816064539fc2b285e153e44acc69e861492b2c0ad0182ff91cfbea9542cb8bf"
+    },
+    {
+      "file": "assets/resources/ui/pastel/effects/orb.png",
+      "crop": [
+        418,
+        418,
+        836,
+        836
+      ],
+      "visibleCrop": [
+        0,
+        109,
+        367,
+        345
+      ],
+      "dimensions": [
+        128,
+        128
+      ],
+      "sha256": "81da9c1319f632421682b18dc84d2b675d3c7180ab8e5c362549bcf20bcf8008"
+    },
+    {
+      "file": "assets/resources/ui/pastel/effects/shard.png",
+      "crop": [
+        836,
+        418,
+        1254,
+        836
+      ],
+      "visibleCrop": [
+        106,
+        89,
+        307,
+        379
+      ],
+      "dimensions": [
+        128,
+        128
+      ],
+      "sha256": "1a2f77c63f2cc960122928eec5e705e2c94ba37c4c27eb17026446f45e5228bf"
+    },
+    {
+      "file": "assets/resources/ui/pastel/effects/defeat.png",
+      "crop": [
+        0,
+        836,
+        418,
+        1254
+      ],
+      "visibleCrop": [
+        61,
+        20,
+        401,
+        348
+      ],
+      "dimensions": [
+        128,
+        128
+      ],
+      "sha256": "7da838bf83d9a5509a894492fe02348f7d8495537894de554991e2e5c23f0b67"
+    },
+    {
+      "file": "assets/resources/ui/pastel/effects/wisp.png",
+      "crop": [
+        418,
+        836,
+        836,
+        1254
+      ],
+      "visibleCrop": [
+        62,
+        78,
+        357,
+        329
+      ],
+      "dimensions": [
+        128,
+        128
+      ],
+      "sha256": "ed6b0254a345801888f5c19335232b69f9f09f0e4b977c9e868d9951d6e77161"
+    },
+    {
+      "file": "assets/resources/ui/pastel/effects/ring.png",
+      "crop": [
+        836,
+        836,
+        1254,
+        1254
+      ],
+      "visibleCrop": [
+        36,
+        18,
+        383,
+        352
+      ],
+      "dimensions": [
+        128,
+        128
+      ],
+      "sha256": "60a45cd5412773eb1ff9252786488d4633f874fa0f023b5455d79abf7aeaad3c"
+    }
+  ]
+}

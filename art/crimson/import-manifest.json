@@ -1,0 +1,633 @@
+{
+  "transforms": "Cell crop, alpha-visible bounds, padding and nearest resize only. Original downloads preserved.",
+  "assets": [
+    {
+      "source": "art/crimson/source/world.png",
+      "file": "assets/resources/ui/pastel/world/0.png",
+      "crop": [
+        0,
+        0,
+        627,
+        627
+      ],
+      "visibleCrop": null,
+      "size": 480,
+      "sha256": "396a1c7975ec63163ae030386231e8bab2405a66bd124d19fa8c387eabfbfb2e"
+    },
+    {
+      "source": "art/crimson/source/world.png",
+      "file": "assets/resources/ui/pastel/world/1.png",
+      "crop": [
+        627,
+        0,
+        1254,
+        627
+      ],
+      "visibleCrop": null,
+      "size": 480,
+      "sha256": "049141ff5f90d22de12da17035b650a8df755548813fd68a0fbbfd0256a1e51e"
+    },
+    {
+      "source": "art/crimson/source/world.png",
+      "file": "assets/resources/ui/pastel/world/2.png",
+      "crop": [
+        0,
+        627,
+        627,
+        1254
+      ],
+      "visibleCrop": null,
+      "size": 480,
+      "sha256": "76883e0b89c91f10c86a3ce20df00f2566ebcf64b4820f79defa02dc5791ef0e"
+    },
+    {
+      "source": "art/crimson/source/world.png",
+      "file": "assets/resources/ui/pastel/world/3.png",
+      "crop": [
+        627,
+        627,
+        1254,
+        1254
+      ],
+      "visibleCrop": null,
+      "size": 480,
+      "sha256": "f51cdbc3269687984d3dbec1559defb76c3438f0e46cbafe2c41053ab84dfa51"
+    },
+    {
+      "source": "art/crimson/source/faces.png",
+      "file": "assets/resources/ui/pastel/faces/guardian.png",
+      "crop": [
+        0,
+        0,
+        314,
+        350
+      ],
+      "visibleCrop": [
+        16,
+        44,
+        305,
+        337
+      ],
+      "size": 96,
+      "sha256": "73b900dc18dc352ae93225c2c30823773df3d77e91ba7017b0b01318a0b29d28"
+    },
+    {
+      "source": "art/crimson/source/faces.png",
+      "file": "assets/resources/ui/pastel/faces/rowen.png",
+      "crop": [
+        314,
+        0,
+        627,
+        350
+      ],
+      "visibleCrop": [
+        1,
+        53,
+        302,
+        337
+      ],
+      "size": 96,
+      "sha256": "2b0b0d9d3b7d437682ef5d17dcb0dcfa7b37af540ecac1c39126f9d6b19ad9c1"
+    },
+    {
+      "source": "art/crimson/source/faces.png",
+      "file": "assets/resources/ui/pastel/faces/kael.png",
+      "crop": [
+        627,
+        0,
+        941,
+        350
+      ],
+      "visibleCrop": [
+        10,
+        60,
+        309,
+        337
+      ],
+      "size": 96,
+      "sha256": "6df28bfd82b26ea87a35861dfc922b624a5f582bddfa2214137f2d91c3258719"
+    },
+    {
+      "source": "art/crimson/source/faces.png",
+      "file": "assets/resources/ui/pastel/faces/sera.png",
+      "crop": [
+        941,
+        0,
+        1254,
+        350
+      ],
+      "visibleCrop": [
+        9,
+        44,
+        298,
+        337
+      ],
+      "size": 96,
+      "sha256": "095489465615d92cc3409d4f1f1f5c9d5c8a3c08bf03283ab7b0b0b1c15fb1ba"
+    },
+    {
+      "source": "art/crimson/source/faces.png",
+      "file": "assets/resources/ui/pastel/faces/blade.png",
+      "crop": [
+        0,
+        350,
+        314,
+        630
+      ],
+      "visibleCrop": [
+        35,
+        6,
+        290,
+        271
+      ],
+      "size": 96,
+      "sha256": "3eeb61a5fb1701351140aa89d0d8b9447c106741918cc52035d99d49ff6bb514"
+    },
+    {
+      "source": "art/crimson/source/faces.png",
+      "file": "assets/resources/ui/pastel/faces/helmet.png",
+      "crop": [
+        314,
+        350,
+        627,
+        630
+      ],
+      "visibleCrop": [
+        24,
+        8,
+        262,
+        280
+      ],
+      "size": 96,
+      "sha256": "3560be760899e8f93451874309b607f352de80ed8806f708c6418500d49ad485"
+    },
+    {
+      "source": "art/crimson/source/faces.png",
+      "file": "assets/resources/ui/pastel/faces/breastplate.png",
+      "crop": [
+        627,
+        350,
+        941,
+        630
+      ],
+      "visibleCrop": [
+        10,
+        28,
+        305,
+        268
+      ],
+      "size": 96,
+      "sha256": "aa244304d3a91571dc320171f4c7d70c0b43f3e808698acb701eeaa96e0471c9"
+    },
+    {
+      "source": "art/crimson/source/faces.png",
+      "file": "assets/resources/ui/pastel/faces/aura.png",
+      "crop": [
+        941,
+        350,
+        1254,
+        630
+      ],
+      "visibleCrop": [
+        40,
+        13,
+        276,
+        274
+      ],
+      "size": 96,
+      "sha256": "61ea5fff9b62dffc08fea3e54b94d00d907662e5ae7de1c7b84089e26de6f41c"
+    },
+    {
+      "source": "art/crimson/source/faces.png",
+      "file": "assets/resources/ui/pastel/faces/ember-fox.png",
+      "crop": [
+        0,
+        630,
+        314,
+        930
+      ],
+      "visibleCrop": [
+        23,
+        2,
+        314,
+        289
+      ],
+      "size": 96,
+      "sha256": "7e3be449251a979382d9080db7b311dd837015be7fd5dad3fa81230d9620bc9e"
+    },
+    {
+      "source": "art/crimson/source/faces.png",
+      "file": "assets/resources/ui/pastel/faces/stone-hawk.png",
+      "crop": [
+        314,
+        630,
+        627,
+        930
+      ],
+      "visibleCrop": [
+        0,
+        0,
+        302,
+        283
+      ],
+      "size": 96,
+      "sha256": "4116d139503a79a3f4d7b10c905f683a09e8d73071aa47d33a91d8f7bc5e28e9"
+    },
+    {
+      "source": "art/crimson/source/faces.png",
+      "file": "assets/resources/ui/pastel/faces/shade-wolf.png",
+      "crop": [
+        627,
+        630,
+        941,
+        930
+      ],
+      "visibleCrop": [
+        8,
+        10,
+        304,
+        289
+      ],
+      "size": 96,
+      "sha256": "5d58d694c79e6940a291e44fc0eb7e72866e1128ad39fa5f60b85f50da19739a"
+    },
+    {
+      "source": "art/crimson/source/faces.png",
+      "file": "assets/resources/ui/pastel/faces/crown.png",
+      "crop": [
+        941,
+        630,
+        1254,
+        930
+      ],
+      "visibleCrop": [
+        24,
+        54,
+        295,
+        264
+      ],
+      "size": 96,
+      "sha256": "7f21cbbd1f1c33be27b8c5101d119848df917fc50954a1b221ddad0a853b1e9d"
+    },
+    {
+      "source": "art/crimson/source/faces.png",
+      "file": "assets/resources/ui/pastel/faces/compass.png",
+      "crop": [
+        0,
+        930,
+        314,
+        1254
+      ],
+      "visibleCrop": [
+        30,
+        5,
+        300,
+        274
+      ],
+      "size": 96,
+      "sha256": "968a65b1732e704d3504208a6f429c1c72e6293f03d0c2ce18ea4d85e6f85dc3"
+    },
+    {
+      "source": "art/crimson/source/faces.png",
+      "file": "assets/resources/ui/pastel/faces/gems.png",
+      "crop": [
+        314,
+        930,
+        627,
+        1254
+      ],
+      "visibleCrop": [
+        24,
+        15,
+        294,
+        272
+      ],
+      "size": 96,
+      "sha256": "ebe1d8b04e7f561c804adabbd276147e80fb2ee5e52412f8a91c42f6cbdee639"
+    },
+    {
+      "source": "art/crimson/source/faces.png",
+      "file": "assets/resources/ui/pastel/faces/supplies.png",
+      "crop": [
+        627,
+        930,
+        941,
+        1254
+      ],
+      "visibleCrop": [
+        26,
+        16,
+        286,
+        275
+      ],
+      "size": 96,
+      "sha256": "bfe191d4099e148302a5ce66214c63836260668b583a0cb80fab7ce0d976991b"
+    },
+    {
+      "source": "art/crimson/source/faces.png",
+      "file": "assets/resources/ui/pastel/faces/laurel.png",
+      "crop": [
+        941,
+        930,
+        1254,
+        1254
+      ],
+      "visibleCrop": [
+        16,
+        15,
+        299,
+        275
+      ],
+      "size": 96,
+      "sha256": "d88faac587acd236d0a13909df8da0ee472968c097be93e5541e1059c1a93f9c"
+    },
+    {
+      "source": "art/crimson/source/icons.png",
+      "file": "assets/resources/ui/pastel/icons/sword.png",
+      "crop": [
+        0,
+        0,
+        314,
+        314
+      ],
+      "visibleCrop": [
+        40,
+        61,
+        275,
+        293
+      ],
+      "size": 96,
+      "sha256": "f116f4b7bc6a0530c4811c74a82a33f29a1fa321e8e458d783e538604d4e99dd"
+    },
+    {
+      "source": "art/crimson/source/icons.png",
+      "file": "assets/resources/ui/pastel/icons/adventurer.png",
+      "crop": [
+        314,
+        0,
+        627,
+        314
+      ],
+      "visibleCrop": [
+        29,
+        67,
+        274,
+        303
+      ],
+      "size": 96,
+      "sha256": "00aed926a588c65825d7e93194ea2760352f4110e6a871861eb1d7dee71d47c7"
+    },
+    {
+      "source": "art/crimson/source/icons.png",
+      "file": "assets/resources/ui/pastel/icons/armor.png",
+      "crop": [
+        627,
+        0,
+        941,
+        314
+      ],
+      "visibleCrop": [
+        27,
+        80,
+        285,
+        297
+      ],
+      "size": 96,
+      "sha256": "cbc7a47d210967b4a09fd6b0f64570f87d3378887f685fc9f69934f954b005bf"
+    },
+    {
+      "source": "art/crimson/source/icons.png",
+      "file": "assets/resources/ui/pastel/icons/fox.png",
+      "crop": [
+        941,
+        0,
+        1254,
+        314
+      ],
+      "visibleCrop": [
+        56,
+        68,
+        273,
+        293
+      ],
+      "size": 96,
+      "sha256": "6a6658b9b8029856608e69600b6522adfa5c6c033c5434cd83ed323ed936fb43"
+    },
+    {
+      "source": "art/crimson/source/icons.png",
+      "file": "assets/resources/ui/pastel/icons/heart.png",
+      "crop": [
+        0,
+        314,
+        314,
+        627
+      ],
+      "visibleCrop": [
+        56,
+        66,
+        266,
+        265
+      ],
+      "size": 96,
+      "sha256": "f8a2b19556416921b48c782aec62f06a5434b8c036e457462858ab165c586ad7"
+    },
+    {
+      "source": "art/crimson/source/icons.png",
+      "file": "assets/resources/ui/pastel/icons/chest.png",
+      "crop": [
+        314,
+        314,
+        627,
+        627
+      ],
+      "visibleCrop": [
+        42,
+        66,
+        265,
+        256
+      ],
+      "size": 96,
+      "sha256": "39e7cc20b9e1d7314efdd3a418b3c2f006cf65e435a1adc547eb201655fd7986"
+    },
+    {
+      "source": "art/crimson/source/icons.png",
+      "file": "assets/resources/ui/pastel/icons/cards.png",
+      "crop": [
+        627,
+        314,
+        941,
+        627
+      ],
+      "visibleCrop": [
+        31,
+        58,
+        283,
+        255
+      ],
+      "size": 96,
+      "sha256": "8d29a3593177f9f4629e91fdd26c3781a3a25688a1b8e24e2a4aa8bc362ada50"
+    },
+    {
+      "source": "art/crimson/source/icons.png",
+      "file": "assets/resources/ui/pastel/icons/lightning.png",
+      "crop": [
+        941,
+        314,
+        1254,
+        627
+      ],
+      "visibleCrop": [
+        59,
+        39,
+        247,
+        287
+      ],
+      "size": 96,
+      "sha256": "de6ecf5caed5ee21a73deeccfc086a2ff43b4b518c8f429c303777e16bd3b569"
+    },
+    {
+      "source": "art/crimson/source/icons.png",
+      "file": "assets/resources/ui/pastel/icons/trophy.png",
+      "crop": [
+        0,
+        627,
+        314,
+        941
+      ],
+      "visibleCrop": [
+        52,
+        37,
+        266,
+        253
+      ],
+      "size": 96,
+      "sha256": "565db129f8e2241b9534bca35865fe09453f71657f720a815123db6e17ba3d76"
+    },
+    {
+      "source": "art/crimson/source/icons.png",
+      "file": "assets/resources/ui/pastel/icons/mail.png",
+      "crop": [
+        314,
+        627,
+        627,
+        941
+      ],
+      "visibleCrop": [
+        34,
+        60,
+        265,
+        226
+      ],
+      "size": 96,
+      "sha256": "4f42015d10e96cdf7f7fc5bc93de5e124419cb0d856b2251c217ce81890cf161"
+    },
+    {
+      "source": "art/crimson/source/icons.png",
+      "file": "assets/resources/ui/pastel/icons/settings.png",
+      "crop": [
+        627,
+        627,
+        941,
+        941
+      ],
+      "visibleCrop": [
+        43,
+        33,
+        267,
+        314
+      ],
+      "size": 96,
+      "sha256": "22e96c5cdbec52b19f92c156625395995155f5245f0bddce7d479fc9654b47fb"
+    },
+    {
+      "source": "art/crimson/source/icons.png",
+      "file": "assets/resources/ui/pastel/icons/rebirth.png",
+      "crop": [
+        941,
+        627,
+        1254,
+        941
+      ],
+      "visibleCrop": [
+        28,
+        20,
+        271,
+        268
+      ],
+      "size": 96,
+      "sha256": "dd2a53feb161c12175876d240a7da2159cc77aa0d2039c3d40b2cb56c56fddf0"
+    },
+    {
+      "source": "art/crimson/source/icons.png",
+      "file": "assets/resources/ui/pastel/icons/egg.png",
+      "crop": [
+        0,
+        941,
+        314,
+        1254
+      ],
+      "visibleCrop": [
+        69,
+        23,
+        250,
+        260
+      ],
+      "size": 96,
+      "sha256": "246e58ecd22d18a2bf4fbdef808191f9f071989076a4064c7682705717007b37"
+    },
+    {
+      "source": "art/crimson/source/icons.png",
+      "file": "assets/resources/ui/pastel/icons/scroll.png",
+      "crop": [
+        314,
+        941,
+        627,
+        1254
+      ],
+      "visibleCrop": [
+        32,
+        17,
+        265,
+        249
+      ],
+      "size": 96,
+      "sha256": "39dadf3a15b1bf7bdebc626c867e3f599e3570014dcff7f9db1198363153d920"
+    },
+    {
+      "source": "art/crimson/source/icons.png",
+      "file": "assets/resources/ui/pastel/icons/flag.png",
+      "crop": [
+        627,
+        941,
+        941,
+        1254
+      ],
+      "visibleCrop": [
+        60,
+        0,
+        258,
+        267
+      ],
+      "size": 96,
+      "sha256": "69c4228f8011d101fb565fd41892a6e59e879228020e64ede96fb75eed1c143d"
+    },
+    {
+      "source": "art/crimson/source/icons.png",
+      "file": "assets/resources/ui/pastel/icons/lock.png",
+      "crop": [
+        941,
+        941,
+        1254,
+        1254
+      ],
+      "visibleCrop": [
+        71,
+        18,
+        240,
+        249
+      ],
+      "size": 96,
+      "sha256": "92af04752835df2fa64aec5070e042d4af19591072f4aa1dbf661b07c4d19f1f"
+    }
+  ]
+}

@@ -1,0 +1,578 @@
+[
+  {
+    "file": "assets/resources/ui/crumble/skins/panel.png",
+    "original": "art/ui/source/ui-skins-original.png",
+    "crop": [
+      0,
+      0,
+      627,
+      627
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGB",
+    "sha256": "96e024310ed8d3a2fbc8834b87f2b20af69760327f07eecafa739b52cf0ea565"
+  },
+  {
+    "file": "assets/resources/ui/crumble/skins/teal.png",
+    "original": "art/ui/source/ui-skins-original.png",
+    "crop": [
+      627,
+      0,
+      1254,
+      627
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGB",
+    "sha256": "bd877c17d95fa3797ec8373e1ce829366d63d8fff9801c885bb0c3e9b67e68a2"
+  },
+  {
+    "file": "assets/resources/ui/crumble/skins/orange.png",
+    "original": "art/ui/source/ui-skins-original.png",
+    "crop": [
+      0,
+      627,
+      627,
+      1254
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGB",
+    "sha256": "f4042a8c500e905e98c16d36caeeac58b95334149cc7f3c9455bb21ecd70fda3"
+  },
+  {
+    "file": "assets/resources/ui/crumble/skins/neutral.png",
+    "original": "art/ui/source/ui-skins-original.png",
+    "crop": [
+      627,
+      627,
+      1254,
+      1254
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGB",
+    "sha256": "4943a53933dcd44c0f9e466d538157e29a250ff73b70524cdc18b324477edebd"
+  },
+  {
+    "file": "assets/resources/ui/crumble/faces/guardian.png",
+    "original": "art/ui/source/portraits-original.png",
+    "crop": [
+      0,
+      0,
+      314,
+      314
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGB",
+    "sha256": "116155210b0dfeec4cea2b87153744baa4941349b40b0dfe327afcb1d047b27a"
+  },
+  {
+    "file": "assets/resources/ui/crumble/faces/rowen.png",
+    "original": "art/ui/source/portraits-original.png",
+    "crop": [
+      314,
+      0,
+      627,
+      314
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGB",
+    "sha256": "32c9e9de212b45724f3858661c6685bd9f79b5244acf825fdf372d646e054301"
+  },
+  {
+    "file": "assets/resources/ui/crumble/faces/kael.png",
+    "original": "art/ui/source/portraits-original.png",
+    "crop": [
+      627,
+      0,
+      940,
+      314
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGB",
+    "sha256": "5335731973772ce87c98abc296c9195be367cd0eca9d2acf45094a9ece62f0c8"
+  },
+  {
+    "file": "assets/resources/ui/crumble/faces/sera.png",
+    "original": "art/ui/source/portraits-original.png",
+    "crop": [
+      940,
+      0,
+      1254,
+      314
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGB",
+    "sha256": "5debc5410397390a1fa16881e31ae5bf8ceec1ae0e4774e1e45dae595d91c737"
+  },
+  {
+    "file": "assets/resources/ui/crumble/faces/blade.png",
+    "original": "art/ui/source/portraits-original.png",
+    "crop": [
+      0,
+      314,
+      314,
+      627
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGB",
+    "sha256": "af1b4c822099ec9319e3c2adc568d7ca102d635fe582ffb16f07ccdd233cfaf2"
+  },
+  {
+    "file": "assets/resources/ui/crumble/faces/helmet.png",
+    "original": "art/ui/source/portraits-original.png",
+    "crop": [
+      314,
+      314,
+      627,
+      627
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGB",
+    "sha256": "5193c651fd45b6a2a3992bb0a8aafd73d2a870e7d559babd865ea98ccd33430a"
+  },
+  {
+    "file": "assets/resources/ui/crumble/faces/breastplate.png",
+    "original": "art/ui/source/portraits-original.png",
+    "crop": [
+      627,
+      314,
+      940,
+      627
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGB",
+    "sha256": "c99d268143d022931aa6a468aae4904778a08b41b5fd0f52edffd372f2ab6f9f"
+  },
+  {
+    "file": "assets/resources/ui/crumble/faces/aura.png",
+    "original": "art/ui/source/portraits-original.png",
+    "crop": [
+      940,
+      314,
+      1254,
+      627
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGB",
+    "sha256": "f436b12d8bfb1f30031e2887c3ae5c802274cbbc5ced08bc2ce6438c08afaee7"
+  },
+  {
+    "file": "assets/resources/ui/crumble/faces/ember-fox.png",
+    "original": "art/ui/source/portraits-original.png",
+    "crop": [
+      0,
+      627,
+      314,
+      940
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGB",
+    "sha256": "94b8cefdbf2f46fa41cd50c09d349bce89f071c6b140861c56bb33a60e2cb94c"
+  },
+  {
+    "file": "assets/resources/ui/crumble/faces/stone-hawk.png",
+    "original": "art/ui/source/portraits-original.png",
+    "crop": [
+      314,
+      627,
+      627,
+      940
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGB",
+    "sha256": "4886b1d5f8236931ba672bd20650bf3ce1fd7461ad274bfdc2697966df38db09"
+  },
+  {
+    "file": "assets/resources/ui/crumble/faces/shade-wolf.png",
+    "original": "art/ui/source/portraits-original.png",
+    "crop": [
+      627,
+      627,
+      940,
+      940
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGB",
+    "sha256": "c3ff9eb92f74aed21f835e5f0765d4365d75788fd2b25cfb3eb42ccb83da3b52"
+  },
+  {
+    "file": "assets/resources/ui/crumble/faces/crown.png",
+    "original": "art/ui/source/portraits-original.png",
+    "crop": [
+      940,
+      627,
+      1254,
+      940
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGB",
+    "sha256": "39a4e6a43eca74c8a4a751d1403225887179ab2279e45a97127ff3342cca89eb"
+  },
+  {
+    "file": "assets/resources/ui/crumble/faces/compass.png",
+    "original": "art/ui/source/portraits-original.png",
+    "crop": [
+      0,
+      940,
+      314,
+      1254
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGB",
+    "sha256": "69752fbecddf142ef8d38b9dc8d50fc3d66345680293f3e68213d0a8aafa9e45"
+  },
+  {
+    "file": "assets/resources/ui/crumble/faces/gems.png",
+    "original": "art/ui/source/portraits-original.png",
+    "crop": [
+      314,
+      940,
+      627,
+      1254
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGB",
+    "sha256": "3dfbfcb9971cc8c3177f7c08f3cc7b73633d54c0812d5c3ad02cf42a7a2e0737"
+  },
+  {
+    "file": "assets/resources/ui/crumble/faces/supplies.png",
+    "original": "art/ui/source/portraits-original.png",
+    "crop": [
+      627,
+      940,
+      940,
+      1254
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGB",
+    "sha256": "04f8550ef7252c1c83a7ab238bd560d56a42e6f50c3159de461ebe52c1600341"
+  },
+  {
+    "file": "assets/resources/ui/crumble/faces/laurel.png",
+    "original": "art/ui/source/portraits-original.png",
+    "crop": [
+      940,
+      940,
+      1254,
+      1254
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGB",
+    "sha256": "2f4cc35d1baa4e827d7b92bf9f5fe38ee8ee15d94b343345ea25a34c93a973a9"
+  },
+  {
+    "file": "assets/resources/ui/crumble/icons/sword.png",
+    "original": "art/ui/source/ui-icons-original.png",
+    "crop": [
+      0,
+      0,
+      314,
+      314
+    ],
+    "size": [
+      96,
+      96
+    ],
+    "mode": "RGBA",
+    "sha256": "c1b35d54037acfca2e2b0596f230e6e08d0e20e6f7182e2e4a0fc9256f1445ba"
+  },
+  {
+    "file": "assets/resources/ui/crumble/icons/adventurer.png",
+    "original": "art/ui/source/ui-icons-original.png",
+    "crop": [
+      314,
+      0,
+      627,
+      314
+    ],
+    "size": [
+      96,
+      96
+    ],
+    "mode": "RGBA",
+    "sha256": "afd8729ead755b9f48de0a2333efad477286ac744d34962cd21a6c3b1e5f0792"
+  },
+  {
+    "file": "assets/resources/ui/crumble/icons/armor.png",
+    "original": "art/ui/source/ui-icons-original.png",
+    "crop": [
+      627,
+      0,
+      940,
+      314
+    ],
+    "size": [
+      96,
+      96
+    ],
+    "mode": "RGBA",
+    "sha256": "242c0b1418fe8a62b5a7398543c87576df773956dd0bd0b0c23b7ff17d15782a"
+  },
+  {
+    "file": "assets/resources/ui/crumble/icons/fox.png",
+    "original": "art/ui/source/ui-icons-original.png",
+    "crop": [
+      940,
+      0,
+      1254,
+      314
+    ],
+    "size": [
+      96,
+      96
+    ],
+    "mode": "RGBA",
+    "sha256": "e641ffd2237a3cc1aac6cdf2f3d644d05f70683dc52410a2d0a408d3cbb59833"
+  },
+  {
+    "file": "assets/resources/ui/crumble/icons/heart.png",
+    "original": "art/ui/source/ui-icons-original.png",
+    "crop": [
+      0,
+      314,
+      314,
+      627
+    ],
+    "size": [
+      96,
+      96
+    ],
+    "mode": "RGBA",
+    "sha256": "e4c9ddb40b2469dad698d01e91d7d5eec68d6ee86ef7d82e390b09807fbc34be"
+  },
+  {
+    "file": "assets/resources/ui/crumble/icons/chest.png",
+    "original": "art/ui/source/ui-icons-original.png",
+    "crop": [
+      314,
+      314,
+      627,
+      627
+    ],
+    "size": [
+      96,
+      96
+    ],
+    "mode": "RGBA",
+    "sha256": "368723d36319c993e6de5d99dba23d06b0a156816e1067689a82f43de35a4e31"
+  },
+  {
+    "file": "assets/resources/ui/crumble/icons/cards.png",
+    "original": "art/ui/source/ui-icons-original.png",
+    "crop": [
+      627,
+      314,
+      940,
+      627
+    ],
+    "size": [
+      96,
+      96
+    ],
+    "mode": "RGBA",
+    "sha256": "31a0d2a814004e961f59132d7eb6b71856f6c8e38303bf706c112de7d75cc1b8"
+  },
+  {
+    "file": "assets/resources/ui/crumble/icons/lightning.png",
+    "original": "art/ui/source/ui-icons-original.png",
+    "crop": [
+      940,
+      314,
+      1254,
+      627
+    ],
+    "size": [
+      96,
+      96
+    ],
+    "mode": "RGBA",
+    "sha256": "930270084163bcfb2de68a008a9c608a149b30566e084c723dd553954d7730f7"
+  },
+  {
+    "file": "assets/resources/ui/crumble/icons/trophy.png",
+    "original": "art/ui/source/ui-icons-original.png",
+    "crop": [
+      0,
+      627,
+      314,
+      940
+    ],
+    "size": [
+      96,
+      96
+    ],
+    "mode": "RGBA",
+    "sha256": "b25fda3238267ea6941778d0c83fe9fac3156d85cb18cff0b8eb354b464e31f6"
+  },
+  {
+    "file": "assets/resources/ui/crumble/icons/mail.png",
+    "original": "art/ui/source/ui-icons-original.png",
+    "crop": [
+      314,
+      627,
+      627,
+      940
+    ],
+    "size": [
+      96,
+      96
+    ],
+    "mode": "RGBA",
+    "sha256": "7c69c5aa1eceddd47ae8af43e47b1244bca71439a6ad9ead34b108f92b8f760b"
+  },
+  {
+    "file": "assets/resources/ui/crumble/icons/settings.png",
+    "original": "art/ui/source/ui-icons-original.png",
+    "crop": [
+      627,
+      627,
+      940,
+      940
+    ],
+    "size": [
+      96,
+      96
+    ],
+    "mode": "RGBA",
+    "sha256": "60f05db9c3411d23e71c723453d8aa2322dbc2bd0835a226331c69411efe7dc5"
+  },
+  {
+    "file": "assets/resources/ui/crumble/icons/rebirth.png",
+    "original": "art/ui/source/ui-icons-original.png",
+    "crop": [
+      940,
+      627,
+      1254,
+      940
+    ],
+    "size": [
+      96,
+      96
+    ],
+    "mode": "RGBA",
+    "sha256": "c9fd009ccf133e52b8b5efbeb766cbb5d99c593b2f17b38d3e02f5769efdf70c"
+  },
+  {
+    "file": "assets/resources/ui/crumble/icons/egg.png",
+    "original": "art/ui/source/ui-icons-original.png",
+    "crop": [
+      0,
+      940,
+      314,
+      1254
+    ],
+    "size": [
+      96,
+      96
+    ],
+    "mode": "RGBA",
+    "sha256": "9c1dd95b201cf1ec009ecfa45cc3011afaa85546ac508d9890ee418f240d6f78"
+  },
+  {
+    "file": "assets/resources/ui/crumble/icons/scroll.png",
+    "original": "art/ui/source/ui-icons-original.png",
+    "crop": [
+      314,
+      940,
+      627,
+      1254
+    ],
+    "size": [
+      96,
+      96
+    ],
+    "mode": "RGBA",
+    "sha256": "99bddc70eb05a9c74e5d8cbf4b02dbeddfd2fea7b0c8e52fe8867bf979ed58f7"
+  },
+  {
+    "file": "assets/resources/ui/crumble/icons/flag.png",
+    "original": "art/ui/source/ui-icons-original.png",
+    "crop": [
+      627,
+      940,
+      940,
+      1254
+    ],
+    "size": [
+      96,
+      96
+    ],
+    "mode": "RGBA",
+    "sha256": "001e439f3c99a86c44a01e6fa9c5e8a63cd9c449fc1bf5369989553f7258d0a9"
+  },
+  {
+    "file": "assets/resources/ui/crumble/icons/lock.png",
+    "original": "art/ui/source/ui-icons-original.png",
+    "crop": [
+      940,
+      940,
+      1254,
+      1254
+    ],
+    "size": [
+      96,
+      96
+    ],
+    "mode": "RGBA",
+    "sha256": "23cbfa3aceaa95113994a9cd9fedb11d6aae9c70f85273d120349ed105de62c3"
+  }
+]

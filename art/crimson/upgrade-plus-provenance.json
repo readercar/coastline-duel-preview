@@ -1,0 +1,18 @@
+{
+  "source": "art/crimson/source/upgrade-plus.png",
+  "conversation": "https://chatgpt.com/c/6ac2ed85-d8c4-83ee-8880-a205f70f086d",
+  "sha256": "412fe0c4946a977cbbf617e441db18bb692fe701f12db269106d3260110a8598",
+  "size": [
+    1254,
+    1254
+  ],
+  "realAlpha": true,
+  "crop": [
+    402,
+    381,
+    877,
+    869
+  ],
+  "derived": "assets/resources/ui/pastel/icons/upgrade-plus.png",
+  "review": "Original downloaded and inspected; crisp white plus, charcoal contour, crimson accent, gold sparkle. Transparent padding crop and nearest resize only."
+}

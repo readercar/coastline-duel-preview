@@ -2,6 +2,7 @@ import { ARTIFACT_DISCOVERY_COSTS, GrowthStat, GrowthContribution, gemstoneBonus
 import { ZERO, amount, add, sub, mul } from './Amount';
 import { Expansion, ExpansionState, newExpansion } from './Expansion';
 import { CONFIG, HEROES, SPELLS, SKILLS } from './Config';
+import {migrateTutorial,TutorialState,tutorialComplete} from './EntryPolicy';
 export interface Item {
     id: number;
     slot: number;
@@ -29,6 +30,7 @@ export interface Run {
     elapsed: number;
 }
 export interface Save {
+    tutorial:TutorialState;
     extra:ExpansionState;
     fairyAt: number;
     version: number;
@@ -151,7 +153,7 @@ export class Game {
     fresh(): Save {
         const now = this.now();
         return {
-            extra:newExpansion(now), fairyAt: now, version: 1, created: now, lastSeen: now, locale: 'ko', run: this.newRun(), maxStage: 1,
+            tutorial:{version:1,step:0}, extra:newExpansion(now), fairyAt: now, version: 1, created: now, lastSeen: now, locale: 'ko', run: this.newRun(), maxStage: 1,
             spellSlots: [0, 1, 2, 3, 4, 5], artifactInvested: Array(30).fill(ZERO), salvaged: [], enchanted: Array(30).fill(0), achievements: Array(4).fill(0), appearance: Array(5).fill(-1),
             prestiges: 0, gems: 100, relics: ZERO, shards: 15, sp: 0, spMilestone: 0,
             skills: Array(18).fill(0), artifacts: Array(30).fill(0), pets: Array(12).fill(0), activePet: 0,
@@ -169,6 +171,7 @@ export class Game {
     }; }
     migrate(s: Save): void {
         const defaults = this.fresh();
+        migrateTutorial(s);
         if(!s.extra){s.extra=defaults.extra;s.extra.summonCount=s.titans.reduce((a,b)=>a+b,0);}
         if(s.extra.unlocked===undefined)s.extra.unlocked=[8,15,60,100,1000,100000,180000].filter(stage=>s.maxStage>=stage);
         if(s.extra.lastEquipmentStage===undefined)s.extra.lastEquipmentStage=Math.floor(s.maxStage/5)*5;
@@ -192,6 +195,8 @@ export class Game {
     validate(s: Save): void {
         if (!s || s.version !== 1 || !s.run || !['ko', 'en'].includes(s.locale))
             throw Error('schema');
+        if(s.tutorial?.version!==1||!Number.isInteger(s.tutorial.step)||s.tutorial.step<0||s.tutorial.step>7)throw Error('tutorial');
+        if(s.tutorial.completed!==undefined&&(!Array.isArray(s.tutorial.completed)||s.tutorial.completed.length>1024||new Set(s.tutorial.completed).size!==s.tutorial.completed.length||s.tutorial.completed.some(k=>typeof k!=='string'||!/^[a-zA-Z0-9_.:-]{1,120}$/.test(k))))throw Error('tutorial.completed');
         for (const [key, length] of Object.entries({
             spellSlots: 6, artifactInvested: 30, enchanted: 30, achievements: 4, appearance: 5, skills: 18, artifacts: 30, pets: 12, equipped: 5, cards: 18, fragments: 18, deck: 3, titans: 120, research: 12, stones: 24, monuments: 12, board: 16, perks: 6, perkUntil: 6, weapons: 24, scrolls: 24
         })) {
@@ -445,7 +450,7 @@ export class Game {
     } const multicast = i !== 0 && r.spells[i] > 0 && r.master >= 500 && r.stacks[i] < 3; const cost = this.spellMana(i) * (multicast ? r.stacks[i] + 1 : 1); if (r.mana < cost || (r.cooldowns[i] > 0 && !multicast)) {
         this.notice = 'error.mana';
         return false;
-    } r.mana -= cost; r.cooldowns[i] = c.cooldown; r.spells[i] = c.duration; r.stacks[i] = multicast ? r.stacks[i] + 1 : 1; if (i === 0)
+    } tutorialComplete(this.s,'first:spell'); r.mana -= cost; r.cooldowns[i] = c.cooldown; r.spells[i] = c.duration; r.stacks[i] = multicast ? r.stacks[i] + 1 : 1; if (i === 0)
         this.damage(mul(this.tapDamage(), c.primary[this.spellIndex(i)])); this.revision++; return true; }
     upgradeSpell(i: number): boolean { const r = this.s.run; if(!SPELLS[i]||r.spellLevels[i]>=SPELLS[i].cap){this.notice='error.locked';return false;} const cost=this.spellUpgradeCost(i); if (r.master < SPELLS[i].unlock) {
         this.notice = 'error.locked';

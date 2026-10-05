@@ -11,15 +11,19 @@
     "test": "node scripts/test.cjs",
     "build": "node scripts/build.cjs",
     "server": "node scripts/server.cjs",
+    "share:lan": "node scripts/share-lan.cjs",
     "test:visual": "node scripts/visual-test.cjs",
     "test:online": "node scripts/online-visual-test.cjs",
-    "build:firebase-sdk": "node scripts/build-firebase-sdk.mjs"
+    "build:firebase-sdk": "node scripts/build-firebase-sdk.mjs",
+    "admin": "node scripts/server.cjs --compile-only && node tools/admin.cjs",
+    "build:operations": "node scripts/sync-operations.cjs && npm --prefix firebase/functions run build"
   },
   "dependencies": {
     "firebase": "12.19.0"
   },
   "devDependencies": {
-    "esbuild": "0.28.2"
+    "esbuild": "0.28.2",
+    "firebase-tools": "15.32.1"
   },
   "overrides": {
     "@grpc/grpc-js": "1.14.5"

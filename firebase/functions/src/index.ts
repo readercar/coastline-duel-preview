@@ -74,3 +74,4 @@ export const admobReward=onRequest(opts,async(req,res)=>{
   });res.status(200).send('OK');
  }catch{res.status(403).send('Invalid reward');}
 });
+export {operations} from './operations';

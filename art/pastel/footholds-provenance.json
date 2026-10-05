@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-04",
+  "route": "Logged-in Chrome 덕하 profile → new ChatGPT tab → original PNG download",
+  "conversation": "https://chatgpt.com/c/6ac1dc01-b1bc-83ec-ba2b-f9ec84d248a3",
+  "originalDownload": "민트와 설원의 픽셀 플랫폼 타일셋.png",
+  "original": "art/pastel/source/footholds-original.png",
+  "sha256": "e09d6a0cf4993389247dccbb0295043ef3ec25ec08065c127dfdace892a71549",
+  "dimensions": [
+    1254,
+    1254
+  ],
+  "actualAlpha": [
+    0,
+    255
+  ],
+  "accepted": true,
+  "sprites": 4,
+  "static": true,
+  "motionSheetsGenerated": false,
+  "promptSummary": "Four broad flat walkable rocky ledges on a true transparent 2x2 atlas. Mint grassland, peach canyon crystals, aqua snow, mint lavender ruins. Crisp stepped 16-bit pixel art matching the approved pastel alpine art. Natural solid cliffs, no characters, text, panels or magical floating islands. Full prompt retained in linked conversation.",
+  "inspection": "Downloaded original opened locally. Alpha verified; derived slices retain alpha and nearest sampling. Clear top planes and solid stone fronts; surface anchors calibrated per biome."
+}

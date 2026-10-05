@@ -21,3 +21,8 @@
 /firebase-debug.log
 
 /native/engine/common/localCfg.cmake
+
+/.prototype-server/
+
+.prototype-entry-qa/
+.prototype-ui-clarity-qa/

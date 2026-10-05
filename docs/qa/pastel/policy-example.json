@@ -1,0 +1,26 @@
+{
+  "notices": [
+    {
+      "id": "prototype-notice-20261004",
+      "title": "프로토타입 운영 연동 검수",
+      "body": "새 파스텔 아트와 공지 연동을 확인하고 있습니다.\n이 공지는 보상을 지급하지 않습니다. 우편 보상은 우편함에서 별도로 수령합니다.",
+      "localizations": {
+        "en": {
+          "title": "Prototype operations check",
+          "body": "Pastel art and account notices are connected.\nNotices grant no rewards. Claim rewards separately in your inbox."
+        }
+      }
+    }
+  ],
+  "minimumVersion": {
+    "web": "0",
+    "android": "0",
+    "ios": "0"
+  },
+  "requiredVersion": {},
+  "storeUrls": {
+    "web": "",
+    "android": "",
+    "ios": ""
+  }
+}

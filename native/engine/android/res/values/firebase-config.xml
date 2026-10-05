@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Public SDK configuration from this project’s config/google-services.json. -->
+<resources>
+    <string name="google_app_id" translatable="false">1:721865585447:android:ff69e920f98bb3e2a6af02</string>
+    <string name="google_api_key" translatable="false">AIzaSyB0M3fm_M1v_iNynkE5VkPXSrAfNcj9ohU</string>
+    <string name="gcm_defaultSenderId" translatable="false">721865585447</string>
+    <string name="project_id" translatable="false">ttsofts-tapwar</string>
+    <string name="google_storage_bucket" translatable="false">ttsofts-tapwar.firebasestorage.app</string>
+</resources>

@@ -1,0 +1,110 @@
+{
+  "date": "2026-10-03",
+  "kind": "6 main-tab art mockups",
+  "design_resolution": [
+    480,
+    960
+  ],
+  "engine": "Cocos Creator 3.8.8",
+  "language": "TypeScript",
+  "start_scene": "assets/scenes/Main.scene",
+  "production_build": "build/web-mobile",
+  "layout_source": "assets/scripts/GameApp.ts:112-141,338-445 and .reference/chapter2-battle.png",
+  "tabs": [
+    "수호자",
+    "동료",
+    "장비",
+    "정령",
+    "유물",
+    "상점"
+  ],
+  "font": {
+    "file": "assets/RixYeoljeongdo-Regular.ttf",
+    "origin": "/Users/dhlee/Desktop/RIXYEOLJEONGDO REGULAR (1).TTF",
+    "download_directory_search": "No Rix font found in Downloads; using discovered existing desktop copy",
+    "names": [
+      {
+        "id": 1,
+        "name": "RixYeoljeongdo"
+      },
+      {
+        "id": 2,
+        "name": "Regular"
+      },
+      {
+        "id": 4,
+        "name": "RixYeoljeongdo Regular"
+      },
+      {
+        "id": 6,
+        "name": "RixYeoljeongdoR"
+      },
+      {
+        "id": 1,
+        "name": "Rix열정도"
+      },
+      {
+        "id": 2,
+        "name": "Regular"
+      },
+      {
+        "id": 4,
+        "name": "Rix열정도 Regular"
+      }
+    ],
+    "sha256": "46bb7f688ea2c823c06ad855453a2eec059db4010754d609ddebe2117a011cd5"
+  },
+  "art_generation": {
+    "method": "ChatGPT UI, Chrome 덕하 profile, new window",
+    "conversation": "https://chatgpt.com/c/6ac09ac4-673c-83ee-84a4-50f15e5b4f7f",
+    "artwork_is_original_download": true,
+    "assets": [
+      {
+        "file": "assets/battle-original.png",
+        "origin": "/Users/dhlee/Downloads/고대 숲의 돌 거인 대결.png",
+        "sha256": "080e2570c940ab0388c904e0c18f4891543cdadc9bc5715c3b0d23784de52f7a",
+        "dimensions": [
+          1254,
+          1254
+        ]
+      },
+      {
+        "file": "assets/icons-original.png",
+        "origin": "/Users/dhlee/Downloads/16비트 판타지 아이콘 16종 세트.png",
+        "sha256": "d06c67d0b1ed831f49c48efb700702249006a129da69ffe27cacbecf2bfbd1b0",
+        "dimensions": [
+          1254,
+          1254
+        ]
+      }
+    ]
+  },
+  "style": {
+    "reference": "../../art-references/cookierun-crumble",
+    "keep": [
+      "upper battle composition",
+      "header HUD",
+      "shortcut strip",
+      "lower list panel",
+      "right action column",
+      "six bottom tabs"
+    ],
+    "borrow": [
+      "warm cream and teal-orange palette",
+      "chocolate outlines",
+      "step shading",
+      "restrained texture"
+    ],
+    "company_direction": "retro angular pixel art; mature character proportions"
+  },
+  "palette": {
+    "ink": "#473428",
+    "cream": "#f4e3c4",
+    "paper": "#ead2a7",
+    "teal": "#3c7b78",
+    "orange": "#e88c36",
+    "gold": "#ffd67a",
+    "violet": "#82709d"
+  },
+  "scope": "Review mockups and editable HTML preview only. Sample progression values; no gameplay logic change."
+}

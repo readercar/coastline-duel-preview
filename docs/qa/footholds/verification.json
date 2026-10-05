@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-04",
+  "status": "applied-and-local-web-verified",
+  "engine": "Cocos Creator 3.8.8",
+  "scene": "assets/scenes/Main.scene",
+  "buildConfig": "config/build-web.json",
+  "buildOutput": "build/web-mobile",
+  "source": "art/pastel/footholds-provenance.json",
+  "changes": [
+    "Four generated static transparent ledge sprites selected by biome",
+    "Shared layered side terraces support up to 24 allies",
+    "Sprite pivot at visible feet preserves ground contact during attack rotation",
+    "Terrain masked above collapse handle and battle cast layered below management UI"
+  ],
+  "validation": {
+    "coreTests": 81,
+    "serverTests": 28,
+    "failures": 0,
+    "typecheck": "passed",
+    "diffWhitespace": "passed",
+    "build": "web-mobile completed 2026-10-04 14:02:28",
+    "runtimeReport": "runtime-checks.json",
+    "consoleErrors": [],
+    "viewports": [
+      "390x844",
+      "320x640"
+    ],
+    "locales": [
+      "ko",
+      "en"
+    ],
+    "biomes": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "partySizes": [
+      3,
+      12,
+      24
+    ],
+    "menuFoldedAndExpanded": true,
+    "maximumFootGap": 5.3290705182007514e-14,
+    "screenshots": "screens/",
+    "qaMethod": "Actual built Cocos game in Chrome using isolated local QA fixture; no account or server writes"
+  },
+  "diagnostics": [
+    "After successful web build, Creator window restoration logged invalid JSON in global ~/.CocosCreator/editor/window.json. Built JS was checked and actual build ran successfully. Shared global editor state was left untouched."
+  ],
+  "limitations": [
+    "Local web runtime verified; native device build was not part of this change."
+  ],
+  "qaHarness": "tools/footholds-qa.html"
+}

@@ -1,0 +1,57 @@
+{
+  "results": [
+    {
+      "screen": "game",
+      "error": "",
+      "ready": true,
+      "conflict": false,
+      "cloud": true,
+      "locale": "ko",
+      "version": 16,
+      "bridge": true,
+      "secureContext": false,
+      "policyViaBridge": true,
+      "diagnostics": []
+    },
+    {
+      "screen": "game",
+      "error": "",
+      "ready": true,
+      "conflict": false,
+      "cloud": true,
+      "locale": "ko",
+      "version": 19,
+      "bridge": true,
+      "secureContext": false,
+      "policyViaBridge": true,
+      "diagnostics": []
+    },
+    {
+      "screen": "game",
+      "error": "",
+      "ready": true,
+      "conflict": false,
+      "cloud": true,
+      "locale": "en",
+      "version": 21,
+      "bridge": true,
+      "secureContext": false,
+      "policyViaBridge": true,
+      "diagnostics": []
+    },
+    {
+      "screen": "game",
+      "error": "",
+      "ready": true,
+      "conflict": false,
+      "cloud": true,
+      "locale": "en",
+      "version": 25,
+      "bridge": true,
+      "secureContext": false,
+      "policyViaBridge": true,
+      "diagnostics": []
+    }
+  ],
+  "diagnostics": []
+}

@@ -12,7 +12,20 @@
           "package_name": "com.ttsofts.tapwar"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "721865585447-bucem8ppn27c02vo64atvnrh3lf40lnl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ttsofts.tapwar",
+            "certificate_hash": "b00d6d34b341879204f9e072b39188d80fd60a29"
+          }
+        },
+        {
+          "client_id": "721865585447-kf17q8d9ovu01u9rojvqqht0h1r1g1o3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyB0M3fm_M1v_iNynkE5VkPXSrAfNcj9ohU"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "721865585447-kf17q8d9ovu01u9rojvqqht0h1r1g1o3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

@@ -1,0 +1,182 @@
+{
+  "source": "art/crimson/source/actors.png",
+  "method": "Extract each of 16 connected alpha sprites, keeping original RGBA pixels; nearest resize and foot-aligned padding. Removes neighboring atlas sprites from overlapping rectangular crops.",
+  "sprites": [
+    {
+      "name": "kael",
+      "sourceBounds": [
+        648,
+        33,
+        910,
+        313
+      ],
+      "sourcePixels": 42210,
+      "file": "assets/resources/ui/pastel/actors/kael.png"
+    },
+    {
+      "name": "rowen",
+      "sourceBounds": [
+        370,
+        48,
+        610,
+        313
+      ],
+      "sourcePixels": 39246,
+      "file": "assets/resources/ui/pastel/actors/rowen.png"
+    },
+    {
+      "name": "sera",
+      "sourceBounds": [
+        1007,
+        60,
+        1195,
+        315
+      ],
+      "sourcePixels": 30410,
+      "file": "assets/resources/ui/pastel/actors/sera.png"
+    },
+    {
+      "name": "guardian",
+      "sourceBounds": [
+        36,
+        61,
+        329,
+        311
+      ],
+      "sourcePixels": 32614,
+      "file": "assets/resources/ui/pastel/actors/guardian.png"
+    },
+    {
+      "name": "flame-spirit",
+      "sourceBounds": [
+        996,
+        316,
+        1224,
+        630
+      ],
+      "sourcePixels": 36067,
+      "file": "assets/resources/ui/pastel/actors/flame-spirit.png"
+    },
+    {
+      "name": "golem",
+      "sourceBounds": [
+        18,
+        328,
+        326,
+        622
+      ],
+      "sourcePixels": 63305,
+      "file": "assets/resources/ui/pastel/actors/golem.png"
+    },
+    {
+      "name": "spectral-knight",
+      "sourceBounds": [
+        640,
+        328,
+        919,
+        630
+      ],
+      "sourcePixels": 48325,
+      "file": "assets/resources/ui/pastel/actors/spectral-knight.png"
+    },
+    {
+      "name": "forest-wolf",
+      "sourceBounds": [
+        338,
+        391,
+        607,
+        609
+      ],
+      "sourcePixels": 35292,
+      "file": "assets/resources/ui/pastel/actors/forest-wolf.png"
+    },
+    {
+      "name": "stone-hawk",
+      "sourceBounds": [
+        326,
+        629,
+        619,
+        891
+      ],
+      "sourcePixels": 39943,
+      "file": "assets/resources/ui/pastel/actors/stone-hawk.png"
+    },
+    {
+      "name": "ember-fox",
+      "sourceBounds": [
+        24,
+        630,
+        295,
+        901
+      ],
+      "sourcePixels": 44446,
+      "file": "assets/resources/ui/pastel/actors/ember-fox.png"
+    },
+    {
+      "name": "fairy",
+      "sourceBounds": [
+        1007,
+        640,
+        1193,
+        898
+      ],
+      "sourcePixels": 28154,
+      "file": "assets/resources/ui/pastel/actors/fairy.png"
+    },
+    {
+      "name": "shade-wolf",
+      "sourceBounds": [
+        646,
+        658,
+        932,
+        896
+      ],
+      "sourcePixels": 42685,
+      "file": "assets/resources/ui/pastel/actors/shade-wolf.png"
+    },
+    {
+      "name": "ice-boss",
+      "sourceBounds": [
+        639,
+        893,
+        945,
+        1216
+      ],
+      "sourcePixels": 65630,
+      "file": "assets/resources/ui/pastel/actors/ice-boss.png"
+    },
+    {
+      "name": "tree-boss",
+      "sourceBounds": [
+        321,
+        900,
+        626,
+        1215
+      ],
+      "sourcePixels": 75642,
+      "file": "assets/resources/ui/pastel/actors/tree-boss.png"
+    },
+    {
+      "name": "crystal-boss",
+      "sourceBounds": [
+        957,
+        901,
+        1242,
+        1213
+      ],
+      "sourcePixels": 52295,
+      "file": "assets/resources/ui/pastel/actors/crystal-boss.png"
+    },
+    {
+      "name": "skeleton",
+      "sourceBounds": [
+        19,
+        910,
+        298,
+        1213
+      ],
+      "sourcePixels": 48834,
+      "file": "assets/resources/ui/pastel/actors/skeleton.png"
+    }
+  ]
+}

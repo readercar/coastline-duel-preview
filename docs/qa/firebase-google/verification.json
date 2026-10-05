@@ -1,0 +1,84 @@
+{
+  "verifiedAt": "2026-10-04T04:41:58.202Z",
+  "project": "ttsofts-tapwar",
+  "account": "admin.ttsoft@gmail.com",
+  "chromeProfile": "미정",
+  "imageGenerationProfile": "덕하 (separate)",
+  "provider": {
+    "googleEnabled": true,
+    "anonymousEnabled": true,
+    "publicProjectName": "tapWar",
+    "supportEmail": "admin.ttsoft@gmail.com"
+  },
+  "authorizedDomains": [
+    "localhost",
+    "ttsofts-tapwar.firebaseapp.com",
+    "ttsofts-tapwar.web.app",
+    "127.0.0.1"
+  ],
+  "android": {
+    "package": "com.ttsofts.tapwar",
+    "sha1": "b00d6d34b341879204f9e072b39188d80fd60a29",
+    "sha256": "c6b69705cbe9f88a8785e8969de8060d14c8a4fe50f0a85bb38d35fc2490ca5e",
+    "certificateType": "Current prototype debug signer; registered both digests in Firebase",
+    "sdkConfig": "config/google-services.json",
+    "oauthClientTypes": [
+      1,
+      3
+    ],
+    "webClientResource": "native/engine/android/res/values/strings.xml:google_web_client_id",
+    "apkResourceConfirmed": true,
+    "build": "Gradle assembleDebug BUILD SUCCESSFUL",
+    "apk": {
+      "path": "build/android/proj/build/tapWar/outputs/apk/debug/tapWar-debug.apk",
+      "bytes": 97328506,
+      "sha256": "762fa7b01594af8c030485e07f723c150095fb9c2da214752505877d75dd8d3c"
+    }
+  },
+  "web": {
+    "origin": "http://localhost:8850/",
+    "entry": "Prototype documents read to end, optional notifications declined, actual Google popup with 미정 account, live policy/save/message loading, in-game first-play welcome",
+    "authProviderVerified": [
+      "google.com"
+    ],
+    "serverSave": true,
+    "beforeReload": {
+      "version": 12,
+      "master": 2,
+      "tutorialStep": 3,
+      "totalTaps": 3
+    },
+    "afterReload": {
+      "sameUid": true,
+      "version": 24,
+      "master": 2,
+      "tutorialStep": 3,
+      "totalTaps": 3
+    },
+    "restore": "Browser reload → title → retained consent/notification → Google login → master 2 and tutorial step 3 restored"
+  },
+  "validation": {
+    "gameCodeChanged": false,
+    "publicSdkProjectAndNativeResourceMatched": true,
+    "noOAuthClientSecretInSdkFile": true,
+    "diffWhitespace": "passed",
+    "priorEntryTests": {
+      "core": 81,
+      "server": 28,
+      "total": 109,
+      "failed": 0
+    }
+  },
+  "limitations": [
+    "Physical Android Credential Manager sign-in, OS notification permissions/FCM delivery and safe-area behavior not tested.",
+    "Release/Play signing certificate registration not performed for this prototype.",
+    "Terms/privacy remain prototype drafts."
+  ],
+  "productionOperations": "No notice, reward mail, push broadcast, IAM/billing change or store release",
+  "evidence": [
+    "screens/mijeong-google-enabled.png",
+    "screens/authorized-domains.png",
+    "screens/google-ingame.png",
+    "screens/google-restored.png"
+  ]
+}

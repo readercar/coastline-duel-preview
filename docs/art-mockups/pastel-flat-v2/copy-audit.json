@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "locales": [
+    "ko",
+    "en"
+  ],
+  "tags": 144,
+  "placeholderSetsMatch": true,
+  "noEmptyLabels": true,
+  "noHardcodedKoreanInRenderLogic": true
+}

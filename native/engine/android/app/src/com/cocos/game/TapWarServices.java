@@ -22,7 +22,7 @@ public final class TapWarServices {
  private static final boolean LIVE_ADS_VERIFIED=false;
  private static final String TEST_UNIT="ca-app-pub-3940256099942544/5224354917";
  private static final String LIVE_UNIT="ca-app-pub-5359581077506683/9191178394";
- public static void attach(Activity a){activity=a; if(com.google.firebase.FirebaseApp.getApps(a).isEmpty())com.google.firebase.FirebaseApp.initializeApp(a,new com.google.firebase.FirebaseOptions.Builder().setApplicationId("1:721865585447:android:ff69e920f98bb3e2a6af02").setApiKey("AIzaSyB0M3fm_M1v_iNynkE5VkPXSrAfNcj9ohU").setProjectId("ttsofts-tapwar").build());}
+ public static void attach(Activity a){activity=a; TapWarPush.attach(a); if(com.google.firebase.FirebaseApp.getApps(a).isEmpty())com.google.firebase.FirebaseApp.initializeApp(a,new com.google.firebase.FirebaseOptions.Builder().setApplicationId("1:721865585447:android:ff69e920f98bb3e2a6af02").setApiKey("AIzaSyB0M3fm_M1v_iNynkE5VkPXSrAfNcj9ohU").setProjectId("ttsofts-tapwar").setGcmSenderId("721865585447").build());}
  public static void detach(Activity a){if(activity==a)activity=null;}
  private static void reply(String id,JSONObject data){
   CocosHelper.runOnGameThread(()->CocosJavascriptJavaBridge.evalString("globalThis.tapWarNativeResult("+JSONObject.quote(id)+","+data.toString()+");"));
@@ -54,6 +54,24 @@ public final class TapWarServices {
    java.util.Map<String,Object> backup=new java.util.HashMap<>();backup.put("version",current+1);backup.put("payload",p.optString("payload"));backup.put("updatedAt",com.google.firebase.firestore.FieldValue.serverTimestamp());tx.set(ref,backup);return null;
   }).addOnCompleteListener(task->{if(task.isSuccessful())reply(id,data("status","saved"));else reply(id,data("error",task.getException()!=null&&"online.saveConflict".equals(task.getException().getMessage())?"online.saveConflict":"online.unreachable"));});
  }
+ public static void linkGoogle(String id,String ignored){googleCredential(id,true);}
+ public static void googleLogin(String id,String json){boolean allow=false;try{allow=new JSONObject(json).optBoolean("allowSwitch");}catch(Exception ignored){}FirebaseUser user=FirebaseAuth.getInstance().getCurrentUser();googleCredential(id,user!=null&&user.isAnonymous()&&!allow);}
+ private static void googleCredential(String id,boolean link){
+  if(activity==null){reply(id,data("error","online.unreachable"));return;}
+  final String client=activity.getString(com.ttsofts.tapwar.R.string.google_web_client_id);if(client.isEmpty()){reply(id,data("error","ops.googleUnconfigured"));return;}
+  activity.runOnUiThread(()->{try{
+   androidx.credentials.GetCredentialRequest query=new androidx.credentials.GetCredentialRequest.Builder().addCredentialOption(new com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption.Builder(client).build()).build();
+   androidx.credentials.CredentialManager.create(activity).getCredentialAsync(activity,query,new android.os.CancellationSignal(),activity::runOnUiThread,new androidx.credentials.CredentialManagerCallback<androidx.credentials.GetCredentialResponse,androidx.credentials.exceptions.GetCredentialException>(){
+    @Override public void onResult(androidx.credentials.GetCredentialResponse response){try{String token=com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.createFrom(response.getCredential().getData()).getIdToken();FirebaseAuth auth=FirebaseAuth.getInstance();FirebaseUser user=auth.getCurrentUser();com.google.firebase.auth.AuthCredential credential=com.google.firebase.auth.GoogleAuthProvider.getCredential(token,null);if(link&&user==null){reply(id,data("error","online.auth"));return;}(link?user.linkWithCredential(credential):auth.signInWithCredential(credential)).addOnCompleteListener(task->{if(task.isSuccessful())token(id,task.getResult().getUser());else reply(id,data("error",task.getException() instanceof com.google.firebase.auth.FirebaseAuthUserCollisionException?"ops.googleCollision":"online.auth"));});}catch(Exception e){reply(id,data("error","online.auth"));}}
+    @Override public void onError(androidx.credentials.exceptions.GetCredentialException error){reply(id,data("error",error instanceof androidx.credentials.exceptions.GetCredentialCancellationException?"entry.cancelled":"online.auth"));}
+   });
+  }catch(Exception e){reply(id,data("error","online.auth"));}});
+ }
+ public static void pushConfigure(String id,String json){try{JSONObject p=new JSONObject(json);String locale=p.optString("locale","ko");if(!locale.equals("ko")&&!locale.equals("en"))throw new Exception();reply(id,data("status",p.optBoolean("enabled")?TapWarPush.enable(locale):TapWarPush.disable()));}catch(Exception e){reply(id,data("error","online.unreachable"));}}
+ public static void pushStatus(String id,String ignored){reply(id,data("status",TapWarPush.status()));}
+ public static void pushSettings(String id,String ignored){reply(id,data("status",TapWarPush.openSettings()));}
+ public static void pushOpened(String id,String ignored){String notice=activity==null?"":activity.getIntent().getStringExtra("noticeId");if(activity!=null)activity.getIntent().removeExtra("noticeId");reply(id,data("noticeId",notice==null?"":notice));}
+ public static void operationsRequest(String id,String json){TapWarOperations.request(json,result->reply(id,result));}
  public static void showRewarded(String id,String json){
   if(activity==null){reply(id,data("status","no-fill"));return;}
   activity.runOnUiThread(()->{

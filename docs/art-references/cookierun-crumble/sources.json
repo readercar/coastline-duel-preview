@@ -1,0 +1,235 @@
+{
+  "game": "쿠키런: 크럼블",
+  "saved_date": "2026-10-03",
+  "type": "actual-in-game-screenshots",
+  "discovery": "Google 이미지 검색: 쿠키런 크럼블 인게임 / 쿠키런 크럼블 쿠키 강화 편성",
+  "description": "플레이 리뷰의 인게임 캡처 원본을 내려받아 화면별로 분리. 직접 게임을 실행해 촬영한 자료는 아님. 참고 및 분석용. 스토어 홍보 이미지는 .reference/cookierun-crumble-store-promo로 이동.",
+  "originals": [
+    {
+      "file": "originals/playforum-battle-pair.png",
+      "source_page": "https://www.playforum.net/news/articleView.html?idxno=634976",
+      "image_url": "https://cdn.playforum.net/news/photo/202607/634976_65235_415.png",
+      "size": [
+        960,
+        1029
+      ],
+      "sha256": "2da5b23d68e7b5f6399fefdac73641a417f81c1ab7ba05bcde34b87e8aecd98d"
+    },
+    {
+      "file": "originals/playforum-dungeon-and-missions.png",
+      "source_page": "https://www.playforum.net/news/articleView.html?idxno=634976",
+      "image_url": "https://cdn.playforum.net/news/photo/202607/634976_65238_445.png",
+      "size": [
+        960,
+        1036
+      ],
+      "sha256": "71d097e5e6441f0352b246ea8e57f6df5c2b08f0ec260384e991e52c4baf08b9"
+    },
+    {
+      "file": "originals/playforum-dialogue.png",
+      "source_page": "https://www.playforum.net/news/articleView.html?idxno=634976",
+      "image_url": "https://cdn.playforum.net/news/photo/202607/634976_65236_428.png",
+      "size": [
+        766,
+        1080
+      ],
+      "sha256": "5b5fe71813ecb38306e57cd74d71dc197fd0dd89cefb31d1b662abe5f181b920"
+    },
+    {
+      "file": "originals/inews-equipment-dungeon-arena.jpg",
+      "source_page": "https://www.inews24.com/view/1990863",
+      "image_url": "https://static.inews24.com/v1/3b8ae7350a2f98.jpg",
+      "size": [
+        580,
+        419
+      ],
+      "sha256": "a1ce48afa808dadaa6f1525b84aaf7a24f97bd379fb7481723f75b62d43edf49"
+    },
+    {
+      "file": "originals/inews-battle-and-idle-rewards.jpg",
+      "source_page": "https://www.inews24.com/view/1990863",
+      "image_url": "https://static.inews24.com/v1/46e4fde7bb7c91.jpg",
+      "size": [
+        580,
+        628
+      ],
+      "sha256": "e9201508a82a79b535f36f4cd11f53cd55e51c7fa98d727c71588e1cdc7f5644"
+    },
+    {
+      "file": "originals/byline-roster-and-pets.jpg",
+      "source_page": "https://byline.network/2026/08/6-443/",
+      "image_url": "https://cdn.byline.network/wp-content/uploads/2026/08/01-1.jpg",
+      "size": [
+        660,
+        720
+      ],
+      "sha256": "bd8e3956f53a1d83a7e48290b20616492a6922366361832dc277122a787ee467"
+    },
+    {
+      "file": "originals/byline-summon-banners.jpg",
+      "source_page": "https://byline.network/2026/08/6-443/",
+      "image_url": "https://cdn.byline.network/wp-content/uploads/2026/08/04-1.jpg",
+      "size": [
+        900,
+        649
+      ],
+      "sha256": "0e99d07546d25e43690f99d12f01b2bd8398d553a51577584f37ca062ebcbc12"
+    },
+    {
+      "file": "originals/byline-growth-research-links.jpg",
+      "source_page": "https://byline.network/2026/08/6-443/",
+      "image_url": "https://cdn.byline.network/wp-content/uploads/2026/08/03.jpg",
+      "size": [
+        900,
+        649
+      ],
+      "sha256": "529bccf69b3a681d4551770d9a353f37881802a54c81aaab0c3813ec7bd7cceb"
+    }
+  ],
+  "images": [
+    {
+      "file": "01-main-battle.png",
+      "title": "Main battle HUD",
+      "source_file": "originals/playforum-battle-pair.png",
+      "crop_box": [
+        483,
+        0,
+        960,
+        1029
+      ],
+      "size": [
+        477,
+        1029
+      ],
+      "description": "리뷰 기사에 실린 실제 인게임 캡처에서 한 화면만 분리. UI 및 원본 워터마크 유지. 확대 또는 AI 보정 없음."
+    },
+    {
+      "file": "02-boss-battle.png",
+      "title": "Boss battle HUD",
+      "source_file": "originals/playforum-battle-pair.png",
+      "crop_box": [
+        0,
+        0,
+        483,
+        1029
+      ],
+      "size": [
+        483,
+        1029
+      ],
+      "description": "리뷰 기사에 실린 실제 인게임 캡처에서 한 화면만 분리. UI 및 원본 워터마크 유지. 확대 또는 AI 보정 없음."
+    },
+    {
+      "file": "03-team-roster.png",
+      "title": "Team and character cards",
+      "source_file": "originals/byline-roster-and-pets.jpg",
+      "crop_box": [
+        0,
+        0,
+        332,
+        720
+      ],
+      "size": [
+        332,
+        720
+      ],
+      "description": "리뷰 기사에 실린 실제 인게임 캡처에서 한 화면만 분리. UI 및 원본 워터마크 유지. 확대 또는 AI 보정 없음."
+    },
+    {
+      "file": "04-growth-stats.png",
+      "title": "Growth stats and upgrade",
+      "source_file": "originals/byline-growth-research-links.jpg",
+      "crop_box": [
+        0,
+        0,
+        300,
+        649
+      ],
+      "size": [
+        300,
+        649
+      ],
+      "description": "리뷰 기사에 실린 실제 인게임 캡처에서 한 화면만 분리. UI 및 원본 워터마크 유지. 확대 또는 AI 보정 없음."
+    },
+    {
+      "file": "05-research-tree.png",
+      "title": "Research tree",
+      "source_file": "originals/byline-growth-research-links.jpg",
+      "crop_box": [
+        300,
+        0,
+        599,
+        649
+      ],
+      "size": [
+        299,
+        649
+      ],
+      "description": "리뷰 기사에 실린 실제 인게임 캡처에서 한 화면만 분리. UI 및 원본 워터마크 유지. 확대 또는 AI 보정 없음."
+    },
+    {
+      "file": "06-idle-rewards.png",
+      "title": "Idle rewards panel",
+      "source_file": "originals/inews-battle-and-idle-rewards.jpg",
+      "crop_box": [
+        290,
+        0,
+        580,
+        628
+      ],
+      "size": [
+        290,
+        628
+      ],
+      "description": "리뷰 기사에 실린 실제 인게임 캡처에서 한 화면만 분리. UI 및 원본 워터마크 유지. 확대 또는 AI 보정 없음."
+    },
+    {
+      "file": "07-pass-missions.png",
+      "title": "Pass mission list",
+      "source_file": "originals/playforum-dungeon-and-missions.png",
+      "crop_box": [
+        483,
+        0,
+        960,
+        1036
+      ],
+      "size": [
+        477,
+        1036
+      ],
+      "description": "리뷰 기사에 실린 실제 인게임 캡처에서 한 화면만 분리. UI 및 원본 워터마크 유지. 확대 또는 AI 보정 없음."
+    },
+    {
+      "file": "08-equipment-comparison.png",
+      "title": "Equipment comparison",
+      "source_file": "originals/inews-equipment-dungeon-arena.jpg",
+      "crop_box": [
+        0,
+        0,
+        193,
+        419
+      ],
+      "size": [
+        193,
+        419
+      ],
+      "description": "리뷰 기사에 실린 실제 인게임 캡처에서 한 화면만 분리. UI 및 원본 워터마크 유지. 확대 또는 AI 보정 없음."
+    },
+    {
+      "file": "09-summon-banner.png",
+      "title": "Summon banner and buttons",
+      "source_file": "originals/byline-summon-banners.jpg",
+      "crop_box": [
+        599,
+        0,
+        900,
+        649
+      ],
+      "size": [
+        301,
+        649
+      ],
+      "description": "리뷰 기사에 실린 실제 인게임 캡처에서 한 화면만 분리. UI 및 원본 워터마크 유지. 확대 또는 AI 보정 없음."
+    }
+  ]
+}

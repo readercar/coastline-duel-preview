@@ -1,0 +1,364 @@
+{
+  "date": "2026-10-04",
+  "method": "Case-insensitive trimmed exact English-name comparison against existing TT2 reference CSV snapshot; does not claim a complete naming or legal clearance.",
+  "before": "Independent hero/pet/artifact catalogs; direct Sword Master title still present.",
+  "after": "Localized expedition titles, spirit epithets and alpine relic names. Stable numeric IDs, saves and effects retained.",
+  "references": {
+    "hero": {
+      "referenceFile": ".reference/balance/HelperInfo.csv",
+      "referenceCount": 37,
+      "matchesAfter": []
+    },
+    "pet": {
+      "referenceFile": ".reference/balance/PetInfo.csv",
+      "referenceCount": 30,
+      "matchesAfter": []
+    },
+    "artifact": {
+      "referenceFile": ".reference/balance/ArtifactInfo.csv",
+      "referenceCount": 103,
+      "matchesAfter": []
+    }
+  },
+  "catalog": [
+    {
+      "id": "hero.0",
+      "ko": "능선검사 로웬",
+      "en": "Rowen of the Ridge"
+    },
+    {
+      "id": "hero.1",
+      "ko": "바람궁수 카엘",
+      "en": "Kael Windbow"
+    },
+    {
+      "id": "hero.2",
+      "ko": "수정술사 세라",
+      "en": "Sera Crystalweaver"
+    },
+    {
+      "id": "hero.3",
+      "ko": "돌길지기 브람",
+      "en": "Bram Stonepath"
+    },
+    {
+      "id": "hero.4",
+      "ko": "안개등불 이리스",
+      "en": "Iris Mistlamp"
+    },
+    {
+      "id": "hero.5",
+      "ko": "잔불창 단테",
+      "en": "Dante Emberspear"
+    },
+    {
+      "id": "hero.6",
+      "ko": "샘물지기 미라",
+      "en": "Mira Springkeeper"
+    },
+    {
+      "id": "hero.7",
+      "ko": "절벽추적자 오린",
+      "en": "Orin Clifftracker"
+    },
+    {
+      "id": "hero.8",
+      "ko": "이끼약사 베라",
+      "en": "Vera Mossmender"
+    },
+    {
+      "id": "hero.9",
+      "ko": "밤길정찰 녹스",
+      "en": "Nox Nighttrail"
+    },
+    {
+      "id": "hero.10",
+      "ko": "달빛채집가 리아",
+      "en": "Ria Moongatherer"
+    },
+    {
+      "id": "hero.11",
+      "ko": "구름대장장이 에단",
+      "en": "Ethan Cloudsmith"
+    },
+    {
+      "id": "hero.12",
+      "ko": "수풀창 실바",
+      "en": "Silva Grovepike"
+    },
+    {
+      "id": "hero.13",
+      "ko": "파편검사 카인",
+      "en": "Kain Shardblade"
+    },
+    {
+      "id": "hero.14",
+      "ko": "설원길잡이 루나",
+      "en": "Luna Snowguide"
+    },
+    {
+      "id": "hero.15",
+      "ko": "봉화지기 레온",
+      "en": "Leon Beaconkeeper"
+    },
+    {
+      "id": "hero.16",
+      "ko": "바람무희 아샤",
+      "en": "Asha Winddancer"
+    },
+    {
+      "id": "hero.17",
+      "ko": "메아리술사 에코",
+      "en": "Echo Valechanter"
+    },
+    {
+      "id": "hero.18",
+      "ko": "깃털척후 레이븐",
+      "en": "Raven Featherscout"
+    },
+    {
+      "id": "hero.19",
+      "ko": "햇살수도사 솔",
+      "en": "Sol Sunmender"
+    },
+    {
+      "id": "hero.20",
+      "ko": "물안개검 린",
+      "en": "Lyn Mistblade"
+    },
+    {
+      "id": "hero.21",
+      "ko": "유적방패 아르곤",
+      "en": "Argon Ruinshield"
+    },
+    {
+      "id": "hero.22",
+      "ko": "옥빛연금사 제이드",
+      "en": "Jade Mossalchemist"
+    },
+    {
+      "id": "hero.23",
+      "ko": "별길수호 엘리온",
+      "en": "Elion Starwarden"
+    },
+    {
+      "id": "pet.0",
+      "ko": "잔불꼬리 여우",
+      "en": "Cindertail Fox"
+    },
+    {
+      "id": "pet.1",
+      "ko": "능선날개 매",
+      "en": "Ridgewing Hawk"
+    },
+    {
+      "id": "pet.2",
+      "ko": "안개발 늑대",
+      "en": "Mistpaw Wolf"
+    },
+    {
+      "id": "pet.3",
+      "ko": "빙화뿔 사슴",
+      "en": "Icebloom Stag"
+    },
+    {
+      "id": "pet.4",
+      "ko": "녹빛고리 뱀",
+      "en": "Verdigris Coil"
+    },
+    {
+      "id": "pet.5",
+      "ko": "별조각 까마귀",
+      "en": "Starshard Raven"
+    },
+    {
+      "id": "pet.6",
+      "ko": "바람점박이 표범",
+      "en": "Galespot Panther"
+    },
+    {
+      "id": "pet.7",
+      "ko": "이끼등 거북",
+      "en": "Mossback Turtle"
+    },
+    {
+      "id": "pet.8",
+      "ko": "샘비늘 용",
+      "en": "Springscale Drake"
+    },
+    {
+      "id": "pet.9",
+      "ko": "노을깃 독수리",
+      "en": "Roseplume Eagle"
+    },
+    {
+      "id": "pet.10",
+      "ko": "유리등 도마뱀",
+      "en": "Glassback Lizard"
+    },
+    {
+      "id": "pet.11",
+      "ko": "구름줄 호랑이",
+      "en": "Cloudstripe Tiger"
+    },
+    {
+      "id": "artifact.0",
+      "ko": "능선의 첫 칼날",
+      "en": "First Ridgeblade"
+    },
+    {
+      "id": "artifact.1",
+      "ko": "잔불지기의 관",
+      "en": "Cinderkeeper Crown"
+    },
+    {
+      "id": "artifact.2",
+      "ko": "별길 나침반",
+      "en": "Startrail Compass"
+    },
+    {
+      "id": "artifact.3",
+      "ko": "샘가의 금빛 잎",
+      "en": "Springbank Goldleaf"
+    },
+    {
+      "id": "artifact.4",
+      "ko": "용샘 봉인",
+      "en": "Drakespring Seal"
+    },
+    {
+      "id": "artifact.5",
+      "ko": "달샘 수정",
+      "en": "Moonwell Crystal"
+    },
+    {
+      "id": "artifact.6",
+      "ko": "바람골 기록",
+      "en": "Windvale Chronicle"
+    },
+    {
+      "id": "artifact.7",
+      "ko": "잃어버린 원정화",
+      "en": "Lost Expedition Coin"
+    },
+    {
+      "id": "artifact.8",
+      "ko": "안개길 등불",
+      "en": "Mistpath Lantern"
+    },
+    {
+      "id": "artifact.9",
+      "ko": "돌심장 핵",
+      "en": "Stoneheart Core"
+    },
+    {
+      "id": "artifact.10",
+      "ko": "깊은샘 렌즈",
+      "en": "Deepwell Lens"
+    },
+    {
+      "id": "artifact.11",
+      "ko": "구름봉 잔",
+      "en": "Cloudpeak Chalice"
+    },
+    {
+      "id": "artifact.12",
+      "ko": "능선의 울림종",
+      "en": "Ridgechime Bell"
+    },
+    {
+      "id": "artifact.13",
+      "ko": "별길 재봉침",
+      "en": "Startrail Needle"
+    },
+    {
+      "id": "artifact.14",
+      "ko": "빙화 거울",
+      "en": "Icebloom Mirror"
+    },
+    {
+      "id": "artifact.15",
+      "ko": "봉화의 씨앗",
+      "en": "Beacon Seed"
+    },
+    {
+      "id": "artifact.16",
+      "ko": "유적장이 망치",
+      "en": "Ruinsmith Hammer"
+    },
+    {
+      "id": "artifact.17",
+      "ko": "안개까마귀 깃",
+      "en": "Mistraven Feather"
+    },
+    {
+      "id": "artifact.18",
+      "ko": "샘문 열쇠",
+      "en": "Springgate Key"
+    },
+    {
+      "id": "artifact.19",
+      "ko": "달골 은모래",
+      "en": "Moonvale Silver Sand"
+    },
+    {
+      "id": "artifact.20",
+      "ko": "첫 원정의 맹세",
+      "en": "First Expedition Oath"
+    },
+    {
+      "id": "artifact.21",
+      "ko": "능선지기 고리",
+      "en": "Ridgekeeper Ring"
+    },
+    {
+      "id": "artifact.22",
+      "ko": "길잃은 별조각",
+      "en": "Wayward Starshard"
+    },
+    {
+      "id": "artifact.23",
+      "ko": "검은유리 꽃",
+      "en": "Blackglass Bloom"
+    },
+    {
+      "id": "artifact.24",
+      "ko": "샘울림 뿔",
+      "en": "Springecho Horn"
+    },
+    {
+      "id": "artifact.25",
+      "ko": "바람골 악보",
+      "en": "Windvale Score"
+    },
+    {
+      "id": "artifact.26",
+      "ko": "아침빛 운모",
+      "en": "Morning Mica"
+    },
+    {
+      "id": "artifact.27",
+      "ko": "노을지기 가면",
+      "en": "Rosewatch Mask"
+    },
+    {
+      "id": "artifact.28",
+      "ko": "안개알 모래시계",
+      "en": "Mistegg Hourglass"
+    },
+    {
+      "id": "artifact.29",
+      "ko": "돌길의 마지막 등",
+      "en": "Last Stonepath Lamp"
+    }
+  ],
+  "effectsBefore": {
+    "tapSlash": "Graphics polyline",
+    "sparks": "five Graphics rectangles",
+    "allyProjectiles": "Graphics rectangle",
+    "enemyDefeat": "18 Graphics rectangles",
+    "generatedVFXSprites": false
+  },
+  "spellNamesRevised": 6,
+  "shortBattleLabels": "Localized given names retained for small battlefield labels; full expedition titles shown in lists and details."
+}

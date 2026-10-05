@@ -1,0 +1,10 @@
+{
+  "date": "2026-10-04",
+  "change": "Guardian foot position moved from y20 to y4 (16 Cocos units down); enemy and ally positions unchanged. Idle and attack preserve foot pivot.",
+  "webBuild": "passed",
+  "typecheck": "passed",
+  "diffWhitespace": "passed",
+  "runtime": "Four biome checks, guardian attack, 390x844 and 320x640",
+  "consoleErrorsOrWarnings": [],
+  "report": "runtime-checks.json"
+}

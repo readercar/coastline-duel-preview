@@ -1,0 +1,99 @@
+{
+  "original": "art/pastel/source/footholds-original.png",
+  "sha256": "e09d6a0cf4993389247dccbb0295043ef3ec25ec08065c127dfdace892a71549",
+  "dimensions": [
+    1254,
+    1254
+  ],
+  "transforms": "Cell crop, alpha-visible bounds, padding, nearest resize only; original retained unchanged.",
+  "sprites": [
+    {
+      "file": "assets/resources/ui/pastel/terrain/ledge-0.png",
+      "crop": [
+        0,
+        0,
+        627,
+        627
+      ],
+      "visibleCrop": [
+        12,
+        289,
+        612,
+        522
+      ],
+      "size": [
+        256,
+        128
+      ],
+      "walkingSurfaceNormalizedY": 0.170735,
+      "sourceWalkingY": 352,
+      "sha256": "aa81dcc8df2e701c2bd65e73d9b55d927e180e14f432854888f9eee7523894ec"
+    },
+    {
+      "file": "assets/resources/ui/pastel/terrain/ledge-1.png",
+      "crop": [
+        627,
+        0,
+        1254,
+        627
+      ],
+      "visibleCrop": [
+        16,
+        293,
+        615,
+        522
+      ],
+      "size": [
+        256,
+        128
+      ],
+      "walkingSurfaceNormalizedY": 0.174195,
+      "sourceWalkingY": 352,
+      "sha256": "256b10be02617102b6261bf83d423fbc76fc2ce4cff3afd6a902313c37947432"
+    },
+    {
+      "file": "assets/resources/ui/pastel/terrain/ledge-2.png",
+      "crop": [
+        0,
+        627,
+        627,
+        1254
+      ],
+      "visibleCrop": [
+        19,
+        195,
+        612,
+        408
+      ],
+      "size": [
+        256,
+        128
+      ],
+      "walkingSurfaceNormalizedY": 0.143523,
+      "sourceWalkingY": 883,
+      "sha256": "9e280f3d57d54d8d0620a0938acd3e64b06f25a61f01721a50ec0b957d7fa20f"
+    },
+    {
+      "file": "assets/resources/ui/pastel/terrain/ledge-3.png",
+      "crop": [
+        627,
+        627,
+        1254,
+        1254
+      ],
+      "visibleCrop": [
+        17,
+        133,
+        611,
+        417
+      ],
+      "size": [
+        256,
+        128
+      ],
+      "walkingSurfaceNormalizedY": 0.010233,
+      "sourceWalkingY": 900,
+      "sha256": "ec4613357589c5e3d47826f8b132d447f8278e402af385b8483afc8e38da14b7"
+    }
+  ]
+}

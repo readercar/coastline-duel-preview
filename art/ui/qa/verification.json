@@ -1,0 +1,35 @@
+{
+  "core_tests": 68,
+  "server_tests": 23,
+  "typescript": "passed",
+  "cocos_build": "passed",
+  "render_audit": "render-audit.json",
+  "screenshots": 30,
+  "design_resolution": [
+    480,
+    960
+  ],
+  "physical_input": {
+    "level_up": {
+      "before": 550,
+      "after": 551
+    },
+    "close_modal": true,
+    "bottom_navigation": {
+      "before": 0,
+      "after": 1
+    }
+  },
+  "notes": "Render audit uses actual shipping UI with isolated in-memory progression and mock account/commerce responses. No live purchase or account transaction tested.",
+  "responsive_viewports": [
+    [
+      360,
+      640
+    ]
+  ],
+  "runtime_art_errors": [],
+  "rendered_screens": 116,
+  "render_checks": 232,
+  "render_passed": true,
+  "cosmetic_popup_border": "passed"
+}

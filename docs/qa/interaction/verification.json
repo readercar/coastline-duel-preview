@@ -1,0 +1,28 @@
+{
+  "build": "Cocos Creator 3.8.8 web-mobile 2026-10-05 09:37 KST",
+  "tests": {
+    "core": 87,
+    "server": 28,
+    "failed": 0
+  },
+  "verified": [
+    "KO and EN guardian level and tap damage increase banners",
+    "Sparkle particles on successful upgrade",
+    "Offline gold acquisition quantity",
+    "Daily gems +25 acquisition popup",
+    "Only eligible daily claims yellow; ineligible rows dim",
+    "No console errors or warnings"
+  ],
+  "automated": [
+    "Failed purchases produce no gain feedback",
+    "Duplicate claims produce no reward delta",
+    "Batch level increase is aggregated",
+    "Logarithmic gold reward delta is exact"
+  ],
+  "notManuallyExercised": [
+    "Every late-game growth branch",
+    "Live billing and ad network settlement",
+    "OS audio playback"
+  ],
+  "url": "http://192.168.45.201:8880/"
+}

@@ -1,0 +1,23 @@
+{
+  "reports": [
+    {
+      "locale": "ko",
+      "spriteCap": 72,
+      "allSprites": true,
+      "damage": true,
+      "cleanup": 0,
+      "effectsOff": true,
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "spriteCap": 72,
+      "allSprites": true,
+      "damage": true,
+      "cleanup": 0,
+      "effectsOff": true,
+      "errors": []
+    }
+  ],
+  "errors": []
+}

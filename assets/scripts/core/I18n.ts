@@ -122,9 +122,10 @@ const pairs: Record<string, [
     string[],
     string[]
 ]> = {
-    hero: [['로웬', '카엘', '세라', '브람', '이리스', '단테', '미라', '오린', '베라', '녹스', '리아', '에단', '실바', '카인', '루나', '레온', '아샤', '에코', '레이븐', '솔', '린', '아르곤', '제이드', '엘리온'], ['Rowen', 'Kael', 'Sera', 'Bram', 'Iris', 'Dante', 'Mira', 'Orin', 'Vera', 'Nox', 'Ria', 'Ethan', 'Silva', 'Kain', 'Luna', 'Leon', 'Asha', 'Echo', 'Raven', 'Sol', 'Lyn', 'Argon', 'Jade', 'Elion']],
-    pet: [['불씨 여우', '바위 매', '그늘 늑대', '서리 사슴', '구리 뱀', '별빛 까마귀', '폭풍 표범', '청동 거북', '숲의 용', '황혼 독수리', '수정 도마뱀', '새벽 호랑이'], ['Ember Fox', 'Stone Hawk', 'Shade Wolf', 'Frost Stag', 'Copper Serpent', 'Star Raven', 'Storm Panther', 'Bronze Turtle', 'Grove Drake', 'Dusk Eagle', 'Crystal Lizard', 'Dawn Tiger']],
-    spell: [['유성검', '날카로운 눈', '황금 손길', '불꽃검', '전장의 함성', '그림자 분신'], ['Meteor Blade', 'Keen Sight', 'Golden Touch', 'Flame Blade', 'Battle Cry', 'Shadow Echo']],
+    hero: [["능선검사 로웬", "바람궁수 카엘", "수정술사 세라", "돌길지기 브람", "안개등불 이리스", "잔불창 단테", "샘물지기 미라", "절벽추적자 오린", "이끼약사 베라", "밤길정찰 녹스", "달빛채집가 리아", "구름대장장이 에단", "수풀창 실바", "파편검사 카인", "설원길잡이 루나", "봉화지기 레온", "바람무희 아샤", "메아리술사 에코", "깃털척후 레이븐", "햇살수도사 솔", "물안개검 린", "유적방패 아르곤", "옥빛연금사 제이드", "별길수호 엘리온"], ["Rowen of the Ridge", "Kael Windbow", "Sera Crystalweaver", "Bram Stonepath", "Iris Mistlamp", "Dante Emberspear", "Mira Springkeeper", "Orin Clifftracker", "Vera Mossmender", "Nox Nighttrail", "Ria Moongatherer", "Ethan Cloudsmith", "Silva Grovepike", "Kain Shardblade", "Luna Snowguide", "Leon Beaconkeeper", "Asha Winddancer", "Echo Valechanter", "Raven Featherscout", "Sol Sunmender", "Lyn Mistblade", "Argon Ruinshield", "Jade Mossalchemist", "Elion Starwarden"]],
+    'hero.short': [["로웬", "카엘", "세라", "브람", "이리스", "단테", "미라", "오린", "베라", "녹스", "리아", "에단", "실바", "카인", "루나", "레온", "아샤", "에코", "레이븐", "솔", "린", "아르곤", "제이드", "엘리온"], ["Rowen", "Kael", "Sera", "Bram", "Iris", "Dante", "Mira", "Orin", "Vera", "Nox", "Ria", "Ethan", "Silva", "Kain", "Luna", "Leon", "Asha", "Echo", "Raven", "Sol", "Lyn", "Argon", "Jade", "Elion"]],
+    pet: [["잔불꼬리 여우", "능선날개 매", "안개발 늑대", "빙화뿔 사슴", "녹빛고리 뱀", "별조각 까마귀", "바람점박이 표범", "이끼등 거북", "샘비늘 용", "노을깃 독수리", "유리등 도마뱀", "구름줄 호랑이"], ["Cindertail Fox", "Ridgewing Hawk", "Mistpaw Wolf", "Icebloom Stag", "Verdigris Coil", "Starshard Raven", "Galespot Panther", "Mossback Turtle", "Springscale Drake", "Roseplume Eagle", "Glassback Lizard", "Cloudstripe Tiger"]],
+    spell: [['능선 유성', '결정의 눈', '샘의 공명', '잔불 칼날', '원정의 북소리', '안개 잔상'], ['Ridgefall', 'Crystal Sight', 'Spring Resonance', 'Cinder Edge', 'Expedition Drums', 'Mist Echo']],
     branch: [['검술', '소환', '지휘', '비전', '암습', '연금'], ['Blade', 'Summon', 'Command', 'Arcane', 'Shadow', 'Alchemy']],
     slot: [['검', '투구', '갑옷', '오라', '문장'], ['Sword', 'Helm', 'Armor', 'Aura', 'Sigil']],
     rarity: [['일반', '희귀', '전설', '신화', '고유', '축제'], ['Common', 'Rare', 'Legendary', 'Mythic', 'Unique', 'Festival']],
@@ -132,18 +133,18 @@ const pairs: Record<string, [
 };
 for (const [prefix, [ko, en]] of Object.entries(pairs))
     ko.forEach((value, i) => { translations.ko[`${prefix}.${i}`] = value; translations.en[`${prefix}.${i}`] = en[i]; });
-const relicKO = ['새벽의 검', '재의 왕관', '별의 나침반', '황금 잎', '용의 인장', '달의 수정', '바람의 서', '고대 동전', '붉은 랜턴', '철의 심장', '심연의 눈', '왕의 잔', '여명의 종', '운명의 바늘', '서리 거울', '영원의 불씨', '고대 망치', '까마귀 깃털', '균열 열쇠', '은빛 모래', '수호자의 약속', '파수꾼의 반지', '부서진 별', '흑요석 꽃', '정령의 뿔', '잊힌 악보', '태양의 파편', '황혼의 가면', '잿빛 모래시계', '마지막 봉화'];
-const relicEN = ['Dawnblade', 'Ashen Crown', 'Star Compass', 'Golden Leaf', 'Drake Seal', 'Moon Crystal', 'Wind Codex', 'Ancient Coin', 'Red Lantern', 'Iron Heart', 'Abyssal Eye', 'Royal Chalice', 'Daybreak Bell', 'Fate Needle', 'Frost Mirror', 'Eternal Ember', 'Ancient Hammer', 'Raven Feather', 'Rift Key', 'Silver Sand', 'Guardian Oath', 'Warden Ring', 'Broken Star', 'Obsidian Bloom', 'Spirit Horn', 'Lost Score', 'Sun Fragment', 'Twilight Mask', 'Ash Hourglass', 'Last Beacon'];
+const relicKO = ["능선의 첫 칼날", "잔불지기의 관", "별길 나침반", "샘가의 금빛 잎", "용샘 봉인", "달샘 수정", "바람골 기록", "잃어버린 원정화", "안개길 등불", "돌심장 핵", "깊은샘 렌즈", "구름봉 잔", "능선의 울림종", "별길 재봉침", "빙화 거울", "봉화의 씨앗", "유적장이 망치", "안개까마귀 깃", "샘문 열쇠", "달골 은모래", "첫 원정의 맹세", "능선지기 고리", "길잃은 별조각", "검은유리 꽃", "샘울림 뿔", "바람골 악보", "아침빛 운모", "노을지기 가면", "안개알 모래시계", "돌길의 마지막 등"];
+const relicEN = ["First Ridgeblade", "Cinderkeeper Crown", "Startrail Compass", "Springbank Goldleaf", "Drakespring Seal", "Moonwell Crystal", "Windvale Chronicle", "Lost Expedition Coin", "Mistpath Lantern", "Stoneheart Core", "Deepwell Lens", "Cloudpeak Chalice", "Ridgechime Bell", "Startrail Needle", "Icebloom Mirror", "Beacon Seed", "Ruinsmith Hammer", "Mistraven Feather", "Springgate Key", "Moonvale Silver Sand", "First Expedition Oath", "Ridgekeeper Ring", "Wayward Starshard", "Blackglass Bloom", "Springecho Horn", "Windvale Score", "Morning Mica", "Rosewatch Mask", "Mistegg Hourglass", "Last Stonepath Lamp"];
 relicKO.forEach((s, i) => { translations.ko[`artifact.${i}`] = s; translations.en[`artifact.${i}`] = relicEN[i]; });
 for (let i = 0; i < 18; i++) {
     translations.ko[`card.${i}`] = ['폭발', '침식', '수호'][i % 3] + ' ' + String(Math.floor(i / 3) + 1);
     translations.en[`card.${i}`] = ['Burst', 'Affliction', 'Support'][i % 3] + ' ' + String(Math.floor(i / 3) + 1);
 }
 Object.assign(translations.ko, {
-    "online.defaultName": "원정자", "online.guildName": "길드 이름 입력", "online.create": "길드 생성", "online.members": "길드원 {count}명", "online.join": "참가", "online.roster": "길드원", "online.guildRaid": "협동 레이드", "online.message": "메시지 입력", "online.send": "전송", "online.refresh": "새로고침", "online.leave": "길드 탈퇴", "online.leaveConfirm": "이 길드에서 탈퇴합니다. 길드장은 먼저 권한을 넘겨야 합니다.", "online.leader": "길드장", "online.member": "길드원", "online.transfer": "길드장 위임", "online.kick": "내보내기", "online.guildHP": "공동 보스 HP {hp}", "online.guildRaidInfo": "개발 서버 협동 공격: 12시간마다 3회.\n공격당 고정 피해 500이 서버에 반영됩니다.", "online.competitionInfo": "개발 대회는 하루마다 독립 원정으로 진행됩니다. 메인 월드 성장과 분리되며 순위는 서버에서 계산합니다.", "online.enter": "독립 원정 입장", "online.rank": "{rank}위 · {name}", "online.abyss": "심연의 원정", "online.upgradeMaster": "수호자 강화 · 현재 {level}레벨", "online.backMain": "메인 원정으로", "online.auth": "온라인 계정 인증이 필요합니다.", "online.noGuild": "가입한 길드가 없습니다.", "online.alreadyGuild": "이미 길드에 가입되어 있습니다.", "online.notFound": "대상을 찾을 수 없습니다.", "online.full": "길드 정원이 가득 찼습니다.", "online.transferFirst": "다른 길드원에게 길드장을 먼저 위임하세요.", "online.permission": "권한이 없습니다.", "online.noAttacks": "다음 주기까지 공격 횟수를 모두 사용했습니다.", "online.raidComplete": "공동 보스를 처치했습니다.", "online.notJoined": "대회에 먼저 참가하세요.", "online.ended": "대회가 종료되었습니다.", "online.notEnded": "아직 대회가 진행 중입니다.", "online.rateLimit": "잠시 후 다시 시도하세요.", "online.serverError": "서버 요청을 처리하지 못했습니다.", "online.unreachable": "개발 서버에 연결할 수 없습니다. 서버 실행 상태를 확인하세요."
+    "online.defaultName": "원정자", "online.guildName": "길드 이름 입력", "online.create": "길드 생성", "online.members": "길드원 {count}명", "online.join": "참가", "online.roster": "길드원", "online.guildRaid": "협동 레이드", "online.message": "메시지 입력", "online.send": "전송", "online.refresh": "새로고침", "online.leave": "길드 탈퇴", "online.leaveConfirm": "이 길드에서 탈퇴합니다. 길드장은 먼저 권한을 넘겨야 합니다.", "online.leader": "길드장", "online.member": "길드원", "online.transfer": "길드장 위임", "online.kick": "내보내기", "online.guildHP": "공동 보스 HP {hp}", "online.guildRaidInfo": "개발 서버 협동 공격: 12시간마다 3회.\n공격당 고정 피해 500이 서버에 반영됩니다.", "online.competitionInfo": "개발 대회는 하루마다 독립 원정으로 진행됩니다. 메인 월드 성장과 분리되며 순위는 서버에서 계산합니다.", "online.enter": "독립 원정 입장", "online.rank": "{rank}위 · {name}", "online.abyss": "심연의 원정", "online.upgradeMaster": "수호자 강화 · 현재 {level}레벨", "online.backMain": "메인 원정으로", "online.auth": "온라인 계정 인증이 필요합니다.", "online.noGuild": "가입한 길드가 없습니다.", "online.alreadyGuild": "이미 길드에 가입되어 있습니다.", "online.notFound": "대상을 찾을 수 없습니다.", "online.full": "길드 정원이 가득 찼습니다.", "online.transferFirst": "다른 길드원에게 길드장을 먼저 위임하세요.", "online.permission": "권한이 없습니다.", "online.noAttacks": "다음 주기까지 공격 횟수를 모두 사용했습니다.", "online.raidComplete": "공동 보스를 처치했습니다.", "online.notJoined": "대회에 먼저 참가하세요.", "online.ended": "대회가 종료되었습니다.", "online.notEnded": "아직 대회가 진행 중입니다.", "online.rateLimit": "잠시 후 다시 시도하세요.", "online.serverError": "서버 요청을 처리하지 못했습니다.", "online.unreachable": "게임 서버에 연결할 수 없습니다. 네트워크를 확인하고 다시 시도하세요."
 });
 Object.assign(translations.en, {
-    "online.defaultName": "Wanderer", "online.guildName": "Enter guild name", "online.create": "Create guild", "online.members": "{count} members", "online.join": "Join", "online.roster": "Members", "online.guildRaid": "Guild raid", "online.message": "Enter message", "online.send": "Send", "online.refresh": "Refresh", "online.leave": "Leave guild", "online.leaveConfirm": "Leave this guild. Leaders must transfer ownership first.", "online.leader": "Leader", "online.member": "Member", "online.transfer": "Transfer leadership", "online.kick": "Remove member", "online.guildHP": "Shared boss HP {hp}", "online.guildRaidInfo": "Development co-op: 3 attacks every 12 hours.\nEach attack applies 500 server-confirmed damage.", "online.competitionInfo": "Development tournaments run daily in an independent expedition. Progress is separate from the main world and ranked by the server.", "online.enter": "Enter expedition", "online.rank": "#{rank} · {name}", "online.abyss": "Abyss Expedition", "online.upgradeMaster": "Upgrade guardian · Level {level}", "online.backMain": "Return to main", "online.auth": "Online account authentication required.", "online.noGuild": "You have not joined a guild.", "online.alreadyGuild": "Already a guild member.", "online.notFound": "Not found.", "online.full": "Guild is full.", "online.transferFirst": "Transfer leadership to another member first.", "online.permission": "Permission denied.", "online.noAttacks": "No attacks left until the next cycle.", "online.raidComplete": "The shared boss has been defeated.", "online.notJoined": "Join the tournament first.", "online.ended": "The tournament has ended.", "online.notEnded": "The tournament is still active.", "online.rateLimit": "Please try again shortly.", "online.serverError": "The server could not process the request.", "online.unreachable": "Cannot connect to the development server. Check that it is running."
+    "online.defaultName": "Wanderer", "online.guildName": "Enter guild name", "online.create": "Create guild", "online.members": "{count} members", "online.join": "Join", "online.roster": "Members", "online.guildRaid": "Guild raid", "online.message": "Enter message", "online.send": "Send", "online.refresh": "Refresh", "online.leave": "Leave guild", "online.leaveConfirm": "Leave this guild. Leaders must transfer ownership first.", "online.leader": "Leader", "online.member": "Member", "online.transfer": "Transfer leadership", "online.kick": "Remove member", "online.guildHP": "Shared boss HP {hp}", "online.guildRaidInfo": "Development co-op: 3 attacks every 12 hours.\nEach attack applies 500 server-confirmed damage.", "online.competitionInfo": "Development tournaments run daily in an independent expedition. Progress is separate from the main world and ranked by the server.", "online.enter": "Enter expedition", "online.rank": "#{rank} · {name}", "online.abyss": "Abyss Expedition", "online.upgradeMaster": "Upgrade guardian · Level {level}", "online.backMain": "Return to main", "online.auth": "Online account authentication required.", "online.noGuild": "You have not joined a guild.", "online.alreadyGuild": "Already a guild member.", "online.notFound": "Not found.", "online.full": "Guild is full.", "online.transferFirst": "Transfer leadership to another member first.", "online.permission": "Permission denied.", "online.noAttacks": "No attacks left until the next cycle.", "online.raidComplete": "The shared boss has been defeated.", "online.notJoined": "Join the tournament first.", "online.ended": "The tournament has ended.", "online.notEnded": "The tournament is still active.", "online.rateLimit": "Please try again shortly.", "online.serverError": "The server could not process the request.", "online.unreachable": "Cannot connect to the game server. Check your network and try again."
 });
 Object.assign(translations.ko, {
     "menu.achievements": "업적", "achievement.title": "원정 업적", "achievement.0": "누적 탭", "achievement.1": "누적 처치", "achievement.2": "최고 구역", "achievement.3": "누적 환생", "spell.title": "주문", "spell.detail": "레벨 {level} · 수호자 {unlock}레벨 해금 · 마나 {mana}", "spell.multicast": "수호자 500레벨부터 활성 주문을 최대 3회 중첩할 수 있습니다.", "spell.swap": "이 슬롯의 주문을 교체합니다. 기존 주문의 활성 효과는 종료됩니다.", "spell.6": "쌍둥이 정령", "spell.7": "검의 폭풍", "spell.8": "천둥 포격", "spell.9": "황혼의 선물", "artifact.salvage": "유물 분해", "artifact.salvageInfo": "보석 20개를 사용하여 분해하고 강화에 투자한 조각의 80%를 돌려받습니다. 발견 비용은 환급하지 않습니다.", "artifact.enchant": "각성 · 조각 1,000", "artifact.enchantInfo": "30개 유물을 모두 보유해야 합니다. 각성한 유물은 분해할 수 없습니다.", "artifact.salvaged": "분해한 유물", "artifact.rebuyInfo": "보석 25개 · 1레벨로 복원", "equipment.bulk": "일괄 판매", "equipment.bulkInfo": "잠금·장착 장비를 제외한 모든 장비를 판매합니다.", "equipment.transmog": "외형 적용"
@@ -345,8 +346,8 @@ Object.assign(translations.ko, {'battle.defeated':'처치!'});
 Object.assign(translations.en, {'battle.defeated':'Defeated!'});
 Object.assign(translations.ko, {'layout.levelUp':'{cost}\n레벨 업','layout.prestigeDesc':'환생\n원정을 다시 시작하고\n기억 조각을 획득합니다.','layout.tapDamage':'{value} 탭 피해'});
 Object.assign(translations.en, {'layout.levelUp':'{cost}\nLevel Up','layout.prestigeDesc':'Prestige\nRestart your adventure\nfor precious relics.','layout.tapDamage':'{value} Tap Damage'});
-Object.assign(translations.ko, {'layout.masterName':'소드 마스터','layout.upgrade':'레벨 업','master.skills':'스킬 트리'});
-Object.assign(translations.en, {'layout.masterName':'Sword Master','layout.upgrade':'Level Up','master.skills':'Skill Tree','master.prestige':'Prestige'});
+Object.assign(translations.ko, {'layout.masterName':'능선 수호자','layout.upgrade':'레벨 업','master.skills':'스킬 트리'});
+Object.assign(translations.en, {'layout.masterName':'Ridge Guardian','layout.upgrade':'Level Up','master.skills':'Skill Tree','master.prestige':'Prestige'});
 Object.assign(translations.ko, {"complete.portals": "포털 선택", "complete.presets": "덱 프리셋", "complete.preset": "저장 덱 {slot}", "complete.saveDeck": "현재 덱 저장", "complete.dailyPortal": "일일 포털 보상", "complete.dailyPortalInfo": "서로 다른 포털 {count}/3 클리어\n먼지 50개 + 카드 조각 10개", "complete.portalReplay": "이전 포털에 재도전할 수 있습니다.", "complete.next": "다음", "complete.display": "화면 설정", "complete.scientific": "과학적 숫자 표기", "complete.effects": "전투 이펙트", "complete.support": "지원·저장 복구", "complete.supportInfo": "Cocos Creator 3.8.8 · 개발 빌드\n저장 파일을 내보내거나 복원할 수 있습니다. 복원 전 현재 진행을 백업합니다.\n온라인 기능은 로컬 개발 서버에 연결됩니다.", "complete.import": "저장 파일 가져오기", "complete.replaceSave": "선택한 저장으로 현재 진행을 교체합니다. 현재 진행은 복원 전 백업에 보관합니다.", "complete.account": "계정·클라우드 저장", "complete.rename": "이름 변경", "complete.cloudSave": "서버에 진행 저장", "complete.cloudLoad": "서버 진행 불러오기", "complete.cloudInfo": "서버 저장 버전 {version}", "complete.recoveryExport": "계정 복구 파일 내보내기", "complete.recoveryImport": "계정 복구 파일 가져오기", "complete.privateKey": "이 파일로 계정에 접근할 수 있습니다. 비공개로 보관하세요.", "complete.switchAccount": "복구 파일의 계정으로 전환합니다. 게임 진행은 자동 교체되지 않습니다.", "complete.serverCards": "길드 레이드 카드", "complete.serverCardInfo": "서버 저장 카드 · 먼지 {dust}\n길드 전투 제출 시 먼지·조각을 획득합니다.", "complete.cardProc.0": "4회 타격마다 카드 레벨 ×30 추가 피해", "complete.cardProc.1": "연속 타격 수(최대 20) × 카드 레벨 추가 피해", "complete.cardProc.2": "매 타격 카드 레벨 ×5 추가 피해", "online.saveConflict": "서버 저장이 변경되었습니다. 계정 화면을 다시 열어 확인하세요.", "extra.guildDeckInfo": "서버에 저장된 카드 레벨로 전투합니다.\n카드 레벨은 전투 시작 시 확정됩니다."});
 Object.assign(translations.en, {"complete.portals": "Select Portal", "complete.presets": "Deck Presets", "complete.preset": "Saved Deck {slot}", "complete.saveDeck": "Save Current Deck", "complete.dailyPortal": "Daily Portal Reward", "complete.dailyPortalInfo": "Clear 3 different portals: {count}/3\n50 dust + 10 card fragments", "complete.portalReplay": "Replay an unlocked portal.", "complete.next": "Next", "complete.display": "Display Settings", "complete.scientific": "Scientific Notation", "complete.effects": "Combat Effects", "complete.support": "Support & Save Recovery", "complete.supportInfo": "Cocos Creator 3.8.8 · Development build\nExport or restore a save file. Current progress is backed up before restoration.\nOnline features use the local development server.", "complete.import": "Import Save File", "complete.replaceSave": "Replace current progress with this save. Your current progress is backed up first.", "complete.account": "Account & Cloud Save", "complete.rename": "Change Name", "complete.cloudSave": "Save Progress to Server", "complete.cloudLoad": "Load Server Progress", "complete.cloudInfo": "Server save revision {version}", "complete.recoveryExport": "Export Account Recovery", "complete.recoveryImport": "Import Account Recovery", "complete.privateKey": "This file grants account access. Keep it private.", "complete.switchAccount": "Switch to the account in this recovery file. Game progress is not replaced automatically.", "complete.serverCards": "Guild Raid Cards", "complete.serverCardInfo": "Server cards · Dust {dust}\nSubmit guild battles to earn dust and fragments.", "complete.cardProc.0": "Every fourth hit: card level ×30 bonus damage", "complete.cardProc.1": "Bonus damage: hit count (up to 20) × card level", "complete.cardProc.2": "Every hit: card level ×5 bonus damage", "online.saveConflict": "The server save changed. Reopen Account to review the latest revision.", "extra.guildDeckInfo": "Battles use your server card levels.\nLevels are locked when an attack begins."});
 Object.assign(translations.ko, {'complete.craftPart':'조각 {cost}개로 선택한 세트 부위를 제작합니다.','complete.regular':'일반 토너먼트','complete.regularRule':'2일 주기 · 이전 일반 대회 성장을 이어갑니다.\n서버 원정 최고 스테이지로 순위를 계산합니다.\n개발 규칙이며 원작 매칭 규칙과 다릅니다.','complete.tournamentEnd':'종료: {time}','complete.rankInfo':'순위 {rank} · 최고 스테이지 {stage}\n현재 순위 기준 보석 {reward}개 + 조각 10개'});
@@ -393,3 +394,253 @@ Object.assign(translations.en,{"game.name":"tapWar"});
 
 Object.assign(translations.ko,{'firebase.guest':'Firebase 게스트 계정','firebase.guestInfo':'이 기기의 게스트 계정입니다. 앱·사이트 데이터 삭제 시 접근할 수 없습니다.','online.saveConflict':'다른 저장이 먼저 변경되었습니다. 계정 화면을 다시 열어 확인하세요.'});
 Object.assign(translations.en,{'firebase.guest':'Firebase guest account','firebase.guestInfo':'Guest account belongs to this device. Clearing app or site data loses access.','online.saveConflict':'Another save changed first. Reopen the account screen to review it.'});
+Object.assign(translations.ko,{
+ 'ops.privacyTitle':'온라인 저장 안내','ops.privacyBody':'온라인 기능은 계정 ID와 게임 진행을 서버에 저장합니다. 오류 보고에는 인증 정보나 전체 저장 파일을 포함하지 않습니다. 공지 알림 동의는 별도로 선택합니다.','ops.onlineContinue':'확인하고 시작','ops.connectTitle':'운영 서버 연결 필요','ops.connectBody':'최신 운영 설정과 계정 저장을 확인하지 못했습니다. 연결을 확인한 뒤 다시 시도하세요.','ops.conflictTitle':'다른 기기의 저장 확인','ops.pushTitle':'공지 알림을 받을까요?','ops.pushBody':'새 공지를 Android 알림으로 알려드립니다. 게임 설정에서 언제든 끌 수 있습니다.','ops.pushDecline':'받지 않기','ops.pushAllow':'알림 켜기','ops.pushUnsupported':'공지 푸시는 Android에서 사용할 수 있습니다. 이 프로토타입의 웹·iOS에서는 앱 안의 공지를 확인하세요.','ops.pushEnabled':'앱 알림과 기기 권한이 켜져 있습니다.','ops.pushDisabled':'앱 알림 선택과 기기 알림 권한을 각각 확인하세요.','ops.osSettings':'기기 알림 설정 열기','ops.mailRewards':'보석 {gems} · 조각 {shards}\n가루 {dust} · 정령 레벨 {petLevels}','ops.googleUnconfigured':'이 프로젝트의 Google 계정 연결 설정이 아직 준비되지 않았습니다. 현재 계정의 서버 저장은 계속 사용할 수 있습니다.','ops.versionChange':'{current} → {target}','ops.currentVersion':'현재 버전: {version}\n{status}','ops.inboxCount':'{title} · {count}','ops.messageRewards':'{body}\n\n{rewards}','ops.googleLink':'Google 계정 연결','ops.googleLinked':'Google 계정이 연결되었습니다.','ops.googleCollision':'이미 다른 게임 계정에 연결된 Google 계정입니다. 자동으로 병합하지 않습니다.'
+});
+Object.assign(translations.en,{
+ 'ops.privacyTitle':'Online Save Information','ops.privacyBody':'Online features store your account ID and game progress on the server. Error reports exclude credentials and full saves. Notice notifications require a separate choice.','ops.onlineContinue':'Confirm and Start','ops.connectTitle':'Operations Server Required','ops.connectBody':'The latest policy and account save could not be checked. Check your connection and retry.','ops.conflictTitle':'Review Another Device Save','ops.pushTitle':'Receive Notice Notifications?','ops.pushBody':'Get new notices as Android notifications. You can disable them in game settings at any time.','ops.pushDecline':'No Thanks','ops.pushAllow':'Enable Notifications','ops.pushUnsupported':'Notice push is available on Android. In this web or iOS prototype, read notices inside the app.','ops.pushEnabled':'App notifications and device permission are enabled.','ops.pushDisabled':'Check both your app choice and device notification permission.','ops.osSettings':'Open Device Notification Settings','ops.mailRewards':'Gems {gems} · Shards {shards}\nDust {dust} · Pet levels {petLevels}','ops.googleUnconfigured':'Google account linking is not configured for this project yet. Your current account can still use server saves.','ops.versionChange':'{current} → {target}','ops.currentVersion':'Current version: {version}\n{status}','ops.inboxCount':'{title} · {count}','ops.messageRewards':'{body}\n\n{rewards}','ops.googleLink':'Link Google Account','ops.googleLinked':'Google account linked.','ops.googleCollision':'This Google account belongs to another game account. Accounts are not merged automatically.'
+});
+Object.assign(translations.ko,{'art.enemy.golem':'고대 석판 골렘','art.enemy.forest-wolf':'민트 숲 늑대','art.enemy.spectral-knight':'유령 기사','art.enemy.flame-spirit':'화염 정령','art.enemy.skeleton':'해골 전사','art.enemy.tree-boss':'고목 수문장','art.enemy.ice-boss':'빙하 골렘','art.enemy.crystal-boss':'수정 골렘'});
+Object.assign(translations.en,{'art.enemy.golem':'Ancient Stone Golem','art.enemy.forest-wolf':'Forest Wolf','art.enemy.spectral-knight':'Spectral Knight','art.enemy.flame-spirit':'Flame Spirit','art.enemy.skeleton':'Skeleton Warrior','art.enemy.tree-boss':'Ancient Treant','art.enemy.ice-boss':'Ice Golem','art.enemy.crystal-boss':'Crystal Golem'});
+
+Object.assign(translations.ko,{
+ "entry.subtitle": "작은 불씨에서 시작되는 끝없는 원정",
+ "entry.start": "터치해서 시작",
+ "entry.titleHint": "용사를 키우고, 동료와 함께 탑을 오르세요.",
+ "entry.version": "TT Softs · v{version}",
+ "entry.consentTitle": "게임 이용 동의",
+ "entry.consentIntro": "로그인 전에 이용약관과 개인정보 수집·이용 내용을 확인해 주세요.",
+ "entry.required": "{mark} [필수] {title}",
+ "entry.agree": "동의하고 계속",
+ "entry.readBoth": "두 문서를 모두 확인해 주세요",
+ "entry.readHint": "각 문서를 끝까지 읽고 동의할 수 있습니다.",
+ "entry.readToEnd": "끝까지 읽어 주세요",
+ "entry.documentAgree": "내용을 확인하고 동의",
+ "entry.pushTitle": "공지 알림 선택",
+ "entry.pushBody": "새 공지와 원정 소식을 알림으로 받을 수 있습니다.\n\n알림은 선택 사항입니다. 받지 않아도 플레이할 수 있고, 설정에서 언제든 변경할 수 있습니다.\n\n이 프로토타입의 푸시 수신은 Android에서 지원합니다.",
+ "entry.loginTitle": "원정 계정 선택",
+ "entry.loginBody": "계정을 선택하면 저장된 원정을 불러옵니다.",
+ "entry.google": "Google로 로그인",
+ "entry.guest": "게스트로 시작 / 계속",
+ "entry.guestWarning": "게스트 계정은 이 기기에 저장됩니다. 앱이나 사이트 데이터를 지우면 복구가 어려우므로 계정 화면에서 Google 연결을 권장합니다.",
+ "entry.loadingTitle": "원정 준비 중",
+ "entry.loadAuth": "계정을 확인하고 있습니다.",
+ "entry.loadPolicy": "운영 설정과 버전을 확인하고 있습니다.",
+ "entry.loadSave": "저장된 원정을 불러오고 있습니다.",
+ "entry.loadReady": "공지와 우편을 정리하고 있습니다.",
+ "entry.percent": "{value}%",
+ "entry.errorTitle": "원정을 시작하지 못했습니다.",
+ "entry.backLogin": "로그인 화면으로",
+ "entry.cancelled": "Google 로그인이 취소되었습니다. 계정을 다시 선택해 주세요.",
+ "entry.popupBlocked": "로그인 팝업이 차단되었습니다. 이 사이트의 팝업을 허용한 뒤 다시 시도해 주세요.",
+ "entry.domainBlocked": "이 실행 주소의 Google 로그인이 아직 등록되지 않았습니다.",
+ "entry.switchTitle": "다른 Google 계정으로 이동",
+ "entry.switchBody": "선택한 Google 계정에 이미 다른 원정이 있습니다. 그 계정의 저장을 불러옵니다. 현재 게스트 원정은 자동으로 합쳐지지 않습니다. 계속할까요?",
+ "consent.terms.title": "서비스 이용약관",
+ "consent.terms.summary": "계정, 게임 데이터와 서비스 이용 조건",
+ "consent.privacy.title": "개인정보 수집·이용",
+ "consent.privacy.summary": "수집 항목, 목적, 보유 기간과 이용자 권리",
+ "consent.terms.body": "tapWar 서비스 이용약관\n시행일: 2026년 10월 4일\n운영자: TT Softs\n\n1. 서비스와 이용 조건\n이 약관은 TT Softs가 제공하는 tapWar 게임과 계정·저장 서비스를 이용하는 조건을 설명합니다. 약관과 개인정보 수집·이용 내용에 동의한 후 로그인할 수 있습니다. 만 14세 미만은 이용할 수 없습니다.\n\n2. 계정과 보안\n게스트 또는 Google 계정을 사용할 수 있습니다. 게스트는 앱 삭제·기기 변경·사이트 데이터 삭제 시 접근 수단을 잃을 수 있습니다. Google 연결을 권장하며, 다른 계정의 게임 데이터는 자동으로 병합하지 않습니다. 타인의 계정을 도용하거나 양도해서는 안 됩니다.\n\n3. 게임 진행과 가상 항목\n골드, 보석, 장비와 보상은 게임 안에서 사용하는 가상 항목이며 현금으로 교환할 수 없습니다. 서버에서 마지막으로 확인한 저장을 기준으로 복원합니다. 여러 기기에서 동시에 플레이하면 저장 충돌이 발생할 수 있으며 최신 데이터를 확인한 후 다시 시작해야 합니다.\n\n4. 보상·광고·결제\n공지, 이벤트와 무료 보상은 운영 설정에 따라 제공됩니다. 광고 보상은 선택한 광고를 완료하고 서버 검증을 통과해야 지급됩니다. 광고 개인정보 선택은 최초 이용 동의와 별도로 관리합니다. 결제가 제공되는 경우 가격, 구성과 환불은 구매 화면 및 앱 마켓 정책을 따릅니다. 테스트로 표시된 기능은 실제 구매가 아닙니다.\n\n5. 금지 행위와 서비스 변경\n데이터 변조, 취약점 악용, 부정 보상 획득, 계정 도용과 운영을 방해하는 행위는 금지됩니다. 확인된 부정 이용은 제한될 수 있습니다. 점검·장애·서비스 변경은 가능한 범위에서 공지로 안내합니다.\n\n6. 탈퇴와 문의\n계정 이용 중단, 개인정보 확인·삭제와 동의 철회는 아래 연락처로 요청할 수 있습니다. 본인 확인 후 처리하며 법정 보관 의무가 있는 정보는 해당 기간 동안 분리 보관할 수 있습니다.\n고객 문의: admin.ttsoft@gmail.com\n\n현재 프로토타입의 서비스 구성을 설명하는 문서입니다. 정식 출시 전 실제 운영·결제·개인정보 처리 내용을 기준으로 확정합니다.",
+ "consent.privacy.body": "tapWar 개인정보 수집·이용 안내\n시행일: 2026년 10월 4일\n운영자 및 개인정보 문의: TT Softs\nadmin.ttsoft@gmail.com\n\n1. 필수 수집 항목\nFirebase 사용자 식별자(UID), 로그인 제공자 구분, Google 로그인에서 전달하는 최소 계정 정보, 닉네임과 프로필 설정, 게임 진행·재화·아이템·해금 상태, 공지 확인·우편 보상 기록을 처리합니다.\n앱 버전, 운영체제, 접속 시각, 오류·보안 로그 및 서버 접속 과정에서 생성되는 IP 주소 등 기술 정보가 처리될 수 있습니다. 오류 보고에는 인증 토큰이나 전체 저장 파일을 포함하지 않습니다.\n\n2. 수집·이용 목적\n로그인과 계정 식별, 게임 진행 저장과 다른 기기의 복원, 보상 중복 수령 방지, 공지·우편 제공, 보안·오류 분석과 고객 문의 처리를 위해 사용합니다.\n필수 정보 수집·이용 동의를 거부할 수 있습니다. 거부하면 계정 식별과 서버 저장을 제공할 수 없어 로그인 및 게임 서비스를 이용할 수 없습니다.\n\n3. 수집 방법과 처리 위탁\n이용자가 입력한 정보와 게임 이용 중 생성되는 정보를 Firebase Authentication, Cloud Firestore, Cloud Functions 및 서버 통신을 통해 처리합니다. Google LLC의 국내외 인프라에서 처리될 수 있습니다. 전송에는 암호화된 연결을 사용합니다. 정식 출시 전 실제 수탁자·이전 국가·방법·시점과 보관 기간을 운영 형태에 맞춰 고지합니다.\n\n4. 보유 및 이용 기간\n회원 탈퇴, 삭제 요청 또는 처리 목적 달성 시 삭제합니다. 다만 관련 법령이 보관을 요구하거나 부정 이용·분쟁 처리에 필요한 최소 정보는 해당 목적과 기간 동안 분리 보관할 수 있습니다. 게스트 접근 수단을 잃으면 본인 확인과 복원이 어려울 수 있습니다.\n\n5. 선택 알림과 광고\n공지 알림 동의는 별도로 선택합니다. 알림을 켜면 기기 알림 토큰과 언어별 공지 구독 설정을 Firebase Cloud Messaging으로 처리합니다. 설정에서 끌 수 있으며 동의하지 않아도 플레이할 수 있습니다.\n광고 식별자·맞춤형 광고 선택은 이 필수 동의에 포함하지 않습니다. 모바일 광고가 활성화되는 경우 Google User Messaging Platform의 별도 화면에서 선택·변경할 수 있습니다.\n\n6. 이용자의 권리와 보호 조치\n이용자는 개인정보 열람, 정정, 삭제, 처리정지와 동의 철회를 요청할 수 있습니다. 본인 확인 후 처리합니다. 인증·접근 권한·서버 보안 규칙·암호화 전송을 적용합니다. 법령상 근거 또는 별도 동의 없이 개인정보를 판매하거나 제3자에게 제공하지 않습니다.\n\n7. 문의와 변경\n개인정보 문의: admin.ttsoft@gmail.com\n중요한 변경은 앱 공지로 안내합니다. 이 문서는 현재 프로토타입 구성을 반영하며, 정식 출시 전 사업자 정보와 실제 처리 현황을 확정합니다.",
+ "layout.collapse": "메뉴 접기 ▾",
+ "layout.expand": "메뉴 펼치기 ▴",
+ "unlock.title": "조금 더 원정해 주세요",
+ "unlock.stage": "{name}은 최고 구역 {stage}에서 열립니다.",
+ "unlock.view": "새 기능 확인",
+ "tutorial.welcomeTitle": "첫 원정을 시작해 볼까요?",
+ "tutorial.welcomeBody": "전장을 탭해 적을 처치하고 골드를 얻으세요.\n용사를 강화하고 첫 동료를 고용하는 방법을 차례로 알려드릴게요.",
+ "tutorial.begin": "따라 해 보기",
+ "tutorial.step": "첫 원정 안내 · {step} / {total}",
+ "tutorial.skip": "건너뛰기",
+ "tutorial.skipTitle": "안내를 마칠까요?",
+ "tutorial.skipBody": "설정에서 첫 원정 안내를 다시 볼 수 있습니다. 기능은 구역 진행에 따라 열립니다.",
+ "tutorial.step1": "빛나는 전장을 3번 탭해 보세요.\n적을 공격하면 골드를 얻습니다.",
+ "tutorial.step2": "아래의 레벨업 버튼을 눌러\n용사를 한 단계 강화하세요.",
+ "tutorial.step3": "하단의 동료 탭을 열어 보세요.\n동료는 자동으로 공격합니다.",
+ "tutorial.step4": "첫 동료 능선검사 로웬을 고용하세요.\n골드가 모자라면 전장을 더 탭하세요.",
+ "tutorial.step5": "메뉴 접기를 눌러 보세요.\n전장이 넓어집니다.",
+ "tutorial.step6": "메뉴 펼치기를 눌러 돌아오세요.\n계속 탑을 오르면 새 기능이 열립니다.",
+ "tutorial.replay": "첫 원정 안내 다시 보기",
+ "tutorial.replayBody": "게임 진행을 유지하고 기본 조작 안내를 처음부터 다시 표시합니다.",
+ "tutorial.complete": "원정 준비 완료! 탭과 강화를 이어가세요."
+});
+
+Object.assign(translations.en,{
+ "entry.subtitle": "An endless expedition starts with one ember",
+ "entry.start": "Tap to Start",
+ "entry.titleHint": "Grow your guardian. Climb the tower together.",
+ "entry.version": "TT Softs · v{version}",
+ "entry.consentTitle": "Before You Play",
+ "entry.consentIntro": "Read the Terms of Service and Privacy Notice before signing in.",
+ "entry.required": "{mark} [Required] {title}",
+ "entry.agree": "Agree and Continue",
+ "entry.readBoth": "Read both documents first",
+ "entry.readHint": "Read each document to the end before agreeing.",
+ "entry.readToEnd": "Read to the end",
+ "entry.documentAgree": "I have read and agree",
+ "entry.pushTitle": "Notice Notifications",
+ "entry.pushBody": "Receive new notices and expedition news.\n\nNotifications are optional. You can play without them and change your choice in Settings.\n\nThis prototype supports push delivery on Android.",
+ "entry.loginTitle": "Choose Your Account",
+ "entry.loginBody": "Choose an account to restore your expedition.",
+ "entry.google": "Sign in with Google",
+ "entry.guest": "Start / Continue as Guest",
+ "entry.guestWarning": "Guest access is stored on this device. Deleting app or site data can lose access. Link Google in Account to protect your progress.",
+ "entry.loadingTitle": "Preparing Your Expedition",
+ "entry.loadAuth": "Checking your account…",
+ "entry.loadPolicy": "Checking policy and app version…",
+ "entry.loadSave": "Restoring your expedition…",
+ "entry.loadReady": "Checking notices and mail…",
+ "entry.percent": "{value}%",
+ "entry.errorTitle": "Could Not Start",
+ "entry.backLogin": "Return to Sign In",
+ "entry.cancelled": "Google sign-in was cancelled. Choose your account again.",
+ "entry.popupBlocked": "The sign-in popup was blocked. Allow popups for this site and retry.",
+ "entry.domainBlocked": "Google sign-in is not registered for this address yet.",
+ "entry.switchTitle": "Switch Google Account",
+ "entry.switchBody": "This Google account already has another expedition. Its saved progress will be loaded. Your guest progress will not be merged automatically. Continue?",
+ "consent.terms.title": "Terms of Service",
+ "consent.terms.summary": "Accounts, game data and service conditions",
+ "consent.privacy.title": "Privacy Notice",
+ "consent.privacy.summary": "Data, purposes, retention and your rights",
+ "consent.terms.body": "tapWar Terms of Service\nEffective: October 4, 2026\nOperator: TT Softs\n\n1. Service and access\nThese terms describe use of tapWar, its accounts and save services. Agree to these terms and the collection and use of required personal data before signing in. Users under 14 may not use the service.\n\n2. Accounts and security\nUse a guest or Google account. A guest may lose access after deleting the app, changing devices or clearing site data. We recommend linking Google. Progress from separate accounts is not merged automatically. Do not impersonate others, transfer accounts or misuse their access.\n\n3. Game progress and virtual items\nGold, gems, gear and rewards are virtual game items and cannot be exchanged for cash. Progress is restored from the latest verified server save. Playing on multiple devices can cause a save conflict; review the latest save before continuing.\n\n4. Rewards, advertising and purchases\nNotices, events and free rewards follow the operating policy. Optional rewarded ads require completion and server verification. Advertising privacy choices are separate from these terms. Where purchases are offered, prices, contents and refunds follow the purchase screen and app marketplace policies. Features labelled as tests are not real purchases.\n\n5. Prohibited conduct and changes\nSave tampering, exploiting vulnerabilities, fraudulent rewards, account theft and disrupting the service are prohibited. Confirmed abuse may result in restrictions. Maintenance, outages and service changes are announced where practical.\n\n6. Leaving and support\nContact us to stop using your account, review or delete personal data, or withdraw consent. Requests require identity verification. Data subject to legal retention duties may be retained separately for the applicable period.\nSupport: admin.ttsoft@gmail.com\n\nThis document describes the current prototype. The final release terms will reflect the actual service, purchases and data processing.",
+ "consent.privacy.body": "tapWar Privacy Notice\nEffective: October 4, 2026\nOperator and privacy contact: TT Softs\nadmin.ttsoft@gmail.com\n\n1. Required data\nWe process your Firebase user ID (UID), authentication provider, minimum account details supplied by Google sign-in, nickname and profile choices, game progress, currency, items, unlocks, notice acknowledgements and mail reward records.\nTechnical data may include app version, operating system, access times, error and security logs and IP addresses generated during server access. Error reports exclude authentication tokens and complete save files.\n\n2. Purposes and choice\nData is used for authentication, account identification, saving and restoring progress, preventing duplicate rewards, delivering notices and mail, security, error analysis and support.\nYou may refuse required data collection and use. Without it, account identification and server saves cannot be provided, so sign-in and game services are unavailable.\n\n3. Collection and processors\nInformation you enter and data generated during play are processed through Firebase Authentication, Cloud Firestore, Cloud Functions and server requests. Google LLC may process data on infrastructure inside or outside your country. Network transfers are encrypted. Before release, actual processors, transfer countries, methods, timing and retention will be disclosed for the final service.\n\n4. Retention\nData is deleted after account closure, a deletion request or completion of its purpose. Minimum information required by law or needed for fraud prevention and disputes may be retained separately for the applicable purpose and period. Lost guest access can make identity verification and restoration difficult.\n\n5. Optional notifications and advertising\nNotice notifications require a separate choice. Enabling them processes device notification tokens and language subscriptions through Firebase Cloud Messaging. Disable them in Settings; refusing does not prevent play.\nAdvertising identifiers and personalized advertising are not covered by this required consent. When mobile advertising is enabled, choices can be managed separately through Google User Messaging Platform.\n\n6. Rights and security\nYou may request access, correction, deletion, processing restrictions or withdrawal of consent after identity verification. We use authentication, access controls, server security rules and encrypted transfers. We do not sell or disclose personal data without a legal basis or separate consent.\n\n7. Contact and changes\nPrivacy contact: admin.ttsoft@gmail.com\nImportant changes are announced in the app. This document reflects the prototype; business information and actual processing details will be finalized before release.",
+ "layout.collapse": "Hide menu ▾",
+ "layout.expand": "Show menu ▴",
+ "unlock.title": "Keep Exploring",
+ "unlock.stage": "{name} unlocks at best stage {stage}.",
+ "unlock.view": "Explore New Feature",
+ "tutorial.welcomeTitle": "Begin Your First Expedition",
+ "tutorial.welcomeBody": "Tap the field to defeat enemies and earn gold.\nLearn to upgrade your guardian and recruit your first hero, one step at a time.",
+ "tutorial.begin": "Show Me How",
+ "tutorial.step": "First Expedition · {step} / {total}",
+ "tutorial.skip": "Skip",
+ "tutorial.skipTitle": "Finish the Guide?",
+ "tutorial.skipBody": "Replay this guide in Settings. Features still unlock as you progress through stages.",
+ "tutorial.step1": "Tap the highlighted field 3 times.\nAttack enemies to earn gold.",
+ "tutorial.step2": "Use Upgrade below to strengthen\nyour guardian by one level.",
+ "tutorial.step3": "Open Heroes in the bottom menu.\nHeroes attack automatically.",
+ "tutorial.step4": "Recruit Rowen of the Ridge, your first hero.\nTap the field for gold if needed.",
+ "tutorial.step5": "Use Hide Menu below.\nThe battlefield expands.",
+ "tutorial.step6": "Use Show Menu to return.\nClimb further to unlock new features.",
+ "tutorial.replay": "Replay First Expedition Guide",
+ "tutorial.replayBody": "Keep your progress and restart the basic controls guide.",
+ "tutorial.complete": "Ready to explore! Keep tapping and upgrading."
+});
+
+Object.assign(translations.ko,{'unlock.nextTitle':'다음 원정 목표'});
+Object.assign(translations.en,{'unlock.nextTitle':'Next Expedition Goal'});
+
+Object.assign(translations.ko,{'tutorial.boss':'첫 보스가 나타났습니다!\n30초 안에 처치해 다음 구역으로 가세요.\n실패하면 강화하고 보스 도전으로 다시 시작하세요.'});
+Object.assign(translations.en,{'tutorial.boss':'Your first boss! Defeat it within 30 seconds\nto reach the next stage. If time runs out,\nupgrade and use Fight Boss to retry.'});
+
+Object.assign(translations.en,{'unlock.stage':'Reach best stage {stage} to unlock {name}.','tutorial.step2':'Use Level Up below to strengthen\nyour guardian by one level.'});
+
+Object.assign(translations.ko,{'ui.iconHelp':'아이콘 안내','ui.equipmentHelp':'검: 모든 피해 배율 · 화살표: 현재 → 선택 장비\n초록/빨강 수치: 장착했을 때 피해 변화\n체크: 장착 · 자물쇠: 판매 보호 전환 · 보석: 판매\n방어구: 수집 세트 · 버튼을 길게 눌러 설명을 확인하세요.','ui.enchantCost':'{cost}'});
+Object.assign(translations.en,{'ui.iconHelp':'Icon Guide','ui.equipmentHelp':'Sword: all damage multiplier · Arrow: current → selected\nGreen/red number: change after equipping\nCheck: equip · Lock: sell protection · Gem: sell\nArmor: collection sets · Hold a button to see its meaning.','ui.enchantCost':'{cost}'});
+
+Object.assign(translations.ko,{'tutorial.step2':'아래 금색 + 아이콘을 눌러\n수호자를 한 단계 강화하세요.','tutorial.step3':'하단의 동료 얼굴 아이콘을 누르세요.\n동료는 자동으로 적을 공격합니다.','tutorial.step5':'아래 ↓ 아이콘으로 메뉴를 접으세요.\n전장이 더 크게 펼쳐집니다.','tutorial.step6':'↑ 아이콘으로 메뉴를 다시 펼치세요.\n구역을 돌파하면 새 기능이 열립니다.'});
+Object.assign(translations.en,{'tutorial.step2':'Tap the gold + icon below\nto level up your guardian.','tutorial.step3':'Tap the hero portrait in the bottom bar.\nHeroes attack automatically.','tutorial.step5':'Tap the ↓ icon to hide the menu.\nThe battlefield expands.','tutorial.step6':'Tap ↑ to bring the menu back.\nClimb further to unlock new features.'});
+
+// Compact first-use captions; all actionable instructions remain localized.
+Object.assign(translations.ko,{
+ 'guide.inspect':'아이콘을 길게 누르면 설명을 볼 수 있어요.',
+ 'guide.action':'첫 사용 · {action}', 'guide.later':'나중에 보기',
+ 'guide.boss':'첫 보스! 시간 안에 처치하세요. 실패하면 강화 후 ↻ 재도전.',
+ 'guide.tab5':'상점이 열렸어요. 상자 아이콘에서 무료 보상을 확인하세요.',
+ 'guide.tab3':'정령이 열렸어요. 여우 아이콘을 눌러 첫 알을 확인하세요.',
+ 'guide.tab2':'장비가 열렸어요. 갑옷 아이콘에서 능력치를 비교하세요.',
+ 'guide.tab4':'유물이 열렸어요. 환생 보상으로 영구 효과를 얻으세요.',
+ 'guide.free':'무료 보상 줄까지 내려가 수령하세요. 구매는 선택이에요.',
+ 'guide.egg':'알이 준비되면 부화 버튼! 기다리는 동안 전투를 이어가세요.',
+ 'guide.pet':'보유한 정령의 장착 아이콘을 눌러 동행시키세요.',
+ 'guide.gear':'장비를 눌러 능력치를 비교하고 ↑ 장착하세요. 자물쇠는 판매 보호예요.',
+ 'guide.prestige':'환생으로 유물 재화를 얻어요. 초기화 범위를 읽고 결정하세요.',
+ 'guide.relics':'수호자 탭의 환생으로 재화를 얻은 뒤 돌아오세요.',
+ 'guide.discover':'상자 아이콘으로 첫 유물을 발견하세요. 비용이 먼저 표시돼요.',
+ 'guide.artifact':'보유 유물을 눌러 효과와 강화 비용을 확인하세요.',
+ 'guide.spell':'스킬을 열어 ▶ 사용하세요. 마나와 재사용 시간을 확인하세요.'
+});
+Object.assign(translations.en,{
+ 'guide.inspect':'Hold an icon to read what it does.',
+ 'guide.action':'First use · {action}', 'guide.later':'Show later',
+ 'guide.boss':'First boss! Beat the timer. If you lose, upgrade and retry with ↻.',
+ 'guide.tab5':'Shop unlocked. Open the chest tab to find your free reward.',
+ 'guide.tab3':'Pets unlocked. Open the fox tab to check your first egg.',
+ 'guide.tab2':'Equipment unlocked. Open the armor tab to compare stats.',
+ 'guide.tab4':'Artifacts unlocked. Prestige rewards buy permanent bonuses.',
+ 'guide.free':'Scroll to the free reward and claim it. Purchases are optional.',
+ 'guide.egg':'Hatch when the egg is ready. Keep fighting while you wait.',
+ 'guide.pet':'Use Equip on a pet you own to bring it along.',
+ 'guide.gear':'Open an item, compare stats, then equip ↑. Lock protects it from sale.',
+ 'guide.prestige':'Prestige earns artifact currency. Read what resets before deciding.',
+ 'guide.relics':'Prestige in the Guardian tab to earn currency, then return here.',
+ 'guide.discover':'Use the chest to discover an artifact. Check the cost first.',
+ 'guide.artifact':'Open an owned artifact to check its effect and upgrade cost.',
+ 'guide.spell':'Open a skill and use ▶. Check its mana cost and cooldown.'
+});
+
+Object.assign(translations.ko,{'tutorial.step2':'아래 빨간 + 버튼으로\n수호자를 한 단계 강화하세요.','tutorial.step3':'아래 동료 얼굴 아이콘!\n동료는 자동으로 공격해요.','tutorial.step4':'첫 동료 로웬을 고용하세요.\n골드가 부족하면 전장을 탭!'});
+Object.assign(translations.en,{'tutorial.step2':'Tap the red + button to level up your guardian.','tutorial.step3':'Tap the hero portrait below. Heroes attack automatically.','tutorial.step4':'Recruit Rowen. Need gold? Keep tapping the field!'});
+
+Object.assign(translations.ko,{'guide.master':'아래 수호자 탭을 열어 강화로 돌아가세요.'});
+Object.assign(translations.en,{'guide.master':'Open the Guardian tab below to return to Level Up.'});
+
+Object.assign(translations.ko,{'guide.begin':'첫 원정! ▶ 를 누르면 탭과 강화부터 하나씩 안내할게요.'});
+Object.assign(translations.en,{'guide.begin':'First expedition! Press ▶ to learn tapping and upgrades, one step at a time.'});
+
+Object.assign(translations.ko,{
+ 'guide.feature15':'새 성장 메뉴! 위 가방에서 제작·이벤트·수집 기능을 확인하세요.',
+ 'guide.feature50':'스킬 트리가 열렸어요. 위 가방에서 빌드를 준비하세요.',
+ 'guide.feature60':'환생과 대회가 열렸어요. 위 가방에서 새 도전을 확인하세요.',
+ 'guide.feature100':'레이드·카드·길드가 열렸어요. 위 가방에서 시작하세요.',
+ 'guide.feature1000':'메타 성장이 열렸어요. 위 가방에서 보석과 연구를 확인하세요.',
+ 'guide.feature100000':'영혼 소환이 열렸어요. 위 가방의 성장 메뉴를 확인하세요.',
+ 'guide.feature180000':'기념물 성장이 열렸어요. 위 가방에서 영구 효과를 확인하세요.'
+});
+Object.assign(translations.en,{
+ 'guide.feature15':'More growth options! Open the bag for crafting, events and collections.',
+ 'guide.feature50':'Skill trees unlocked. Open the bag to prepare your build.',
+ 'guide.feature60':'Prestige and tournaments unlocked. Open the bag for new challenges.',
+ 'guide.feature100':'Raids, cards and clans unlocked. Start with the bag above.',
+ 'guide.feature1000':'Meta growth unlocked. Open the bag for gems and research.',
+ 'guide.feature100000':'Soul summoning unlocked. Check Growth in the bag menu.',
+ 'guide.feature180000':'Monuments unlocked. Open the bag to find permanent bonuses.'
+});
+
+Object.assign(translations.ko,{'guide.spell':'첫 스킬이 준비됐어요! ↓로 메뉴를 접으면 사용 버튼이 나타나요.','guide.spellCast':'빛나는 스킬을 눌러 사용하세요. 마나가 소모되고 재사용 대기가 시작돼요.','guide.relics':'현재 구역 60에 도달해 수호자 탭에서 환생한 뒤 돌아오세요.'});
+Object.assign(translations.en,{'guide.spell':'Your first skill is ready! Hide the menu with ↓ to reveal its button.','guide.spellCast':'Tap the highlighted skill. It spends mana and starts a cooldown.','guide.relics':'Reach stage 60 in this run, prestige in Guardian, then return here.'});
+
+Object.assign(translations.ko,{
+ 'guide.begin':'▶ 로 첫 원정 시작!\n탭과 강화부터\n하나씩 알려드릴게요.',
+ 'tutorial.step1':'전장을 3번 탭!\n적을 치면 골드를 얻어요.',
+ 'tutorial.step2':'아래 빨간 + 버튼!\n수호자를 강화하세요.',
+ 'tutorial.step3':'동료 얼굴 아이콘!\n자동 공격을 맡겨보세요.',
+ 'tutorial.step4':'로웬을 고용하세요.\n골드가 부족하면 전장 탭!',
+ 'tutorial.step5':'↓ 로 메뉴를 접으면\n전장이 넓어져요.',
+ 'tutorial.step6':'↑ 로 메뉴를 펼쳐요.\n구역마다 새 기능 해금!'
+});
+Object.assign(translations.en,{
+ 'guide.begin':'Press ▶ to begin.\nLearn one action at a time.',
+ 'tutorial.step1':'Tap the field 3 times.\nHits earn gold.',
+ 'tutorial.step2':'Tap the red + below.\nLevel up your guardian.',
+ 'tutorial.step3':'Tap the hero portrait.\nHeroes attack for you.',
+ 'tutorial.step4':'Recruit Rowen.\nNeed gold? Tap the field!',
+ 'tutorial.step5':'Hide the menu with ↓.\nEnjoy a larger battlefield.',
+ 'tutorial.step6':'Bring it back with ↑.\nClimb to unlock more.'
+});
+
+Object.assign(translations.ko,{"feedback.received": "획득!", "feedback.power": "능력 상승!", "feedback.improved": "성장이 적용됐어요!", "feedback.level": "{name}  {before} → {after}", "feedback.tap": "탭 공격력  {before} → {after}", "feedback.dps": "초당 공격력  {before} → {after}", "feedback.gold": "골드", "feedback.gems": "보석", "feedback.shards": "제작 조각", "feedback.dust": "카드 가루", "feedback.sp": "특성 포인트", "feedback.souls": "영혼", "feedback.geodes": "보석 원석", "feedback.eventTokens": "이벤트 토큰", "feedback.relics": "유물 재화", "feedback.mementos": "시즌 기억", "feedback.pets": "정령 {index}", "feedback.artifacts": "유물 {index}", "feedback.cards": "카드 {index}", "feedback.fragments": "카드 조각 {index}", "feedback.titans": "영혼 수집 {index}", "feedback.stones": "별빛 보석 {index}", "feedback.perks": "축복 {index}", "feedback.weapons": "동료 무기 {index}", "feedback.scrolls": "동료 두루마리 {index}", "feedback.skills": "특성 {index}", "feedback.research": "연구 {index}", "feedback.monuments": "기념비 {index}", "feedback.ascensions": "동료 승급 {index}", "feedback.heroSkills": "동료 특성 {index}", "feedback.titanLevels": "영혼 강화 {index}", "feedback.mysticResearch": "신비 연구 {index}", "feedback.monumentEnchanted": "기념비 각성 {index}"});
+
+Object.assign(translations.en,{"feedback.received": "REWARDS!", "feedback.power": "POWER UP!", "feedback.improved": "Growth applied!", "feedback.level": "{name}  {before} → {after}", "feedback.tap": "Tap damage  {before} → {after}", "feedback.dps": "Damage / sec  {before} → {after}", "feedback.gold": "Gold", "feedback.gems": "Gems", "feedback.shards": "Crafting shards", "feedback.dust": "Card dust", "feedback.sp": "Skill points", "feedback.souls": "Souls", "feedback.geodes": "Geodes", "feedback.eventTokens": "Event tokens", "feedback.relics": "Relics", "feedback.mementos": "Season mementos", "feedback.pets": "Pet {index}", "feedback.artifacts": "Artifact {index}", "feedback.cards": "Card {index}", "feedback.fragments": "Card fragments {index}", "feedback.titans": "Soul collection {index}", "feedback.stones": "Star stone {index}", "feedback.perks": "Perk {index}", "feedback.weapons": "Hero weapon {index}", "feedback.scrolls": "Hero scroll {index}", "feedback.skills": "Skill {index}", "feedback.research": "Research {index}", "feedback.monuments": "Monument {index}", "feedback.ascensions": "Hero ascension {index}", "feedback.heroSkills": "Hero skill {index}", "feedback.titanLevels": "Soul level {index}", "feedback.mysticResearch": "Mystic research {index}", "feedback.monumentEnchanted": "Monument enchantment {index}"});
+
+Object.assign(translations.ko,{'action.insufficient':'{currency} 부족 · 보유 {owned} / 필요 {cost}','action.maxReached':'최대 레벨에 도달했어요.','action.needLevel':'수호자 레벨 {level}에 사용할 수 있어요.'});
+Object.assign(translations.en,{'action.insufficient':'Not enough {currency} · Have {owned} / Need {cost}','action.maxReached':'Maximum level reached.','action.needLevel':'Requires guardian level {level}.'});
+
+Object.assign(translations.ko,{'action.waitSeconds':'{seconds}초 후에 사용할 수 있어요.','action.mana':'마나'});
+Object.assign(translations.en,{'action.waitSeconds':'Available in {seconds} seconds.','action.mana':'Mana'});
+
+Object.assign(translations.ko,{'action.heroLevel':'동료 레벨','action.petTotal':'정령 총 레벨'});
+Object.assign(translations.en,{'action.heroLevel':'Hero level','action.petTotal':'Total pet levels'});
+
+Object.assign(translations.ko,{'action.alreadyClaimed':'이미 수령한 보상이에요.','action.alreadyApplied':'이미 적용되어 있어요.'});
+Object.assign(translations.en,{'action.alreadyClaimed':'This reward has already been claimed.','action.alreadyApplied':'Already applied.'});

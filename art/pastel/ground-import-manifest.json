@@ -1,0 +1,99 @@
+{
+  "original": "art/pastel/source/ground-original.png",
+  "sha256": "55f938930dc7abcca4a9f193b8aed14c3841345d7047c7721a19ad66a50bf851",
+  "dimensions": [
+    1254,
+    1254
+  ],
+  "transforms": "Cell crop, alpha-visible bounds, padding, nearest resize only; original retained unchanged.",
+  "sprites": [
+    {
+      "file": "assets/resources/ui/pastel/terrain/ground-0.png",
+      "crop": [
+        0,
+        0,
+        627,
+        627
+      ],
+      "visibleCrop": [
+        10,
+        268,
+        617,
+        505
+      ],
+      "size": [
+        512,
+        224
+      ],
+      "walkingSurfaceNormalizedY": 0.136302,
+      "sourceWalkingY": 350,
+      "sha256": "a16278a9d5a84077f06f51214c54fdf5d8b81d477cf034a22d8c7acfc97c3967"
+    },
+    {
+      "file": "assets/resources/ui/pastel/terrain/ground-1.png",
+      "crop": [
+        627,
+        0,
+        1254,
+        627
+      ],
+      "visibleCrop": [
+        11,
+        264,
+        620,
+        503
+      ],
+      "size": [
+        512,
+        224
+      ],
+      "walkingSurfaceNormalizedY": 0.122646,
+      "sourceWalkingY": 350,
+      "sha256": "b721af23331b6aa4cd9db893f50c05376dda4e7f49f402c77224edc58315043c"
+    },
+    {
+      "file": "assets/resources/ui/pastel/terrain/ground-2.png",
+      "crop": [
+        0,
+        627,
+        627,
+        1254
+      ],
+      "visibleCrop": [
+        10,
+        212,
+        617,
+        455
+      ],
+      "size": [
+        512,
+        224
+      ],
+      "walkingSurfaceNormalizedY": 0.112066,
+      "sourceWalkingY": 930,
+      "sha256": "8d6c0358de7edcbffce198a5953df39e095bb571be5835c1e2ea95d100ad6441"
+    },
+    {
+      "file": "assets/resources/ui/pastel/terrain/ground-3.png",
+      "crop": [
+        627,
+        627,
+        1254,
+        1254
+      ],
+      "visibleCrop": [
+        11,
+        215,
+        619,
+        450
+      ],
+      "size": [
+        512,
+        224
+      ],
+      "walkingSurfaceNormalizedY": 0.110391,
+      "sourceWalkingY": 930,
+      "sha256": "055ce6f7e816fade05262dced0428f5da47a91e14a9df5a11bbd5c36c915d885"
+    }
+  ]
+}

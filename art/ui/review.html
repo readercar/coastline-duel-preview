@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="ko"><meta charset="utf-8"><title>OutRun — UI Art Review</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#e5d4b4;color:#473428;font:15px system-ui;display:flex;gap:24px;min-width:860px}iframe{width:480px;height:960px;border:0;flex:none;background:#213d50}aside{width:340px;padding:24px 12px 16px 0;height:960px;overflow:auto}h1{font-size:24px;margin:0 0 12px}p{line-height:1.6}button,select{font:inherit;padding:10px;border:1px solid #946d42;border-radius:4px;color:#fff2d2;background:#3c7b78;margin:4px 0}select{width:100%;background:#fff0d3;color:#473428}button{cursor:pointer}pre{white-space:pre-wrap;font:12px/1.5 monospace;overflow-wrap:anywhere;background:#fff0d3;padding:12px}#screen-label{font-weight:700;font-size:20px}#all-report{max-height:350px;overflow:auto}
+</style>
+<iframe id="game" title="Actual Cocos game" src="../../build/web-mobile/index.html"></iframe>
+<aside><h1>UI 아트 적용 검수</h1><p>실제 Cocos 3.8.8 빌드 · 480 × 960<br>검수 데이터는 메모리에 보관합니다.</p>
+<label for="screen">검수 화면</label><select id="screen" disabled></select>
+<button id="previous">이전 화면</button> <button id="next">다음 화면</button><br>
+<button id="ko">한국어</button> <button id="en">English</button><br>
+<button id="audit" disabled>전체 화면 검사</button> <button id="probe">현재 화면 확인</button>
+<p id="screen-label">불러오는 중</p><pre id="current-report">아트 리소스 로딩 중</pre>
+<pre id="all-report">검사 전</pre><p><a href="../../build/web-mobile/" target="_blank">실제 게임 열기</a></p></aside>
+<script src="review.js"></script></html>

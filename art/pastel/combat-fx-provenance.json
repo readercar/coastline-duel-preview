@@ -1,0 +1,24 @@
+{
+  "recordedAt": "2026-10-04",
+  "generationRoute": "Logged-in Chrome 덕하 profile → new ChatGPT task tab → original PNG download",
+  "conversation": "https://chatgpt.com/c/6ac1d620-75d8-83ee-a90c-5fc3273a0b6d",
+  "originalDownload": "판타지 마법 효과 픽셀 스프라이트 시트.png",
+  "original": "art/pastel/source/combat-fx-original.png",
+  "sha256": "b66a33cdcfa322326b787e11266bc3b7ec44912051e7aa96065b415436dd254d",
+  "dimensions": [
+    1254,
+    1254
+  ],
+  "mode": "RGBA",
+  "alphaExtrema": [
+    0,
+    255
+  ],
+  "reference": "docs/art-mockups/pastel-flat-v2/assets/battle-original.png",
+  "referenceUsage": "Opened original locally; style and palette described in generation prompt. Attachment automation unavailable; no browser permission changed.",
+  "accepted": true,
+  "sprites": 9,
+  "motionSheetsGenerated": false,
+  "prompt": "Generate an actual PNG image asset, not a text answer. Asset: a game combat VFX atlas containing 9 DISTINCT STATIC isolated effect sprites, arranged in an exact evenly spaced 3 by 3 grid on a genuinely transparent alpha background. No character motion sheets, no animation sequence. Row 1 left-to-right: diagonal rising sword slash crescent, compact eight-point peach impact burst, four-point ice-aqua sparkle particle. Row 2: horizontal mint arrow projectile pointing right, lavender magic orb projectile, small angular lavender crystal debris shard. Row 3: mint-and-peach enemy defeat burst, small mint wind wisp particle, thin lavender magical shock ring drawn with angular pixel steps. Each cell contains only its single isolated asset centered with generous empty margins, none touching another cell. Style: crisp retro 16-bit pixel art, visibly chunky square pixels, stair-stepped contours and 3-4 discrete shading tones, matching a pastel alpine fantasy game with mint meadows, ice-aqua skies, lavender mountains and angular stone golems. Palette: ice aqua, bright mint, lavender, dusty pink and peach; sparing dark plum definition, bright cream cores. Strong readable silhouettes. No blur, soft glow, smooth vector lines, gradients, 3D rendering, labels, text, numbers, borders or panels. Transparent pixels around every effect, no checkerboard baked into the image, no shadow/background. Square large PNG. These static sprites will be cropped and moved/scaled/faded in Cocos Creator for hits, ally shots and enemy defeat.",
+  "inspection": "Opened downloaded original and derived sprite contact on pastel background. Distinct silhouettes, stepped pixels, actual transparent margins, no text or panels. Runtime QA tracked separately."
+}

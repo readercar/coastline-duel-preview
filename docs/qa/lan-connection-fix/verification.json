@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-05",
+  "url": "http://192.168.45.201:8880/",
+  "secondaryLanUrl": "http://192.168.55.170:8880/",
+  "reportedIssue": "Connection error labelled development server on internal address",
+  "reproduction": "Reported failure did not reproduce on this Mac; original LAN guest authentication, policy and save read succeeded. Remote device URL/login details requested asynchronously.",
+  "changes": [
+    "LAN policy uses existing same-origin Firebase operations bridge instead of separate browser Firestore query",
+    "LAN request timeout 20 seconds exceeds bridge upstream timeout 15 seconds",
+    "KO/EN generic connection error correctly refers to game server, not exclusively development server"
+  ],
+  "security": [
+    "Existing Firebase UID and ID token validation retained",
+    "Bridge accepted only at exact same origin /firebase-operations",
+    "Fixed Firebase upstream and path allowlist retained",
+    "No public deployment, no account switch or reset"
+  ],
+  "checks": {
+    "engine": "Cocos Creator 3.8.8",
+    "scene": "assets/scenes/Main.scene",
+    "webBuild": "completed 2026-10-05 01:41:56 KST",
+    "typecheck": "passed with npm test",
+    "coreTests": 85,
+    "serverTests": 28,
+    "failures": 0,
+    "locales": [
+      "ko",
+      "en"
+    ],
+    "guestEntry": "passed using synthetic in-memory consent and push-choice fixture; no personal agreement accepted",
+    "battleInput": "tap increased",
+    "serverSave": "version advanced, no conflict",
+    "policyViaBridge": true,
+    "consoleWarningsOrErrors": [],
+    "policyHttp": 200,
+    "unauthenticatedSaveHttp": 401,
+    "unapprovedBridgePathHttp": 404,
+    "ethernetPreviewHttp": 200
+  },
+  "limitations": [
+    "Other physical device not available for direct verification; Mac Chrome LAN IP verified",
+    "Exact cause of user device failure not yet established",
+    "Google OAuth on private IP not verified; LAN guest tested",
+    "PC and LAN preview server must stay running"
+  ],
+  "qaHarness": "tools/lan-connection-qa.html"
+}

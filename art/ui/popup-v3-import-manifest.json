@@ -1,0 +1,82 @@
+[
+  {
+    "name": "panel",
+    "file": "assets/resources/ui/crumble/popup-v3/panel.png",
+    "original": "art/ui/source/popup-v3-original.png",
+    "crop": [
+      47,
+      53,
+      597,
+      595
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "sha256": "ce3cfe9fa3d9c0260f1dd33b2cc4099325172f0cd9c26e52c7538c8d61690fa3"
+  },
+  {
+    "name": "card",
+    "file": "assets/resources/ui/crumble/popup-v3/card.png",
+    "original": "art/ui/source/popup-v3-original.png",
+    "crop": [
+      657,
+      53,
+      1208,
+      595
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "sha256": "c60f563159ad9ab814dbc7eab1687e9805e3f263b774c11982f00bdcf8281f59"
+  },
+  {
+    "name": "quiet",
+    "file": "assets/resources/ui/crumble/popup-v3/quiet.png",
+    "original": "art/ui/source/popup-v3-original.png",
+    "crop": [
+      47,
+      654,
+      597,
+      1195
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "sha256": "74a44dfe94274ca465db7c1b7ca222a4074f391dcffb4cfd61658ca78509798f"
+  },
+  {
+    "name": "slate",
+    "file": "assets/resources/ui/crumble/popup-v3/slate.png",
+    "original": "art/ui/source/popup-v3-original.png",
+    "crop": [
+      657,
+      654,
+      1208,
+      1195
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "sha256": "0c16174d62f093a500d48f7f4a04a60d521267531636387b5e646b398b33e5c5"
+  }
+]

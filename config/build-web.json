@@ -11,7 +11,7 @@
       "uuid": "894e8b13-3ca3-42c5-9fc6-49e807e1335e"
     }
   ],
-  "md5Cache": false,
+  "md5Cache": true,
   "sourceMaps": true,
   "packages": {}
 }

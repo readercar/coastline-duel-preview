@@ -1,4 +1,5 @@
 import {validatePolicy} from '../assets/scripts/core/LiveOps';
+import {Operations} from './Operations';
 import { createServer, IncomingMessage, ServerResponse } from 'node:http';
 import { readFileSync, existsSync, mkdirSync } from 'node:fs';
 import { resolve, extname, join } from 'node:path';
@@ -13,6 +14,7 @@ mkdirSync(dataDir, {
     recursive: true
 });
 const service = new Service(join(dataDir,'development.sqlite'));
+const operations=new Operations(service);
 const commerce=new CommerceService(service);
 const windows = new Map<string, {
     since: number;
@@ -101,6 +103,8 @@ createServer(async (req, res) => {
             else if(path==='/api/commerce/status')result=commerce.status(account);
             else if(path==='/api/commerce/grants')result=commerce.grants(account);
             else if(path==='/api/account/save')result=service.cloudSave(account);
+            else if(path==='/api/operations/reads')result=operations.reads(account);
+            else if(path==='/api/operations/mail')result=operations.mail(account);
             else if(path==='/api/competition/history')result=service.tournamentHistory(account);
             else if(path==='/api/raid/cards')result=service.raidWallet(account);
             else if(path==='/api/global') result=service.global();
@@ -115,6 +119,10 @@ createServer(async (req, res) => {
         }
         else if (req.method === 'POST') {
             switch (path) {
+                case '/api/operations/read':result=operations.read(account,data.id);break;
+                case '/api/operations/mail/claim':result=operations.claim(account,data.id,data.version,data.key);break;
+                case '/api/operations/mail/delete':result=operations.delete(account,data.id);break;
+                case '/api/operations/error':result=operations.error(account,data.id,data);break;
                 case '/api/rewards/ack':result=service.acknowledgeReward(account,data.id,data.key);break;
                 case '/api/player/block':result=service.block(account,data.target,data.enabled,data.key);break;
                 case '/api/player/report':result=service.report(account,data.message,data.reason,data.key);break;

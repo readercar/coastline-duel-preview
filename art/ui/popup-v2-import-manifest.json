@@ -1,0 +1,162 @@
+[
+  {
+    "name": "primary",
+    "file": "assets/resources/ui/crumble/popup/primary.png",
+    "original": "art/ui/source/popup-v2-original.png",
+    "crop": [
+      30,
+      186,
+      423,
+      305
+    ],
+    "size": [
+      128,
+      39
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "sha256": "48bfd163b02478544c2bddbe831c109b413f617c455cc7898417c9a98e554d35"
+  },
+  {
+    "name": "secondary",
+    "file": "assets/resources/ui/crumble/popup/secondary.png",
+    "original": "art/ui/source/popup-v2-original.png",
+    "crop": [
+      465,
+      186,
+      857,
+      305
+    ],
+    "size": [
+      128,
+      39
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "sha256": "b276a339b8a515ee6dbefdfbb1e41c6c5d73f8068dc2577b25933a2072736f00"
+  },
+  {
+    "name": "quiet",
+    "file": "assets/resources/ui/crumble/popup/quiet.png",
+    "original": "art/ui/source/popup-v2-original.png",
+    "crop": [
+      31,
+      616,
+      424,
+      739
+    ],
+    "size": [
+      128,
+      40
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "sha256": "62dd3999de0ed0ea74d37f8e5fa4c1297111dd1b2f4f9af1953bf4cd3db03af2"
+  },
+  {
+    "name": "selected",
+    "file": "assets/resources/ui/crumble/popup/selected.png",
+    "original": "art/ui/source/popup-v2-original.png",
+    "crop": [
+      465,
+      616,
+      858,
+      739
+    ],
+    "size": [
+      128,
+      40
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "sha256": "131b772c93f42d3f6b785f0a92833c1d85272b1027c46c267ca201fa4bd2082d"
+  },
+  {
+    "name": "disabled",
+    "file": "assets/resources/ui/crumble/popup/disabled.png",
+    "original": "art/ui/source/popup-v2-original.png",
+    "crop": [
+      30,
+      1028,
+      424,
+      1150
+    ],
+    "size": [
+      128,
+      40
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "sha256": "e463b7e34081d7f1637d45f5e08559f9cae3112adc29b74ea49977afdfdf14db"
+  },
+  {
+    "name": "danger",
+    "file": "assets/resources/ui/crumble/popup/danger.png",
+    "original": "art/ui/source/popup-v2-original.png",
+    "crop": [
+      465,
+      1028,
+      857,
+      1150
+    ],
+    "size": [
+      128,
+      40
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "sha256": "58869733a9296ac14f2d270a6b7e1a20bbbc2e83e050868a7fb32dbc19a0d1c4"
+  },
+  {
+    "name": "panel",
+    "file": "assets/resources/ui/crumble/popup/panel.png",
+    "original": "art/ui/source/popup-v2-original.png",
+    "crop": [
+      31,
+      1326,
+      424,
+      1586
+    ],
+    "size": [
+      128,
+      85
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "sha256": "05afbc18b2e4310d079e641cf7a53ac661259a5aeadaaf477ae8a1e59ea29515"
+  },
+  {
+    "name": "card",
+    "file": "assets/resources/ui/crumble/popup/card.png",
+    "original": "art/ui/source/popup-v2-original.png",
+    "crop": [
+      465,
+      1326,
+      857,
+      1587
+    ],
+    "size": [
+      128,
+      85
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "sha256": "7f5d275a73ed89ed082c8c9495331cb66d394e1630b3eba5df6ea5f543b03051"
+  }
+]

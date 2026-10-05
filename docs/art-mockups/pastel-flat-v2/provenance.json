@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-03",
+  "scope": "Review mockups only. No production Cocos scene, game code, or game UI was modified in this turn.",
+  "userConfirmed": "Use the new battle image texture consistently for this project, including heroes and enemies. No rounded rectangular UI panels or decorative borders.",
+  "engine": "Cocos Creator 3.8.8",
+  "language": "TypeScript",
+  "startScene": "assets/scenes/Main.scene",
+  "webBuild": "build/web-mobile",
+  "sourceConversation": "https://chatgpt.com/c/6ac10d92-842c-83e8-8be1-ff3803ff84a3",
+  "artMethod": "ChatGPT UI in a new Chrome task tab in the logged-in 덕하 profile",
+  "originalDownload": "/Users/dhlee/Downloads/고대 유적의 거석 골렘과 검객.png",
+  "battleOriginal": {
+    "file": "assets/battle-original.png",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "sha256": "26071a30c903027a0e148363a70264e40d999efd5d8b9181876194be1912dafd"
+  },
+  "previewDerivative": "assets/battle-preview.webp; resized from the actual original, no style filter or screenshot substitution",
+  "existingPortraitsAndIcons": "Existing project art reused in this layout study. They are not newly produced character animation sprites.",
+  "palette": {
+    "mint": "#deeee7",
+    "lilac": "#e4dcf0",
+    "peach": "#f8d5bc",
+    "pink": "#efd5df",
+    "blue": "#d6e9ef",
+    "ink": "#46445f"
+  },
+  "panels": {
+    "cornerRadius": 0,
+    "decorativeBorders": 0,
+    "popupDim": "rgba(0,0,0,0.5)"
+  },
+  "companyCI": {
+    "reusesRequiredOriginal": true,
+    "sha256": "ec8662bee8ffd31971191247dbc95c5e5686088503ab26681a138015dc1c8034"
+  },
+  "qa": {
+    "locales": [
+      "ko",
+      "en"
+    ],
+    "tabs": 6,
+    "popups": [
+      "settings",
+      "item",
+      "skills"
+    ],
+    "narrowViewport": 320,
+    "actualNarrowContentWidth": 305,
+    "koRowsClipped": false,
+    "enNarrowRowsClipped": false,
+    "verifiedInteractions": [
+      "navigation",
+      "language switch through settings",
+      "hero level display increment",
+      "talent point decrease and level increase"
+    ],
+    "localizationTags": 144
+  },
+  "guidelinesFile": "../../../AGENTS.md"
+}

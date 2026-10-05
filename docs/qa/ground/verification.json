@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-04",
+  "status": "applied-and-local-web-verified",
+  "engine": "Cocos Creator 3.8.8",
+  "source": "art/pastel/ground-provenance.json",
+  "importManifest": "art/pastel/ground-import-manifest.json",
+  "changes": [
+    "Four continuous foreground ground sprites selected by battlefield biome",
+    "Ground joins central guardian/enemy and raised lowest ally ledges",
+    "Guardian and enemy sprites pivot at visible feet; guardian vertical bob removed",
+    "Attack recoil and spawn keep enemy foot location",
+    "Terrain remains masked above menu and behind characters"
+  ],
+  "validation": {
+    "typecheck": "passed",
+    "diffWhitespace": "passed",
+    "webBuild": "completed 2026-10-04 14:13:09",
+    "consoleErrorsOrWarnings": [],
+    "runtimeReport": "runtime-checks.json",
+    "viewports": [
+      "390x844",
+      "320x640"
+    ],
+    "locales": [
+      "ko",
+      "en"
+    ],
+    "biomes": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "partySizes": [
+      3,
+      12,
+      24
+    ],
+    "foldedAndExpanded": true,
+    "guardianAttackContact": true,
+    "centralFootGapMaximum": 5.684341886080802e-14,
+    "allyFootGapMaximum": 5.3290705182007514e-14,
+    "accountWrites": false
+  },
+  "qaHarness": "tools/ground-qa.html",
+  "limitations": [
+    "Local web runtime verified; native device validation not included."
+  ]
+}

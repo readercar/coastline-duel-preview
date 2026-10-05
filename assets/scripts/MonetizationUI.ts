@@ -5,7 +5,7 @@ export class MonetizationUI {
     constructor(public a:GameApp,public model:Monetization){}
     tr(key:string,args:Record<string,string|number>={}){return this.a.tr(key,args);}
     price(id:string):string{const quote=this.quotes.find(q=>q.id===id);return quote?.price||'₩'+PRODUCTS.find(p=>p.id===id)!.krw.toLocaleString('ko-KR');}
-    async run(work:()=>Promise<void>,offline=false):Promise<void>{try{if(!offline||this.model.online.base)await this.model.online.connect(this.tr('online.defaultName'));await work();}catch(e){const key=(e as Error).message;this.a.info(this.tr('money.result'),this.tr(/^(money|error|online)\./.test(key)?key:'money.verification'));}}
+    async run(work:()=>Promise<void>,offline=false):Promise<void>{const before=this.a.feedback.snapshot();this.a.feedback.asyncPending++;try{if(!offline||this.model.online.base)await this.model.online.connect(this.tr('online.defaultName'));await work();this.a.feedback.finish(before);}catch(e){const key=(e as Error).message;this.a.info(this.tr('money.result'),this.tr(/^(money|error|online)\./.test(key)?key:'money.verification'));}finally{this.a.feedback.asyncPending--;}}
     rows(){return PRODUCTS.filter(p=>p.kind==='consumable').map(p=>({title:this.tr(p.name,{count:p.gems}),sub:this.tr('money.packInfo',{count:p.gems}),action:this.price(p.id),click:()=>this.product(p.id),icon:4}));}
     store(){void this.run(async()=>{if(this.model.billing)this.quotes=await this.model.billing.catalog(PRODUCTS.map(p=>p.id));const status=this.model.online.base?await this.model.online.request('/commerce/status'):{tier:0,vipPoints:0};this.a.extensions.list('money.store',[
         {title:this.tr('money.balance',{count:this.a.game.s.gems}),sub:this.tr('money.priceRegion')},

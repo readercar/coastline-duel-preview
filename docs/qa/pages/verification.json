@@ -1,0 +1,80 @@
+{
+  "verifiedAt": "2026-10-04T10:48:39.665Z",
+  "url": "https://readercar.github.io/coastline-duel-preview/docs/web/",
+  "repository": "readercar/coastline-duel-preview",
+  "pages": {
+    "branch": "main",
+    "path": "/",
+    "status": "built",
+    "commit": "d5fa4cd7a0946b70faa97e4b9a6e05403b97d3fc",
+    "updatedAt": "2026-10-04T10:39:14Z"
+  },
+  "build": {
+    "name": "tapWar",
+    "version": "0.1.0",
+    "builtAt": "2026-10-04T10:38:32.994Z",
+    "engine": "Cocos Creator 3.8.8",
+    "publicMetadataMatches": true,
+    "sourceMaps": 0,
+    "sourceMapReferences": 0,
+    "privateCredentialPatternScan": "passed"
+  },
+  "firebase": {
+    "project": "ttsofts-tapwar",
+    "account": "admin.ttsoft@gmail.com",
+    "authorizedDomains": [
+      "localhost",
+      "ttsofts-tapwar.firebaseapp.com",
+      "ttsofts-tapwar.web.app",
+      "127.0.0.1",
+      "readercar.github.io"
+    ],
+    "google": "Actual public Google sign-in and server save restoration passed",
+    "accountConflict": "Existing public anonymous UID collision was shown; confirmed account switch restored the selected Google save without merging",
+    "simultaneousSave": "Duplicate local QA window caused a revision conflict; own old local tab closed, retry restored latest server data",
+    "serverState": {
+      "sameVerifiedGoogleAccount": true,
+      "master": 2,
+      "rowen": 1,
+      "tutorialStep": 7,
+      "locale": "ko",
+      "saveVersion": 2226
+    }
+  },
+  "checks": [
+    "Latest public title loaded",
+    "KO/EN title",
+    "Prototype required documents read to end",
+    "Optional notifications declined",
+    "Actual Google sign-in",
+    "Server save restored",
+    "Battle tap damage",
+    "Companion tab and hire",
+    "Collapse and expand menu",
+    "KO/EN settings and gameplay",
+    "Save-complete toast",
+    "No runtime or resource warnings/errors"
+  ],
+  "tests": {
+    "core": 81,
+    "server": 28,
+    "total": 109,
+    "failed": 0
+  },
+  "runtimeWarningsAndErrors": 0,
+  "evidence": [
+    "screens/title-ko.png",
+    "screens/title-en.png",
+    "screens/collapsed-ko.png",
+    "screens/settings-ko.png",
+    "screens/settings-en.png",
+    "screens/game-en.png",
+    "screens/game-ko.png",
+    "screens/play-proof.png"
+  ],
+  "limitations": [
+    "Public guest login was not exercised during this deployment QA; prior Firebase anonymous integration and local entry QA remain in docs/qa.",
+    "Physical Android checks remain outside web publication scope."
+  ],
+  "publishedScope": "Commit contains only docs/web generated build assets; no new source, administrator credential, local account database, notice/mail/push broadcast or store release"
+}

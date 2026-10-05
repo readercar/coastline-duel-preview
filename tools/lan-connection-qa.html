@@ -1,0 +1,18 @@
+<!doctype html><meta charset="utf-8"><title>OutRun LAN connection QA</title>
+<style>body{margin:16px;background:#eee;font:15px system-ui}main{display:flex;gap:20px}iframe{width:390px;height:844px;border:0}aside{width:600px}button{padding:10px;margin:4px}pre{white-space:pre-wrap}</style>
+<h1>OutRun LAN connection QA · synthetic consent fixture, no personal agreement</h1>
+<main><iframe id="game" src="/"></iframe><aside><button onclick="probe()">Probe Firebase connection</button><button onclick="enter('ko')">Guest entry Korean</button><button onclick="enter('en')">Guest entry English</button><button onclick="tap()">Tap battle</button><button onclick="report()">Check connection</button><button onclick="persist()">Save server progress</button><button onclick="download()">Download report</button><textarea aria-label="Screenshot data" id="shotdata"></textarea><button onclick="screenshot()">Save screenshot</button><pre id="state">Waiting for Cocos</pre></aside></main>
+<script>
+let a,cc,results=[],diagnostics=[],stage='boot';const f=document.querySelector('iframe'),s=document.querySelector('#state');
+async function get(){cc=await f.contentWindow.System.import('cc');a=cc.director.getScene()?.getChildByName('Canvas')?.getComponent('GameApp');if(!a?.entry)throw Error('Not ready');return a;}
+function show(value){s.textContent=JSON.stringify(value,null,2);}
+async function probe(){try{await get();const original=a.cloud.error.bind(a.cloud);a.cloud.error=e=>{diagnostics.push({stage,code:e?.code||'',message:String(e?.message||'').replace(/https?:\S+/g,'[url]').slice(0,180)});return original(e)};stage='authentication';await a.cloud.loginGuest();stage='policy';await a.cloud.policy();stage='save-read';const saved=await a.cloud.operationsRequest('/account/save');results.push({probe:'PASS',authenticated:!!a.cloud.uid,saveVersion:saved.version});show({results,diagnostics});}catch(e){show({FAIL:true,stage,error:e.message,diagnostics});}}
+async function enter(locale){try{await get();Object.defineProperty(a.entry,'accepted',{configurable:true,get:()=>true});Object.defineProperty(a.liveOps.push,'choice',{configurable:true,get:()=> 'off'});a.game.s.locale=locale;await a.entry.login('guest');report();}catch(e){show({FAIL:true,error:e.message});}}
+async function persist(){try{await a.operations.save();report();}catch(e){show({FAIL:true,error:e.message});}}
+function report(){const value={screen:a.entry.screen,error:a.entry.error,ready:a.operations.ready,conflict:a.operations.conflict,cloud:!a.operations.local,locale:a.game.s.locale,version:a.operations.version,bridge:!!f.contentWindow.TAPWAR_OPERATIONS_BASE,secureContext:f.contentWindow.isSecureContext,policyViaBridge:f.contentWindow.performance.getEntriesByType('resource').some(r=>new URL(r.name).pathname==='/firebase-operations/operations'),diagnostics};results.push(value);show(value);}
+function tap(){if(!a.entry.playing)return;const before=a.game.s.totalTaps;a.attack();show({tapIncreased:a.game.s.totalTaps>before,ready:a.operations.ready,conflict:a.operations.conflict});}
+function save(blob,name){const l=document.createElement('a');l.href=URL.createObjectURL(blob);l.download=name;l.click();setTimeout(()=>URL.revokeObjectURL(l.href),2000);}
+function download(){save(new Blob([JSON.stringify({results,diagnostics},null,2)],{type:'application/json'}),'outrun-lan-connection-qa.json');}
+function screenshot(){fetch(document.querySelector('#shotdata').value).then(r=>r.blob()).then(b=>save(b,'outrun-lan-connection-'+a.game.s.locale+'.jpg'));}
+setInterval(async()=>{if(!a)try{await get();show({ready:true});}catch{}},1000);
+</script>

@@ -1,0 +1,78 @@
+{
+  "recordedAt": "2026-10-04",
+  "generationRoute": "Logged-in Chrome 덕하 profile → ChatGPT task conversation → original PNG download",
+  "conversation": "https://chatgpt.com/c/6ac10d92-842c-83e8-8be1-ff3803ff84a3",
+  "reference": "docs/art-mockups/pastel-flat-v2/assets/battle-original.png",
+  "sources": [
+    {
+      "file": "art/pastel/source/actors.png",
+      "originalDownload": "16비트 판타지 캐릭터 스프라이트 로스터.png",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "sha256": "ea497ea3f4db5e77358b88e9b63f42d86b2b65800a9a5c839100c5cae672dd62",
+      "accepted": true
+    },
+    {
+      "file": "art/pastel/source/faces.png",
+      "originalDownload": "판타지 Rpg 픽셀 아이콘 아틀라스.png",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "sha256": "be198e3b97cffb79274313f6a890a506da6df727becf8a6f1c14af7fb25fed00",
+      "accepted": true
+    },
+    {
+      "file": "art/pastel/source/icons.png",
+      "originalDownload": "파스텔 판타지 Rpg 픽셀 아이콘 아틀라스.png",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "sha256": "224852fba1fdb25605c6e77d0d210215ef85e5e27700ea4ded4829622cf1c77f",
+      "accepted": true
+    },
+    {
+      "file": "art/pastel/source/surfaces-flat.png",
+      "originalDownload": "파스텔 픽셀 텍스처 3×3 타일 그리드.png",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "sha256": "48a53a5fc5b8bb3bdc6579dfb3b11218f8bc4a99b37f68a15c79f87374eb98e9",
+      "accepted": true
+    },
+    {
+      "file": "art/pastel/source/surfaces.png",
+      "originalDownload": "초기 UI 스킨: 두꺼운 프레임으로 검수 탈락",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "sha256": "a76d32332f8a3d373d3a145ea7fef017d13fde7b3e4a34dd1b03049c62766521",
+      "accepted": false
+    },
+    {
+      "file": "art/pastel/source/world.png",
+      "originalDownload": "파스텔 판타지 풍경 4종 세트.png",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "sha256": "8a6e05665a85a83b9ddb11d0b0b61853802f2ae14abad6317d05ca70307116e6",
+      "accepted": true
+    }
+  ],
+  "derivedAssets": 65,
+  "transforms": "Cell crop, visible-alpha bounds, padding and nearest-neighbor scale only. No preview screenshot used as a game asset.",
+  "motionSheetsGenerated": false,
+  "rejectedReason": "surfaces.png used ornamental thick bevel borders; regenerated as surfaces-flat.png before game import."
+}

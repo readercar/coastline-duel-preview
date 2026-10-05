@@ -1,0 +1,154 @@
+[
+  {
+    "font": true,
+    "overflow": [],
+    "screen": {
+      "bottom": 960,
+      "height": 960,
+      "left": 0,
+      "right": 480,
+      "top": 0,
+      "width": 480,
+      "x": 0,
+      "y": 0
+    },
+    "selected": [
+      "수호자"
+    ],
+    "tab": "guardian"
+  },
+  {
+    "font": true,
+    "overflow": [],
+    "screen": {
+      "bottom": 960,
+      "height": 960,
+      "left": 0,
+      "right": 480,
+      "top": 0,
+      "width": 480,
+      "x": 0,
+      "y": 0
+    },
+    "selected": [
+      "동료"
+    ],
+    "tab": "heroes"
+  },
+  {
+    "font": true,
+    "overflow": [],
+    "screen": {
+      "bottom": 960,
+      "height": 960,
+      "left": 0,
+      "right": 480,
+      "top": 0,
+      "width": 480,
+      "x": 0,
+      "y": 0
+    },
+    "selected": [
+      "장비"
+    ],
+    "tab": "equipment"
+  },
+  {
+    "font": true,
+    "overflow": [],
+    "screen": {
+      "bottom": 960,
+      "height": 960,
+      "left": 0,
+      "right": 480,
+      "top": 0,
+      "width": 480,
+      "x": 0,
+      "y": 0
+    },
+    "selected": [
+      "정령"
+    ],
+    "tab": "spirits"
+  },
+  {
+    "font": true,
+    "overflow": [],
+    "screen": {
+      "bottom": 960,
+      "height": 960,
+      "left": 0,
+      "right": 480,
+      "top": 0,
+      "width": 480,
+      "x": 0,
+      "y": 0
+    },
+    "selected": [
+      "유물"
+    ],
+    "tab": "relics"
+  },
+  {
+    "font": true,
+    "overflow": [],
+    "screen": {
+      "bottom": 960,
+      "height": 960,
+      "left": 0,
+      "right": 480,
+      "top": 0,
+      "width": 480,
+      "x": 0,
+      "y": 0
+    },
+    "selected": [
+      "상점"
+    ],
+    "tab": "shop"
+  },
+  {
+    "interaction_checks": [
+      "six bottom tabs switch content and selected state",
+      "shop growth and limited sub tabs switch rows",
+      "equipment helmet filter switches icon and rows"
+    ],
+    "font_family": "RixYeoljeongdo Regular",
+    "exported_screens": {
+      "relics.jpg": [
+        480,
+        960
+      ],
+      "spirits.jpg": [
+        480,
+        960
+      ],
+      "guardian.jpg": [
+        480,
+        960
+      ],
+      "shop.jpg": [
+        480,
+        960
+      ],
+      "equipment.jpg": [
+        480,
+        960
+      ],
+      "gallery-browser.jpg": [
+        1920,
+        1812
+      ],
+      "heroes.jpg": [
+        480,
+        960
+      ]
+    },
+    "reviewed": [
+      "battle actual downloaded original",
+      "icon atlas actual downloaded original",
+      "all six rendered screens"
+    ],
+    "result": "passed"
+  }
+]

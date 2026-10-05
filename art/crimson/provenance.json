@@ -1,0 +1,131 @@
+{
+  "recordedAt": "2026-10-05",
+  "route": "Chrome 덕하 profile, new ChatGPT work conversation, actual original download",
+  "conversation": "https://chatgpt.com/c/6ac27bf3-a930-83ee-84d9-7f95e97d6c25",
+  "source": "art/crimson/source/world.png",
+  "originalDownload": "붉은 하늘의 사대 풍경.png",
+  "dimensions": [
+    1254,
+    1254
+  ],
+  "sha256": "d71182c3c2f025b035a66f22dbfdddce55e0a36072d693fd379750e27a3675fa",
+  "review": "Downloaded originals opened locally and inspected. High contrast red/black/white. Terrain and all actor/icon assets have real alpha. Actor extraction uses connected visible alpha >64 to avoid neighboring sprites in overlapping rectangular atlas crops; original RGBA colors retained. No motion sheets generated.",
+  "transforms": "Equal quadrant crop and nearest-neighbor resize only",
+  "files": [
+    {
+      "file": "assets/resources/ui/pastel/world/0.png",
+      "crop": [
+        0,
+        0,
+        627,
+        627
+      ],
+      "sha256": "656005b6d18b9fbcb215d0e85d6f0f2ee1646d0702f32eba9cff6d0165de1488"
+    },
+    {
+      "file": "assets/resources/ui/pastel/world/1.png",
+      "crop": [
+        627,
+        0,
+        1254,
+        627
+      ],
+      "sha256": "80ccd3fedf01ae522cb2ebbaa50a0ea09b217df28866ef4ea9ba7a8660fcf8ee"
+    },
+    {
+      "file": "assets/resources/ui/pastel/world/2.png",
+      "crop": [
+        0,
+        627,
+        627,
+        1254
+      ],
+      "sha256": "a3c35f86925a27f26d13d8edec41fb4199e4a3584118abbdc4f0111467091a2e"
+    },
+    {
+      "file": "assets/resources/ui/pastel/world/3.png",
+      "crop": [
+        627,
+        627,
+        1254,
+        1254
+      ],
+      "sha256": "ea67b8a84020e4a04b1af97ec346c891b9651d62e0bace37fe5b38b96615ade0"
+    }
+  ],
+  "sources": [
+    {
+      "file": "art/crimson/source/world.png",
+      "sha256": "d71182c3c2f025b035a66f22dbfdddce55e0a36072d693fd379750e27a3675fa",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "alpha": null,
+      "conversation": "https://chatgpt.com/c/6ac27bf3-a930-83ee-84d9-7f95e97d6c25",
+      "accepted": true
+    },
+    {
+      "file": "art/crimson/source/faces.png",
+      "sha256": "b75f7b1079f788440a1b8db8f60b9fcefb3be8576f5054e121393e71a49f2571",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alpha": [
+        0,
+        255
+      ],
+      "conversation": "https://chatgpt.com/c/6ac27cec-cd30-83ee-a37c-f24740d629a5",
+      "accepted": true
+    },
+    {
+      "file": "art/crimson/source/actors.png",
+      "sha256": "281ffdbbae0a4dbe536ad5f835897c91efd670958642bb6df6eaf0b1f22d166a",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alpha": [
+        0,
+        255
+      ],
+      "conversation": "https://chatgpt.com/c/6ac27cec-cd30-83ee-a37c-f24740d629a5",
+      "accepted": true
+    },
+    {
+      "file": "art/crimson/source/icons.png",
+      "sha256": "a30893015add116fa7ffc66c22ba553092b5e2c304e196c3cc58748ef628ae36",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alpha": [
+        0,
+        255
+      ],
+      "conversation": "https://chatgpt.com/c/6ac27cec-cd30-83ee-a37c-f24740d629a5",
+      "accepted": true
+    },
+    {
+      "file": "art/crimson/source/terrain.png",
+      "sha256": "74fac24dd78542494f6c55e171662969e30df441aea7f4e71b30c46affb030fb",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alpha": [
+        0,
+        255
+      ],
+      "conversation": "https://chatgpt.com/c/6ac27bf3-a930-83ee-84d9-7f95e97d6c25",
+      "accepted": true
+    }
+  ],
+  "derivedCount": 60
+}

@@ -1,0 +1,64 @@
+{
+  "verifiedAt": "2026-10-03T17:22:53.613274+00:00",
+  "engine": "Cocos Creator 3.8.8",
+  "scene": "assets/scenes/Main.scene",
+  "artAssets": 65,
+  "languages": [
+    "ko",
+    "en"
+  ],
+  "gameUiChecks": [
+    "6 tabs in both languages",
+    "settings",
+    "skill tree",
+    "skill detail",
+    "prestige confirmation",
+    "account/cloud save",
+    "account notice confirmation persists",
+    "inbox and mail details",
+    "mail gems 100 to 111; moved to confirmed",
+    "guardian and recruited ally; normal enemies and treant boss",
+    "320x640 6 Korean tabs and settings",
+    "320x640 required update block",
+    "320x640 policy failure block and successful retry",
+    "server restored offline reward"
+  ],
+  "finalRuntimeErrors": [],
+  "finalRuntimeWarnings": [],
+  "unitTests": {
+    "core": 76,
+    "server": 28
+  },
+  "adminLocalizationKeys": 32,
+  "builds": {
+    "web": "passed",
+    "functions": "passed",
+    "androidDebug": "passed"
+  },
+  "apk": {
+    "path": "build/android/proj/build/tapWar/outputs/apk/debug/tapWar-debug.apk",
+    "bytes": 97298632,
+    "sha256": "1d0514fc6c84a391bd806345022f2ff3cc8322e8c3d9d418e55679fbf33f09c4"
+  },
+  "liveServerVerification": "firebase-verification.json",
+  "notVerified": [
+    "Google sign-in: provider/OAuth is not configured in this project",
+    "Android physical-device push permission, foreground/background delivery and click",
+    "iOS native build and APNs",
+    "individual inspection of every optional late-game popup"
+  ],
+  "motionSheetsGenerated": false,
+  "broadcastsSent": false,
+  "testPolicyRestored": true,
+  "localTestMailRevoked": true,
+  "nativeIntegration": [
+    "HTTPS operations bridge with Firebase ID-token refresh, timeout and UID checks",
+    "FirebaseInitProvider resources included for background FCM startup"
+  ],
+  "viewports": [
+    "480x960 design",
+    "320x640 iframe",
+    "1920x817 Chrome viewport"
+  ],
+  "webBuildLogNote": "Web build completed and CLI exited 0. Cocos also logged an editor window.json recovery error after the build; browser runtime verification passed."
+}
