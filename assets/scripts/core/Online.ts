@@ -37,6 +37,7 @@ export class Online {
             clearTimeout(timer);
         }
     }
+    logout():void{this.storage.setItem('ember-online-token','');this.storage.setItem('ember-online-id','');this.storage.setItem('ember-online-pending','{}');this.token='';this.accountId='';}
     async recover(token:string,accountId:string):Promise<void>{const previous=this.token;this.token=token;try{const boot=await this.request('/bootstrap');if(boot.profile.id!==accountId)throw Error('online.auth');this.storage.setItem('ember-online-token',token);this.storage.setItem('ember-online-id',accountId);this.accountId=accountId;this.storage.setItem('ember-online-pending','{}');}catch(e){this.token=previous;throw e;}}
     async connect(name: string): Promise<any> { if (!this.token) {
         const account = await this.request('/account', {

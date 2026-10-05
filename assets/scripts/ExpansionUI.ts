@@ -47,7 +47,8 @@ export class ExpansionUI {
  {title:this.tr('complete.cloudSave'),sub:this.tr('complete.cloudInfo',{version:o.version}),action:this.tr('settings.saveButton'),click:()=>void a.remote(async()=>{await o.save();a.remoteBusy=false;this.account();})},
  {title:this.tr('complete.cloudLoad'),action:this.tr('action.apply'),click:()=>a.confirm(this.tr('complete.cloudLoad'),this.tr('complete.replaceSave'),()=>void a.remote(async()=>{await o.start();a.close();}))},
  ...(o.local?[{title:this.tr('ops.recoverRewards'),action:this.tr('action.claim'),click:()=>void a.remote(async()=>{await this.deliverRewards();a.toast(this.tr('reward.done'));})},{title:this.tr('complete.recoveryExport'),sub:this.tr('complete.privateKey'),action:this.tr('complete.exportFile'),click:()=>this.downloadRecovery()},{title:this.tr('complete.recoveryImport'),action:this.tr('action.apply'),click:()=>this.importRecovery()}]:[{title:this.tr('ops.googleLink'),action:this.tr('action.apply'),click:()=>void a.remote(async()=>{await a.cloud.linkGoogle();a.toast(this.tr('ops.googleLinked'));})}]),
- {title:this.tr('extra.export'),action:this.tr('complete.exportFile'),click:()=>this.exportSave()}
+ {title:this.tr('extra.export'),action:this.tr('complete.exportFile'),click:()=>this.exportSave()},
+ {title:this.tr('entry.logout'),action:this.tr('entry.logout'),click:()=>a.confirm(this.tr('entry.logout'),this.tr('entry.logoutBody'),()=>void a.entry.logout())}
  ]);}
  firebaseAccount(){this.account();}
  renameAccount(){const p=this.a.open(this.tr('complete.rename'),340),field=this.a.edit(p,0,35,370,48,this.tr('online.defaultName'));field.maxLength=24;this.a.button(p,this.tr('action.apply'),0,-70,370,50,()=>{void this.a.remote(async()=>{await this.a.onlineService.command('/account/name',{name:field.string});this.a.remoteBusy=false;this.account();});},true);}

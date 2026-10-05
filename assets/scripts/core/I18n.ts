@@ -406,7 +406,9 @@ Object.assign(translations.en,{'art.enemy.golem':'Ancient Stone Golem','art.enem
 
 Object.assign(translations.ko,{
  "entry.subtitle": "작은 불씨에서 시작되는 끝없는 원정",
- "entry.start": "터치해서 시작",
+ "entry.start": "게임 시작",
+ "entry.logout": "로그아웃",
+ "entry.logoutBody": "진행을 저장하고 타이틀로 돌아갑니다. Google에 연결하지 않은 게스트 계정은 로그아웃 후 다시 접속할 수 없습니다. 계속할까요?",
  "entry.titleHint": "용사를 키우고, 동료와 함께 탑을 오르세요.",
  "entry.version": "TT Softs · v{version}",
  "entry.consentTitle": "게임 이용 동의",
@@ -468,7 +470,9 @@ Object.assign(translations.ko,{
 
 Object.assign(translations.en,{
  "entry.subtitle": "An endless expedition starts with one ember",
- "entry.start": "Tap to Start",
+ "entry.start": "Start Game",
+ "entry.logout": "Log out",
+ "entry.logoutBody": "Save progress and return to the title. A guest account that is not linked to Google cannot be accessed again after logout. Continue?",
  "entry.titleHint": "Grow your guardian. Climb the tower together.",
  "entry.version": "TT Softs · v{version}",
  "entry.consentTitle": "Before You Play",

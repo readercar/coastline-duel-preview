@@ -2,6 +2,8 @@ import {Node,Mask,ScrollView,UITransform,Label,sys} from 'cc';
 import type {GameApp} from './GameApp';
 import {UI} from './UITheme';
 import {CONSENT_KEY,ConsentKind,consentReceipt,parseConsent} from './core/EntryPolicy';
+import {FeedbackUI} from './FeedbackUI';
+import {TutorialUI} from './TutorialUI';
 import {requiresUpdate} from './core/LiveOps';
 
 type Screen='title'|'consent'|'document'|'push'|'login'|'loading'|'error'|'game';
@@ -15,7 +17,7 @@ export class EntryUI {
  reviewDocument(kind:ConsentKind){this.reviewing=true;this.document=kind;this.documentPanel();}
  language(locale:'ko'|'en'){this.a.game.s.locale=locale;this.a.game.persist();this.a.draw();}
  begin(){if(this.busy)return;if(!this.accepted){this.screen='consent';this.a.draw();}else this.afterConsent();}
- afterConsent(){this.screen=this.a.liveOps.push.choice===null?'push':'login';this.a.draw();}
+ afterConsent(){if(this.a.liveOps.push.choice===null){this.screen='push';this.a.draw();}else void this.login('guest',false,true);}
  draw(){const a=this.a,H=a.designH;
   a.root=a.nodeAt(a.node,'EmberRoot',0,0,480,H);a.rect(a.root,0,0,480,H,UI.bg);
   const backdrop=a.nodeAt(a.root,'entry-world',0,0,480,H);backdrop.addComponent(Mask);a.ui.paint(a.nodeAt(backdrop,'forest',0,(H-Math.max(H,480))/2,Math.max(H,480),Math.max(H,480)),'world/0');
@@ -60,19 +62,35 @@ export class EntryUI {
   const caption=action.getComponentInChildren(Label)!;const check=()=>{if(this.reviewing)return;if(sv.getMaxScrollOffset().y<=1||sv.getScrollOffset().y>=sv.getMaxScrollOffset().y-18){end=true;caption.string=a.tr('entry.documentAgree');caption.color=a.color(UI.ink);a.ui.paint(action,'popup/primary',true);}};
   sv.node.on('scrolling',check);sv.node.on('scroll-ended',check);a.scheduleOnce(()=>{if(!p.isValid)return;label.updateRenderData(true);content.getComponent(UITransform)!.setContentSize(388,Math.max(viewportH,label.node.getComponent(UITransform)!.height+38));sv.scrollToTop(0);check();},0);a.button(p,a.tr('action.back'),161,h/2-37,60,38,()=>this.back(),false,{style:'quiet',fontSize:12});
  }
- async choosePush(enabled:boolean){if(this.busy)return;this.busy=true;try{await this.a.liveOps.push.set(enabled,this.a.game.s.locale);this.screen='login';this.a.draw();}catch{this.a.toast(this.a.tr('online.unreachable'));}finally{this.busy=false;}}
+ async logout(){
+  if(this.busy||this.a.operations.busy||this.a.remoteBusy||this.a.liveOps.checking){this.a.toast(this.a.tr('money.busy'));return;}
+  this.busy=true;this.screen='loading';this.stage(.1,'entry.loadSave');
+  try{
+   await this.a.operations.save();
+   await this.a.operations.endSession();
+   sys.localStorage.removeItem('tapwar-login-method');
+   this.screen='title';this.a.close();this.a.draw();
+  }catch(e){this.screen='game';this.a.draw();this.a.toast(this.a.tr(/^(online|entry|error)\./.test((e as Error).message)?(e as Error).message:'online.unreachable'));}
+  finally{this.busy=false;}
+ }
+ async choosePush(enabled:boolean){if(this.busy)return;this.busy=true;let selected=false;try{await this.a.liveOps.push.set(enabled,this.a.game.s.locale);selected=true;}catch{this.a.toast(this.a.tr('online.unreachable'));}finally{this.busy=false;}if(selected)this.afterConsent();}
  stage(progress:number,status:string){this.progress=progress;this.status=status;if(this.a.isValid)this.a.draw();}
  frame(){return new Promise<void>(resolve=>this.a.scheduleOnce(()=>resolve(),.1));}
- async login(method:'google'|'guest',allowSwitch=false){if(this.busy||!this.accepted||this.a.liveOps.push.choice===null)return;this.busy=true;this.screen='loading';this.error='';this.stage(.08,'entry.loadAuth');
+ async login(method:'google'|'guest',allowSwitch=false,resume=false){if(this.busy||!this.accepted||this.a.liveOps.push.choice===null)return;this.busy=true;this.screen='loading';this.error='';this.stage(.08,'entry.loadAuth');
   try{
    await this.frame();
+   if(resume){
+    this.a.operations.useCloud=sys.localStorage.getItem('tapwar-login-method')==='google';
+    const session=this.a.operations.local?(this.a.onlineService.token&&this.a.onlineService.accountId?'guest':null):await this.a.cloud.resume();
+    if(!session){this.screen='login';this.a.draw();return;}method=session;
+   }
    this.a.operations.useCloud=method==='google';
-   if(method==='google')await this.a.cloud.loginGoogle(allowSwitch);else if(this.a.operations.local)await this.a.onlineService.connect(this.a.tr('online.defaultName'));else await this.a.cloud.loginGuest();
+   if(!resume&&method==='google')await this.a.cloud.loginGoogle(allowSwitch);else if(this.a.operations.local)await this.a.onlineService.connect(this.a.tr('online.defaultName'));else if(!resume)await this.a.cloud.loginGuest();
    this.stage(.32,'entry.loadPolicy');await this.frame();const policy=await this.a.operations.policy();this.a.liveOps.policy=policy;
    if(requiresUpdate(policy,this.a.liveOps.platform,this.a.liveOps.version)){this.busy=false;this.screen='login';this.a.draw();this.a.liveOps.updatePanel();return;}
    this.stage(.54,'entry.loadSave');await this.frame();await this.a.operations.start(method==='google');
    this.stage(.88,'entry.loadReady');await this.frame();await this.a.operations.flushErrors();
-   sys.localStorage.setItem('tapwar-login-method',method);this.progress=1;this.screen='game';this.a.draw();
+   sys.localStorage.setItem('tapwar-login-method',method);this.a.feedback=new FeedbackUI(this.a);this.a.tutorial=new TutorialUI(this.a);this.a.enemyTransition=0;this.a.tab=0;this.a.folded=false;this.progress=1;this.screen='game';this.a.draw();
   }catch(e){const key=(e as Error).message;
    if(key==='ops.googleCollision'){this.busy=false;this.screen='login';this.a.draw();this.a.confirm(this.a.tr('entry.switchTitle'),this.a.tr('entry.switchBody'),()=>{this.a.close();void this.login('google',true);});return;}
    this.error=/^(ops|online|entry|error)\./.test(key)?key:'online.unreachable';this.screen='error';this.a.draw();

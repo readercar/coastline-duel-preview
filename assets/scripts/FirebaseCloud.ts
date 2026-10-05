@@ -1,4 +1,4 @@
-import {initializeApp,getApps,getAuth,signInAnonymously,signInWithPopup,GoogleAuthProvider,linkWithPopup,getFirestore,doc,runTransaction,getDocFromServer,serverTimestamp} from './vendor/firebase-sdk.js';
+import {initializeApp,getApps,getAuth,signOut,signInAnonymously,signInWithPopup,GoogleAuthProvider,linkWithPopup,getFirestore,doc,runTransaction,getDocFromServer,serverTimestamp} from './vendor/firebase-sdk.js';
 import {sys} from 'cc';
 import {nativeCall} from './NativeServices';
 import {FIREBASE_CONFIG} from './FirebaseConfig';
@@ -11,6 +11,17 @@ export class FirebaseCloud {
     private connecting:Promise<string>|null=null;
     uid='';
     private prepareAuth(){const app=getApps().find(a=>a.name==='tapWar')||initializeApp(FIREBASE_CONFIG,'tapWar');this.auth=getAuth(app);this.db=getFirestore(app);}
+    /** Restore only an existing Firebase user; never create an account or open OAuth here. */
+    async resume():Promise<'google'|'guest'|null>{
+        if(sys.isNative&&sys.os===sys.OS.ANDROID){const user=await nativeCall('resumeSession',{},30000);if(!user.uid)return null;this.uid=user.uid;this.connecting=Promise.resolve(this.uid);return user.method;}
+        this.prepareAuth();await this.auth.authStateReady();const user=this.auth.currentUser;if(!user)return null;
+        this.uid=user.uid;this.connecting=Promise.resolve(this.uid);return user.isAnonymous?'guest':'google';
+    }
+    async logout():Promise<void>{
+        if(sys.isNative&&sys.os===sys.OS.ANDROID)await nativeCall('logout',{},30000);
+        else{this.prepareAuth();await signOut(this.auth);}
+        this.uid='';this.connecting=null;
+    }
     async loginGuest():Promise<void>{await this.connect();}
     async loginGoogle(allowSwitch=false):Promise<void>{
         try {

@@ -29,6 +29,11 @@ export class OperationsClient {
   try{const r=await this.request('/account/save',{state,version:this.version,key:this.a.id('auto-save')});this.version=r.version;this.revision=revision;}
   catch(e){if(['online.saveConflict','online.unreachable'].includes((e as Error).message))this.conflict=true;throw e;}finally{this.busy=false;}
  });}
+ endSession():Promise<void>{return this.serial(async()=>{
+  this.busy=true;try{if(this.local)this.a.onlineService.logout();else await this.a.cloud.logout();
+   this.ready=false;this.uid='';this.version=0;this.reads=[];this.mails=[];this.conflict=false;this.elapsed=0;
+  }finally{this.busy=false;}
+ });}
  get identity(){return this.local?this.a.onlineService.accountId:this.a.cloud.uid;}
  replaceProgress(state:Save):Promise<void>{return this.serial(async()=>{
   if(this.conflict)throw Error('online.saveConflict');if(!this.ready||this.uid!==this.identity)throw Error('online.auth');

@@ -28,6 +28,11 @@ public final class TapWarServices {
   CocosHelper.runOnGameThread(()->CocosJavascriptJavaBridge.evalString("globalThis.tapWarNativeResult("+JSONObject.quote(id)+","+data.toString()+");"));
  }
  private static JSONObject data(String... values){JSONObject d=new JSONObject();try{for(int i=0;i<values.length;i+=2)d.put(values[i],values[i+1]);}catch(Exception ignored){}return d;}
+ public static void resumeSession(String id,String ignored){
+  FirebaseUser user=FirebaseAuth.getInstance().getCurrentUser();
+  reply(id,user==null?data("uid",""):data("uid",user.getUid(),"method",user.isAnonymous()?"guest":"google"));
+ }
+ public static void logout(String id,String ignored){FirebaseAuth.getInstance().signOut();reply(id,data("status","signed-out"));}
  public static void authenticate(String id,String ignored){
   if(activity==null){reply(id,data("error","online.unreachable"));return;}
   activity.runOnUiThread(()->{FirebaseAuth auth=FirebaseAuth.getInstance();FirebaseUser u=auth.getCurrentUser();
