@@ -157,6 +157,192 @@ System.register("chunks:///_virtual/BattleFormation.ts", ['cc'], function (expor
   };
 });
 
+System.register("chunks:///_virtual/CheatUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './PrototypeCheats.ts', './FeedbackUI.ts', './TutorialUI.ts', './UITheme.ts'], function (exports) {
+  var _createClass, _asyncToGenerator, _regeneratorRuntime, cclegacy, sys, prototypeCheat, freshPrototype, FeedbackUI, TutorialUI, UI;
+  return {
+    setters: [function (module) {
+      _createClass = module.createClass;
+      _asyncToGenerator = module.asyncToGenerator;
+      _regeneratorRuntime = module.regeneratorRuntime;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+      sys = module.sys;
+    }, function (module) {
+      prototypeCheat = module.prototypeCheat;
+      freshPrototype = module.freshPrototype;
+    }, function (module) {
+      FeedbackUI = module.FeedbackUI;
+    }, function (module) {
+      TutorialUI = module.TutorialUI;
+    }, function (module) {
+      UI = module.UI;
+    }],
+    execute: function () {
+      cclegacy._RF.push({}, "8fbccUx5O5D0q0aZRp3gubF", "CheatUI", undefined);
+      /** Prototype-only controls. Writes use the normal account/version queue. */
+      var CheatUI = exports('CheatUI', /*#__PURE__*/function () {
+        function CheatUI(a) {
+          this.a = a;
+        }
+        var _proto = CheatUI.prototype;
+        _proto.backup = function backup() {
+          try {
+            var raw = sys.localStorage.getItem(this.backupKey);
+            if (!raw) return null;
+            var state = JSON.parse(raw);
+            this.a.game.validate(state);
+            return state;
+          } catch (_unused) {
+            return null;
+          }
+        };
+        _proto.open = function open() {
+          var _this = this;
+          var a = this.a,
+            p = a.open(a.tr('cheat.title'), 650);
+          a.label(p, a.tr('cheat.description'), 0, 211, 365, 82, 16, UI.muted);
+          [1, 30, 200, 400].forEach(function (stage, i) {
+            return a.button(p, a.tr('cheat.stage', {
+              stage: stage
+            }), -144 + i * 96, 125, 90, 50, function () {
+              return void _this.change(prototypeCheat(a.game.s, 'stage', stage));
+            }, false, {
+              fontSize: 15
+            });
+          });
+          a.button(p, a.tr('cheat.funds'), 0, 54, 366, 48, function () {
+            return void _this.change(prototypeCheat(a.game.s, 'funds'));
+          }, false, {
+            icon: 'symbol:coin'
+          });
+          a.button(p, a.tr('cheat.squad'), 0, -8, 366, 48, function () {
+            return void _this.change(prototypeCheat(a.game.s, 'squad'));
+          }, false, {
+            icon: 'adventurer'
+          });
+          a.button(p, a.tr('tutorial.replay'), 0, -70, 366, 48, function () {
+            return void _this.change(prototypeCheat(a.game.s, 'tutorial'));
+          }, false, {
+            icon: 'symbol:play'
+          });
+          a.button(p, a.tr('cheat.reset'), 0, -145, 366, 54, function () {
+            return a.confirm(a.tr('cheat.reset'), a.tr('cheat.resetBody'), function () {
+              return void _this.reset();
+            });
+          }, true, {
+            style: 'danger'
+          });
+          a.button(p, a.tr('cheat.restore'), 0, -214, 366, 45, function () {
+            return a.confirm(a.tr('cheat.restore'), a.tr('cheat.restoreBody'), function () {
+              var state = _this.backup();
+              if (state) void _this.change(state);
+            });
+          }, false, {
+            style: 'quiet',
+            unavailable: function unavailable() {
+              return _this.backup() ? null : a.tr('cheat.noBackup');
+            }
+          });
+          a.label(p, a.tr('cheat.scope'), 0, -277, 365, 42, 13, UI.muted);
+        };
+        _proto.reset = /*#__PURE__*/function () {
+          var _reset = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
+            var a;
+            return _regeneratorRuntime().wrap(function _callee$(_context) {
+              while (1) switch (_context.prev = _context.next) {
+                case 0:
+                  a = this.a;
+                  if (!(a.remoteBusy || a.operations.busy)) {
+                    _context.next = 3;
+                    break;
+                  }
+                  return _context.abrupt("return");
+                case 3:
+                  _context.prev = 3;
+                  sys.localStorage.setItem(this.backupKey, JSON.stringify(a.game.s));
+                  _context.next = 11;
+                  break;
+                case 7:
+                  _context.prev = 7;
+                  _context.t0 = _context["catch"](3);
+                  a.toast(a.tr('error.storage'));
+                  return _context.abrupt("return");
+                case 11:
+                  _context.next = 13;
+                  return this.change(freshPrototype(a.game.s.locale, a.game.now()));
+                case 13:
+                case "end":
+                  return _context.stop();
+              }
+            }, _callee, this, [[3, 7]]);
+          }));
+          function reset() {
+            return _reset.apply(this, arguments);
+          }
+          return reset;
+        }();
+        _proto.change = /*#__PURE__*/function () {
+          var _change = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(state) {
+            var a, key;
+            return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+              while (1) switch (_context2.prev = _context2.next) {
+                case 0:
+                  a = this.a;
+                  if (!(a.remoteBusy || a.operations.busy)) {
+                    _context2.next = 3;
+                    break;
+                  }
+                  return _context2.abrupt("return");
+                case 3:
+                  a.remoteBusy = true;
+                  _context2.prev = 4;
+                  _context2.next = 7;
+                  return a.operations.replaceProgress(state);
+                case 7:
+                  // Drop old reward queues, deferred tutorial saves and first-use display state.
+                  a.feedback = new FeedbackUI(a);
+                  a.tutorial = new TutorialUI(a);
+                  a.enemyTransition = 0;
+                  a.tab = 0;
+                  a.mode = 1;
+                  a.folded = false;
+                  a.filter = -1;
+                  a.draw();
+                  _context2.next = 21;
+                  break;
+                case 17:
+                  _context2.prev = 17;
+                  _context2.t0 = _context2["catch"](4);
+                  key = _context2.t0.message;
+                  a.toast(a.tr(/^(error|online)\./.test(key) ? key : 'online.serverError'));
+                case 21:
+                  _context2.prev = 21;
+                  a.remoteBusy = false;
+                  return _context2.finish(21);
+                case 24:
+                case "end":
+                  return _context2.stop();
+              }
+            }, _callee2, this, [[4, 17, 21, 24]]);
+          }));
+          function change(_x) {
+            return _change.apply(this, arguments);
+          }
+          return change;
+        }();
+        _createClass(CheatUI, [{
+          key: "backupKey",
+          get: function get() {
+            return 'outrun-military-reset-backup:' + this.a.operations.identity;
+          }
+        }]);
+        return CheatUI;
+      }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
 System.register("chunks:///_virtual/Config.ts", ['cc', './ReferenceRules.ts'], function (exports) {
   var cclegacy, REFERENCE_SPELLS;
   return {
@@ -38032,8 +38218,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
   };
 });
 
-System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './BattleFormation.ts', './FeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _extends, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, SOLDIER_SIZE, waveSize, survivingEnemies, enemyPosition, allyPosition, FeedbackUI, Game, display, ratio, fmt, HEROES, SPELLS, PETS, ARTIFACTS, CARDS, SKILLS, t, ExpansionUI, Monetization, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, UI, UITheme;
+System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
+  var _inheritsLoose, _extends, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, SOLDIER_SIZE, waveSize, survivingEnemies, enemyPosition, allyPosition, CheatUI, FeedbackUI, Game, display, ratio, fmt, HEROES, SPELLS, PETS, ARTIFACTS, CARDS, SKILLS, t, ExpansionUI, Monetization, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, UI, UITheme;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
@@ -38080,6 +38266,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       survivingEnemies = module.survivingEnemies;
       enemyPosition = module.enemyPosition;
       allyPosition = module.allyPosition;
+    }, function (module) {
+      CheatUI = module.CheatUI;
     }, function (module) {
       FeedbackUI = module.FeedbackUI;
     }, function (module) {
@@ -38218,6 +38406,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             var _this$operations2;
             return (_this$operations2 = _this.operations) == null ? void 0 : _this$operations2.report('promise', event.reason);
           };
+          _this.cheats = new CheatUI(_assertThisInitialized(_this));
           _this.worldKey = -1;
           return _this;
         }
@@ -38651,6 +38840,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             hint: this.tr('menu.title')
           });
           this.ui.icon(this.nodeAt(menu, 'menu-icon', 0, 0, 26, 26), 'symbol:bag', C.text);
+          this.button(hud, this.tr('cheat.short'), -115, 451, 48, 32, function () {
+            return _this5.cheats.open();
+          }, false, {
+            style: 'quiet',
+            fontSize: 13
+          });
           this.stageNeighbors = [];
           [-1, 1].forEach(function (offset, i) {
             var n = _this5.nodeAt(hud, 'nearby-stage', i ? 66 : -66, 447, 40, 32);
@@ -38998,15 +39193,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }).call(function () {
             if (isValid(muzzle, true)) muzzle.destroy();
           }).start();
-          var tracer = this.nodeAt(this.particles, 'bullet-tracer', x + 25, y, 18, 2);
-          this.rect(tracer, 0, 0, 18, 2, '#fff4bc');
-          tracer.angle = Math.atan2(target.y - y, target.x - x - 25) * 180 / Math.PI;
-          tween(tracer).to(.1, {
-            position: target
-          }).call(function () {
-            if (isValid(tracer, true)) tracer.destroy();
+          this.scheduleOnce(function () {
             if (isValid(_this10.particles, true)) _this10.bulletImpact(target.x, target.y);
-          }).start();
+          }, .06);
         };
         _proto.bulletImpact = function bulletImpact(x, y) {
           var _this11 = this;
@@ -39407,7 +39596,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                 icon: h.id,
                 art: 'face:' + ['rowen', 'kael', 'sera', 'guardian'][h.id % 4],
                 tint: [C.ember, C.mint, C.blue, C.violet][h.id % 4],
-                action: s.maxStage < h.unlock ? _this15.tr('action.locked') : _this15.format(g.upgradeCost(h.id, _this15.mode === -1 ? 1 : _this15.mode)),
+                action: s.maxStage < h.unlock ? _this15.tr('action.locked') : r.heroes[h.id] === 0 ? _this15.tr('action.recruitCost', {
+                  cost: _this15.format(g.upgradeCost(h.id, 1))
+                }) : _this15.format(g.upgradeCost(h.id, _this15.mode === -1 ? 1 : _this15.mode)),
                 click: function click() {
                   if (s.maxStage < h.unlock) {
                     _this15.info(_this15.tr('unlock.title'), _this15.tr('hero.locked', {
@@ -40182,7 +40373,13 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             style: 'quiet',
             fontSize: 14
           });
-          this.label(p, this.tr('settings.about'), 0, -120, 375, 54, 14, C.muted);
+          this.button(p, this.tr('cheat.title'), 0, -120, 365, 38, function () {
+            return _this28.cheats.open();
+          }, false, {
+            style: 'quiet',
+            icon: 'settings',
+            fontSize: 15
+          });
           resources.load('branding/tt-softs-ci/texture', Texture2D, function (err, texture) {
             if (err || !p.isValid) return;
             var n = _this28.nodeAt(p, 'company-ci', 0, -188, 120, 120 * texture.height / texture.width),
@@ -43167,6 +43364,54 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './MilitaryTheme.ts'], func
         'action.notReady': 'Not ready',
         'battle.wave': 'Hostiles · {count}'
       });
+      Object.assign(translations.ko, {
+        'action.recruitCost': '고용\n{cost}',
+        'cheat.short': '치트',
+        'cheat.title': '프로토타입 치트 패널',
+        'cheat.description': '전투와 성장 테스트용입니다.\n변경 사항은 현재 계정에 저장됩니다.',
+        'cheat.stage': '구역 {stage}',
+        'cheat.funds': '군자금 +1,000,000',
+        'cheat.squad': '분대 8명 고용 · 레벨 10',
+        'cheat.reset': '전체 초기화',
+        'cheat.resetBody': '재화·장비·분대·구역·해금·튜토리얼을 처음 상태로 되돌립니다. 서버 저장도 초기화합니다. 직전 상태는 이 기기에서 복구할 수 있습니다.',
+        'cheat.restore': '직전 초기화 복구',
+        'cheat.restoreBody': '이 계정의 초기화 직전 진행으로 되돌립니다. 현재 진행은 교체됩니다.',
+        'cheat.noBackup': '이 기기에 이 계정의 초기화 백업이 없습니다.',
+        'cheat.scope': '계정·약관 동의·운영 우편 수령 기록은 유지됩니다.',
+        'guide.daily': '메뉴 → 일일 임무를 열고 노란 수령 가능 버튼을 눌러요. 획득 후 확인으로 닫아요.',
+        'tutorial.begin': '시작',
+        'guide.begin': '신병 훈련 시작!\n사격 → 강화 → 분대 고용을 차례로 배워요.',
+        'tutorial.step1': '오른쪽 전장을 3번 눌러 사격하세요. 적에게 파편이 튀어요.',
+        'tutorial.step2': '대장 옆 + 버튼으로 강화하세요. 회색이면 눌러 부족한 재화를 확인해요.',
+        'tutorial.step3': '아래 분대 탭을 눌러요. 분대원은 자동으로 사격해요.',
+        'tutorial.step4': '레아 옆 고용 버튼을 눌러요. 아군은 같은 크기로 나란히 배치돼요.',
+        'tutorial.step5': '↓로 메뉴를 접어요. 전장을 넓게 볼 수 있어요.',
+        'tutorial.step6': '↑로 메뉴를 다시 펼쳐요. 다음은 보스와 첫 보상이에요.'
+      });
+      Object.assign(translations.en, {
+        'action.recruitCost': 'Recruit\n{cost}',
+        'cheat.short': 'Cheat',
+        'cheat.title': 'Prototype Cheat Panel',
+        'cheat.description': 'Test combat and progression.\nChanges are saved to the current account.',
+        'cheat.stage': 'Zone {stage}',
+        'cheat.funds': 'Funds +1,000,000',
+        'cheat.squad': 'Recruit 8 soldiers · Level 10',
+        'cheat.reset': 'Reset all progress',
+        'cheat.resetBody': 'Reset funds, gear, squad, zones, unlocks and tutorial, including the server save. The previous state can be restored on this device.',
+        'cheat.restore': 'Undo last reset',
+        'cheat.restoreBody': 'Restore this account to its state before the last reset. This replaces current progress.',
+        'cheat.noBackup': 'No reset backup for this account on this device.',
+        'cheat.scope': 'Account, consent and operational mail receipts are kept.',
+        'guide.daily': 'Open Menu → Daily tasks. Tap the yellow Claim now button, then Confirm after receiving rewards.',
+        'tutorial.begin': 'Start',
+        'guide.begin': 'Boot camp begins!\nLearn firing, upgrades and recruiting.',
+        'tutorial.step1': 'Tap the right battlefield 3 times. Impacts mark your hits.',
+        'tutorial.step2': 'Upgrade with + beside the captain. Tap gray buttons to see what you need.',
+        'tutorial.step3': 'Open the squad tab below. Soldiers fire automatically.',
+        'tutorial.step4': 'Recruit Rhea using her button. Allies form evenly spaced ranks.',
+        'tutorial.step5': 'Hide the menu with ↓ to see more of the battlefield.',
+        'tutorial.step6': 'Show it again with ↑. Next: the boss and your first reward.'
+      });
       applyMilitaryTheme(translations);
       cclegacy._RF.pop();
     }
@@ -43714,9 +43959,9 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/main", ['./EntryUI.ts', './ExpansionUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './TutorialUI.ts', './UITheme.ts', './Amount.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './EntryPolicy.ts', './Expansion.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './MilitaryTheme.ts', './Monetization.ts', './Online.ts', './Operations.ts', './ReferenceRules.ts', './firebase-sdk.js'], function () {
+System.register("chunks:///_virtual/main", ['./CheatUI.ts', './EntryUI.ts', './ExpansionUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './TutorialUI.ts', './UITheme.ts', './Amount.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './EntryPolicy.ts', './Expansion.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './MilitaryTheme.ts', './Monetization.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './firebase-sdk.js'], function () {
   return {
-    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     execute: function () {}
   };
 });
@@ -45638,26 +45883,105 @@ System.register("chunks:///_virtual/OperationsClient.ts", ['./rollupPluginModLoB
             }, _callee4, null, [[9, 17, 21, 24]]);
           })));
         };
-        _proto.read = /*#__PURE__*/function () {
-          var _read = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(id) {
-            var _this3 = this;
+        _proto.replaceProgress = function replaceProgress(state) {
+          var _this3 = this;
+          return this.serial( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+            var payload, version, next, result, stored;
             return _regeneratorRuntime().wrap(function _callee5$(_context5) {
               while (1) switch (_context5.prev = _context5.next) {
                 case 0:
-                  _context5.next = 2;
+                  if (!_this3.conflict) {
+                    _context5.next = 2;
+                    break;
+                  }
+                  throw Error('online.saveConflict');
+                case 2:
+                  if (!(!_this3.ready || _this3.uid !== _this3.identity)) {
+                    _context5.next = 4;
+                    break;
+                  }
+                  throw Error('online.auth');
+                case 4:
+                  _this3.a.game.validate(state);
+                  _this3.busy = true;
+                  payload = JSON.parse(JSON.stringify(state)), version = _this3.version;
+                  _context5.prev = 7;
+                  _context5.prev = 8;
+                  _context5.next = 11;
+                  return _this3.request('/account/save', {
+                    state: payload,
+                    version: version,
+                    key: _this3.a.id('prototype-replace')
+                  });
+                case 11:
+                  result = _context5.sent;
+                  next = result.version;
+                  _context5.next = 23;
+                  break;
+                case 15:
+                  _context5.prev = 15;
+                  _context5.t0 = _context5["catch"](8);
+                  _context5.next = 19;
+                  return _this3.request('/account/save');
+                case 19:
+                  stored = _context5.sent;
+                  if (!(stored.version !== version + 1 || JSON.stringify(stored.state) !== JSON.stringify(payload))) {
+                    _context5.next = 22;
+                    break;
+                  }
+                  throw _context5.t0;
+                case 22:
+                  next = stored.version;
+                case 23:
+                  _this3.version = next;
+                  _this3.a.game.s = payload;
+                  _this3.a.game.revision++;
+                  _this3.revision = _this3.a.game.revision;
+                  _this3.elapsed = 0;
+                  if (_this3.a.game.persist()) {
+                    _context5.next = 30;
+                    break;
+                  }
+                  throw Error('error.storage');
+                case 30:
+                  _context5.next = 36;
+                  break;
+                case 32:
+                  _context5.prev = 32;
+                  _context5.t1 = _context5["catch"](7);
+                  if (_context5.t1.message === 'online.saveConflict') _this3.conflict = true;
+                  throw _context5.t1;
+                case 36:
+                  _context5.prev = 36;
+                  _this3.busy = false;
+                  return _context5.finish(36);
+                case 39:
+                case "end":
+                  return _context5.stop();
+              }
+            }, _callee5, null, [[7, 32, 36, 39], [8, 15]]);
+          })));
+        };
+        _proto.read = /*#__PURE__*/function () {
+          var _read = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6(id) {
+            var _this4 = this;
+            return _regeneratorRuntime().wrap(function _callee6$(_context6) {
+              while (1) switch (_context6.prev = _context6.next) {
+                case 0:
+                  _context6.next = 2;
                   return this.serial(function () {
-                    return _this3.request('/operations/read', {
+                    return _this4.request('/operations/read', {
                       id: id,
-                      key: _this3.a.id('notice-read')
+                      key: _this4.a.id('notice-read')
                     });
                   });
                 case 2:
                   if (!this.reads.includes(id)) this.reads.push(id);
                 case 3:
                 case "end":
-                  return _context5.stop();
+                  return _context6.stop();
               }
-            }, _callee5, this);
+            }, _callee6, this);
           }));
           function read(_x2) {
             return _read.apply(this, arguments);
@@ -45665,26 +45989,26 @@ System.register("chunks:///_virtual/OperationsClient.ts", ['./rollupPluginModLoB
           return read;
         }();
         _proto.inbox = /*#__PURE__*/function () {
-          var _inbox = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
-            return _regeneratorRuntime().wrap(function _callee6$(_context6) {
-              while (1) switch (_context6.prev = _context6.next) {
+          var _inbox = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
+            return _regeneratorRuntime().wrap(function _callee7$(_context7) {
+              while (1) switch (_context7.prev = _context7.next) {
                 case 0:
                   if (this.ready) {
-                    _context6.next = 2;
+                    _context7.next = 2;
                     break;
                   }
                   throw Error('online.unreachable');
                 case 2:
-                  _context6.next = 4;
+                  _context7.next = 4;
                   return this.request('/operations/mail');
                 case 4:
-                  this.mails = _context6.sent;
-                  return _context6.abrupt("return", this.mails);
+                  this.mails = _context7.sent;
+                  return _context7.abrupt("return", this.mails);
                 case 6:
                 case "end":
-                  return _context6.stop();
+                  return _context7.stop();
               }
-            }, _callee6, this);
+            }, _callee7, this);
           }));
           function inbox() {
             return _inbox.apply(this, arguments);
@@ -45692,69 +46016,69 @@ System.register("chunks:///_virtual/OperationsClient.ts", ['./rollupPluginModLoB
           return inbox;
         }();
         _proto.claim = /*#__PURE__*/function () {
-          var _claim = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8(id) {
-            var _this4 = this;
-            return _regeneratorRuntime().wrap(function _callee8$(_context8) {
-              while (1) switch (_context8.prev = _context8.next) {
+          var _claim = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9(id) {
+            var _this5 = this;
+            return _regeneratorRuntime().wrap(function _callee9$(_context9) {
+              while (1) switch (_context9.prev = _context9.next) {
                 case 0:
-                  _context8.next = 2;
+                  _context9.next = 2;
                   return this.save();
                 case 2:
-                  return _context8.abrupt("return", this.serial( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
+                  return _context9.abrupt("return", this.serial( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
                     var result;
-                    return _regeneratorRuntime().wrap(function _callee7$(_context7) {
-                      while (1) switch (_context7.prev = _context7.next) {
+                    return _regeneratorRuntime().wrap(function _callee8$(_context8) {
+                      while (1) switch (_context8.prev = _context8.next) {
                         case 0:
-                          if (!_this4.conflict) {
-                            _context7.next = 2;
+                          if (!_this5.conflict) {
+                            _context8.next = 2;
                             break;
                           }
                           throw Error('online.saveConflict');
                         case 2:
-                          _this4.busy = true;
-                          _context7.prev = 3;
-                          _context7.next = 6;
-                          return _this4.request('/operations/mail/claim', {
+                          _this5.busy = true;
+                          _context8.prev = 3;
+                          _context8.next = 6;
+                          return _this5.request('/operations/mail/claim', {
                             id: id,
-                            version: _this4.version,
+                            version: _this5.version,
                             key: 'mail-claim-' + id
                           });
                         case 6:
-                          result = _context7.sent;
-                          if (_this4.a.extensions.restore(result.state)) {
-                            _context7.next = 9;
+                          result = _context8.sent;
+                          if (_this5.a.extensions.restore(result.state)) {
+                            _context8.next = 9;
                             break;
                           }
                           throw Error('error.save');
                         case 9:
-                          _this4.version = result.version;
-                          _this4.revision = _this4.a.game.revision;
-                          _context7.next = 13;
-                          return _this4.inbox();
+                          _this5.version = result.version;
+                          _this5.revision = _this5.a.game.revision;
+                          _context8.next = 13;
+                          return _this5.inbox();
                         case 13:
-                          _this4.a.draw();
-                          _context7.next = 20;
+                          _this5.a.draw();
+                          _context8.next = 20;
                           break;
                         case 16:
-                          _context7.prev = 16;
-                          _context7.t0 = _context7["catch"](3);
-                          if (['online.saveConflict', 'online.unreachable'].includes(_context7.t0.message)) _this4.conflict = true;
-                          throw _context7.t0;
+                          _context8.prev = 16;
+                          _context8.t0 = _context8["catch"](3);
+                          if (['online.saveConflict', 'online.unreachable'].includes(_context8.t0.message)) _this5.conflict = true;
+                          throw _context8.t0;
                         case 20:
-                          _context7.prev = 20;
-                          _this4.busy = false;
-                          return _context7.finish(20);
+                          _context8.prev = 20;
+                          _this5.busy = false;
+                          return _context8.finish(20);
                         case 23:
                         case "end":
-                          return _context7.stop();
+                          return _context8.stop();
                       }
-                    }, _callee7, null, [[3, 16, 20, 23]]);
+                    }, _callee8, null, [[3, 16, 20, 23]]);
                   }))));
                 case 3:
                 case "end":
-                  return _context8.stop();
+                  return _context9.stop();
               }
-            }, _callee8, this);
+            }, _callee9, this);
           }));
           function claim(_x3) {
             return _claim.apply(this, arguments);
@@ -45762,26 +46086,26 @@ System.register("chunks:///_virtual/OperationsClient.ts", ['./rollupPluginModLoB
           return claim;
         }();
         _proto["delete"] = /*#__PURE__*/function () {
-          var _delete2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9(id) {
-            var _this5 = this;
-            return _regeneratorRuntime().wrap(function _callee9$(_context9) {
-              while (1) switch (_context9.prev = _context9.next) {
+          var _delete2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10(id) {
+            var _this6 = this;
+            return _regeneratorRuntime().wrap(function _callee10$(_context10) {
+              while (1) switch (_context10.prev = _context10.next) {
                 case 0:
-                  _context9.next = 2;
+                  _context10.next = 2;
                   return this.serial(function () {
-                    return _this5.request('/operations/mail/delete', {
+                    return _this6.request('/operations/mail/delete', {
                       id: id,
-                      key: _this5.a.id('mail-delete')
+                      key: _this6.a.id('mail-delete')
                     });
                   });
                 case 2:
-                  _context9.next = 4;
+                  _context10.next = 4;
                   return this.inbox();
                 case 4:
                 case "end":
-                  return _context9.stop();
+                  return _context10.stop();
               }
-            }, _callee9, this);
+            }, _callee10, this);
           }));
           function _delete(_x4) {
             return _delete2.apply(this, arguments);
@@ -45813,11 +46137,11 @@ System.register("chunks:///_virtual/OperationsClient.ts", ['./rollupPluginModLoB
           if (this.ready) void this.flushErrors();
         };
         _proto.flushErrors = /*#__PURE__*/function () {
-          var _flushErrors = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10() {
-            var _this6 = this;
+          var _flushErrors = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
+            var _this7 = this;
             var entries, _loop, _ret, _iterator, _step;
-            return _regeneratorRuntime().wrap(function _callee10$(_context11) {
-              while (1) switch (_context11.prev = _context11.next) {
+            return _regeneratorRuntime().wrap(function _callee11$(_context12) {
+              while (1) switch (_context12.prev = _context12.next) {
                 case 0:
                   entries = [];
                   try {
@@ -45825,54 +46149,54 @@ System.register("chunks:///_virtual/OperationsClient.ts", ['./rollupPluginModLoB
                   } catch (_unused2) {}
                   _loop = /*#__PURE__*/_regeneratorRuntime().mark(function _loop() {
                     var item;
-                    return _regeneratorRuntime().wrap(function _loop$(_context10) {
-                      while (1) switch (_context10.prev = _context10.next) {
+                    return _regeneratorRuntime().wrap(function _loop$(_context11) {
+                      while (1) switch (_context11.prev = _context11.next) {
                         case 0:
                           item = _step.value;
-                          _context10.prev = 1;
-                          _context10.next = 4;
-                          return _this6.request('/operations/error', item);
+                          _context11.prev = 1;
+                          _context11.next = 4;
+                          return _this7.request('/operations/error', item);
                         case 4:
                           entries = entries.filter(function (e) {
                             return e.id !== item.id;
                           });
                           sys.localStorage.setItem('outrun-errors', JSON.stringify(entries));
-                          _context10.next = 11;
+                          _context11.next = 11;
                           break;
                         case 8:
-                          _context10.prev = 8;
-                          _context10.t0 = _context10["catch"](1);
-                          return _context10.abrupt("return", {
+                          _context11.prev = 8;
+                          _context11.t0 = _context11["catch"](1);
+                          return _context11.abrupt("return", {
                             v: void 0
                           });
                         case 11:
                         case "end":
-                          return _context10.stop();
+                          return _context11.stop();
                       }
                     }, _loop, null, [[1, 8]]);
                   });
                   _iterator = _createForOfIteratorHelperLoose(entries);
                 case 4:
                   if ((_step = _iterator()).done) {
-                    _context11.next = 11;
+                    _context12.next = 11;
                     break;
                   }
-                  return _context11.delegateYield(_loop(), "t0", 6);
+                  return _context12.delegateYield(_loop(), "t0", 6);
                 case 6:
-                  _ret = _context11.t0;
+                  _ret = _context12.t0;
                   if (!_ret) {
-                    _context11.next = 9;
+                    _context12.next = 9;
                     break;
                   }
-                  return _context11.abrupt("return", _ret.v);
+                  return _context12.abrupt("return", _ret.v);
                 case 9:
-                  _context11.next = 4;
+                  _context12.next = 4;
                   break;
                 case 11:
                 case "end":
-                  return _context11.stop();
+                  return _context12.stop();
               }
-            }, _callee10);
+            }, _callee11);
           }));
           function flushErrors() {
             return _flushErrors.apply(this, arguments);
@@ -45884,9 +46208,86 @@ System.register("chunks:///_virtual/OperationsClient.ts", ['./rollupPluginModLoB
           get: function get() {
             return !this.useCloud && !sys.isNative && typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
           }
+        }, {
+          key: "identity",
+          get: function get() {
+            return this.local ? this.a.onlineService.accountId : this.a.cloud.uid;
+          }
         }]);
         return OperationsClient;
       }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/PrototypeCheats.ts", ['cc', './Game.ts', './Amount.ts', './Config.ts', './EntryPolicy.ts'], function (exports) {
+  var cclegacy, Game, add, amount, ZERO, HEROES, TUTORIAL_DONE, replayTutorial;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+    }, function (module) {
+      Game = module.Game;
+    }, function (module) {
+      add = module.add;
+      amount = module.amount;
+      ZERO = module.ZERO;
+    }, function (module) {
+      HEROES = module.HEROES;
+    }, function (module) {
+      TUTORIAL_DONE = module.TUTORIAL_DONE;
+      replayTutorial = module.replayTutorial;
+    }],
+    execute: function () {
+      exports({
+        freshPrototype: freshPrototype,
+        prototypeCheat: prototypeCheat
+      });
+      cclegacy._RF.push({}, "89461NdmBNHaKlMnDUYCh16", "PrototypeCheats", undefined);
+      function freshPrototype(locale, now) {
+        if (now === void 0) {
+          now = Date.now();
+        }
+        var g = new Game(undefined, function () {
+          return now;
+        });
+        g.s.locale = locale;
+        return g.s;
+      }
+      function prototypeCheat(current, action, stage, now) {
+        if (stage === void 0) {
+          stage = 1;
+        }
+        if (now === void 0) {
+          now = Date.now();
+        }
+        var g = new Game(undefined, function () {
+          return now;
+        });
+        g.s = JSON.parse(JSON.stringify(current));
+        if (action === 'funds') g.s.run.gold = add(g.s.run.gold, amount(1000000));
+        if (action === 'squad') {
+          for (var i = 0; i < 8; i++) g.s.run.heroes[i] = Math.max(10, g.s.run.heroes[i]);
+          g.s.maxStage = Math.max(g.s.maxStage, HEROES[7].unlock);
+        }
+        if (action === 'stage') {
+          if (![1, 30, 200, 400].includes(stage)) throw Error('error.invalid');
+          var r = g.s.run;
+          r.stage = stage;
+          r.boss = false;
+          r.kills = 0;
+          r.bossLeft = 30;
+          r.bossFailed = false;
+          r.hp = g.maxHP(stage, false);
+          g.s.maxStage = Math.max(g.s.maxStage, stage);
+          g.s.tutorial.step = TUTORIAL_DONE;
+        }
+        if (action === 'tutorial') replayTutorial(g.s);
+        g.s.lastSeen = now;
+        g.s.offline = ZERO;
+        g.validate(g.s);
+        return g.s;
+      }
       cclegacy._RF.pop();
     }
   };
@@ -46237,7 +46638,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           this.popupTitle = Object.keys(table).find(function (k) {
             return table[k] === title;
           }) || '';
-          if (this.active || !this.popupTitle || /^(tutorial|entry|consent|ops\.|error|unlock)/.test(this.popupTitle)) return false;
+          if (this.active || !this.popupTitle || /^(cheat|tutorial|entry|consent|ops\.|error|unlock)/.test(this.popupTitle)) return false;
           this.a.label(heading, title, 0, 12, 322, 24, 19, UI.ink);
           this.popupHint = this.a.label(heading, this.a.tr('guide.inspect'), 0, -15, 334, 23, 13, '#222222');
           return true;
@@ -46364,7 +46765,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           if (step < 1) {
             this.guide(a.tr('guide.begin'), '0/6', true);
             var _p = a.root.getChildByName('tutorial-guide-root');
-            if (_p) a.button(_p, '▶', 70, 32, 30, 26, function () {
+            if (_p) a.button(_p, a.tr('tutorial.begin'), 53, 32, 65, 26, function () {
               return _this4.event('begin');
             }, true, {
               hint: a.tr('tutorial.begin')
@@ -46382,7 +46783,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             return;
           }
           this.guide(a.tr('tutorial.step' + step), step + '/6');
-          if (step === 1) this.outline(0, 95 - a.heightExtra, 276, 236);
+          if (step === 1) this.outline(120, 85 - a.heightExtra, 184, 150);
           if (step === 2) this.outline(164, -171 - a.heightExtra, 138, 64);
           if (step === 3) this.outline(-120, -452 - a.heightExtra, 76, 56);
           if (step === 4) this.outline(164, -224 - a.heightExtra, 115, 52);
@@ -46494,6 +46895,10 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             } : undefined;
           };
           if (this.firstBoss && !tutorialSeen(s, 'first:boss') && !this.postponed.has('first:boss')) return offer('first:boss', 'guide.boss', s.run.bossFailed ? [180, 442 + extra - a.safeTop - a.safeBottom, 111, 44] : [0, 95 - extra, 276, 236]);
+          if (!s.claims.includes('daily.0')) {
+            var next = offer('first:daily', 'guide.daily', [-164, 451 + extra - a.safeTop - a.safeBottom, 38, 38]);
+            if (next) return next;
+          }
           var tab = [5, 3, 2, 4].find(function (tab) {
             return tabUnlocked(s, tab) && !tutorialSeen(s, 'tab:' + tab) && !_this6.postponed.has('tab:' + tab);
           });
@@ -46506,11 +46911,11 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             return s.run.master >= sp.unlock;
           }) && !tutorialSeen(s, 'first:spell') && !this.postponed.has('first:spell')) {
             if (!a.folded) return offer('first:spell', 'guide.spell', [171, -39 - extra, 128, 32]);
-            var next = s.spellSlots.find(function (id) {
+            var _next = s.spellSlots.find(function (id) {
                 return s.run.master < SPELLS[id].unlock;
               }),
               shown = s.spellSlots.filter(function (id) {
-                return s.run.master >= SPELLS[id].unlock || id === next;
+                return s.run.master >= SPELLS[id].unlock || id === _next;
               }),
               index = shown.findIndex(function (id) {
                 return s.run.master >= SPELLS[id].unlock;
