@@ -19,6 +19,6 @@ export function applyMercenaryText(t:Record<string,Record<string,string>>){
  ['ko','en'].forEach((locale,l)=>{
   for(let i=0;i<24;i++){t[locale]['hero.'+i]=names[l][i];t[locale]['hero.short.'+i]=names[l][i];t[locale]['merc.weapon.'+i]=weapons[l][i];t[locale]['merc.intro.'+i]=intro[l][i];t[locale]['merc.growth.'+i]=growth[l][i];}
  });
- Object.assign(t.ko,{'merc.unlocked':'새 용병 해금','merc.ready':'{name} · 합류 준비 완료','merc.cadence':'{weapon} · {seconds}초마다 공격','merc.level':'Lv.{before} → {after}','merc.captain':'좋아! 전선을 더 밀어붙이자!','merc.gallery':'용병 도감','merc.preview':'컷인 보기'});
- Object.assign(t.en,{'merc.unlocked':'MERCENARY UNLOCKED','merc.ready':'{name} · Ready to join','merc.cadence':'{weapon} · Attack every {seconds}s','merc.level':'Lv.{before} → {after}','merc.captain':'Good! Let us push the front!','merc.gallery':'Mercenary Roster','merc.preview':'View cut-in'});
+ Object.assign(t.ko,{'merc.unlocked':'새 용병 해금','merc.ready':'{name} · 합류 준비 완료','merc.cadence':'{weapon} · {seconds}초마다 공격','merc.statChange':'{before} → {after}','merc.level':'Lv.{before} → {after}','merc.captain':'좋아! 전선을 더 밀어붙이자!','merc.gallery':'용병 도감','merc.preview':'컷인 보기'});
+ Object.assign(t.en,{'merc.unlocked':'MERCENARY UNLOCKED','merc.ready':'{name} · Ready to join','merc.cadence':'{weapon} · Attack every {seconds}s','merc.statChange':'{before} → {after}','merc.level':'Lv.{before} → {after}','merc.captain':'Good! Let us push the front!','merc.gallery':'Mercenary Roster','merc.preview':'View cut-in'});
 }

@@ -35,7 +35,7 @@ export class FeedbackUI {
  }
  private comic(parent:Node,x:number,y:number,w:number,h:number){
   const n=this.a.nodeAt(parent,'comic-speech',x,y,w,h),points=[[-w/2+10,h/2-6],[-w/2+35,h/2+1],[-w/2+48,h/2-5],[w/2-12,h/2],[w/2-2,h/2-15],[w/2,h/2-30],[w/2-7,-h/2+8],[20,-h/2],[0,-h/2-16],[-4,-h/2+2],[-w/2+8,-h/2+7],[-w/2,-8]];
-  this.a.ui.polygon(n,points,UI.paper);const g=n.addComponent(Graphics);g.lineWidth=2;g.strokeColor=this.a.color(UI.ink);g.moveTo(points[0][0],points[0][1]);points.slice(1).forEach(p=>g.lineTo(p[0],p[1]));g.close();g.stroke();return n;
+  this.a.ui.polygon(n,points,UI.paper);const g=n.getComponent(Graphics)!;g.lineWidth=2;g.strokeColor=this.a.color(UI.ink);g.moveTo(points[0][0],points[0][1]);points.slice(1).forEach(p=>g.lineTo(p[0],p[1]));g.close();g.stroke();return n;
  }
  private unlockMercenary(){const a=this.a;if(!a.entry.playing||this.showing||a.modal||a.liveOps.blocked||!a.operations.ready||a.operations.busy||a.operations.conflict)return;
   const h=HEROES.find(h=>a.game.s.maxStage>=h.unlock&&!a.game.s.extra.mercenarySeen.includes(h.id));
@@ -62,7 +62,7 @@ export class FeedbackUI {
   a.ui.surface(a.nodeAt(n,'portrait-plate',-73,32,60,62),UI.gold,'cut');
   a.ui.icon(a.nodeAt(n,'growth-portrait',-73,32,56,58),soldier>=0?'face:merc-'+mercenaryArt(soldier):'face:guardian');
   a.label(n,first?a.tr('merc.level',{before:first.args!.before,after:first.args!.after}):a.tr('feedback.power'),29,45,150,30,17,UI.gold);
-  const stats=diff.tap||diff.dps;a.label(n,stats?a.tr(diff.tap?'feedback.tap':'feedback.dps',{before:a.format(stats[0]),after:a.format(stats[1])}):a.tr('feedback.improved'),29,16,150,28,11,UI.text);
+  const stats=diff.tap||diff.dps;a.label(n,stats?a.tr('merc.statChange',{before:a.format(stats[0]),after:a.format(stats[1])}):a.tr('feedback.improved'),29,16,150,28,11,UI.text);
   const bubble=this.comic(n,0,-33,210,52);a.label(bubble,a.tr(soldier>=0?'merc.growth.'+soldier:'merc.captain'),0,0,185,46,16,UI.ink);
   if(a.game.s.extra.effects){this.particles(n,-73,32);n.setScale(.88,.88,1);tween(n).to(.18,{scale:new Vec3(1,1,1)},{easing:'backOut'}).start();}
   a.scheduleOnce(()=>{if(isValid(n,true))n.destroy();},2);this.chime();

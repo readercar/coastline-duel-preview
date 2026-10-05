@@ -335,7 +335,7 @@ export class GameApp extends Component {
         }else if(MELEE.includes(weapon)){
             const n=this.nodeAt(this.particles,'katana-cut',target.x,target.y,76,90);
             this.ui.polygon(n,[[-34,-40],[-5,-3],[36,43],[17,7],[-12,-20]],'#ffffff');
-            this.ui.polygon(n,[[-31,-37],[0,-9],[33,40],[8,3]],'#b2b8ff');
+            this.ui.polygon(this.nodeAt(n,'blade-core',0,0,76,90),[[-31,-37],[0,-9],[33,40],[8,3]],'#b2b8ff');
             tween(n).to(.18,{scale:new Vec3(1.4,1.4,1)}).call(()=>n.destroy()).start();this.sound(440);
         }else if(['rocket','grenade','plasma','bow','crossbow'].includes(weapon)&&ally){
             const start=new Vec3(ally.position.x+25,ally.position.y+soldierSize(ally.position.y)*.6,0),n=this.nodeAt(this.particles,'weapon-trail',0,0,480,500),g=n.addComponent(Graphics);
