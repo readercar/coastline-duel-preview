@@ -121,17 +121,29 @@ System.register("chunks:///_virtual/BattleFormation.ts", ['cc'], function (expor
     execute: function () {
       exports({
         allyPosition: allyPosition,
+        depthScale: depthScale,
         enemyPosition: enemyPosition,
+        soldierSize: soldierSize,
         survivingEnemies: survivingEnemies,
         waveSize: waveSize
       });
       cclegacy._RF.push({}, "f06b59oNv5FNK8jmW3Mqgpy", "BattleFormation", undefined);
       /** Compact formations in the 480-wide battlefield. All coordinates denote feet. */
-      var SOLDIER_SIZE = exports('SOLDIER_SIZE', 64);
+      var SOLDIER_SIZE = exports('SOLDIER_SIZE', 96);
+      /** Feet higher in the field recede towards the horizon, equally for both factions. */
+      function depthScale(y) {
+        return Math.max(.64, 1 - Math.max(0, y - 65) * .0015);
+      }
+      function soldierSize(y, male) {
+        if (male === void 0) {
+          male = false;
+        }
+        return SOLDIER_SIZE * depthScale(y) * (male ? 1.08 : 1);
+      }
       function allyPosition(index) {
         return {
-          x: -64 - index % 3 * 72,
-          y: 12 + Math.floor(index / 3) * 82
+          x: -85 - index % 3 * 61,
+          y: 65 + Math.floor(index / 3) * 75
         };
       }
       function waveSize(stage, boss) {
@@ -142,11 +154,11 @@ System.register("chunks:///_virtual/BattleFormation.ts", ['cc'], function (expor
         return stage >= 400 ? 30 : stage >= 200 ? 20 : stage >= 100 ? 15 : stage >= 60 ? 10 : stage >= 30 ? 6 : stage >= 15 ? 4 : stage >= 5 ? 2 : 1;
       }
       function enemyPosition(index, count) {
-        var columns = Math.min(5, count),
-          rows = Math.ceil(count / columns);
+        var columns = Math.min(5, count);
+        var row = Math.floor(index / columns);
         return {
-          x: count === 1 ? 138 : 48 + index % columns * 37,
-          y: 24 + Math.floor(index / columns) * 47 + (6 - rows) * 9
+          x: count === 1 ? 108 : 42 + index % columns * 36.5 + row % 2 * 3,
+          y: 65 + row * 41
         };
       }
       function survivingEnemies(count, healthRatio) {
@@ -38471,7 +38483,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
 });
 
 System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _extends, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, SOLDIER_SIZE, waveSize, enemyPosition, allyPosition, CheatUI, FeedbackUI, Game, display, ZERO, ratio, fmt, HEROES, SPELLS, PETS, ARTIFACTS, CARDS, SKILLS, t, ExpansionUI, Monetization, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, UI, UITheme;
+  var _inheritsLoose, _extends, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, SOLDIER_SIZE, soldierSize, waveSize, allyPosition, enemyPosition, CheatUI, FeedbackUI, Game, display, ZERO, ratio, fmt, HEROES, SPELLS, PETS, ARTIFACTS, CARDS, SKILLS, t, ExpansionUI, Monetization, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, UI, UITheme;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
@@ -38514,9 +38526,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       profiler = module.profiler;
     }, function (module) {
       SOLDIER_SIZE = module.SOLDIER_SIZE;
+      soldierSize = module.soldierSize;
       waveSize = module.waveSize;
-      enemyPosition = module.enemyPosition;
       allyPosition = module.allyPosition;
+      enemyPosition = module.enemyPosition;
     }, function (module) {
       CheatUI = module.CheatUI;
     }, function (module) {
@@ -39132,7 +39145,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.footholds.setSiblingIndex(0);
           this.allies = this.nodeAt(this.battleCast, 'allies', 0, 0, 480, 500);
           this.syncAllies();
-          this.actor = this.nodeAt(this.battleCast, 'guardian', -64, 12, SOLDIER_SIZE, SOLDIER_SIZE);
+          var captain = allyPosition(0);
+          this.actor = this.nodeAt(this.battleCast, 'guardian', captain.x, captain.y, SOLDIER_SIZE, SOLDIER_SIZE);
           this.guardian(this.actor);
           this.actor.getComponent(UITransform).setAnchorPoint(.5, 6 / 192);
           this.actor.setScale(1, 1, 1);
@@ -39316,7 +39330,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           return keys[this.game.s.totalKills % keys.length];
         };
         _proto.sentinel = function sentinel(parent) {
-          this.ui.resize(parent, this.game.s.run.boss ? 76 : 40, this.game.s.run.boss ? 76 : 40);
+          var size = this.game.s.run.boss ? 128 : soldierSize(parent.position.y, this.enemyArt() !== 'flame-spirit');
+          this.ui.resize(parent, size, size);
           parent.getComponent(UITransform).setAnchorPoint(.5, 6 / 192);
           this.ui.actor(parent, this.enemyArt());
         };
@@ -39356,7 +39371,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.enemy.children.filter(function (n) {
             return n.active;
           }).forEach(function (n) {
-            return _this7.bulletImpact(n.position.x, n.position.y + 20);
+            return _this7.bulletImpact(n.position.x, n.position.y + n.getComponent(UITransform).height * .5);
           });
           this.sound(95);
           this.updateHUD();
@@ -39368,7 +39383,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             var pos = enemyPosition(i, count),
               unit = this.nodeAt(this.enemy, 'hostile-' + i, pos.x, pos.y, 40, 40);
             this.sentinel(unit);
-            var bar = this.nodeAt(unit, 'health', 0, 51, 32, 4);
+            var bar = this.nodeAt(unit, 'health', 0, unit.getComponent(UITransform).height + 5, 32, 4);
             this.rect(bar, 0, 0, 32, 4, '#111820');
             this.rect(bar, 0, 0, 30, 2, '#ffdb48').name = 'fill';
           }
@@ -39380,7 +39395,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.enemy.children.forEach(function (unit) {
             var index = Number(unit.name.split('-')[1]),
               alive = hp[index] !== ZERO;
-            if (!alive && unit.active && _this8.game.s.extra.effects) _this8.bulletImpact(unit.position.x, unit.position.y + 20);
+            if (!alive && unit.active && _this8.game.s.extra.effects) _this8.bulletImpact(unit.position.x, unit.position.y + unit.getComponent(UITransform).height * .5);
             unit.active = alive;
             var bar = unit.getChildByName('health');
             if (bar) {
@@ -39395,7 +39410,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             id = this.game.targetEnemy();
           }
           var unit = this.enemy.getChildByName('hostile-' + id);
-          return unit ? new Vec3(unit.position.x, unit.position.y + 24, 0) : new Vec3(138, 48, 0);
+          return unit ? new Vec3(unit.position.x, unit.position.y + unit.getComponent(UITransform).height * .52, 0) : new Vec3(138, 48, 0);
         };
         _proto.spawnEnemy = function spawnEnemy() {
           Tween.stopAllByTarget(this.enemy);
@@ -39430,19 +39445,27 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.allySignature = key;
           this.clear(this.allies);
           this.clear(this.footholds);
-          ids.slice(0, 8).forEach(function (id, index) {
+          ids.slice(0, 8).map(function (id, index) {
+            return {
+              id: id,
+              index: index
+            };
+          }).reverse().forEach(function (_ref3) {
+            var id = _ref3.id,
+              index = _ref3.index;
             var _allyPosition = allyPosition(index + 1),
               x = _allyPosition.x,
               y = _allyPosition.y,
               actor = _this9.nodeAt(_this9.allies, "hero-" + id, x, y, SOLDIER_SIZE, SOLDIER_SIZE),
               body = _this9.nodeAt(actor, 'body', 0, 0, SOLDIER_SIZE, SOLDIER_SIZE);
+            body.setScale(soldierSize(y) / SOLDIER_SIZE, soldierSize(y) / SOLDIER_SIZE, 1);
             body.getComponent(UITransform).setAnchorPoint(.5, 6 / 192);
             _this9.ui.actor(body, ['rowen', 'kael', 'sera'][id % 3]);
           });
         };
         _proto.gunshot = function gunshot(x, y) {
           if (!this.game.s.extra.effects || !isValid(this.particles, true)) return;
-          var muzzle = this.nodeAt(this.particles, 'muzzle-flash', x + 24, y, 18, 14);
+          var muzzle = this.nodeAt(this.particles, 'muzzle-flash', x + 36, y, 18, 14);
           this.ui.polygon(muzzle, [[-8, 0], [-2, 3], [2, 7], [4, 2], [12, 0], [3, -2], [1, -6], [-2, -2]], '#ffe04c');
           tween(muzzle).to(.07, {
             scale: new Vec3(.1, .1, 1)
@@ -39492,7 +39515,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }).to(duration, {
             position: new Vec3(0, 0, 0)
           }).start();
-          this.fireBurst(ally.position.x, ally.position.y + 39);
+          this.fireBurst(ally.position.x, ally.position.y + soldierSize(ally.position.y) * .61);
         };
         _proto.circle = function circle(parent, x, y, radius, color) {
           var n = this.nodeAt(parent, 'circle', x, y, radius * 2, radius * 2),
@@ -40255,12 +40278,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return _this18.achievements();
           }]];
           var icons = ['chest', 'flag', 'sword', 'cards', 'trophy', 'scroll', 'flag', 'trophy', 'adventurer', 'settings', 'mail', 'trophy'];
-          actions.filter(function (_ref3) {
-            var key = _ref3[0];
+          actions.filter(function (_ref4) {
+            var key = _ref4[0];
             return featureUnlocked(_this18.game.s, 'menu.' + key);
-          }).forEach(function (_ref4, i) {
-            var key = _ref4[0],
-              f = _ref4[1];
+          }).forEach(function (_ref5, i) {
+            var key = _ref5[0],
+              f = _ref5[1];
             return _this18.button(p, _this18.tr("menu." + key), i % 2 ? 101 : -101, 245 - Math.floor(i / 2) * 91, 184, 70, f, false, {
               style: 'secondary',
               icon: icons[i],
@@ -41617,11 +41640,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return;
           }
           Tween.stopAllByTarget(this.actor);
-          this.actor.setPosition(-67, 12);
+          var captain = allyPosition(0);
+          this.actor.setPosition(captain.x - 3, captain.y);
           tween(this.actor).to(.12, {
-            position: new Vec3(-64, 12, 0)
+            position: new Vec3(captain.x, captain.y, 0)
           }).start();
-          this.fireBurst(-64, 51);
+          this.fireBurst(captain.x, captain.y + SOLDIER_SIZE * .61);
           var target = this.shotTarget();
           var damage = this.game.tap();
           this.sound(170 + Math.random() * 50);
