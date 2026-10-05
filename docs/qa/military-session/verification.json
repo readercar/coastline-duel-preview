@@ -1,0 +1,27 @@
+{
+  "source": "50676db",
+  "deployment": "a674e0c",
+  "tests": 126,
+  "engine": "Cocos Creator 3.8.8",
+  "verified": [
+    "Public Pages built and source commit matches",
+    "Korean and English Start Game title",
+    "Existing Firebase guest resumes without selecting login method",
+    "Same guest UID and initial progress after reload",
+    "Korean and English logout confirmation; cancelled to preserve guest access",
+    "No captured browser warnings or errors"
+  ],
+  "automated": [
+    "Google/guest resume avoids OAuth popup and anonymous creation",
+    "Missing session returns to login choices",
+    "Consent and notification selection precede auth",
+    "Logout saves first; failed save preserves session",
+    "Firebase sign-out clears connection cache"
+  ],
+  "limitations": [
+    "Google persistence covered by mocked SDK test; no new live Google sign-in",
+    "Android bridge added but Android device execution not tested",
+    "Logout confirmation cancelled on live guest; sign-out covered by automated tests"
+  ],
+  "enemyMechanism": "Stage-scaled 1 to 30 visual enemies; wave shares HP; survivors decrease with wave HP"
+}
