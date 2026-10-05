@@ -2,7 +2,9 @@ const http=require('node:http');
 const fs=require('node:fs');
 const path=require('node:path');
 const os=require('node:os');
-const root=path.resolve(__dirname,'../build/web-mobile');
+// Serve an immutable prepared snapshot when rebuilding the project in parallel.
+const snapshot=path.resolve(__dirname,'../.reference/lan-preview');
+const root=path.resolve(process.env.TAPWAR_LAN_ROOT||(fs.existsSync(path.join(snapshot,'index.html'))?snapshot:path.resolve(__dirname,'../build/web-mobile')));
 const port=Number(process.env.PORT||8880);
 if(!fs.existsSync(path.join(root,'index.html')))throw Error('Run npm run build before sharing');
 const mime={'.html':'text/html; charset=utf-8','.js':'application/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.wasm':'application/wasm','.ttf':'font/ttf','.woff':'font/woff','.woff2':'font/woff2'};

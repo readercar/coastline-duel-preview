@@ -1,0 +1,26 @@
+{
+  "source": "6aa8099",
+  "pages": "2c13310",
+  "lan": "http://192.168.45.201:8880/",
+  "wifiInterface": "en1",
+  "ethernetInterface": "en0",
+  "tests": {
+    "coreSession": 106,
+    "server": 29,
+    "failed": 0
+  },
+  "checks": [
+    "Existing 24 heroes retained; six new IDs appended",
+    "Legacy 24-slot local saves migrate all five hero arrays to 30 preserving values",
+    "All 30 attack cadences integrate compensated DPS over three cycles",
+    "All six new cut-ins verified in public Korean build; English roster and Dahlia cut-in verified",
+    "Original PNG alpha inspected over olive; six silhouettes and profiles inspected",
+    "LAN serves stable completed snapshot independently of live Cocos rebuild",
+    "Wi-Fi LAN HTTP 200 and browser title/consent screen verified; no legal agreement accepted during this pass"
+  ],
+  "limitations": [
+    "LAN phone itself not remotely tested",
+    "LAN guest entry after mandatory consent not tested in this pass",
+    "Concurrent user/workspace edits to GameApp, ExpansionUI and I18n excluded from this tested snapshot"
+  ]
+}
