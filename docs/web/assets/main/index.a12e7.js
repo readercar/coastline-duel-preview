@@ -18,16 +18,19 @@ System.register("chunks:///_virtual/AllyPlacement.ts", ['cc', './MotionBounds.ts
       cclegacy._RF.push({}, "f6841X1gzVCTKPSh7X3yy0X", "AllyPlacement", undefined);
       var ALLY_RIGHT = exports('ALLY_RIGHT', -48); // 40% of the 480px screen, measured from its left edge.
       var ALLY_LEFT = exports('ALLY_LEFT', -190);
-      function battleField(folded, extra, safeBottom, safeTop) {
+      function battleField(folded, extra, safeBottom, safeTop, reservedTop) {
         if (safeBottom === void 0) {
           safeBottom = 0;
         }
         if (safeTop === void 0) {
           safeTop = 0;
         }
+        if (reservedTop === void 0) {
+          reservedTop = 0;
+        }
         return {
           bottom: (folded ? -337 : -39) - extra + safeBottom,
-          top: 290 + extra - safeTop
+          top: 290 + extra - safeTop - reservedTop
         };
       }
       function actorBounds(art) {
@@ -443,15 +446,18 @@ System.register("chunks:///_virtual/BattleFormation.ts", ['./rollupPluginModLoBa
         return (bottom + top) / 2 - 155.5;
       }
       /** A large boss and its escort ranks must fit between the HUD and the open menu. */
-      function partyBattlefieldLayout(folded, heightExtra, safeBottom, safeTop) {
+      function partyBattlefieldLayout(folded, heightExtra, safeBottom, safeTop, reservedTop) {
         if (safeBottom === void 0) {
           safeBottom = 0;
         }
         if (safeTop === void 0) {
           safeTop = 0;
         }
+        if (reservedTop === void 0) {
+          reservedTop = 0;
+        }
         var bottom = (folded ? -337 : -39) - heightExtra + safeBottom,
-          top = 290 + heightExtra - safeTop;
+          top = 290 + heightExtra - safeTop - reservedTop;
         var scale = Math.min(1, Math.max(.1, (top - bottom - 20) / 270));
         return {
           scale: scale,
@@ -625,7 +631,7 @@ System.register("chunks:///_virtual/BattlePlacementUI.ts", ['./rollupPluginModLo
         };
         _proto.field = function field() {
           var a = this.a;
-          return battleField(a.folded, a.heightExtra, a.safeBottom, a.safeTop);
+          return battleField(a.folded, a.heightExtra, a.safeBottom, a.safeTop, a.game.equippedDrones().length > 1 ? 120 : 0);
         };
         _proto.projectAll = function projectAll() {
           for (var _iterator = _createForOfIteratorHelperLoose(this.actors), _step; !(_step = _iterator()).done;) {
@@ -644,18 +650,20 @@ System.register("chunks:///_virtual/BattlePlacementUI.ts", ['./rollupPluginModLo
         _proto.project = function project(actor, draft) {
           var a = this.a,
             field = this.field(),
-            camera = partyBattlefieldLayout(a.folded, a.heightExtra, a.safeBottom, a.safeTop),
+            reserved = a.game.equippedDrones().length > 1 ? 120 : 0,
+            camera = partyBattlefieldLayout(a.folded, a.heightExtra, a.safeBottom, a.safeTop, reserved),
+            base = partyBattlefieldLayout(a.folded, a.heightExtra, a.safeBottom, a.safeTop),
             saved = draft || a.game.s.extra.battlePositions[actor.hero < 0 ? 'captain' : String(actor.hero)];
           var fallback = allyPosition(actor.index, a.game.activeMercenaries().length),
             desired = saved ? {
               x: saved.x * 480 - 240,
               y: field.bottom + saved.y * (field.top - field.bottom)
             } : {
-              x: fallback.x * camera.scale,
+              x: fallback.x * base.scale,
               y: camera.y + fallback.y * camera.scale
             };
           var result = projectAlly(actor.hero < 0 ? -1 : mercenaryArt(actor.hero), desired, camera.scale, camera.y, field),
-            p = new Vec3(result.x / camera.scale, (result.y - camera.y) / camera.scale, 0);
+            p = reserved ? actor.node.parent.getComponent(UITransform).convertToNodeSpaceAR(a.root.getComponent(UITransform).convertToWorldSpaceAR(new Vec3(result.x, result.y, 0))) : new Vec3(result.x / camera.scale, (result.y - camera.y) / camera.scale, 0);
           actor.node.setPosition(p);
           var body = actor.hero < 0 ? actor.node : actor.node.getChildByName('body');
           if (actor.hero < 0) {
@@ -2508,24 +2516,29 @@ System.register("chunks:///_virtual/DischargeText.ts", ['cc'], function (exports
   };
 });
 
-System.register("chunks:///_virtual/DroneEffects.ts", ['cc'], function (exports) {
-  var cclegacy;
+System.register("chunks:///_virtual/DroneEffects.ts", ['cc', './DroneFleet.ts'], function (exports) {
+  var cclegacy, equippedDrones;
   return {
     setters: [function (module) {
       cclegacy = module.cclegacy;
+    }, function (module) {
+      equippedDrones = module.equippedDrones;
     }],
     execute: function () {
-      exports('activeDroneEffect', activeDroneEffect);
+      exports('activeDroneEffects', activeDroneEffects);
       cclegacy._RF.push({}, "f8e71VZR4lOFrO7isG8X9nc", "DroneEffects", undefined);
-      /** Presentation-only cues. They never change the saved drone bonuses or combat rules. */
-      function activeDroneEffect(state, effect) {
-        var id = state.activePet,
-          level = state.pets[id];
-        return state.maxStage >= 8 && id >= 0 && level > 0 && id % 3 === effect ? {
-          id: id,
-          effect: effect,
-          percent: level * 2.5
-        } : null;
+      /** Presentation-only cues for the drones whose real support bonus was applied. */
+
+      function activeDroneEffects(state, effect) {
+        return state.maxStage < 8 ? [] : equippedDrones(state).filter(function (id) {
+          return id % 3 === effect;
+        }).map(function (id) {
+          return {
+            id: id,
+            effect: effect,
+            percent: state.pets[id] * 2.5
+          };
+        });
       }
       cclegacy._RF.pop();
     }
@@ -2533,14 +2546,14 @@ System.register("chunks:///_virtual/DroneEffects.ts", ['cc'], function (exports)
 });
 
 System.register("chunks:///_virtual/DroneFeedbackUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc'], function (exports) {
-  var _createForOfIteratorHelperLoose, cclegacy, UITransform, isValid, UIOpacity, tween, Vec3, Graphics;
+  var _createForOfIteratorHelperLoose, cclegacy, isValid, Mask, UIOpacity, tween, Vec3, Graphics;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
     }, function (module) {
       cclegacy = module.cclegacy;
-      UITransform = module.UITransform;
       isValid = module.isValid;
+      Mask = module.Mask;
       UIOpacity = module.UIOpacity;
       tween = module.tween;
       Vec3 = module.Vec3;
@@ -2553,88 +2566,105 @@ System.register("chunks:///_virtual/DroneFeedbackUI.ts", ['./rollupPluginModLoBa
           this.pending = [];
           this.elapsed = 1;
           this.run = null;
-          this.lastId = -1;
+          this.signature = '';
+          this.shown = new Map();
           this.a = a;
         }
         var _proto = DroneFeedbackUI.prototype;
-        _proto.tick = function tick(dt) {
-          var _a$entry, _this$pending, _a$battleCast;
-          var a = this.a,
-            events = a.game.drainDroneEffects();
-          this.elapsed += dt;
-          if (this.run !== a.game.s.run || this.lastId !== a.game.s.activePet) {
-            this.pending = [];
-            this.elapsed = 1;
-            this.run = a.game.s.run;
-            this.lastId = a.game.s.activePet;
-          }
-          // Do not replay cues from a hidden battlefield or a previous equipped drone.
-          if (!((_a$entry = a.entry) != null && _a$entry.playing) || a.modal || a.feedback.showing || a.tutorial.active || a.zoneTransition.active) {
-            this.pending = [];
-            return;
-          }
-          (_this$pending = this.pending).push.apply(_this$pending, events.filter(function (e) {
-            return e.id === a.game.s.activePet;
-          }));
-          if (!this.pending.length || this.elapsed < .16) return;
-          var drone = (_a$battleCast = a.battleCast) == null ? void 0 : _a$battleCast.getChildByName('equipped-drone');
-          if (!(drone != null && drone.activeInHierarchy)) {
-            this.pending = [];
-            return;
-          }
-          var cue = this.pending[this.pending.length - 1],
-            count = this.pending.length;
-          this.pending = [];
-          this.elapsed = 0;
-          var origin = a.root.getComponent(UITransform).convertToNodeSpaceAR(drone.worldPosition);
-          // Both captions share the drone center: name below, support cue directly above.
-          var n = a.nodeAt(a.root, 'drone-support-pop', origin.x, origin.y + 35, 136, 26);
-          var tone = ['#ffe187', '#ff9288', '#9cebdd'][cue.effect];
-          var text = a.tr('drone.proc.' + cue.effect, {
-            percent: Number(cue.percent.toFixed(1))
-          }) + (count > 1 ? a.tr('drone.procCount', {
-            count: count
-          }) : '');
-          var label = a.label(n, text, 0, 0, 136, 26, 15, tone);
-          label.node.name = 'drone-support-value';
-          label.enableOutline = true;
-          label.outlineWidth = 3;
-          label.outlineColor = a.color('#121b20');
-          // Keep concurrent bursts bounded. Every queued application contributes to the count.
-          var older = a.root.children.filter(function (c) {
-            return c.name === 'drone-support-pop' && c !== n;
-          });
-          for (var _iterator = _createForOfIteratorHelperLoose(older), _step; !(_step = _iterator()).done;) {
-            var prior = _step.value;
-            prior.removeFromParent();
-            prior.destroy();
-          }
-          if (!a.game.s.extra.effects) {
-            a.scheduleOnce(function () {
-              if (isValid(n, true)) {
-                n.removeFromParent();
-                n.destroy();
-              }
-            }, .55);
-            return;
-          }
-          n.setScale(.55, .55, 1);
-          var opacity = n.addComponent(UIOpacity);
-          tween(n).to(.11, {
-            scale: new Vec3(1.1, 1.1, 1)
-          }, {
-            easing: 'backOut'
-          }).to(.12, {
-            scale: new Vec3(1, 1, 1)
-          }).start();
-          tween(n).by(.62, {
-            position: new Vec3(0, 8, 0)
-          }).call(function () {
+        _proto.clear = function clear() {
+          for (var _iterator = _createForOfIteratorHelperLoose(this.shown.values()), _step; !(_step = _iterator()).done;) {
+            var n = _step.value;
             if (isValid(n, true)) {
               n.removeFromParent();
               n.destroy();
             }
+          }
+          this.shown.clear();
+        };
+        _proto.tick = function tick(dt) {
+          var _a$entry, _this$pending;
+          var a = this.a,
+            events = a.game.drainDroneEffects(),
+            ids = a.game.equippedDrones(),
+            signature = a.game.droneSlots().join(':');
+          this.elapsed += dt;
+          if (this.run !== a.game.s.run || this.signature !== signature) {
+            this.pending = [];
+            this.elapsed = 1;
+            this.run = a.game.s.run;
+            this.signature = signature;
+            this.clear();
+          }
+          if (!((_a$entry = a.entry) != null && _a$entry.playing) || a.modal || a.feedback.showing || a.tutorial.active || a.zoneTransition.active) {
+            this.pending = [];
+            this.clear();
+            return;
+          }
+          (_this$pending = this.pending).push.apply(_this$pending, events.filter(function (e) {
+            return ids.includes(e.id);
+          }));
+          if (!this.pending.length || this.elapsed < .16) return;
+          var grouped = new Map();
+          for (var _iterator2 = _createForOfIteratorHelperLoose(this.pending), _step2; !(_step2 = _iterator2()).done;) {
+            var cue = _step2.value;
+            var list = grouped.get(cue.id) || [];
+            list.push(cue);
+            grouped.set(cue.id, list);
+          }
+          this.pending = [];
+          this.elapsed = 0;
+          for (var _iterator3 = _createForOfIteratorHelperLoose(grouped), _step3; !(_step3 = _iterator3()).done;) {
+            var _step3$value = _step3.value,
+              id = _step3$value[0],
+              cues = _step3$value[1];
+            this.show(cues[cues.length - 1], cues.length, ids.length > 1);
+          }
+        };
+        _proto.show = function show(cue, count, multi) {
+          var _this = this;
+          var a = this.a,
+            drone = a.droneFleet.fieldNode(cue.id);
+          if (!(drone != null && drone.activeInHierarchy)) return;
+          var prior = this.shown.get(cue.id);
+          if (prior && isValid(prior, true)) {
+            prior.removeFromParent();
+            prior.destroy();
+          }
+          var width = multi ? 66 : 136,
+            height = multi ? 34 : 26,
+            n = a.nodeAt(a.root, 'drone-support-pop-' + cue.id, drone.position.x, drone.position.y + 35, width, height);
+          this.shown.set(cue.id, n);
+          if (multi) n.addComponent(Mask);
+          var tone = ['#ffe187', '#ff9288', '#9cebdd'][cue.effect],
+            percent = Number(cue.percent.toFixed(1));
+          var text = a.tr(multi ? 'drone.fleet.proc.' + cue.effect : 'drone.fleet.procWide.' + cue.effect, {
+            percent: percent,
+            count: count
+          });
+          var label = a.label(n, text, 0, 0, width, height, multi ? 13 : 15, tone);
+          label.node.name = 'drone-support-value';
+          label.enableOutline = true;
+          label.outlineWidth = 2;
+          label.outlineColor = a.color('#121b20');
+          var close = function close() {
+            if (isValid(n, true)) {
+              n.removeFromParent();
+              n.destroy();
+            }
+            if (_this.shown.get(cue.id) === n) _this.shown["delete"](cue.id);
+          };
+          if (!a.game.s.extra.effects) {
+            a.scheduleOnce(close, .55);
+            return;
+          }
+          n.setScale(.88, .88, 1);
+          var opacity = n.addComponent(UIOpacity);
+          tween(n).to(.1, {
+            scale: new Vec3(1, 1, 1)
           }).start();
+          tween(n).by(.62, {
+            position: new Vec3(0, multi ? 3 : 8, 0)
+          }).call(close).start();
           tween(opacity).delay(.36).to(.26, {
             opacity: 0
           }).start();
@@ -2644,9 +2674,7 @@ System.register("chunks:///_virtual/DroneFeedbackUI.ts", ['./rollupPluginModLoBa
               angle = (i + .2 * Math.random()) * Math.PI * 2 / 9;
             g.fillColor = a.color(i % 3 ? '#ffffff' : tone);
             var size = 1.5 + Math.random() * 1.5;
-            if (i % 2) {
-              g.rect(-size, -size, size * 2, size * 2);
-            } else {
+            if (i % 2) g.rect(-size, -size, size * 2, size * 2);else {
               g.moveTo(0, size * 2);
               g.lineTo(size, 0);
               g.lineTo(0, -size * 2);
@@ -2658,7 +2686,7 @@ System.register("chunks:///_virtual/DroneFeedbackUI.ts", ['./rollupPluginModLoBa
             var fade = particle.addComponent(UIOpacity),
               life = .24 + Math.random() * .15;
             tween(particle).by(life, {
-              position: new Vec3(Math.cos(angle) * (26 + Math.random() * 13), Math.sin(angle) * 14, 0)
+              position: new Vec3(Math.cos(angle) * (multi ? 24 : 38), Math.sin(angle) * (multi ? 10 : 14), 0)
             }).call(function () {
               if (isValid(particle, true)) particle.destroy();
             }).start();
@@ -2671,6 +2699,470 @@ System.register("chunks:///_virtual/DroneFeedbackUI.ts", ['./rollupPluginModLoBa
           }
         };
         return DroneFeedbackUI;
+      }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/DroneFleet.ts", ['cc'], function (exports) {
+  var cclegacy;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+    }],
+    execute: function () {
+      exports({
+        droneMultiplier: droneMultiplier,
+        droneSlots: droneSlots,
+        equippedDrones: equippedDrones
+      });
+      cclegacy._RF.push({}, "8523diWEURHmp/NbMYECdPY", "DroneFleet", undefined);
+      var DRONE_SLOTS = exports('DRONE_SLOTS', 3);
+      /** Preserve the original selection until a legacy account first edits its fleet. */
+      function droneSlots(state) {
+        var _state$activePets$sli, _state$activePets;
+        return (_state$activePets$sli = (_state$activePets = state.activePets) == null ? void 0 : _state$activePets.slice()) != null ? _state$activePets$sli : [state.activePet, -1, -1];
+      }
+      function equippedDrones(state) {
+        return droneSlots(state).filter(function (id) {
+          return id >= 0 && state.pets[id] > 0;
+        });
+      }
+      function droneMultiplier(state, effect) {
+        var active = equippedDrones(state);
+        return state.pets.reduce(function (value, level, id) {
+          return id % 3 === effect ? value * (1 + level * .025 * (active.includes(id) ? 1 : Math.min(1, level / 100))) : value;
+        }, 1);
+      }
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/DroneFleetUI.ts", ['cc', './Config.ts', './DroneFleet.ts', './BattleFormation.ts', './UITheme.ts'], function (exports) {
+  var cclegacy, Label, ScrollView, Vec2, isValid, UITransform, Sprite, PETS, droneMultiplier, partyBattlefieldLayout, UI;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+      Label = module.Label;
+      ScrollView = module.ScrollView;
+      Vec2 = module.Vec2;
+      isValid = module.isValid;
+      UITransform = module.UITransform;
+      Sprite = module.Sprite;
+    }, function (module) {
+      PETS = module.PETS;
+    }, function (module) {
+      droneMultiplier = module.droneMultiplier;
+    }, function (module) {
+      partyBattlefieldLayout = module.partyBattlefieldLayout;
+    }, function (module) {
+      UI = module.UI;
+    }],
+    execute: function () {
+      cclegacy._RF.push({}, "92e711Nva9KQZoNB4UzWv1H", "DroneFleetUI", undefined);
+      var tones = [UI.gold, UI.ember, UI.mint];
+      var DroneFleetUI = exports('DroneFleetUI', /*#__PURE__*/function () {
+        function DroneFleetUI(a) {
+          this.selected = -1;
+          this.managerOffset = 0;
+          this.returnToManager = false;
+          this.a = a;
+        }
+        var _proto = DroneFleetUI.prototype;
+        _proto.effect = function effect(id) {
+          return this.a.tr(['pet.effectGold', 'pet.effectTap', 'pet.effectHero'][id % 3]);
+        };
+        _proto.target = function target() {
+          return this.selected >= 0 ? this.selected : this.a.game.droneSlots().indexOf(-1);
+        };
+        _proto.choose = function choose(slot) {
+          var _this$a$modal;
+          this.selected = slot;
+          this.a.drawPanel();
+          if ((_this$a$modal = this.a.modal) != null && _this$a$modal.children.some(function (n) {
+            return n.name === 'drone-fleet-panel';
+          })) this.manage();
+        };
+        _proto.refresh = function refresh() {
+          var _a$modal, _p$getChildByName;
+          var a = this.a,
+            p = (_a$modal = a.modal) == null ? void 0 : _a$modal.children.find(function (n) {
+              return n.name === 'drone-fleet-panel' || n.name === 'drone-detail-panel';
+            }),
+            id = (p == null ? void 0 : p.name) === 'drone-detail-panel' ? Number((_p$getChildByName = p.getChildByName('detail-id')) == null || (_p$getChildByName = _p$getChildByName.getComponent(Label)) == null ? void 0 : _p$getChildByName.string) : -1;
+          this.selected = -1;
+          a.drawPanel();
+          a.layoutBattlefield();
+          a.syncDrone();
+          if ((p == null ? void 0 : p.name) === 'drone-fleet-panel') this.manage();else if (id >= 0) this.detail(id);
+          void a.operations.save()["catch"](function (e) {
+            return a.operations.report('drone.fleet', e);
+          });
+        };
+        _proto.equip = function equip(id, slot) {
+          var _this = this;
+          this.a.act(function () {
+            return _this.a.game.equipPet(id, slot);
+          }, function () {
+            _this.a.tutorial.complete('first:pet');
+            _this.refresh();
+          }, null);
+        };
+        _proto.remove = function remove(slot) {
+          var _this2 = this;
+          this.a.act(function () {
+            return _this2.a.game.unequipPet(slot);
+          }, function () {
+            return _this2.refresh();
+          }, null);
+        };
+        _proto.pick = function pick(id) {
+          var a = this.a,
+            slots = a.game.droneSlots(),
+            current = slots.indexOf(id);
+          if (current >= 0) {
+            this.choose(current);
+            return;
+          }
+          var target = this.target();
+          if (target < 0) this.detail(id);else this.equip(id, target);
+        };
+        _proto.slots = function slots(parent, y, width, height) {
+          var _this3 = this;
+          var a = this.a,
+            slots = a.game.droneSlots(),
+            target = this.target(),
+            gap = 8,
+            w = (width - gap * 2) / 3;
+          var _loop = function _loop(slot) {
+            var id = slots[slot],
+              filled = id >= 0,
+              n = a.nodeAt(parent, 'drone-fleet-slot-' + slot, (slot - 1) * (w + gap), y, w, height);
+            a.ui.surface(n, target === slot ? '#3c5350' : '#28332e', 'cut', 255, true);
+            a.rect(n, 0, height / 2 - 2, w - 18, 3, target === slot ? UI.gold : filled ? tones[id % 3] : UI.muted);
+            a.label(n, a.tr('drone.fleet.slot', {
+              slot: slot + 1
+            }), -21, height / 2 - 16, w - 40, 22, 14, UI.text);
+            a.touchAction(n, function () {
+              return _this3.choose(slot);
+            });
+            if (filled) {
+              a.ui.paint(a.nodeAt(n, 'drone-slot-art', -w / 4, 7, 46, 46), 'drones/' + id);
+              a.label(n, a.tr('action.level', {
+                level: a.game.s.pets[id]
+              }), w / 4, 16, w / 2 - 10, 22, 14, tones[id % 3]);
+              a.button(n, a.tr('action.details'), w / 4, -6, w / 2 - 10, 26, function () {
+                return _this3.detail(id);
+              }, false, {
+                category: 'details',
+                fontSize: 12
+              }).name = 'drone-slot-detail-' + slot;
+              a.label(n, a.tr('pet.' + id), 0, -height / 2 + 19, w - 10, 30, 14, UI.text).node.name = 'drone-slot-name';
+              var remove = a.button(n, '×', w / 2 - 18, height / 2 - 16, 34, 30, function () {
+                return _this3.remove(slot);
+              }, false, {
+                category: 'danger',
+                fontSize: 17,
+                hint: a.tr('drone.fleet.remove')
+              });
+              remove.name = 'drone-slot-remove-' + slot;
+              remove.getComponent(UITransform).setContentSize(44, 40);
+            } else {
+              a.label(n, '+', 0, 7, w - 12, 34, 26, UI.muted);
+              a.label(n, a.tr('drone.fleet.empty'), 0, -height / 2 + 19, w - 10, 30, 14, UI.muted);
+            }
+          };
+          for (var slot = 0; slot < 3; slot++) {
+            _loop(slot);
+          }
+        };
+        _proto.rows = function rows() {
+          var _this4 = this;
+          var a = this.a,
+            g = a.game,
+            slots = g.droneSlots(),
+            target = this.target();
+          var sorted = PETS.slice().sort(function (p, q) {
+            var x = slots.indexOf(p.id),
+              y = slots.indexOf(q.id);
+            return (x < 0 ? 3 + p.id : x) - (y < 0 ? 3 + q.id : y);
+          });
+          return sorted.map(function (p) {
+            var level = g.s.pets[p.id],
+              slot = slots.indexOf(p.id),
+              equipped = slot >= 0,
+              value = (1 + level * .025 * (equipped ? 1 : Math.min(1, level / 100))).toFixed(2);
+            return {
+              title: a.tr(p.name),
+              sub: a.tr('drone.fleet.rowEffect', {
+                effect: _this4.effect(p.id),
+                value: value
+              }),
+              icon: p.id,
+              art: 'drones:' + p.id,
+              tint: tones[p.effect],
+              locked: !level,
+              revealLockedArt: true,
+              actionCategory: 'deck',
+              actionCompleted: function actionCompleted() {
+                return g.droneSlots().includes(p.id);
+              },
+              action: !level ? a.tr('action.locked') : equipped ? a.tr('drone.fleet.assigned', {
+                slot: slot + 1
+              }) : target >= 0 ? slots[target] < 0 ? a.tr('action.equip') : a.tr('extra.replace') : a.tr('extra.replace'),
+              detail: function detail() {
+                return _this4.detail(p.id);
+              },
+              click: function click() {
+                return _this4.pick(p.id);
+              },
+              unavailable: function unavailable() {
+                return !g.s.pets[p.id] ? a.tr('error.locked') : null;
+              },
+              metrics: [{
+                icon: 'symbol:up',
+                value: String(level),
+                hint: a.tr('action.level', {
+                  level: level
+                })
+              }, {
+                icon: p.effect === 0 ? 'symbol:coin' : 'symbol:damage',
+                value: '×' + value,
+                hint: a.tr(equipped ? 'pet.activeEffect' : 'pet.passiveEffect', {
+                  effect: _this4.effect(p.id),
+                  value: value
+                })
+              }]
+            };
+          });
+        };
+        _proto.panel = function panel(p) {
+          var _this5 = this;
+          var a = this.a,
+            g = a.game,
+            target = this.target();
+          a.label(p, a.tr('drone.fleet.count', {
+            count: g.equippedDrones().length
+          }), -131, 129, 188, 30, 19, UI.gold);
+          a.button(p, a.tr('drone.fleet.manage'), 23, 129, 110, 32, function () {
+            return _this5.manage();
+          }, false, {
+            category: 'deck',
+            fontSize: 14
+          }).name = 'drone-fleet-manage';
+          a.button(p, a.tr('pet.hatch'), 160, 129, 134, 32, function () {
+            return a.rewards.local(a.tr('pet.hatch'), 'hatch:' + g.s.eggAt, function (x) {
+              return x.hatch(a.id('egg'));
+            }, function () {
+              return a.drawPanel();
+            });
+          }, false, {
+            fontSize: 14,
+            label: function label() {
+              return g.now() >= g.s.eggAt ? a.tr('pet.hatch') : a.tr('action.remaining', {
+                seconds: Math.ceil((g.s.eggAt - g.now()) / 1000)
+              });
+            },
+            unavailable: function unavailable() {
+              return g.now() < g.s.eggAt ? a.tr('action.waitSeconds', {
+                seconds: Math.ceil((g.s.eggAt - g.now()) / 1000)
+              }) : null;
+            }
+          }).name = 'drone-fleet-hatch';
+          this.slots(p, 60, 450, 88);
+          a.label(p, a.tr(target >= 0 ? 'drone.fleet.chooseForSlot' : 'drone.fleet.chooseReplacement', {
+            slot: target + 1
+          }), 0, 0, 440, 26, 14, UI.gold);
+          a.scroll(p, 0, -81, 458, 128, this.rows());
+        };
+        _proto.manage = function manage() {
+          var _a$modal2,
+            _old$getChildByName,
+            _this6 = this,
+            _p$getChildByName2;
+          var a = this.a,
+            old = (_a$modal2 = a.modal) == null ? void 0 : _a$modal2.children.find(function (n) {
+              return n.name === 'drone-fleet-panel';
+            });
+          if (old) this.managerOffset = ((_old$getChildByName = old.getChildByName('scroll')) == null || (_old$getChildByName = _old$getChildByName.getComponent(ScrollView)) == null ? void 0 : _old$getChildByName.getScrollOffset().y) || 0;
+          this.returnToManager = false;
+          var p = a.open(a.tr('drone.fleet.manage'), 730, true, 'teal', false);
+          p.name = 'drone-fleet-panel';
+          this.slots(p, 214, 398, 116);
+          var target = this.target();
+          a.label(p, a.tr(target >= 0 ? 'drone.fleet.chooseForSlot' : 'drone.fleet.chooseReplacement', {
+            slot: target + 1
+          }), 0, 132, 392, 30, 16, UI.gold);
+          a.label(p, a.tr('drone.fleet.trainingTarget', {
+            name: a.tr('pet.' + a.game.petRewardTarget())
+          }), 0, 97, 392, 26, 14, UI.muted);
+          var _loop2 = function _loop2(effect) {
+            var value = droneMultiplier(a.game.s, effect),
+              n = a.nodeAt(p, 'drone-fleet-total-' + effect, (effect - 1) * 130, 56, 122, 42);
+            a.ui.surface(n, '#25352f', 'cut');
+            a.label(n, a.tr('drone.fleet.total', {
+              effect: a.tr('drone.fleet.totalType.' + effect),
+              value: value.toFixed(2)
+            }), 0, 0, 112, 40, 15, tones[effect]);
+            a.touchAction(n, function () {
+              return a.tooltip(n, a.tr('drone.fleet.totalHelp', {
+                effect: _this6.effect(effect),
+                value: value.toFixed(4)
+              }));
+            });
+          };
+          for (var effect = 0; effect < 3; effect++) {
+            _loop2(effect);
+          }
+          a.scroll(p, 0, -135, 408, 326, this.rows());
+          (_p$getChildByName2 = p.getChildByName('scroll')) == null || (_p$getChildByName2 = _p$getChildByName2.getComponent(ScrollView)) == null || _p$getChildByName2.scrollToOffset(new Vec2(0, this.managerOffset), 0);
+        };
+        _proto.detail = function detail(id) {
+          var _a$modal3,
+            _old$getChildByName2,
+            _this7 = this;
+          var a = this.a,
+            old = (_a$modal3 = a.modal) == null ? void 0 : _a$modal3.children.find(function (n) {
+              return n.name === 'drone-fleet-panel' || n.name === 'drone-detail-panel';
+            });
+          this.returnToManager = (old == null ? void 0 : old.name) === 'drone-fleet-panel' || (old == null ? void 0 : old.name) === 'drone-detail-panel' && this.returnToManager;
+          if ((old == null ? void 0 : old.name) === 'drone-fleet-panel') this.managerOffset = ((_old$getChildByName2 = old.getChildByName('scroll')) == null || (_old$getChildByName2 = _old$getChildByName2.getComponent(ScrollView)) == null ? void 0 : _old$getChildByName2.getScrollOffset().y) || 0;
+          var g = a.game,
+            level = g.s.pets[id],
+            slot = g.droneSlots().indexOf(id),
+            active = (1 + level * .025).toFixed(2),
+            passive = (1 + level * .025 * Math.min(1, level / 100)).toFixed(2),
+            effect = this.effect(id),
+            p = a.open(a.tr('pet.' + id), 640, true, 'teal', false, this.returnToManager ? function () {
+              return _this7.manage();
+            } : undefined);
+          p.name = 'drone-detail-panel';
+          var token = a.label(p, String(id), 0, 0, 1, 1, 14);
+          token.node.name = 'detail-id';
+          token.node.active = false;
+          a.ui.paint(a.nodeAt(p, 'drone-detail-art', -113, 153, 126, 126), 'drones/' + id);
+          a.label(p, a.tr(slot >= 0 ? 'drone.fleet.assigned' : 'drone.fleet.reserve', {
+            slot: slot + 1
+          }), 68, 193, 206, 30, 21, slot >= 0 ? UI.mint : UI.muted);
+          a.label(p, effect, 68, 146, 206, 48, 20, tones[id % 3]).node.name = 'drone-effect-kind';
+          a.metric(p, 'symbol:up', String(level), -125, 66, 114, a.tr('action.level', {
+            level: level
+          }));
+          a.metric(p, 'lightning', '×' + active, 0, 66, 126, a.tr('pet.activeEffect', {
+            effect: effect,
+            value: active
+          }));
+          a.metric(p, 'heart', '×' + passive, 125, 66, 114, a.tr('pet.passiveEffect', {
+            effect: effect,
+            value: passive
+          }));
+          a.label(p, a.tr('drone.fleet.slotPrompt'), 0, 10, 380, 28, 16, UI.gold);
+          g.droneSlots().forEach(function (current, index) {
+            var done = current === id,
+              text = a.tr(done ? 'drone.fleet.assigned' : slot >= 0 ? 'drone.fleet.moveSlot' : current < 0 ? 'drone.fleet.addToSlot' : 'drone.fleet.replaceSlot', {
+                slot: index + 1,
+                name: current < 0 ? '' : a.tr('pet.' + current)
+              });
+            a.button(p, text, 0, -37 - index * 49, 376, 42, function () {
+              return done ? a.tooltip(p, a.tr('pet.activeEffect', {
+                effect: effect,
+                value: active
+              })) : _this7.equip(id, index);
+            }, true, {
+              category: 'deck',
+              fontSize: 15,
+              style: done ? 'selected' : !level ? 'disabled' : 'primary',
+              unavailable: function unavailable() {
+                return !g.s.pets[id] ? a.tr('error.locked') : null;
+              }
+            }).name = 'drone-detail-slot-' + index;
+          });
+          a.button(p, a.tr(slot >= 0 ? 'drone.fleet.remove' : 'drone.fleet.manage'), -96, -216, 180, 42, function () {
+            return slot >= 0 ? _this7.remove(slot) : _this7.manage();
+          }, false, {
+            category: slot >= 0 ? 'danger' : 'deck',
+            fontSize: 15
+          }).name = 'drone-detail-remove';
+          a.button(p, a.tr('extra.maintenanceShort'), 96, -216, 180, 42, function () {
+            return a.extensions.petPuzzle();
+          }, false, {
+            category: 'upgrade',
+            fontSize: 15
+          });
+          a.label(p, a.tr('pet.info'), 0, -272, 380, 62, 15, UI.muted);
+        };
+        _proto.fieldNode = function fieldNode(id) {
+          var slot = this.a.game.droneSlots().indexOf(id);
+          return slot < 0 ? null : this.a.root.getChildByName('drone-fleet-unit-' + slot);
+        };
+        _proto.syncBattle = function syncBattle() {
+          var _a$entry,
+            _this8 = this;
+          var a = this.a;
+          if (!((_a$entry = a.entry) != null && _a$entry.playing) || !a.root || !isValid(a.root, true) || !a.battleCast || !isValid(a.battleCast, true)) return;
+          var slots = a.game.droneSlots(),
+            ids = a.game.equippedDrones(),
+            multi = ids.length > 1,
+            base = partyBattlefieldLayout(a.folded, a.heightExtra, a.safeBottom, a.safeTop).scale;
+          var _loop3 = function _loop3(slot) {
+            var _n$getComponent;
+            var id = slots[slot],
+              name = 'drone-fleet-unit-' + slot;
+            var n = a.root.getChildByName(name);
+            if (id < 0 || a.game.s.maxStage < 8) {
+              if (n) n.active = false;
+              var _hit = a.root.getChildByName('drone-name-hit-' + slot);
+              if (_hit) _hit.active = false;
+              return 1; // continue
+            }
+
+            if (!n) {
+              n = a.nodeAt(a.root, name, 0, 0, 64, 64);
+              n.setSiblingIndex(a.battleCast.getSiblingIndex() + 1);
+              a.label(n, '', 0, -43, multi ? 70 : 136, multi ? 34 : 22, 13, UI.text).node.name = 'drone-name';
+              a.touchAction(n, function () {
+                var current = a.game.droneSlots()[slot];
+                if (current >= 0) _this8.detail(current);
+              });
+            }
+            n.active = true;
+            n.setScale(base, base, 1);
+            if (((_n$getComponent = n.getComponent(Sprite)) == null ? void 0 : _n$getComponent.spriteFrame) !== a.ui.frames.get('drones/' + id)) a.ui.paint(n, 'drones/' + id);
+            var caption = n.getChildByName('drone-name'),
+              c = caption.getComponent(Label);
+            caption.getComponent(UITransform).setContentSize(multi ? 70 : 136, multi ? 34 : 22);
+            c.string = multi ? a.tr('drone.fleet.battleName', {
+              kind: a.tr('drone.fleet.kind.' + id % 3),
+              mark: Math.floor(id / 3) + 1
+            }) : a.tr('pet.' + id);
+            var column = multi ? ids.indexOf(id) : 0,
+              x = multi ? [-160, -92, -24][column] : -20 * base,
+              y = a.designH / 2 - a.safeTop - (multi ? 248 : 198) + (a.game.s.extra.effects ? Math.sin(a.age * 2.6 + slot * .7) * 4 : 0);
+            n.setPosition(x, y, 0);
+            var hit = a.root.getChildByName('drone-name-hit-' + slot);
+            if (!hit) {
+              hit = a.nodeAt(a.root, 'drone-name-hit-' + slot, 0, 0, 70, 34);
+              hit.setSiblingIndex(a.battleCast.getSiblingIndex() + 1);
+              a.touchAction(hit, function () {
+                var current = a.game.droneSlots()[slot];
+                if (current >= 0) _this8.detail(current);
+              });
+            }
+            hit.active = true;
+            hit.setPosition(a.root.getComponent(UITransform).convertToNodeSpaceAR(caption.worldPosition));
+            hit.getComponent(UITransform).setContentSize((multi ? 70 : 136) * base, (multi ? 34 : 24) * base);
+          };
+          for (var slot = 0; slot < 3; slot++) {
+            if (_loop3(slot)) continue;
+          }
+          for (var _slot = 0; _slot < 3; _slot++) if (slots[_slot] < 0) {
+            var hit = a.root.getChildByName('drone-name-hit-' + _slot);
+            if (hit) hit.active = false;
+          }
+        };
+        return DroneFleetUI;
       }());
       cclegacy._RF.pop();
     }
@@ -4786,7 +5278,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           if (height === void 0) {
             height = 680;
           }
-          var p = this.a.open(this.tr(title), height);
+          var p = this.a.open(this.tr(title), height, true, 'teal', true, undefined, 'extension:' + title);
           this.a.scroll(p, 0, -25, 400, height - 120, rows);
           return p;
         };
@@ -5755,7 +6247,8 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             p = this.a.open(this.tr('extra.perk', {
               id: id + 1
             }), 420);
-          this.a.label(p, this.tr('perks.info'), 0, 70, 370, 90, 18);
+          this.a.ui.icon(this.a.nodeAt(p, 'popup-subject-art', -139, 74, 76, 76), 'lightning');
+          this.a.label(p, this.tr('perks.info'), 43, 74, 266, 96, 18);
           this.a.button(p, this.tr('action.apply'), 0, -12, 360, 50, function () {
             return _this19.action(function () {
               return _this19.e.usePerk(slot, _this19.id('perk'));
@@ -5811,68 +6304,10 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           (_p$getChildByName = p.getChildByName('scroll')) == null || (_p$getChildByName = _p$getChildByName.getComponent(ScrollView)) == null || _p$getChildByName.scrollToOffset(new Vec2(0, offset), 0);
         };
         _proto.petDetail = function petDetail(i) {
-          var _this21 = this;
-          var a = this.a,
-            level = this.g.s.pets[i],
-            effect = this.tr(['pet.effectGold', 'pet.effectTap', 'pet.effectHero'][i % 3]),
-            active = (1 + level * .025).toFixed(2),
-            passive = (1 + level * .025 * Math.min(1, level / 100)).toFixed(2),
-            p = a.open(this.tr("pet." + i), 500);
-          a.ui.paint(a.nodeAt(p, 'pet-art', -133, 114, 88, 88), 'drones/' + i);
-          a.label(p, this.tr('pet.effectType', {
-            effect: effect
-          }), 54, 114, 242, 76, 18).node.name = 'drone-effect-kind';
-          a.metric(p, 'symbol:up', String(level), -124, 31, 116, this.tr('action.level', {
-            level: level
-          }));
-          a.metric(p, 'lightning', '×' + active, 0, 31, 126, this.tr('pet.activeEffect', {
-            effect: effect,
-            value: active
-          }));
-          a.metric(p, 'heart', '×' + passive, 124, 31, 120, this.tr('pet.passiveEffect', {
-            effect: effect,
-            value: passive
-          }));
-          a.button(p, this.tr(!level ? 'action.locked' : this.g.s.activePet === i ? 'action.equipped' : 'action.equip'), -127, -54, 112, 56, function () {
-            if (!level) a.toast(_this21.tr('error.locked'), 'blocked');else if (_this21.g.s.activePet === i) a.toast(_this21.tr('action.alreadyEquipped'), 'blocked');else {
-              if (!_this21.g.equipPet(i)) {
-                a.flushNotice();
-                return;
-              }
-              a.tutorial.complete('first:pet');
-              _this21.g.persist();
-              a.close();
-              a.drawPanel();
-            }
-          }, true, {
-            category: 'confirm',
-            style: this.g.s.activePet === i && level > 0 ? 'selected' : level > 0 ? 'primary' : 'disabled'
-          });
-          a.button(p, this.tr('extra.maintenanceShort'), 0, -54, 112, 56, function () {
-            return _this21.petPuzzle();
-          }, false, {
-            icon: 'interface:part-6',
-            hint: this.tr('extra.puzzleInfo')
-          });
-          a.button(p, this.tr('extra.petMilestoneShort'), 127, -54, 112, 56, function () {
-            return _this21.petMilestones();
-          }, false, {
-            icon: 'trophy',
-            hint: this.tr('extra.petMilestones')
-          });
-          a.button(p, this.tr('extra.petEffects'), 0, -181, 370, 44, function () {
-            return a.info(_this21.tr("pet." + i), _this21.tr('pet.bonusDetail', {
-              effect: effect,
-              level: level,
-              active: active,
-              passive: passive
-            }) + '\n' + _this21.tr('pet.info'));
-          }, false, {
-            icon: 'symbol:info'
-          });
+          this.a.droneFleet.detail(i);
         };
         _proto.petPuzzle = function petPuzzle() {
-          var _this22 = this;
+          var _this21 = this;
           var a = this.a,
             target = this.g.petRewardTarget(),
             p = this.maintenanceContent(a.open(this.tr('extra.petPuzzle'), 730)),
@@ -5889,23 +6324,23 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             level: this.g.s.pets[target]
           }), 0, 163, 375, 30, 15);
           var _loop = function _loop(i) {
-            var matched = _this22.x.petMatched.includes(i),
-              visible = matched || _this22.x.petFace.includes(i),
-              part = _this22.x.petBoard[i];
+            var matched = _this21.x.petMatched.includes(i),
+              visible = matched || _this21.x.petFace.includes(i),
+              part = _this21.x.petBoard[i];
             var card = a.button(p, '', -147 + i % 4 * 98, 103 - Math.floor(i / 4) * 83, 88, 76, function () {
               a.sound(400);
-              a.rewards.earned(_this22.tr('extra.petPuzzle'), 'maintenance:' + _this22.x.day + ':' + _this22.id('pair'), function (g) {
-                return new Expansion(g).petTile(i, _this22.id('pet-tile'));
+              a.rewards.earned(_this21.tr('extra.petPuzzle'), 'maintenance:' + _this21.x.day + ':' + _this21.id('pair'), function (g) {
+                return new Expansion(g).petTile(i, _this21.id('pet-tile'));
               }, function () {
-                _this22.petPuzzle();
+                _this21.petPuzzle();
                 a.updateHUD();
               });
             }, visible, {
-              hint: _this22.tr(visible ? 'extra.part.' + part : 'extra.puzzleFlip'),
+              hint: _this21.tr(visible ? 'extra.part.' + part : 'extra.puzzleFlip'),
               unavailable: function unavailable() {
-                return _this22.g.s.maxStage < 8 ? _this22.tr('hero.locked', {
+                return _this21.g.s.maxStage < 8 ? _this21.tr('hero.locked', {
                   stage: 8
-                }) : matched ? _this22.tr('extra.puzzleMatched') : _this22.x.petFace.length === 1 && _this22.x.petFace.includes(i) ? _this22.tr('extra.puzzleSecond') : _this22.x.petFace.length !== 1 ? _this22.a.needReason(_this22.tr('extra.puzzleCurrency'), _this22.x.petEnergy, 1) : null;
+                }) : matched ? _this21.tr('extra.puzzleMatched') : _this21.x.petFace.length === 1 && _this21.x.petFace.includes(i) ? _this21.tr('extra.puzzleSecond') : _this21.x.petFace.length !== 1 ? _this21.a.needReason(_this21.tr('extra.puzzleCurrency'), _this21.x.petEnergy, 1) : null;
               }
             });
             card.name = 'maintenance-card-' + i;
@@ -5915,12 +6350,12 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
               n.removeFromParent();
               n.destroy();
             });
-            var blocked = !visible && (_this22.g.s.maxStage < 8 || _this22.x.petFace.length !== 1 && _this22.x.petEnergy <= 0);
+            var blocked = !visible && (_this21.g.s.maxStage < 8 || _this21.x.petFace.length !== 1 && _this21.x.petEnergy <= 0);
             a.ui.surface(card, matched ? UI.mint : visible ? UI.paper : blocked ? '#444852' : UI.panel, 'cut', 255, true);
             if (blocked) a.ui.icon(a.nodeAt(card, 'maintenance-lock', 0, 0, 26, 26), 'lock');
             if (visible) {
               a.ui.icon(a.nodeAt(card, 'maintenance-part', 0, 9, 45, 45), 'interface:part-' + part);
-              a.label(card, _this22.tr('extra.part.' + part), 0, -24, 80, 22, 14, '#111114');
+              a.label(card, _this21.tr('extra.part.' + part), 0, -24, 80, 22, 14, '#111114');
             }
           };
           for (var i = 0; i < 16; i++) {
@@ -5929,7 +6364,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           var mismatch = this.x.petFace.length === 2 && this.x.petBoard[this.x.petFace[0]] !== this.x.petBoard[this.x.petFace[1]];
           a.label(p, this.tr(matches === 8 ? 'extra.puzzleComplete' : mismatch ? 'extra.puzzleRetry' : this.x.petFace.length === 1 ? 'extra.puzzleSecond' : 'extra.puzzleReward'), 0, -233, 375, 78, 16, matches === 8 ? '#ffe04c' : '#ffffff');
           a.button(p, this.tr('extra.puzzleHelp'), 0, -314, 375, 48, function () {
-            return _this22.petPuzzleHelp();
+            return _this21.petPuzzleHelp();
           }, false, {
             style: 'secondary'
           }).name = 'maintenance-help';
@@ -5941,14 +6376,14 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           return content;
         };
         _proto.petPuzzleHelp = function petPuzzleHelp() {
-          var _this23 = this;
+          var _this22 = this;
           var a = this.a,
             target = this.g.petRewardTarget(),
             panel = a.open(this.tr('extra.puzzleHelpTitle'), 730, false, 'teal', false),
             p = this.maintenanceContent(panel);
           // Return to the same saved board from either close control, including a half-open pair.
           a.button(panel, '×', 176, panel.getComponent(UITransform).height / 2 - 38, 56, 56, function () {
-            return _this23.petPuzzle();
+            return _this22.petPuzzle();
           }, false, {
             style: 'quiet',
             hint: this.tr('action.close')
@@ -5969,90 +6404,90 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             a.label(p, this.tr('extra.puzzleHelp.' + key + '.body'), 0, bodyY, 375, height, 16);
           }
           a.button(p, this.tr('extra.puzzleHelpReturn'), 0, -311, 375, 50, function () {
-            return _this23.petPuzzle();
+            return _this22.petPuzzle();
           }, true).name = 'maintenance-help-return';
         };
         _proto.petMilestones = function petMilestones() {
-          var _this24 = this;
+          var _this23 = this;
           this.list('extra.petMilestones', [10, 25, 50, 100, 250, 500, 1000].map(function (target) {
             return {
-              title: _this24.tr('extra.petTarget', {
+              title: _this23.tr('extra.petTarget', {
                 target: target
               }),
               unavailable: function unavailable() {
-                return _this24.a.rewardReason(_this24.tr('action.petTotal'), _this24.g.s.pets.reduce(function (a, b) {
+                return _this23.a.rewardReason(_this23.tr('action.petTotal'), _this23.g.s.pets.reduce(function (a, b) {
                   return a + b;
-                }, 0), target, _this24.x.petMilestones.includes(target));
+                }, 0), target, _this23.x.petMilestones.includes(target));
               },
-              action: _this24.tr('action.claim'),
+              action: _this23.tr('action.claim'),
               click: function click() {
-                return _this24.a.rewards.local(_this24.tr('extra.petMilestones'), 'pet-milestone:' + target, function (g) {
-                  return new Expansion(g).petMilestone(target, _this24.id('pet-milestone'));
+                return _this23.a.rewards.local(_this23.tr('extra.petMilestones'), 'pet-milestone:' + target, function (g) {
+                  return new Expansion(g).petMilestone(target, _this23.id('pet-milestone'));
                 }, function () {
-                  return _this24.petMilestones();
+                  return _this23.petMilestones();
                 });
               }
             };
           }));
         };
         _proto.dustShop = function dustShop() {
-          var _this25 = this;
+          var _this24 = this;
           this.list('extra.dustShop', this.e.dustOffers().map(function (i) {
             return {
-              title: _this25.tr("card." + i),
-              sub: _this25.tr('extra.dustOffer', {
-                dust: _this25.g.s.dust
+              title: _this24.tr("card." + i),
+              sub: _this24.tr('extra.dustOffer', {
+                dust: _this24.g.s.dust
               }),
               unavailable: function unavailable() {
-                return !_this25.e.dustOffers().includes(i) ? _this25.tr('action.offerExpired') : _this25.a.costReason('dust', 20);
+                return !_this24.e.dustOffers().includes(i) ? _this24.tr('action.offerExpired') : _this24.a.costReason('dust', 20);
               },
               icon: i,
-              action: _this25.tr('action.buy'),
+              action: _this24.tr('action.buy'),
               click: function click() {
-                return _this25.action(function () {
-                  return _this25.e.dustBuy(i, _this25.id('dust'));
+                return _this24.action(function () {
+                  return _this24.e.dustBuy(i, _this24.id('dust'));
                 }, function () {
-                  return _this25.dustShop();
+                  return _this24.dustShop();
                 });
               }
             };
           }));
         };
         _proto.crystal = function crystal() {
-          var _this26 = this;
+          var _this25 = this;
           this.list('extra.crystal', Array.from({
             length: 15
           }, function (_, slot) {
             var type = Math.floor(slot / 5),
               index = slot % 5,
-              unlocked = index < _this26.e.crystalSlots(type),
-              card = _this26.x.crystal[slot];
+              unlocked = index < _this25.e.crystalSlots(type),
+              card = _this25.x.crystal[slot];
             return {
-              title: _this26.tr('extra.crystalSlot', {
+              title: _this25.tr('extra.crystalSlot', {
                 slot: slot + 1
               }),
-              sub: _this26.tr('extra.crystalRule', {
-                level: _this26.g.s.cards.reduce(function (a, b) {
+              sub: _this25.tr('extra.crystalRule', {
+                level: _this25.g.s.cards.reduce(function (a, b) {
                   return a + b;
                 }, 0),
-                required: _this26.e.crystalUnlock(type, index),
-                type: _this26.tr('extra.cardType.' + type),
-                base: _this26.e.crystalLevel(type),
-                card: card < 0 ? '—' : _this26.tr("card." + card)
+                required: _this25.e.crystalUnlock(type, index),
+                type: _this25.tr('extra.cardType.' + type),
+                base: _this25.e.crystalLevel(type),
+                card: card < 0 ? '—' : _this25.tr("card." + card)
               }),
               unavailable: function unavailable() {
-                return index >= _this26.e.crystalSlots(type) ? _this26.a.progressReason(_this26.tr('extra.cardTotal'), _this26.g.s.cards.reduce(function (a, b) {
+                return index >= _this25.e.crystalSlots(type) ? _this25.a.progressReason(_this25.tr('extra.cardTotal'), _this25.g.s.cards.reduce(function (a, b) {
                   return a + b;
-                }, 0), _this26.e.crystalUnlock(type, index)) : null;
+                }, 0), _this25.e.crystalUnlock(type, index)) : null;
               },
               actionCategory: 'synergy',
-              action: _this26.tr(unlocked ? 'action.select' : 'action.locked'),
+              action: _this25.tr(unlocked ? 'action.select' : 'action.locked'),
               click: function click() {
                 if (!unlocked) {
-                  _this26.a.toast(_this26.tr('error.locked'), 'blocked');
+                  _this25.a.toast(_this25.tr('error.locked'), 'blocked');
                   return;
                 }
-                _this26.list('extra.crystal', _this26.g.s.cards.map(function (level, i) {
+                _this25.list('extra.crystal', _this25.g.s.cards.map(function (level, i) {
                   return {
                     level: level,
                     i: i
@@ -6061,21 +6496,21 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                   return c.i % 3 === type;
                 }).map(function (c) {
                   return {
-                    title: _this26.tr("card." + c.i),
-                    sub: _this26.tr('extra.cardBoost', {
+                    title: _this25.tr("card." + c.i),
+                    sub: _this25.tr('extra.cardBoost', {
                       base: c.level,
-                      effective: Math.max(c.level, _this26.e.crystalLevel(type))
+                      effective: Math.max(c.level, _this25.e.crystalLevel(type))
                     }),
                     unavailable: function unavailable() {
-                      return _this26.g.raid && !_this26.g.raid.ended ? _this26.tr('action.raidRunning') : _this26.x.crystal.includes(c.i) ? _this26.tr('action.alreadyApplied') : null;
+                      return _this25.g.raid && !_this25.g.raid.ended ? _this25.tr('action.raidRunning') : _this25.x.crystal.includes(c.i) ? _this25.tr('action.alreadyApplied') : null;
                     },
                     actionCategory: 'synergy',
-                    action: _this26.tr(_this26.x.crystal.includes(c.i) ? 'action.selected' : 'action.select'),
+                    action: _this25.tr(_this25.x.crystal.includes(c.i) ? 'action.selected' : 'action.select'),
                     click: function click() {
-                      return _this26.action(function () {
-                        return _this26.e.crystal(slot, c.i, _this26.id('crystal'));
+                      return _this25.action(function () {
+                        return _this25.e.crystal(slot, c.i, _this25.id('crystal'));
                       }, function () {
-                        return _this26.crystal();
+                        return _this25.crystal();
                       });
                     }
                   };
@@ -6085,7 +6520,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           }));
         };
         _proto.souls = function souls() {
-          var _this27 = this;
+          var _this26 = this;
           var p = this.a.open(this.tr('extra.souls'), 720);
           this.a.label(p, this.tr('extra.soulSummary', {
             souls: this.g.s.souls,
@@ -6094,227 +6529,228 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             banner: this.x.banner
           }), 0, 255, 380, 76, 17);
           this.a.button(p, this.tr('extra.banner'), -137, 185, 126, 42, function () {
-            _this27.x.banner = (_this27.x.banner + 1) % 7;
-            _this27.g.persist();
-            _this27.souls();
+            _this26.x.banner = (_this26.x.banner + 1) % 7;
+            _this26.g.persist();
+            _this26.souls();
           });
           [1, 10].forEach(function (count, i) {
-            return _this27.a.button(p, _this27.tr('extra.summon', {
+            return _this26.a.button(p, _this26.tr('extra.summon', {
               count: count
             }), i ? 137 : 0, 185, 126, 42, function () {
-              return _this27.summonConfirm(count);
+              return _this26.summonConfirm(count);
             }, true, {
               unavailable: function unavailable() {
-                return _this27.summonReason(count);
+                return _this26.summonReason(count);
               }
             });
           });
           this.a.button(p, this.tr('extra.levelAll'), -101, 130, 190, 42, function () {
-            return _this27.action(function () {
-              return _this27.e.levelTitans(Array.from({
+            return _this26.action(function () {
+              return _this26.e.levelTitans(Array.from({
                 length: 120
               }, function (_, i) {
                 return i;
-              }), _this27.id('level-all'));
+              }), _this26.id('level-all'));
             }, function () {
-              return _this27.souls();
+              return _this26.souls();
             });
           }, false, {
             unavailable: function unavailable() {
-              return _this27.g.s.titans.some(function (n, i) {
-                return n >= _this27.e.titanCost(i);
-              }) ? null : _this27.tr('action.noUpgrades');
+              return _this26.g.s.titans.some(function (n, i) {
+                return n >= _this26.e.titanCost(i);
+              }) ? null : _this26.tr('action.noUpgrades');
             }
           });
           this.a.button(p, this.tr('meta.research'), 101, 130, 190, 42, function () {
-            return _this27.a.research();
+            return _this26.a.research();
           });
           this.a.scroll(p, 0, -103, 400, 405, this.g.s.titans.map(function (copies, i) {
             return {
-              title: _this27.tr('extra.titan', {
+              title: _this26.tr('extra.titan', {
                 id: i + 1
               }),
-              sub: _this27.tr('extra.titanStats', {
+              sub: _this26.tr('extra.titanStats', {
                 copies: copies,
-                level: _this27.x.titanLevels[i],
-                cost: _this27.e.titanCost(i)
+                level: _this26.x.titanLevels[i],
+                cost: _this26.e.titanCost(i)
               }),
-              action: _this27.tr('action.details'),
+              action: _this26.tr('action.details'),
               click: function click() {
-                return _this27.titan(i);
+                return _this26.titan(i);
               }
             };
           }));
         };
         _proto.titan = function titan(i) {
-          var _this28 = this;
+          var _this27 = this;
           var p = this.a.open(this.tr('extra.titan', {
             id: i + 1
           }), 420);
+          this.a.ui.icon(this.a.nodeAt(p, 'popup-subject-art', -139, 52, 82, 82), 'adventurer');
           this.a.label(p, this.tr('extra.titanStats', {
             copies: this.g.s.titans[i],
             level: this.x.titanLevels[i],
             cost: this.e.titanCost(i)
-          }), 0, 50, 375, 130, 21);
+          }), 43, 52, 266, 144, 19);
           this.a.button(p, this.tr('action.upgrade'), 0, -112, 370, 50, function () {
-            return _this28.action(function () {
-              return _this28.e.levelTitans([i], _this28.id('titan'));
+            return _this27.action(function () {
+              return _this27.e.levelTitans([i], _this27.id('titan'));
             }, function () {
-              return _this28.titan(i);
+              return _this27.titan(i);
             });
           }, true, {
             unavailable: function unavailable() {
-              return _this28.a.needReason(_this28.tr('feedback.titans', {
+              return _this27.a.needReason(_this27.tr('feedback.titans', {
                 index: i + 1
-              }), _this28.g.s.titans[i], _this28.e.titanCost(i));
+              }), _this27.g.s.titans[i], _this27.e.titanCost(i));
             }
           });
         };
         _proto.gems = function gems() {
-          var _this29 = this;
+          var _this28 = this;
           var p = this.a.open(this.tr('extra.gems'), 700);
           this.a.button(p, this.tr('meta.crack'), -101, 248, 190, 50, function () {
-            return _this29.crackResult();
+            return _this28.crackResult();
           }, true, {
             unavailable: function unavailable() {
-              return _this29.a.costReason('geodes', 1);
+              return _this28.a.costReason('geodes', 1);
             }
           });
           this.a.button(p, this.tr('extra.mysticResearch'), 101, 248, 190, 50, function () {
-            return _this29.mystic();
+            return _this28.mystic();
           });
           this.a.scroll(p, 0, -55, 400, 520, this.g.s.stones.map(function (level, i) {
             return {
-              title: _this29.tr('meta.stone', {
+              title: _this28.tr('meta.stone', {
                 index: i + 1,
                 level: level
               }),
-              sub: _this29.tr('extra.rarity', {
-                rarity: _this29.e.gemstoneRarity(i)
+              sub: _this28.tr('extra.rarity', {
+                rarity: _this28.e.gemstoneRarity(i)
               }),
               icon: i,
-              action: _this29.tr('action.details'),
+              action: _this28.tr('action.details'),
               click: function click() {
-                return _this29.gem(i);
+                return _this28.gem(i);
               }
             };
           }));
         };
         _proto.gem = function gem(i) {
-          var _this30 = this;
+          var _this29 = this;
           var p = this.a.open(this.tr('meta.stone', {
             index: i + 1,
             level: this.g.s.stones[i]
-          }), 660);
+          }), 660, true, 'teal', true, undefined, 'gem:' + i);
           this.a.label(p, this.tr('extra.gemInfo', {
             rarity: this.e.gemstoneRarity(i),
             bonus: gemstoneSlots(this.g.s.stones[i])
           }), 0, 220, 380, 100, 18);
           this.a.scroll(p, 0, -68, 400, 400, [].concat(GROWTH_STATS.map(function (stat) {
             return {
-              title: _this30.tr('balance.stat.' + stat),
-              sub: _this30.tr('balance.factor', {
-                value: _this30.a.format(gemstoneBonus(i, _this30.g.s.stones[i], stat))
+              title: _this29.tr('balance.stat.' + stat),
+              sub: _this29.tr('balance.factor', {
+                value: _this29.a.format(gemstoneBonus(i, _this29.g.s.stones[i], stat))
               })
             };
           }), [100, 200, 400, 500].map(function (level) {
             return {
-              title: _this30.tr('action.level', {
+              title: _this29.tr('action.level', {
                 level: level
               }),
               unavailable: function unavailable() {
-                return _this30.a.rewardReason(_this30.tr('feedback.stones', {
+                return _this29.a.rewardReason(_this29.tr('feedback.stones', {
                   index: i + 1
-                }), _this30.g.s.stones[i], level, _this30.x.gemMilestones.includes(i + ":" + level));
+                }), _this29.g.s.stones[i], level, _this29.x.gemMilestones.includes(i + ":" + level));
               },
-              action: _this30.tr('action.claim'),
+              action: _this29.tr('action.claim'),
               click: function click() {
-                return _this30.a.rewards.local(_this30.tr('meta.stone', {
+                return _this29.a.rewards.local(_this29.tr('meta.stone', {
                   index: i + 1,
-                  level: _this30.g.s.stones[i]
+                  level: _this29.g.s.stones[i]
                 }), 'gem-milestone:' + i + ':' + level, function (g) {
-                  return new Expansion(g).gemMilestone(i, level, _this30.id('gem-milestone'));
+                  return new Expansion(g).gemMilestone(i, level, _this29.id('gem-milestone'));
                 }, function () {
-                  return _this30.gem(i);
+                  return _this29.gem(i);
                 });
               }
             };
           })));
         };
         _proto.mystic = function mystic() {
-          var _this31 = this;
+          var _this30 = this;
           this.list('extra.mysticResearch', this.x.mysticResearch.map(function (level, i) {
             return {
-              title: _this31.tr('meta.researchNode', {
+              title: _this30.tr('meta.researchNode', {
                 index: i + 1,
                 level: level
               }),
-              sub: _this31.tr('extra.researchPoints', {
-                points: _this31.x.geodesOpened - _this31.x.mysticResearch.reduce(function (a, l) {
+              sub: _this30.tr('extra.researchPoints', {
+                points: _this30.x.geodesOpened - _this30.x.mysticResearch.reduce(function (a, l) {
                   return a + l * (l + 1) / 2;
                 }, 0)
               }),
               unavailable: function unavailable() {
-                return i % 3 && _this31.x.mysticResearch[i - 1] < 3 ? _this31.tr('action.previousLevel', {
+                return i % 3 && _this30.x.mysticResearch[i - 1] < 3 ? _this30.tr('action.previousLevel', {
                   level: 3
-                }) : _this31.a.needReason(_this31.tr('extra.researchCurrency'), _this31.x.geodesOpened - _this31.x.mysticResearch.reduce(function (a, l) {
+                }) : _this30.a.needReason(_this30.tr('extra.researchCurrency'), _this30.x.geodesOpened - _this30.x.mysticResearch.reduce(function (a, l) {
                   return a + l * (l + 1) / 2;
-                }, 0), _this31.x.mysticResearch[i] + 1);
+                }, 0), _this30.x.mysticResearch[i] + 1);
               },
-              action: _this31.tr('action.upgrade'),
+              action: _this30.tr('action.upgrade'),
               click: function click() {
-                return _this31.action(function () {
-                  return _this31.e.mysticNode(i, _this31.id('mystic'));
+                return _this30.action(function () {
+                  return _this30.e.mysticNode(i, _this30.id('mystic'));
                 }, function () {
-                  return _this31.mystic();
+                  return _this30.mystic();
                 });
               }
             };
           }));
         };
         _proto.monuments = function monuments() {
-          var _this32 = this;
+          var _this31 = this;
           this.list('extra.monuments', [{
             title: this.tr('complete.discoverMonument'),
             sub: this.tr('complete.monumentCost', {
               cost: this.a.format(Math.log10(Math.pow(2, this.g.s.monuments.filter(Boolean).length)))
             }),
             unavailable: function unavailable() {
-              return _this32.g.s.maxStage < 180000 ? _this32.tr('hero.locked', {
+              return _this31.g.s.maxStage < 180000 ? _this31.tr('hero.locked', {
                 stage: 180000
-              }) : _this32.g.s.monuments.every(function (n) {
+              }) : _this31.g.s.monuments.every(function (n) {
                 return n > 0;
-              }) ? _this32.tr('error.complete') : _this32.a.costReason('mementos', _this32.g.s.monuments.filter(Boolean).length * Math.log10(2));
+              }) ? _this31.tr('error.complete') : _this31.a.costReason('mementos', _this31.g.s.monuments.filter(Boolean).length * Math.log10(2));
             },
             action: this.tr('action.open'),
             click: function click() {
-              var before = _this32.g.s.monuments.slice();
-              _this32.action(function () {
-                return _this32.e.discoverMonument(_this32.id('monument-discover'));
+              var before = _this31.g.s.monuments.slice();
+              _this31.action(function () {
+                return _this31.e.discoverMonument(_this31.id('monument-discover'));
               }, function () {
-                return _this32.monument(_this32.g.s.monuments.findIndex(function (l, i) {
+                return _this31.monument(_this31.g.s.monuments.findIndex(function (l, i) {
                   return l > before[i];
                 }));
               });
             }
           }].concat(this.g.s.monuments.map(function (level, i) {
             return {
-              title: _this32.tr('meta.monument', {
+              title: _this31.tr('meta.monument', {
                 index: i + 1,
                 level: level
               }),
-              sub: _this32.tr('extra.enchanted', {
-                value: _this32.x.monumentEnchanted[i]
+              sub: _this31.tr('extra.enchanted', {
+                value: _this31.x.monumentEnchanted[i]
               }),
-              action: _this32.tr('action.details'),
+              action: _this31.tr('action.details'),
               click: function click() {
-                return _this32.monument(i);
+                return _this31.monument(i);
               }
             };
           })));
         };
         _proto.monument = function monument(i) {
-          var _this33 = this;
+          var _this32 = this;
           var p = this.a.open(this.tr('meta.monument', {
             index: i + 1,
             level: this.g.s.monuments[i]
@@ -6323,76 +6759,76 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             value: this.a.format(this.g.s.mementos)
           }), 0, 140, 380, 85, 20);
           this.a.button(p, this.tr('action.upgrade'), 0, 50, 375, 50, function () {
-            return _this33.action(function () {
-              return _this33.g.monument(i, _this33.id('monument'));
+            return _this32.action(function () {
+              return _this32.g.monument(i, _this32.id('monument'));
             }, function () {
-              return _this33.monument(i);
+              return _this32.monument(i);
             });
           }, true, {
             unavailable: function unavailable() {
-              return _this33.g.s.maxStage < 180000 ? _this33.tr('hero.locked', {
+              return _this32.g.s.maxStage < 180000 ? _this32.tr('hero.locked', {
                 stage: 180000
-              }) : _this33.a.costReason('mementos', Math.log10(Math.pow(2, i) * (_this33.g.s.monuments[i] + 1)));
+              }) : _this32.a.costReason('mementos', Math.log10(Math.pow(2, i) * (_this32.g.s.monuments[i] + 1)));
             }
           });
           this.a.button(p, this.tr('artifact.salvage'), 0, -25, 375, 50, function () {
-            return _this33.a.confirm(_this33.tr('artifact.salvage'), _this33.tr('extra.monumentRefund'), function () {
-              return _this33.action(function () {
-                return _this33.e.salvageMonument(i, _this33.id('monument-salvage'));
+            return _this32.a.confirm(_this32.tr('artifact.salvage'), _this32.tr('extra.monumentRefund'), function () {
+              return _this32.action(function () {
+                return _this32.e.salvageMonument(i, _this32.id('monument-salvage'));
               }, function () {
-                return _this33.monuments();
+                return _this32.monuments();
               });
             });
           }, false, {
             unavailable: function unavailable() {
-              return !_this33.g.s.monuments[i] || _this33.x.monumentEnchanted[i] ? _this33.tr('extra.monumentProtected') : null;
+              return !_this32.g.s.monuments[i] || _this32.x.monumentEnchanted[i] ? _this32.tr('extra.monumentProtected') : null;
             }
           });
           this.a.button(p, this.tr('extra.enchantChoices'), 0, -100, 375, 50, function () {
-            return _this33.list('extra.enchantChoices', _this33.e.enchantCandidates().map(function (id) {
+            return _this32.list('extra.enchantChoices', _this32.e.enchantCandidates().map(function (id) {
               return {
-                title: _this33.tr('meta.monument', {
+                title: _this32.tr('meta.monument', {
                   index: id + 1,
-                  level: _this33.g.s.monuments[id]
+                  level: _this32.g.s.monuments[id]
                 }),
                 unavailable: function unavailable() {
-                  return _this33.monumentEnchantReason(id);
+                  return _this32.monumentEnchantReason(id);
                 },
-                action: _this33.tr('action.apply'),
+                action: _this32.tr('action.apply'),
                 click: function click() {
-                  return _this33.action(function () {
-                    return _this33.e.enchantMonument(id, _this33.id('monument-enchant'));
+                  return _this32.action(function () {
+                    return _this32.e.enchantMonument(id, _this32.id('monument-enchant'));
                   }, function () {
-                    return _this33.monuments();
+                    return _this32.monuments();
                   });
                 }
               };
             }));
           });
           this.a.button(p, this.tr('extra.seasonRewards'), 0, -180, 375, 50, function () {
-            return _this33.inbox();
+            return _this32.inbox();
           });
         };
         _proto.collectibles = function collectibles() {
-          var _this34 = this;
+          var _this33 = this;
           this.list('extra.collectibles', [0, 1, 2].map(function (i) {
             return {
-              title: _this34.tr("extra.collectible." + i),
+              title: _this33.tr("extra.collectible." + i),
               unavailable: function unavailable() {
-                return _this34.a.rewardReason(_this34.tr("extra.collectible." + i), [_this34.x.dailyFairies, _this34.x.dailyEquipment, _this34.x.dailyEggs][i], [3, 3, 1][i], _this34.x.collectionClaims.includes(String(i)));
+                return _this33.a.rewardReason(_this33.tr("extra.collectible." + i), [_this33.x.dailyFairies, _this33.x.dailyEquipment, _this33.x.dailyEggs][i], [3, 3, 1][i], _this33.x.collectionClaims.includes(String(i)));
               },
               sub: function sub() {
-                return _this34.tr('daily.progress', {
-                  current: [_this34.x.dailyFairies, _this34.x.dailyEquipment, _this34.x.dailyEggs][i],
+                return _this33.tr('daily.progress', {
+                  current: [_this33.x.dailyFairies, _this33.x.dailyEquipment, _this33.x.dailyEggs][i],
                   goal: [3, 3, 1][i]
                 });
               },
-              action: _this34.tr('action.claim'),
+              action: _this33.tr('action.claim'),
               click: function click() {
-                return _this34.a.rewards.local(_this34.tr('extra.collectible.' + i), 'collectible:' + _this34.x.day + ':' + i, function (g) {
-                  return new Expansion(g).collectible(i, _this34.id('collectible'));
+                return _this33.a.rewards.local(_this33.tr('extra.collectible.' + i), 'collectible:' + _this33.x.day + ':' + i, function (g) {
+                  return new Expansion(g).collectible(i, _this33.id('collectible'));
                 }, function () {
-                  return _this34.collectibles();
+                  return _this33.collectibles();
                 });
               }
             };
@@ -6408,39 +6844,39 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           this.a.liveOps.notifications();
         };
         _proto.localInbox = function localInbox(confirmed) {
-          var _this35 = this;
+          var _this34 = this;
           if (confirmed === void 0) {
             confirmed = false;
           }
           var a = this.a,
             p = a.open(this.tr('inbox.title'), 700);
           [false, true].forEach(function (value, i) {
-            return a.button(p, i ? _this35.a.tr('live.12') : _this35.a.tr('live.13'), i ? 101 : -101, 247, 190, 44, function () {
-              return _this35.localInbox(value);
+            return a.button(p, i ? _this34.a.tr('live.12') : _this34.a.tr('live.13'), i ? 101 : -101, 247, 190, 44, function () {
+              return _this34.localInbox(value);
             }, confirmed === value);
           });
           var mails = this.x.mails.filter(function (m) {
-            return m.claimed === confirmed && mailExpiry(m) > _this35.g.now();
+            return m.claimed === confirmed && mailExpiry(m) > _this34.g.now();
           });
           a.scroll(p, 0, -35, 400, 470, mails.map(function (m) {
             return {
-              title: _this35.tr(m.title),
-              sub: new Date(mailExpiry(m)).toLocaleString(_this35.g.s.locale),
-              action: _this35.tr('action.details'),
+              title: _this34.tr(m.title),
+              sub: new Date(mailExpiry(m)).toLocaleString(_this34.g.s.locale),
+              action: _this34.tr('action.details'),
               click: function click() {
-                return _this35.mailDetail(m.id, confirmed);
+                return _this34.mailDetail(m.id, confirmed);
               }
             };
           }));
           if (!mails.length) a.label(p, this.a.tr('live.14'), 0, 0, 370, 70, 18);
           a.modalRefresh = function () {
             if (mails.some(function (m) {
-              return mailExpiry(m) <= _this35.g.now();
-            })) _this35.localInbox(confirmed);
+              return mailExpiry(m) <= _this34.g.now();
+            })) _this34.localInbox(confirmed);
           };
         };
         _proto.mailDetail = function mailDetail(id, confirmed) {
-          var _this36 = this;
+          var _this35 = this;
           if (confirmed === void 0) {
             confirmed = false;
           }
@@ -6458,93 +6894,93 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             shards: m.shards
           }) + '\n' + new Date(mailExpiry(m)).toLocaleString(this.g.s.locale));
           if (!m.claimed) a.button(p, this.tr(m.gems || m.shards ? 'action.claim' : 'action.confirm'), 0, -255, 370, 46, function () {
-            if (m.gems || m.shards) a.rewards.local(_this36.tr(m.title), 'local-mail:' + id, function (g) {
-              return new Expansion(g).claimMail(id, _this36.id('mail'));
+            if (m.gems || m.shards) a.rewards.local(_this35.tr(m.title), 'local-mail:' + id, function (g) {
+              return new Expansion(g).claimMail(id, _this35.id('mail'));
             }, function () {
-              return _this36.localInbox(true);
-            });else _this36.action(function () {
-              return _this36.e.claimMail(id, _this36.id('mail'));
+              return _this35.localInbox(true);
+            });else _this35.action(function () {
+              return _this35.e.claimMail(id, _this35.id('mail'));
             }, function () {
-              return _this36.localInbox(true);
+              return _this35.localInbox(true);
             });
           }, true);else a.button(p, this.tr('extra.delete'), 0, -255, 370, 46, function () {
-            return a.confirm(_this36.tr('extra.delete'), _this36.a.tr('live.15'), function () {
-              return _this36.action(function () {
-                return _this36.e.deleteMail(id, _this36.id('delete-mail'));
+            return a.confirm(_this35.tr('extra.delete'), _this35.a.tr('live.15'), function () {
+              return _this35.action(function () {
+                return _this35.e.deleteMail(id, _this35.id('delete-mail'));
               }, function () {
-                return _this36.localInbox(true);
+                return _this35.localInbox(true);
               });
             });
           });
           a.modalRefresh = function () {
-            if (mailExpiry(m) <= _this36.g.now()) _this36.localInbox(confirmed);
+            if (mailExpiry(m) <= _this35.g.now()) _this35.localInbox(confirmed);
           };
         };
         _proto.cosmetics = function cosmetics(slot) {
-          var _this37 = this;
+          var _this36 = this;
           if (slot === void 0) {
             slot = 0;
           }
           var p = this.a.open(this.tr('extra.cosmetics'), 600);
           [0, 1, 2].forEach(function (i) {
-            return _this37.a.button(p, _this37.tr("extra.cosmetic." + i), -133 + i * 133, 211, 124, 42, function () {
-              return _this37.cosmetics(i);
+            return _this36.a.button(p, _this36.tr("extra.cosmetic." + i), -133 + i * 133, 211, 124, 42, function () {
+              return _this36.cosmetics(i);
             }, i === slot);
           });
           this.a.scroll(p, 0, -50, 400, 430, Array.from({
             length: 6
           }, function (_, i) {
             return {
-              title: _this37.tr('extra.style', {
+              title: _this36.tr('extra.style', {
                 id: i + 1
               }),
-              sub: _this37.tr('hero.locked', {
+              sub: _this36.tr('hero.locked', {
                 stage: i * 50
               }),
               icon: i,
               unavailable: function unavailable() {
-                return _this37.g.s.maxStage < i * 50 ? _this37.tr('hero.locked', {
+                return _this36.g.s.maxStage < i * 50 ? _this36.tr('hero.locked', {
                   stage: i * 50
-                }) : _this37.x.cosmetics[slot] === i ? _this37.tr('action.alreadyApplied') : null;
+                }) : _this36.x.cosmetics[slot] === i ? _this36.tr('action.alreadyApplied') : null;
               },
-              action: _this37.tr(_this37.x.cosmetics[slot] === i ? 'action.selected' : 'action.apply'),
+              action: _this36.tr(_this36.x.cosmetics[slot] === i ? 'action.selected' : 'action.apply'),
               click: function click() {
-                return _this37.action(function () {
-                  return _this37.e.cosmetic(slot, i, _this37.id('cosmetic'));
+                return _this36.action(function () {
+                  return _this36.e.cosmetic(slot, i, _this36.id('cosmetic'));
                 }, function () {
-                  _this37.a.close();
-                  _this37.a.draw();
-                  _this37.cosmetics(slot);
+                  _this36.a.close();
+                  _this36.a.draw();
+                  _this36.cosmetics(slot);
                 });
               }
             };
           }));
         };
         _proto.localNotifications = function localNotifications() {
-          var _this38 = this;
+          var _this37 = this;
           this.list('extra.notifications', [0, 1, 5].map(function (i) {
             return {
-              title: _this38.tr("extra.notice." + i),
-              action: _this38.tr(_this38.x.notifications[i] ? 'settings.on' : 'settings.off'),
+              title: _this37.tr("extra.notice." + i),
+              action: _this37.tr(_this37.x.notifications[i] ? 'settings.on' : 'settings.off'),
               click: function click() {
-                _this38.x.notifications[i] = !_this38.x.notifications[i];
-                _this38.g.persist();
-                if (_this38.x.notifications[i]) {
+                _this37.x.notifications[i] = !_this37.x.notifications[i];
+                _this37.g.persist();
+                if (_this37.x.notifications[i]) {
                   if (typeof Notification === 'undefined' || Notification.permission === 'denied') {
-                    _this38.x.notifications[i] = false;
-                    _this38.g.persist();
-                    _this38.a.toast(_this38.a.tr('live.16'), 'blocked');
+                    _this37.x.notifications[i] = false;
+                    _this37.g.persist();
+                    _this37.a.toast(_this37.a.tr('live.16'), 'blocked');
                   } else if (Notification.permission === 'default') void Notification.requestPermission().then(function (permission) {
                     if (permission !== 'granted') {
-                      _this38.x.notifications[i] = false;
-                      _this38.g.persist();
+                      _this37.x.notifications[i] = false;
+                      _this37.g.persist();
                     }
                   })["catch"](function () {
-                    _this38.x.notifications[i] = false;
-                    _this38.g.persist();
+                    _this37.x.notifications[i] = false;
+                    _this37.g.persist();
                   });
                 }
-                _this38.notifications();
+                _this37.notifications();
               }
             };
           }));
@@ -6568,62 +7004,62 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           this.a.toast(this.tr('settings.save'));
         };
         _proto.eventHub = function eventHub() {
-          var _this39 = this;
+          var _this38 = this;
           this.list('extra.eventModes', [['complete.eventRules', function () {
-            return _this39.a.info(_this39.tr('complete.eventRules'), _this39.tr('complete.eventRulesBody', {
-              time: new Date((_this39.x.eventSeason + 1) * 28 * 86400000).toLocaleString(_this39.g.s.locale),
-              tokens: _this39.x.eventEarned
+            return _this38.a.info(_this38.tr('complete.eventRules'), _this38.tr('complete.eventRulesBody', {
+              time: new Date((_this38.x.eventSeason + 1) * 28 * 86400000).toLocaleString(_this38.g.s.locale),
+              tokens: _this38.x.eventEarned
             }));
           }], ['extra.eventShop', function () {
-            return _this39.eventShop();
+            return _this38.eventShop();
           }], ['extra.alchemy', function () {
-            return _this39.alchemy();
+            return _this38.alchemy();
           }], ['extra.drop', function () {
-            return _this39.drop();
+            return _this38.drop();
           }], ['extra.tower', function () {
-            return _this39.tower();
+            return _this38.tower();
           }], ['event.path', function () {
-            return _this39.a.events();
+            return _this38.a.events();
           }], ['extra.seasonRewards', function () {
-            return _this39.inbox();
+            return _this38.inbox();
           }], ['extra.globalRaid', function () {
-            return _this39.a.globalRaid();
+            return _this38.a.globalRaid();
           }], ['extra.eventRanks', function () {
-            return _this39.a.eventRanks();
+            return _this38.a.eventRanks();
           }]].map(function (_ref16) {
             var key = _ref16[0],
               fn = _ref16[1];
             return {
-              title: _this39.tr(key),
-              action: _this39.tr('action.open'),
+              title: _this38.tr(key),
+              action: _this38.tr('action.open'),
               click: fn
             };
           }));
         };
         _proto.eventShop = function eventShop() {
-          var _this40 = this;
+          var _this39 = this;
           this.list('extra.eventShop', [0, 1, 2].map(function (i) {
             return {
-              title: _this40.tr(['extra.eventShards', 'shop.pet', 'meta.crack'][i]),
-              sub: _this40.tr('extra.tokenCost', {
+              title: _this39.tr(['extra.eventShards', 'shop.pet', 'meta.crack'][i]),
+              sub: _this39.tr('extra.tokenCost', {
                 count: [50, 100, 75][i]
               }),
               unavailable: function unavailable() {
-                return _this40.a.costReason('eventTokens', [50, 100, 75][i]);
+                return _this39.a.costReason('eventTokens', [50, 100, 75][i]);
               },
-              action: _this40.tr('action.buy'),
+              action: _this39.tr('action.buy'),
               click: function click() {
-                return _this40.action(function () {
-                  return _this40.e.eventShop(i, _this40.id('event-shop'));
+                return _this39.action(function () {
+                  return _this39.e.eventShop(i, _this39.id('event-shop'));
                 }, function () {
-                  return _this40.eventShop();
+                  return _this39.eventShop();
                 });
               }
             };
           }));
         };
         _proto.alchemy = function alchemy(a, b) {
-          var _this41 = this;
+          var _this40 = this;
           if (a === void 0) {
             a = 0;
           }
@@ -6638,75 +7074,75 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           this.a.button(p, this.tr('extra.ingredient', {
             id: a + 1
           }), -99, 30, 184, 75, function () {
-            return _this41.alchemy((a + 1) % 4, b);
+            return _this40.alchemy((a + 1) % 4, b);
           });
           this.a.button(p, this.tr('extra.ingredient', {
             id: b + 1
           }), 99, 30, 184, 75, function () {
-            return _this41.alchemy(a, (b + 1) % 4);
+            return _this40.alchemy(a, (b + 1) % 4);
           });
           this.a.button(p, this.tr('extra.combine'), 0, -100, 375, 50, function () {
-            return _this41.a.rewards.earned(_this41.tr('extra.alchemy'), _this41.id('alchemy-reward'), function (g) {
-              return new Expansion(g).alchemy(a, b, _this41.id('alchemy'));
+            return _this40.a.rewards.earned(_this40.tr('extra.alchemy'), _this40.id('alchemy-reward'), function (g) {
+              return new Expansion(g).alchemy(a, b, _this40.id('alchemy'));
             }, function () {
-              return _this41.alchemy(a, b);
+              return _this40.alchemy(a, b);
             });
           }, true, {
             unavailable: function unavailable() {
-              return _this41.a.costReason('eventTokens', 30);
+              return _this40.a.costReason('eventTokens', 30);
             }
           });
         };
         _proto.drop = function drop() {
-          var _this42 = this;
+          var _this41 = this;
           var p = this.a.open(this.tr('extra.drop'), 680);
           this.a.label(p, this.tr('extra.tokenCost', {
             count: 25
           }), 0, 250, 375, 40, 19);
           for (var row = 0; row < 8; row++) for (var col = 0; col <= row; col++) this.a.rect(p, (col - row / 2) * 35, 175 - row * 40, 5, 5, '#a3b7bb');
           this.a.button(p, this.tr('extra.dropBall'), 0, -250, 375, 50, function () {
-            var before = JSON.parse(JSON.stringify(_this42.g.s));
-            if (_this42.e.drop(_this42.id('drop'))) {
-              var ball = _this42.a.rect(p, 0, 207, 12, 12, '#ecc071');
+            var before = JSON.parse(JSON.stringify(_this41.g.s));
+            if (_this41.e.drop(_this41.id('drop'))) {
+              var ball = _this41.a.rect(p, 0, 207, 12, 12, '#ecc071');
               var right = 0,
                 anim = tween(ball);
-              _this42.x.dropHistory.forEach(function (bit, row) {
+              _this41.x.dropHistory.forEach(function (bit, row) {
                 right += bit;
                 anim = anim.to(.13, {
                   position: new Vec3((right - (row + 1) / 2) * 35, 175 - row * 40, 0)
                 });
               });
               anim.call(function () {
-                return _this42.a.rewards.received(_this42.tr('extra.drop'), _this42.id('drop-reward'), rewardDelta(before, _this42.g.s), function () {
-                  return _this42.drop();
+                return _this41.a.rewards.received(_this41.tr('extra.drop'), _this41.id('drop-reward'), rewardDelta(before, _this41.g.s), function () {
+                  return _this41.drop();
                 });
               }).start();
-            } else _this42.a.flushNotice();
+            } else _this41.a.flushNotice();
           }, true, {
             unavailable: function unavailable() {
-              return _this42.a.costReason('eventTokens', 25);
+              return _this41.a.costReason('eventTokens', 25);
             }
           });
         };
         _proto.tower = function tower() {
-          var _this43 = this;
+          var _this42 = this;
           var p = this.a.open(this.tr('extra.tower'), 490);
           this.a.label(p, this.tr('extra.towerInfo', {
             floor: this.x.towerFloor,
             keys: this.x.towerKeys
           }), 0, 135, 375, 100, 22);
           var _loop2 = function _loop2(i) {
-            _this43.a.button(p, _this43.tr('extra.door', {
+            _this42.a.button(p, _this42.tr('extra.door', {
               id: i + 1
             }), -132 + i * 132, -5, 120, 150, function () {
-              return _this43.a.rewards.earned(_this43.tr('extra.tower'), _this43.id('tower-reward'), function (g) {
-                return new Expansion(g).tower(i, _this43.id('tower'));
+              return _this42.a.rewards.earned(_this42.tr('extra.tower'), _this42.id('tower-reward'), function (g) {
+                return new Expansion(g).tower(i, _this42.id('tower'));
               }, function () {
-                return _this43.tower();
+                return _this42.tower();
               });
             }, true, {
               unavailable: function unavailable() {
-                return _this43.a.needReason(_this43.tr('extra.towerCurrency'), _this43.x.towerKeys, 1);
+                return _this42.a.needReason(_this42.tr('extra.towerCurrency'), _this42.x.towerKeys, 1);
               }
             });
           };
@@ -6715,46 +7151,46 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           }
         };
         _proto.applyServerReward = function applyServerReward(r) {
-          var _this44 = this;
+          var _this43 = this;
           return this.g.transaction(r.claimId, function () {
-            _this44.g.require(!_this44.g.s.claims.includes(r.claimId), 'error.claimed');
-            _this44.g.s.claims.push(r.claimId);
-            _this44.g.s.gems += r.gems;
-            _this44.g.s.shards += r.shards;
+            _this43.g.require(!_this43.g.s.claims.includes(r.claimId), 'error.claimed');
+            _this43.g.s.claims.push(r.claimId);
+            _this43.g.s.gems += r.gems;
+            _this43.g.s.shards += r.shards;
           });
         };
         _proto.heroMastery = function heroMastery(scrolls) {
-          var _this45 = this;
+          var _this44 = this;
           if (scrolls === void 0) {
             scrolls = false;
           }
           var levels = scrolls ? this.g.s.scrolls : this.g.s.weapons,
             p = this.a.open(this.tr('hero.mastery'), 700);
           this.a.button(p, this.tr('extra.weapons'), -101, 247, 190, 45, function () {
-            return _this45.heroMastery(false);
+            return _this44.heroMastery(false);
           }, !scrolls);
           this.a.button(p, this.tr('extra.scrolls'), 101, 247, 190, 45, function () {
-            return _this45.heroMastery(true);
+            return _this44.heroMastery(true);
           }, scrolls);
           this.a.label(p, this.tr('extra.masterySets', {
             sets: Math.min.apply(Math, levels)
           }), 0, 186, 375, 50, 17);
           this.a.scroll(p, 0, -83, 400, 460, levels.map(function (level, i) {
             return {
-              title: _this45.tr("hero." + i),
-              sub: _this45.tr('action.level', {
+              title: _this44.tr("hero." + i),
+              sub: _this44.tr('action.level', {
                 level: level
               }),
               icon: i,
-              action: _this45.tr('action.details'),
+              action: _this44.tr('action.details'),
               click: function click() {
-                return _this45.hero(i);
+                return _this44.hero(i);
               }
             };
           }));
         };
         _proto.equipmentSets = function equipmentSets() {
-          var _this46 = this;
+          var _this45 = this;
           var p = this.a.open(this.tr('equipment.sets'), 700);
           this.a.label(p, this.tr('extra.craftPower', {
             spent: this.g.s.crafted,
@@ -6766,56 +7202,56 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             }))) + 2)
           }, function (_, i) {
             return {
-              title: _this46.tr('extra.set', {
+              title: _this45.tr('extra.set', {
                 id: i + 1
               }),
-              sub: _this46.tr('daily.progress', {
-                current: _this46.g.s.setHistory.filter(function (part) {
+              sub: _this45.tr('daily.progress', {
+                current: _this45.g.s.setHistory.filter(function (part) {
                   return Math.floor(part / 5) === i;
                 }).length,
                 goal: 5
               }),
-              action: _this46.tr('action.details'),
+              action: _this45.tr('action.details'),
               click: function click() {
-                return _this46.equipmentSet(i);
+                return _this45.equipmentSet(i);
               }
             };
           }));
         };
         _proto.equipmentSet = function equipmentSet(i) {
-          var _this47 = this;
+          var _this46 = this;
           this.list('extra.setDetails', Array.from({
             length: 5
           }, function (_, slot) {
             return {
-              title: _this47.tr("slot." + slot),
-              sub: _this47.tr(_this47.g.s.setHistory.includes(i * 5 + slot) ? 'extra.collected' : 'extra.missing'),
+              title: _this46.tr("slot." + slot),
+              sub: _this46.tr(_this46.g.s.setHistory.includes(i * 5 + slot) ? 'extra.collected' : 'extra.missing'),
               icon: slot,
               art: ['equipment:rifle', 'equipment:helmet', 'equipment:vest', 'equipment:radio', 'equipment:rank'][slot],
               unavailable: function unavailable() {
-                return _this47.g.s.setHistory.includes(i * 5 + slot) ? _this47.tr('action.alreadyCrafted') : _this47.g.s.equipment.length >= 100 ? _this47.tr('error.full') : _this47.a.costReason('shards', _this47.g.craftCost(i, slot));
+                return _this46.g.s.setHistory.includes(i * 5 + slot) ? _this46.tr('action.alreadyCrafted') : _this46.g.s.equipment.length >= 100 ? _this46.tr('error.full') : _this46.a.costReason('shards', _this46.g.craftCost(i, slot));
               },
-              action: _this47.tr(_this47.g.s.setHistory.includes(i * 5 + slot) ? 'action.crafted' : 'equipment.craft'),
+              action: _this46.tr(_this46.g.s.setHistory.includes(i * 5 + slot) ? 'action.crafted' : 'equipment.craft'),
               click: function click() {
-                return _this47.a.craft(i, slot, function () {
-                  return _this47.equipmentSet(i);
+                return _this46.a.craft(i, slot, function () {
+                  return _this46.equipmentSet(i);
                 });
               }
             };
           }));
         };
         _proto.summonConfirm = function summonConfirm(count) {
-          var _this48 = this;
+          var _this47 = this;
           this.a.confirm(this.tr('extra.summon', {
             count: count
           }), this.tr('extra.summonCost', {
             count: count * 10
           }), function () {
-            var before = _this48.g.s.titans.slice();
-            _this48.action(function () {
-              return _this48.e.summon(count, _this48.x.banner, _this48.id('summon'));
+            var before = _this47.g.s.titans.slice();
+            _this47.action(function () {
+              return _this47.e.summon(count, _this47.x.banner, _this47.id('summon'));
             }, function () {
-              return _this48.list('extra.summonResult', _this48.g.s.titans.map(function (value, i) {
+              return _this47.list('extra.summonResult', _this47.g.s.titans.map(function (value, i) {
                 return {
                   value: value - before[i],
                   i: i
@@ -6824,72 +7260,72 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                 return v.value > 0;
               }).map(function (v) {
                 return {
-                  title: _this48.tr('extra.titan', {
+                  title: _this47.tr('extra.titan', {
                     id: v.i + 1
                   }),
-                  sub: _this48.tr('extra.owned', {
+                  sub: _this47.tr('extra.owned', {
                     count: v.value
                   }),
-                  action: _this48.tr('action.details'),
+                  action: _this47.tr('action.details'),
                   click: function click() {
-                    return _this48.titan(v.i);
+                    return _this47.titan(v.i);
                   }
                 };
               }));
             });
           }, {
             unavailable: function unavailable() {
-              return _this48.summonReason(count);
+              return _this47.summonReason(count);
             }
           });
         };
         _proto.crackResult = function crackResult() {
-          var _this49 = this;
+          var _this48 = this;
           var before = this.g.s.stones.slice();
           this.action(function () {
-            return _this49.g.crack(_this49.id('geode'));
+            return _this48.g.crack(_this48.id('geode'));
           }, function () {
-            return _this49.gem(_this49.g.s.stones.findIndex(function (value, i) {
+            return _this48.gem(_this48.g.s.stones.findIndex(function (value, i) {
               return value > before[i];
             }));
           });
         };
         _proto.notifyReady = function notifyReady() {
-          var _this50 = this;
+          var _this49 = this;
           if (typeof Notification === 'undefined' || Notification.permission !== 'granted' || typeof document === 'undefined' || !document.hidden) return;
           var day = Math.floor(this.g.now() / 86400000);
           var ready = [this.g.now() >= this.g.s.eggAt, !this.g.s.claims.includes('daily.0'), false, false, false, this.x.mails.some(function (m) {
-            return !m.claimed && m.expires > _this50.g.now();
+            return !m.claimed && m.expires > _this49.g.now();
           })];
           ready.forEach(function (yes, i) {
             var key = "notice." + day + "." + i;
-            if (yes && _this50.x.notifications[i] && !_this50.g.s.claims.includes(key)) {
+            if (yes && _this49.x.notifications[i] && !_this49.g.s.claims.includes(key)) {
               try {
-                var notification = new Notification(_this50.tr('game.name'), {
-                  body: _this50.tr("extra.notice." + i)
+                var notification = new Notification(_this49.tr('game.name'), {
+                  body: _this49.tr("extra.notice." + i)
                 });
                 notification.onclick = function () {
                   window.focus();
-                  if (i === 5 && !_this50.a.liveOps.blocked) _this50.inbox();
+                  if (i === 5 && !_this49.a.liveOps.blocked) _this49.inbox();
                   notification.close();
                 };
-                _this50.g.s.claims.push(key);
+                _this49.g.s.claims.push(key);
               } catch (_unused5) {}
             }
           });
         };
         _proto.serviceStatus = function serviceStatus() {
-          var _this51 = this;
+          var _this50 = this;
           void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee14() {
             var health;
             return _regeneratorRuntime().wrap(function _callee14$(_context14) {
               while (1) switch (_context14.prev = _context14.next) {
                 case 0:
                   _context14.next = 2;
-                  return _this51.a.onlineService.request('/health');
+                  return _this50.a.onlineService.request('/health');
                 case 2:
                   health = _context14.sent;
-                  _this51.a.info(_this51.tr('extra.serviceStatus'), _this51.tr(health.maintenance ? 'extra.maintenance' : 'extra.serviceReady', {
+                  _this50.a.info(_this50.tr('extra.serviceStatus'), _this50.tr(health.maintenance ? 'extra.maintenance' : 'extra.serviceReady', {
                     version: health.version || '0.2.0'
                   }));
                 case 4:
@@ -6900,14 +7336,14 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           })));
         };
         _proto.guildBattle = function guildBattle() {
-          var _this52 = this;
+          var _this51 = this;
           void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee15() {
             var r;
             return _regeneratorRuntime().wrap(function _callee15$(_context15) {
               while (1) switch (_context15.prev = _context15.next) {
                 case 0:
                   _context15.next = 2;
-                  return _this52.a.onlineService.request('/guild/raid');
+                  return _this51.a.onlineService.request('/guild/raid');
                 case 2:
                   r = _context15.sent;
                   if (r) {
@@ -6915,13 +7351,13 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                     break;
                   }
                   _context15.next = 6;
-                  return _this52.a.onlineService.command('/guild/raid/start', {
-                    deck: _this52.g.s.deck
+                  return _this51.a.onlineService.command('/guild/raid/start', {
+                    deck: _this51.g.s.deck
                   });
                 case 6:
                   r = _context15.sent;
                 case 7:
-                  _this52.guildBattlePanel(r);
+                  _this51.guildBattlePanel(r);
                 case 8:
                 case "end":
                   return _context15.stop();
@@ -6930,28 +7366,28 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           })));
         };
         _proto.guildBattlePanel = function guildBattlePanel(data) {
-          var _this53 = this;
+          var _this52 = this;
           var p = this.a.open(this.tr('online.guildRaid'), 700),
             r = data.raid,
             start = Date.now(),
             status = this.a.label(p, '', 0, 250, 375, 55, 20);
           var _loop3 = function _loop3(i) {
-            _this53.a.button(p, _this53.tr('raid.part', {
+            _this52.a.button(p, _this52.tr('raid.part', {
               part: i + 1
             }) + '\n' + display(r.hp[i]), i % 2 ? 94 : -94, 160 - Math.floor(i / 2) * 80, 175, 65, function () {
-              void _this53.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee18() {
+              void _this52.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee18() {
                 var next;
                 return _regeneratorRuntime().wrap(function _callee18$(_context18) {
                   while (1) switch (_context18.prev = _context18.next) {
                     case 0:
                       _context18.next = 2;
-                      return _this53.a.onlineService.command('/guild/raid/hit', {
+                      return _this52.a.onlineService.command('/guild/raid/hit', {
                         id: data.id,
                         part: i
                       });
                     case 2:
                       next = _context18.sent;
-                      _this53.guildBattlePanel(next);
+                      _this52.guildBattlePanel(next);
                     case 4:
                     case "end":
                       return _context18.stop();
@@ -6960,7 +7396,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
               })));
             }, false, {
               unavailable: function unavailable() {
-                return r.ended || r.seconds - (Date.now() - start) / 1000 <= 0 ? _this53.tr('action.battleEnded') : r.hp[i] <= 0 ? _this53.tr('action.targetDefeated') : null;
+                return r.ended || r.seconds - (Date.now() - start) / 1000 <= 0 ? _this52.tr('action.battleEnded') : r.hp[i] <= 0 ? _this52.tr('action.targetDefeated') : null;
               }
             });
           };
@@ -6969,19 +7405,19 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           }
           this.a.label(p, this.tr('extra.guildDeckInfo'), 0, -172, 375, 64, 14);
           this.a.button(p, this.tr('extra.raidSubmit'), 0, -260, 375, 52, function () {
-            void _this53.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee17() {
+            void _this52.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee17() {
               var result;
               return _regeneratorRuntime().wrap(function _callee17$(_context17) {
                 while (1) switch (_context17.prev = _context17.next) {
                   case 0:
-                    _this53.a.remoteBusy = false;
-                    _this53.a.rewards.remote(_this53.tr('raid.result'), 'guild-raid:' + data.id, function () {
+                    _this52.a.remoteBusy = false;
+                    _this52.a.rewards.remote(_this52.tr('raid.result'), 'guild-raid:' + data.id, function () {
                       return {
                         currencies: {
                           dust: Math.max(1, Math.floor(r.damage / 100))
                         },
                         collections: {
-                          fragments: _this53.g.s.fragments.map(function (_, i) {
+                          fragments: _this52.g.s.fragments.map(function (_, i) {
                             return r.deck.includes(i) ? 1 : 0;
                           })
                         }
@@ -6991,11 +7427,11 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                         while (1) switch (_context16.prev = _context16.next) {
                           case 0:
                             _context16.next = 2;
-                            return _this53.a.onlineService.command('/guild/raid/finish', {
+                            return _this52.a.onlineService.command('/guild/raid/finish', {
                               id: data.id,
                               multiplier: multiplier,
                               credit: credit,
-                              previewDouble: _this53.a.payments.model.previewAds
+                              previewDouble: _this52.a.payments.model.previewAds
                             }, 'raid-finish-' + data.id);
                           case 2:
                             result = _context16.sent;
@@ -7006,13 +7442,13 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                         }
                       }, _callee16);
                     })), function () {
-                      if (result) _this53.a.info(_this53.tr('raid.result'), _this53.tr('extra.raidSummary', {
+                      if (result) _this52.a.info(_this52.tr('raid.result'), _this52.tr('extra.raidSummary', {
                         damage: result.damage,
                         hp: result.hp,
                         cards: result.cardDamage.map(function (n) {
                           return display(n);
                         }).join(' / ')
-                      }));else _this53.guildBattlePanel(data);
+                      }));else _this52.guildBattlePanel(data);
                     });
                   case 2:
                   case "end":
@@ -7022,11 +7458,11 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             })));
           }, true, {
             unavailable: function unavailable() {
-              return !r.ended && r.seconds - (Date.now() - start) / 1000 > 0 ? _this53.tr('action.battleRunning') : null;
+              return !r.ended && r.seconds - (Date.now() - start) / 1000 > 0 ? _this52.tr('action.battleRunning') : null;
             }
           });
           this.a.modalRefresh = function () {
-            status.string = _this53.tr('raid.damage', {
+            status.string = _this52.tr('raid.damage', {
               damage: display(r.damage),
               seconds: Math.max(0, Math.ceil(r.seconds - (Date.now() - start) / 1000))
             });
@@ -7085,38 +7521,38 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           return deliverRewards;
         }();
         _proto.moderation = function moderation() {
-          var _this54 = this;
+          var _this53 = this;
           void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee22() {
             var data;
             return _regeneratorRuntime().wrap(function _callee22$(_context22) {
               while (1) switch (_context22.prev = _context22.next) {
                 case 0:
                   _context22.next = 2;
-                  return _this54.a.onlineService.request('/guild');
+                  return _this53.a.onlineService.request('/guild');
                 case 2:
                   data = _context22.sent;
-                  _this54.list('ops.moderation', data.messages.filter(function (m) {
-                    return m.account !== _this54.a.onlineService.accountId;
+                  _this53.list('ops.moderation', data.messages.filter(function (m) {
+                    return m.account !== _this53.a.onlineService.accountId;
                   }).map(function (m) {
                     return {
                       title: m.name,
                       sub: m.body,
-                      action: _this54.tr('action.details'),
+                      action: _this53.tr('action.details'),
                       click: function click() {
-                        var p = _this54.a.open(m.name, 480);
-                        _this54.a.label(p, m.body, 0, 100, 370, 150, 18);
-                        _this54.a.button(p, _this54.tr('ops.block'), 0, -35, 370, 50, function () {
-                          void _this54.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee20() {
+                        var p = _this53.a.open(m.name, 480);
+                        _this53.a.label(p, m.body, 0, 100, 370, 150, 18);
+                        _this53.a.button(p, _this53.tr('ops.block'), 0, -35, 370, 50, function () {
+                          void _this53.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee20() {
                             return _regeneratorRuntime().wrap(function _callee20$(_context20) {
                               while (1) switch (_context20.prev = _context20.next) {
                                 case 0:
                                   _context20.next = 2;
-                                  return _this54.a.onlineService.command('/player/block', {
+                                  return _this53.a.onlineService.command('/player/block', {
                                     target: m.account,
                                     enabled: true
                                   });
                                 case 2:
-                                  _this54.a.close();
+                                  _this53.a.close();
                                 case 3:
                                 case "end":
                                   return _context20.stop();
@@ -7124,20 +7560,20 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                             }, _callee20);
                           })));
                         });
-                        _this54.a.button(p, _this54.tr('ops.report'), 0, -110, 370, 50, function () {
-                          _this54.a.confirm(_this54.tr('ops.report'), _this54.tr('ops.reportConfirm'), function () {
-                            void _this54.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee21() {
+                        _this53.a.button(p, _this53.tr('ops.report'), 0, -110, 370, 50, function () {
+                          _this53.a.confirm(_this53.tr('ops.report'), _this53.tr('ops.reportConfirm'), function () {
+                            void _this53.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee21() {
                               return _regeneratorRuntime().wrap(function _callee21$(_context21) {
                                 while (1) switch (_context21.prev = _context21.next) {
                                   case 0:
                                     _context21.next = 2;
-                                    return _this54.a.onlineService.command('/player/report', {
+                                    return _this53.a.onlineService.command('/player/report', {
                                       message: m.id,
                                       reason: 'Inappropriate guild chat'
                                     });
                                   case 2:
-                                    _this54.a.toast(_this54.tr('ops.reported'));
-                                    _this54.a.close();
+                                    _this53.a.toast(_this53.tr('ops.reported'));
+                                    _this53.a.close();
                                   case 4:
                                   case "end":
                                     return _context21.stop();
@@ -7157,33 +7593,33 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           })));
         };
         _proto.blocked = function blocked() {
-          var _this55 = this;
+          var _this54 = this;
           void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee24() {
             var rows;
             return _regeneratorRuntime().wrap(function _callee24$(_context24) {
               while (1) switch (_context24.prev = _context24.next) {
                 case 0:
                   _context24.next = 2;
-                  return _this55.a.onlineService.request('/blocks');
+                  return _this54.a.onlineService.request('/blocks');
                 case 2:
                   rows = _context24.sent;
-                  _this55.list('ops.blocks', rows.map(function (r) {
+                  _this54.list('ops.blocks', rows.map(function (r) {
                     return {
                       title: r.name,
-                      action: _this55.tr('ops.unblock'),
+                      action: _this54.tr('ops.unblock'),
                       click: function click() {
-                        void _this55.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee23() {
+                        void _this54.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee23() {
                           return _regeneratorRuntime().wrap(function _callee23$(_context23) {
                             while (1) switch (_context23.prev = _context23.next) {
                               case 0:
                                 _context23.next = 2;
-                                return _this55.a.onlineService.command('/player/block', {
+                                return _this54.a.onlineService.command('/player/block', {
                                   target: r.id,
                                   enabled: false
                                 });
                               case 2:
-                                _this55.a.remoteBusy = false;
-                                _this55.blocked();
+                                _this54.a.remoteBusy = false;
+                                _this54.blocked();
                               case 4:
                               case "end":
                                 return _context23.stop();
@@ -7201,51 +7637,51 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           })));
         };
         _proto.guildTools = function guildTools() {
-          var _this56 = this;
+          var _this55 = this;
           this.list('extra.guildTools', [['ops.moderation', function () {
-            return _this56.moderation();
+            return _this55.moderation();
           }], ['ops.blocks', function () {
-            return _this56.blocked();
+            return _this55.blocked();
           }], ['complete.guildInfo', function () {
-            return _this56.guildInfo();
+            return _this55.guildInfo();
           }], ['extra.guildSearch', function () {
-            return _this56.guildSearch();
+            return _this55.guildSearch();
           }], ['extra.guildEdit', function () {
-            return _this56.guildEdit();
+            return _this55.guildEdit();
           }], ['extra.stickers', function () {
-            return _this56.stickers();
+            return _this55.stickers();
           }], ['extra.guildLogs', function () {
-            return _this56.guildLogs();
+            return _this55.guildLogs();
           }], ['extra.guildVault', function () {
-            return _this56.vault();
+            return _this55.vault();
           }], ['extra.retire', function () {
-            return _this56.retire();
+            return _this55.retire();
           }]].map(function (_ref27) {
             var key = _ref27[0],
               fn = _ref27[1];
             return {
-              title: _this56.tr(key),
-              action: _this56.tr('action.open'),
+              title: _this55.tr(key),
+              action: _this55.tr('action.open'),
               click: fn
             };
           }));
         };
         _proto.joinGuild = function joinGuild(id, name) {
-          var _this57 = this;
+          var _this56 = this;
           this.a.confirm(this.tr('online.join'), this.tr('complete.joinGuild', {
             name: name
           }), function () {
-            void _this57.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee25() {
+            void _this56.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee25() {
               return _regeneratorRuntime().wrap(function _callee25$(_context25) {
                 while (1) switch (_context25.prev = _context25.next) {
                   case 0:
                     _context25.next = 2;
-                    return _this57.a.onlineService.command('/guild/join', {
+                    return _this56.a.onlineService.command('/guild/join', {
                       guild: id
                     });
                   case 2:
-                    _this57.a.remoteBusy = false;
-                    _this57.a.guild();
+                    _this56.a.remoteBusy = false;
+                    _this56.a.guild();
                   case 4:
                   case "end":
                     return _context25.stop();
@@ -7255,23 +7691,23 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           });
         };
         _proto.guildInfo = function guildInfo() {
-          var _this58 = this;
+          var _this57 = this;
           void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee26() {
             var data, info;
             return _regeneratorRuntime().wrap(function _callee26$(_context26) {
               while (1) switch (_context26.prev = _context26.next) {
                 case 0:
                   _context26.next = 2;
-                  return _this58.a.onlineService.request('/guild');
+                  return _this57.a.onlineService.request('/guild');
                 case 2:
                   data = _context26.sent;
                   _context26.next = 5;
-                  return _this58.a.onlineService.request('/guild/info');
+                  return _this57.a.onlineService.request('/guild/info');
                 case 5:
                   info = _context26.sent;
-                  _this58.a.info(data.guild.name, _this58.tr('complete.guildInfoBody', {
+                  _this57.a.info(data.guild.name, _this57.tr('complete.guildInfoBody', {
                     count: data.members.length,
-                    description: info.settings.description || _this58.tr('complete.noDescription'),
+                    description: info.settings.description || _this57.tr('complete.noDescription'),
                     damage: info.vault
                   }));
                 case 7:
@@ -7282,35 +7718,35 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           })));
         };
         _proto.guildSearch = function guildSearch() {
-          var _this59 = this;
+          var _this58 = this;
           var p = this.a.open(this.tr('extra.guildSearch'), 680),
             field = this.a.edit(p, 0, 225, 375, 48, this.tr('online.guildName'));
           this.a.button(p, this.tr('extra.search'), 0, 150, 375, 48, function () {
             var q = field.string;
-            void _this59.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee27() {
+            void _this58.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee27() {
               var rows;
               return _regeneratorRuntime().wrap(function _callee27$(_context27) {
                 while (1) switch (_context27.prev = _context27.next) {
                   case 0:
                     _context27.next = 2;
-                    return _this59.a.onlineService.connect(_this59.tr('online.defaultName'));
+                    return _this58.a.onlineService.connect(_this58.tr('online.defaultName'));
                   case 2:
                     _context27.next = 4;
-                    return _this59.a.onlineService.request('/guilds?q=' + encodeURIComponent(q));
+                    return _this58.a.onlineService.request('/guilds?q=' + encodeURIComponent(q));
                   case 4:
                     rows = _context27.sent;
-                    _this59.list('extra.guildSearch', rows.map(function (r) {
+                    _this58.list('extra.guildSearch', rows.map(function (r) {
                       return {
                         title: r.name,
-                        sub: _this59.tr('online.members', {
+                        sub: _this58.tr('online.members', {
                           count: r.members
                         }),
                         unavailable: function unavailable() {
-                          return r.members >= 50 ? _this59.tr('online.full') : null;
+                          return r.members >= 50 ? _this58.tr('online.full') : null;
                         },
-                        action: _this59.tr('online.join'),
+                        action: _this58.tr('online.join'),
                         click: function click() {
-                          return _this59.joinGuild(r.id, r.name);
+                          return _this58.joinGuild(r.id, r.name);
                         }
                       };
                     }));
@@ -7323,39 +7759,39 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           });
         };
         _proto.guildEdit = function guildEdit() {
-          var _this60 = this;
+          var _this59 = this;
           void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee29() {
             var data, info, p, name, desc;
             return _regeneratorRuntime().wrap(function _callee29$(_context29) {
               while (1) switch (_context29.prev = _context29.next) {
                 case 0:
                   _context29.next = 2;
-                  return _this60.a.onlineService.request('/guild');
+                  return _this59.a.onlineService.request('/guild');
                 case 2:
                   data = _context29.sent;
                   _context29.next = 5;
-                  return _this60.a.onlineService.request('/guild/info');
+                  return _this59.a.onlineService.request('/guild/info');
                 case 5:
                   info = _context29.sent;
-                  p = _this60.a.open(_this60.tr('extra.guildEdit'), 590);
-                  name = _this60.a.edit(p, 0, 170, 375, 48, _this60.tr('online.guildName'));
-                  desc = _this60.a.edit(p, 0, 60, 375, 70, _this60.tr('extra.description'));
+                  p = _this59.a.open(_this59.tr('extra.guildEdit'), 590);
+                  name = _this59.a.edit(p, 0, 170, 375, 48, _this59.tr('online.guildName'));
+                  desc = _this59.a.edit(p, 0, 60, 375, 70, _this59.tr('extra.description'));
                   name.string = data.guild.name;
                   desc.string = info.settings.description;
-                  _this60.a.button(p, _this60.tr('action.apply'), 0, -130, 375, 50, function () {
-                    void _this60.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee28() {
+                  _this59.a.button(p, _this59.tr('action.apply'), 0, -130, 375, 50, function () {
+                    void _this59.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee28() {
                       return _regeneratorRuntime().wrap(function _callee28$(_context28) {
                         while (1) switch (_context28.prev = _context28.next) {
                           case 0:
                             _context28.next = 2;
-                            return _this60.a.onlineService.command('/guild/edit', {
+                            return _this59.a.onlineService.command('/guild/edit', {
                               name: name.string,
                               description: desc.string,
                               badge: info.settings.badge
                             });
                           case 2:
-                            _this60.a.remoteBusy = false;
-                            _this60.a.guild();
+                            _this59.a.remoteBusy = false;
+                            _this59.a.guild();
                           case 4:
                           case "end":
                             return _context28.stop();
@@ -7364,7 +7800,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                     })));
                   }, true, {
                     unavailable: function unavailable() {
-                      return _this60.a.textReason(name.string, 2, 24) || (desc.string.length > 240 ? _this60.tr('action.textLength', {
+                      return _this59.a.textReason(name.string, 2, 24) || (desc.string.length > 240 ? _this59.tr('action.textLength', {
                         min: 0,
                         max: 240
                       }) : null);
@@ -7378,25 +7814,25 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           })));
         };
         _proto.stickers = function stickers() {
-          var _this61 = this;
+          var _this60 = this;
           this.list('extra.stickers', Array.from({
             length: 6
           }, function (_, i) {
             return {
-              title: _this61.tr("extra.sticker." + i),
-              action: _this61.tr('online.send'),
+              title: _this60.tr("extra.sticker." + i),
+              action: _this60.tr('online.send'),
               click: function click() {
-                void _this61.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee30() {
+                void _this60.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee30() {
                   return _regeneratorRuntime().wrap(function _callee30$(_context30) {
                     while (1) switch (_context30.prev = _context30.next) {
                       case 0:
                         _context30.next = 2;
-                        return _this61.a.onlineService.command('/guild/chat', {
+                        return _this60.a.onlineService.command('/guild/chat', {
                           body: "[sticker:" + i + "]"
                         });
                       case 2:
-                        _this61.a.remoteBusy = false;
-                        _this61.a.guild();
+                        _this60.a.remoteBusy = false;
+                        _this60.a.guild();
                       case 4:
                       case "end":
                         return _context30.stop();
@@ -7408,20 +7844,20 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           }));
         };
         _proto.guildLogs = function guildLogs() {
-          var _this62 = this;
+          var _this61 = this;
           void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee31() {
             var info;
             return _regeneratorRuntime().wrap(function _callee31$(_context31) {
               while (1) switch (_context31.prev = _context31.next) {
                 case 0:
                   _context31.next = 2;
-                  return _this62.a.onlineService.request('/guild/info');
+                  return _this61.a.onlineService.request('/guild/info');
                 case 2:
                   info = _context31.sent;
-                  _this62.list('extra.guildLogs', info.logs.map(function (r) {
+                  _this61.list('extra.guildLogs', info.logs.map(function (r) {
                     return {
                       title: r.name,
-                      sub: _this62.tr('extra.contribution', {
+                      sub: _this61.tr('extra.contribution', {
                         value: r.damage
                       })
                     };
@@ -7434,7 +7870,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           })));
         };
         _proto.vault = function vault() {
-          var _this63 = this;
+          var _this62 = this;
           void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee34() {
             var _info$vaultCycleDamag;
             var info, p;
@@ -7442,20 +7878,20 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
               while (1) switch (_context34.prev = _context34.next) {
                 case 0:
                   _context34.next = 2;
-                  return _this63.a.onlineService.request('/guild/info');
+                  return _this62.a.onlineService.request('/guild/info');
                 case 2:
                   info = _context34.sent;
-                  p = _this63.a.open(_this63.tr('extra.guildVault'), 440);
-                  _this63.a.label(p, _this63.tr('extra.vaultProgress', {
+                  p = _this62.a.open(_this62.tr('extra.guildVault'), 440);
+                  _this62.a.label(p, _this62.tr('extra.vaultProgress', {
                     damage: (_info$vaultCycleDamag = info.vaultCycleDamage) != null ? _info$vaultCycleDamag : 0
                   }), 0, 70, 375, 140, 19);
-                  _this63.a.button(p, _this63.tr('action.claim'), 0, -100, 375, 50, function () {
-                    void _this63.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee33() {
+                  _this62.a.button(p, _this62.tr('action.claim'), 0, -100, 375, 50, function () {
+                    void _this62.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee33() {
                       return _regeneratorRuntime().wrap(function _callee33$(_context33) {
                         while (1) switch (_context33.prev = _context33.next) {
                           case 0:
-                            _this63.a.remoteBusy = false;
-                            _this63.a.rewards.remote(_this63.tr('extra.guildVault'), 'vault:' + Math.floor(_this63.g.now() / 43200000) + ':' + _this63.a.onlineService.accountId, function () {
+                            _this62.a.remoteBusy = false;
+                            _this62.a.rewards.remote(_this62.tr('extra.guildVault'), 'vault:' + Math.floor(_this62.g.now() / 43200000) + ':' + _this62.a.onlineService.accountId, function () {
                               return {
                                 currencies: {
                                   gems: 20,
@@ -7468,21 +7904,21 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                                 while (1) switch (_context32.prev = _context32.next) {
                                   case 0:
                                     _context32.next = 2;
-                                    return _this63.a.onlineService.command('/guild/vault', {
+                                    return _this62.a.onlineService.command('/guild/vault', {
                                       multiplier: multiplier,
                                       credit: credit,
-                                      previewDouble: _this63.a.payments.model.previewAds
-                                    }, "vault-" + Math.floor(_this63.g.now() / 43200000) + "-" + _this63.a.onlineService.accountId);
+                                      previewDouble: _this62.a.payments.model.previewAds
+                                    }, "vault-" + Math.floor(_this62.g.now() / 43200000) + "-" + _this62.a.onlineService.accountId);
                                   case 2:
                                     r = _context32.sent;
-                                    if (!(!_this63.g.s.claims.includes(r.claimId) && !_this63.applyServerReward(r))) {
+                                    if (!(!_this62.g.s.claims.includes(r.claimId) && !_this62.applyServerReward(r))) {
                                       _context32.next = 5;
                                       break;
                                     }
-                                    throw Error(_this63.g.notice);
+                                    throw Error(_this62.g.notice);
                                   case 5:
                                     _context32.next = 7;
-                                    return _this63.a.onlineService.command('/rewards/ack', {
+                                    return _this62.a.onlineService.command('/rewards/ack', {
                                       id: r.claimId
                                     });
                                   case 7:
@@ -7493,7 +7929,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                                 }
                               }, _callee32);
                             })), function () {
-                              return _this63.vault();
+                              return _this62.vault();
                             });
                           case 2:
                           case "end":
@@ -7503,13 +7939,13 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                     })));
                   }, true, {
                     unavailable: function unavailable() {
-                      return typeof info.vaultCycleDamage !== 'number' || typeof info.vaultClaimed !== 'boolean' ? _this63.tr('action.statusPending') : _this63.a.rewardReason(_this63.tr('extra.guildVault'), info.vaultCycleDamage, 1000, info.vaultClaimed);
+                      return typeof info.vaultCycleDamage !== 'number' || typeof info.vaultClaimed !== 'boolean' ? _this62.tr('action.statusPending') : _this62.a.rewardReason(_this62.tr('extra.guildVault'), info.vaultCycleDamage, 1000, info.vaultClaimed);
                     }
                   });
-                  _this63.a.modalRefresh = function () {
+                  _this62.a.modalRefresh = function () {
                     if (Date.now() >= info.vaultNextAt) {
-                      _this63.a.modalRefresh = null;
-                      _this63.vault();
+                      _this62.a.modalRefresh = null;
+                      _this62.vault();
                     }
                   };
                 case 7:
@@ -7520,17 +7956,17 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           })));
         };
         _proto.retire = function retire() {
-          var _this64 = this;
+          var _this63 = this;
           this.a.confirm(this.tr('extra.retire'), this.tr('extra.retireInfo'), function () {
-            void _this64.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee35() {
+            void _this63.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee35() {
               return _regeneratorRuntime().wrap(function _callee35$(_context35) {
                 while (1) switch (_context35.prev = _context35.next) {
                   case 0:
                     _context35.next = 2;
-                    return _this64.a.onlineService.command('/guild/retire');
+                    return _this63.a.onlineService.command('/guild/retire');
                   case 2:
-                    _this64.a.remoteBusy = false;
-                    _this64.a.guild();
+                    _this63.a.remoteBusy = false;
+                    _this63.a.guild();
                   case 4:
                   case "end":
                     return _context35.stop();
@@ -7540,21 +7976,21 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           });
         };
         _proto.member = function member(id) {
-          var _this65 = this;
+          var _this64 = this;
           void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee36() {
             var r, p;
             return _regeneratorRuntime().wrap(function _callee36$(_context36) {
               while (1) switch (_context36.prev = _context36.next) {
                 case 0:
                   _context36.next = 2;
-                  return _this65.a.onlineService.request('/guild/member?id=' + encodeURIComponent(id));
+                  return _this64.a.onlineService.request('/guild/member?id=' + encodeURIComponent(id));
                 case 2:
                   r = _context36.sent;
-                  p = _this65.a.open(r.name, 420);
-                  _this65.a.label(p, _this65.tr('extra.contribution', {
+                  p = _this64.a.open(r.name, 420);
+                  _this64.a.label(p, _this64.tr('extra.contribution', {
                     value: r.damage
                   }), 0, 50, 375, 90, 22);
-                  _this65.a.label(p, _this65.tr(r.role === 'leader' ? 'online.leader' : 'online.member'), 0, -50, 375, 50, 20);
+                  _this64.a.label(p, _this64.tr(r.role === 'leader' ? 'online.leader' : 'online.member'), 0, -50, 375, 50, 20);
                 case 6:
                 case "end":
                   return _context36.stop();
@@ -7563,34 +7999,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           })));
         };
         _proto.limited = function limited() {
-          var _this66 = this;
-          var day = Math.floor(this.g.now() / 86400000);
-          this.list('extra.limited', [this.a.shopUI.row('equipment', {
-            height: 112,
-            title: this.tr('extra.limitedOffer'),
-            sub: this.tr('extra.limitedInfo'),
-            unavailable: function unavailable() {
-              return _this66.g.s.claims.includes('daily.limited') ? _this66.tr('action.alreadyPurchased') : _this66.a.costReason('gems', 100);
-            },
-            action: this.tr('action.buy'),
-            actionLabel: function actionLabel() {
-              return _this66.tr(_this66.g.s.claims.includes('daily.limited') ? 'action.purchased' : 'action.buy');
-            },
-            click: function click() {
-              return _this66.action(function () {
-                return _this66.g.transaction("limited-" + day, function () {
-                  _this66.g.require(!_this66.g.s.claims.includes('daily.limited'), 'error.claimed');
-                  _this66.g.require(_this66.g.s.gems >= 100);
-                  _this66.g.s.claims.push('daily.limited');
-                  _this66.g.s.gems -= 100;
-                  _this66.g.s.shards += 20;
-                  _this66.e.fortune(10);
-                });
-              }, function () {
-                return _this66.limited();
-              });
-            }
-          })]);
+          this.a.shopUI.limited();
         };
         _createClass(ExpansionUI, [{
           key: "g",
@@ -8534,7 +8943,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           for (var _iterator5 = _createForOfIteratorHelperLoose(this.chatter), _step5; !(_step5 = _iterator5()).done;) {
             var _entry = _step5.value;
             if (!_entry.node || !isValid(_entry.node, true) || _entry.node.parent !== a.root) this.showChatter(_entry);
-            _entry.node.setPosition(116 + [0, -8, 2][_entry.slot], top - this.chatterHeight / 2 - _entry.slot * pitch, 0);
+            _entry.node.setPosition(118, top - this.chatterHeight / 2 - _entry.slot * pitch, 0);
             _entry.node.getChildByName('dialogue-speaker').getComponent(Label).string = a.tr(_entry.cue.speaker < 0 ? 'master.title' : 'hero.' + _entry.cue.speaker);
             _entry.node.getChildByName('dialogue-line').getComponent(Label).string = a.tr(_entry.line);
           }
@@ -8938,18 +9347,18 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
             this.showEquipment(diff.equipment[0]);
             return;
           }
-          // Stay just below the top HUD, near the center but biased toward the enemy side.
-          var n = a.nodeAt(a.root, 'growth-feedback', 42, a.designH / 2 - 277 - a.safeTop, 340, 140);
+          // The entire banner stays on the right, beyond the allies' reserved left 40%.
+          var n = a.nodeAt(a.root, 'growth-feedback', 118, a.designH / 2 - 290 - a.safeTop, 220, 166);
           this.banner = n;
           this.dismissBanner(n);
-          a.ui.surface(a.nodeAt(n, 'growth-header', 0, 0, 340, 140), UI.bg, 'slant');
+          a.ui.surface(a.nodeAt(n, 'growth-header', 0, 0, 220, 166), UI.bg, 'slant');
           var first = diff.growth[0],
             soldier = first != null && first.key.startsWith('hero.') ? Number(first.key.slice(5)) : -1;
-          var profile = speechIllustration(a, n, 'growth-portrait', soldier, -109, 0, 112, 134).clip;
+          var profile = speechIllustration(a, n, 'growth-portrait', soldier, -75, 0, 58, 160).clip;
           a.label(n, first ? a.tr('merc.level', {
             before: first.args.before,
             after: first.args.after
-          }) : a.tr('feedback.power'), 61, 46, 212, 26, 16, UI.gold);
+          }) : a.tr('feedback.power'), 34, 61, 140, 28, 15, UI.gold);
           var stats = diff.tap || diff.dps;
           var before = stats ? a.format(stats[0]) : '',
             after = stats ? a.format(stats[1]) : '';
@@ -8959,7 +9368,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
             before: before,
             after: after
           }) : a.tr('feedback.improved');
-          a.label(n, changed, 61, 21, 212, 22, 14, UI.text);
+          a.label(n, changed, 34, 31, 140, 30, 13, UI.text);
           var context = soldier >= 0 && Number(first == null || (_first$args = first.args) == null ? void 0 : _first$args.before) === 0 ? 'recruit' : 'growth';
           // Rebuilding the same visible cue keeps its original line and expiry.
           var line = this.growthLines.get(diff);
@@ -8967,11 +9376,11 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
             line = this.dialogue.next(soldier, context);
             this.growthLines.set(diff, line);
           }
-          a.label(n, a.tr(line), 61, -23, 212, 62, 17, UI.text).node.name = 'growth-dialogue';
+          a.label(n, a.tr(line), 34, -27, 140, 84, 16, UI.text).node.name = 'growth-dialogue';
           if (!this.announcedGrowth.has(diff)) {
             this.announcedGrowth.add(diff);
             if (a.game.s.extra.effects) {
-              this.particles(profile, 'growth', 112, 134);
+              this.particles(profile, 'growth', 58, 160);
               n.setScale(.88, .88, 1);
               tween(n).to(.18, {
                 scale: new Vec3(1, 1, 1)
@@ -8988,22 +9397,22 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
               return item.id === e.id;
             });
           if (!item) return;
-          var n = a.nodeAt(a.root, 'equipment-feedback', 40, a.designH / 2 - 285 - a.safeTop, 360, 150);
+          var n = a.nodeAt(a.root, 'equipment-feedback', 118, a.designH / 2 - 297 - a.safeTop, 220, 180);
           this.banner = n;
           this.dismissBanner(n);
-          a.ui.surface(a.nodeAt(n, 'equipment-header', 0, 0, 360, 150), UI.bg, 'slant');
-          var profile = speechIllustration(a, n, 'equipment-speaker', -1, -125, 0, 100, 144).clip;
-          a.ui.icon(a.nodeAt(n, 'equipment-icon', 154, 53, 26, 26), ['equipment:rifle', 'equipment:helmet', 'equipment:vest', 'equipment:radio', 'equipment:rank'][e.slot]);
+          a.ui.surface(a.nodeAt(n, 'equipment-header', 0, 0, 220, 180), UI.bg, 'slant');
+          var profile = speechIllustration(a, n, 'equipment-speaker', -1, -75, 0, 58, 174).clip;
+          a.ui.icon(a.nodeAt(n, 'equipment-icon', 90, 66, 22, 22), ['equipment:rifle', 'equipment:helmet', 'equipment:vest', 'equipment:radio', 'equipment:rank'][e.slot]);
           a.label(n, a.tr(e.changed ? 'equipment.speechEquipped' : 'equipment.speechInfo', {
             name: a.itemName(item)
-          }), 31, 53, 190, 28, 16, UI.gold).node.name = 'equipment-speech-title';
-          a.label(n, a.tr('equipment.dialogue.' + e.slot), 50, 13, 234, 54, 17, UI.text).node.name = 'equipment-dialogue';
+          }), 20, 62, 116, 40, 14, UI.gold).node.name = 'equipment-speech-title';
+          a.label(n, a.tr('equipment.dialogue.' + e.slot), 34, 6, 140, 70, 15, UI.text).node.name = 'equipment-dialogue';
           var gain = (e.power / e.previousPower - 1) * 100;
           a.label(n, a.tr('equipment.speechEffect', {
             power: e.power.toFixed(2)
           }) + (e.changed ? '\n' + a.tr('equipment.speechChange', {
             gain: (gain >= 0 ? '+' : '') + gain.toFixed(1)
-          }) : ''), 50, -48, 234, 46, 14, UI.muted).node.name = 'equipment-speech-effect';
+          }) : ''), 34, -60, 140, 46, 13, UI.muted).node.name = 'equipment-speech-effect';
           if (e.changed && a.game.s.extra.effects) {
             this.particles(profile, 'growth', 40, 48);
             n.setScale(.94, .94, 1);
@@ -41681,8 +42090,8 @@ System.register("chunks:///_virtual/FirebaseConfig.ts", ['cc'], function (export
   };
 });
 
-System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Squad.ts', './SquadName.ts', './DroneEffects.ts', './AllyPlacement.ts', './Mercenaries.ts', './Balance.ts', './BattleFormation.ts', './Amount.ts', './Expansion.ts', './Config.ts', './EntryPolicy.ts'], function (exports) {
-  var _extends, _createForOfIteratorHelperLoose, _objectWithoutPropertiesLoose, _createClass, cclegacy, SQUAD_LIMIT, equipmentKey, validEquipmentKey, formationMultiplier, squadBonuses, collectionBonuses, squadNameError, activeDroneEffect, validBattlePosition, attackSeconds, attackWindup, BALANCE_VERSION, PREVIOUS_BALANCE_VERSION, troopWaves, TROOP_BALANCE, troopHP, gemstoneBonus, routedBonus, troopGold, ARTIFACT_DISCOVERY_COSTS, waveSize, previousBossWaveSize, enemyHPShare, ZERO, amount, mul, add, sub, newExpansion, Expansion, HEROES, CONFIG, SPELLS, SKILLS, migrateTutorial, tutorialComplete;
+System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Squad.ts', './SquadName.ts', './DroneEffects.ts', './DroneFleet.ts', './AllyPlacement.ts', './Mercenaries.ts', './Balance.ts', './BattleFormation.ts', './Amount.ts', './Expansion.ts', './Config.ts', './EntryPolicy.ts'], function (exports) {
+  var _extends, _createForOfIteratorHelperLoose, _objectWithoutPropertiesLoose, _createClass, cclegacy, SQUAD_LIMIT, equipmentKey, validEquipmentKey, formationMultiplier, squadBonuses, collectionBonuses, squadNameError, activeDroneEffects, DRONE_SLOTS, droneSlots, equippedDrones, validBattlePosition, attackSeconds, attackWindup, BALANCE_VERSION, PREVIOUS_BALANCE_VERSION, troopWaves, TROOP_BALANCE, troopHP, gemstoneBonus, routedBonus, troopGold, ARTIFACT_DISCOVERY_COSTS, waveSize, previousBossWaveSize, enemyHPShare, ZERO, amount, mul, add, sub, newExpansion, Expansion, HEROES, CONFIG, SPELLS, SKILLS, migrateTutorial, tutorialComplete;
   return {
     setters: [function (module) {
       _extends = module.extends;
@@ -41701,7 +42110,11 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
     }, function (module) {
       squadNameError = module.squadNameError;
     }, function (module) {
-      activeDroneEffect = module.activeDroneEffect;
+      activeDroneEffects = module.activeDroneEffects;
+    }, function (module) {
+      DRONE_SLOTS = module.DRONE_SLOTS;
+      droneSlots = module.droneSlots;
+      equippedDrones = module.equippedDrones;
     }, function (module) {
       validBattlePosition = module.validBattlePosition;
     }, function (module) {
@@ -41749,15 +42162,14 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           this.droneEffects = [];
           return cues;
         };
-        _proto.emitDroneEffect = function emitDroneEffect(cue) {
+        _proto.emitDroneEffects = function emitDroneEffects(cues) {
+          var _this$droneEffects;
           if (this.droneEffectRun !== this.s.run) {
             this.droneEffectRun = this.s.run;
             this.droneEffects = [];
           }
-          if (cue) {
-            this.droneEffects.push(cue);
-            if (this.droneEffects.length > 256) this.droneEffects.shift();
-          }
+          (_this$droneEffects = this.droneEffects).push.apply(_this$droneEffects, cues);
+          if (this.droneEffects.length > 256) this.droneEffects.splice(0, this.droneEffects.length - 256);
         }
         /** Presentation consumes actual resolved hits once; these are never part of the save. */;
         _proto.drainDamageHits = function drainDamageHits() {
@@ -41777,10 +42189,10 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             this.damageHits = [];
           }
           var wave = this.waveKey(),
-            drone = activeDroneEffect(this.s, source === 'hero' ? 2 : 1);
+            drones = activeDroneEffects(this.s, source === 'hero' ? 2 : 1);
           this.damage(value, preferred);
           if (this.lastHit < 0) return;
-          this.emitDroneEffect(drone);
+          this.emitDroneEffects(drones);
           this.damageHits.push(_extends({
             source: source,
             damage: value,
@@ -41876,6 +42288,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             artifacts: Array(30).fill(0),
             pets: Array(12).fill(0),
             activePet: -1,
+            activePets: [-1, -1, -1],
             petEquipVersion: 1,
             eggAt: now,
             equipment: [],
@@ -41939,6 +42352,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           };
         };
         _proto.migrate = function migrate(s) {
+          var _s$activePets$find;
           var defaults = this.fresh();
           migrateTutorial(s);
           // Legacy slot zero was selected by default, before the player ever equipped a drone.
@@ -41948,6 +42362,26 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             var chosen = s.activePet > 0 || ((_s$tutorial$completed = s.tutorial.completed) == null ? void 0 : _s$tutorial$completed.includes('first:pet'));
             if (!chosen || !Number.isInteger(s.activePet) || s.activePet < 0 || s.activePet >= s.pets.length || s.pets[s.activePet] <= 0) s.activePet = -1;
             s.petEquipVersion = 1;
+          }
+          if (s.activePets === undefined) s.activePets = [s.activePet, -1, -1];else if (Array.isArray(s.activePets) && s.activePets.length === DRONE_SLOTS && s.activePets.every(function (id) {
+            return Number.isInteger(id) && id >= -1 && id < 12 && (id < 0 || s.pets[id] > 0);
+          }) && new Set(s.activePets.filter(function (id) {
+            return id >= 0;
+          })).size === s.activePets.filter(function (id) {
+            return id >= 0;
+          }).length && s.activePet !== ((_s$activePets$find = s.activePets.find(function (id) {
+            return id >= 0;
+          })) != null ? _s$activePets$find : -1)) {
+            // An older client can still change the original single-drone field.
+            // Honor that choice and retain the other two slots on the next restore.
+            if (s.activePet === -1) s.activePets = [-1, -1, -1];else if (s.activePet >= 0 && s.activePet < 12 && s.pets[s.activePet] > 0) {
+              var first = Math.max(0, s.activePets.findIndex(function (id) {
+                  return id >= 0;
+                })),
+                current = s.activePets.indexOf(s.activePet);
+              if (current >= 0) s.activePets[current] = s.activePets[first];
+              s.activePets[first] = s.activePet;
+            }
           }
           if (s.squadName === undefined) s.squadName = '';
           if (!s.extra) {
@@ -42077,6 +42511,19 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           if (s.run.bossEscortVersion !== undefined && s.run.bossEscortVersion !== 1) throw Error('bossEscortVersion');
           if (!Number.isInteger(s.activePet) || s.activePet < -1 || s.activePet >= 12 || s.activePet >= 0 && s.pets[s.activePet] <= 0) throw Error('activePet');
           if (s.petEquipVersion !== undefined && s.petEquipVersion !== 1) throw Error('petEquipVersion');
+          if (s.activePets !== undefined) {
+            var _fleet$find;
+            var fleet = s.activePets;
+            if (!Array.isArray(fleet) || fleet.length !== DRONE_SLOTS || fleet.some(function (id) {
+              return !Number.isInteger(id) || id < -1 || id >= 12 || id >= 0 && s.pets[id] <= 0;
+            }) || new Set(fleet.filter(function (id) {
+              return id >= 0;
+            })).size !== fleet.filter(function (id) {
+              return id >= 0;
+            }).length || s.activePet !== ((_fleet$find = fleet.find(function (id) {
+              return id >= 0;
+            })) != null ? _fleet$find : -1)) throw Error('activePets');
+          }
           if (typeof s.squadName !== 'string' || s.squadName && squadNameError(s.squadName)) throw Error('error.squadName.invalid');
           if (((_s$tutorial = s.tutorial) == null ? void 0 : _s$tutorial.version) !== 1 || !Number.isInteger(s.tutorial.step) || s.tutorial.step < 0 || s.tutorial.step > 7) throw Error('tutorial');
           if (s.tutorial.completed !== undefined && (!Array.isArray(s.tutorial.completed) || s.tutorial.completed.length > 1024 || new Set(s.tutorial.completed).size !== s.tutorial.completed.length || s.tutorial.completed.some(function (k) {
@@ -42269,8 +42716,9 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           this.s.artifacts.forEach(function (l, i) {
             if (i % 4 === kind || i % 4 === 0) b += Math.log10(1 + l * 0.22) + (_this2.s.enchanted[i] ? 1 : 0);
           });
+          var drones = this.equippedDrones();
           this.s.pets.forEach(function (l, i) {
-            if (i % 3 === kind % 3) b += Math.log10(1 + l * .025 * (i === _this2.s.activePet ? 1 : Math.min(1, l / 100)));
+            if (i % 3 === kind % 3) b += Math.log10(1 + l * .025 * (drones.includes(i) ? 1 : Math.min(1, l / 100)));
           });
           this.s.equipped.forEach(function (id) {
             var e = _this2.s.equipment.find(function (e) {
@@ -42570,7 +43018,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
         _proto.finishWave = function finishWave() {
           var r = this.s.run;
           r.gold = add(r.gold, this.goldReward());
-          this.emitDroneEffect(activeDroneEffect(this.s, 0));
+          this.emitDroneEffects(activeDroneEffects(this.s, 0));
           this.s.totalKills++;
           this.s.extra.eventEarned++;
           this.s.dayKills++;
@@ -43097,7 +43545,32 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             });
           });
         };
-        _proto.equipPet = function equipPet(index) {
+        _proto.droneSlots = function droneSlots$1() {
+          return droneSlots(this.s);
+        };
+        _proto.equippedDrones = function equippedDrones$1() {
+          return equippedDrones(this.s);
+        };
+        _proto.saveDroneSlots = function saveDroneSlots(fleet) {
+          var _fleet$find2;
+          var previous = this.s.activePets,
+            primary = this.s.activePet,
+            version = this.s.petEquipVersion;
+          this.s.activePets = fleet;
+          this.s.activePet = (_fleet$find2 = fleet.find(function (id) {
+            return id >= 0;
+          })) != null ? _fleet$find2 : -1;
+          this.s.petEquipVersion = 1;
+          if (!this.persist()) {
+            if (previous === undefined) delete this.s.activePets;else this.s.activePets = previous;
+            this.s.activePet = primary;
+            this.s.petEquipVersion = version;
+            return false;
+          }
+          this.revision++;
+          return true;
+        };
+        _proto.equipPet = function equipPet(index, slot) {
           if (!Number.isInteger(index) || index < 0 || index >= this.s.pets.length) {
             this.notice = 'error.invalid';
             return false;
@@ -43106,15 +43579,33 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             this.notice = 'error.locked';
             return false;
           }
-          if (this.s.activePet === index) {
+          var fleet = this.droneSlots();
+          var current = fleet.indexOf(index);
+          if (current >= 0 && (slot === undefined || slot === current)) {
             this.notice = 'action.alreadyEquipped';
             return false;
           }
-          this.s.activePet = index;
-          this.s.petEquipVersion = 1;
-          this.revision++;
-          this.persist();
-          return true;
+          var target = slot != null ? slot : fleet.indexOf(-1);
+          if (target === -1) {
+            this.notice = 'error.droneFleetFull';
+            return false;
+          }
+          if (!Number.isInteger(target) || target < 0 || target >= DRONE_SLOTS) {
+            this.notice = 'error.invalid';
+            return false;
+          }
+          if (current >= 0) fleet[current] = fleet[target];
+          fleet[target] = index;
+          return this.saveDroneSlots(fleet);
+        };
+        _proto.unequipPet = function unequipPet(slot) {
+          var fleet = this.droneSlots();
+          if (!Number.isInteger(slot) || slot < 0 || slot >= DRONE_SLOTS || fleet[slot] < 0) {
+            this.notice = 'error.invalid';
+            return false;
+          }
+          fleet[slot] = -1;
+          return this.saveDroneSlots(fleet);
         };
         _proto.petRewardTarget = function petRewardTarget() {
           return this.s.activePet >= 0 && this.s.pets[this.s.activePet] > 0 ? this.s.activePet : 0;
@@ -43407,8 +43898,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
   };
 });
 
-System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './BossEntranceUI.ts', './SkillCatalog.ts', './SkillUI.ts', './ExplorationUI.ts', './SkillTrainingUI.ts', './EquipmentUI.ts', './Enemies.ts', './env', './EnemyArtBounds.ts', './RewardClaimUI.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './DroneFeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, Sprite, ScrollView, BlockInputEvents, resources, Texture2D, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, BossEntranceUI, tacticIcon, tacticHelp, tacticManager, tacticDetail, explorationEntry, explorationBoard, skillTree, skillDetail, equipmentDropButton, equipmentListRow, equipmentIdentity, equipmentStats, equipmentHelp, updateEquipmentDropButton, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, RewardClaimUI, SquadUI, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, DroneFeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, GooglePlayBilling, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
+System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './ScrollPositionUI.ts', './DroneFleetUI.ts', './BossEntranceUI.ts', './SkillCatalog.ts', './SkillUI.ts', './ExplorationUI.ts', './SkillTrainingUI.ts', './EquipmentUI.ts', './Enemies.ts', './env', './EnemyArtBounds.ts', './RewardClaimUI.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './DroneFeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
+  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, ScrollPositionUI, DroneFleetUI, BossEntranceUI, tacticIcon, tacticHelp, tacticManager, tacticDetail, explorationEntry, explorationBoard, skillTree, skillDetail, equipmentDropButton, equipmentListRow, equipmentIdentity, equipmentStats, equipmentHelp, updateEquipmentDropButton, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, RewardClaimUI, SquadUI, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, DroneFeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, GooglePlayBilling, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
@@ -43437,11 +43928,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       Vec3 = module.Vec3;
       UIOpacity = module.UIOpacity;
       Mask = module.Mask;
-      Sprite = module.Sprite;
       ScrollView = module.ScrollView;
       BlockInputEvents = module.BlockInputEvents;
       resources = module.resources;
       Texture2D = module.Texture2D;
+      Sprite = module.Sprite;
       SpriteFrame = module.SpriteFrame;
       EditBox = module.EditBox;
       screen = module.screen;
@@ -43449,6 +43940,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       sys = module.sys;
       Component = module.Component;
       profiler = module.profiler;
+    }, function (module) {
+      ScrollPositionUI = module.ScrollPositionUI;
+    }, function (module) {
+      DroneFleetUI = module.DroneFleetUI;
     }, function (module) {
       BossEntranceUI = module.BossEntranceUI;
     }, function (module) {
@@ -43536,7 +44031,6 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       HEROES = module.HEROES;
       SKILLS = module.SKILLS;
       SPELLS = module.SPELLS;
-      PETS = module.PETS;
       ARTIFACTS = module.ARTIFACTS;
       CARDS = module.CARDS;
     }, function (module) {
@@ -43601,7 +44095,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           _this.tooltipNode = null;
           _this.ui = new UITheme();
           _this.feedback = new FeedbackUI(_assertThisInitialized(_this));
+          _this.scrollPositions = new ScrollPositionUI(_assertThisInitialized(_this));
           _this.droneFeedback = new DroneFeedbackUI(_assertThisInitialized(_this));
+          _this.droneFleet = new DroneFleetUI(_assertThisInitialized(_this));
           _this.buttonStates = [];
           _this.buttonReasons = new WeakMap();
           _this.cloud = new FirebaseCloud();
@@ -44316,6 +44812,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         };
         _proto.draw = function draw() {
           var _this8 = this;
+          this.scrollPositions.capture(this.panel);
+          this.scrollPositions.capture(this.modal);
           this.damageBuckets.clear();
           this.enemyFeedback.clear();
           this.placement.reset();
@@ -44538,6 +45036,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                 art.addComponent(UIOpacity).opacity = 65;
                 _this8.lockIcon(n, 24, 15);
               }
+              var number = _this8.label(n, String(_this8.game.s.spellSlots.indexOf(id) + 1), -25, 18, 16, 14, 11, C.ink);
+              number.fontSize = 11;
+              number.lineHeight = 12;
+              number.node.name = 'current-tactic-slot-number';
               _this8.label(n, _this8.tr('tactic.short.' + id), 0, -7, 70, 16, 11).node.name = 'current-tactic-name';
               n.name = 'current-tactic-' + id;
               var active = _this8.rect(n, 0, 28, 52, 2, C.mint);
@@ -44617,59 +45119,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.updateHUD();
         };
         _proto.syncDrone = function syncDrone() {
-          var _drone$getComponent,
-            _this9 = this;
-          if (!this.battleCast || !isValid(this.battleCast, true)) return;
-          var s = this.game.s,
-            id = s.activePet,
-            owned = s.maxStage >= 8 && id >= 0 && s.pets[id] > 0;
-          // Keep the hovering support lane below the HUD when the party projection changes.
-          var y = (this.designH / 2 - this.safeTop - 198 - this.battleCast.position.y) / this.battleCast.scale.y;
-          var drone = this.battleCast.getChildByName('equipped-drone');
-          var hit = this.root.getChildByName('drone-hover-hit');
-          var captionHit = this.root.getChildByName('drone-name-hit');
-          if (!owned) {
-            if (drone) drone.active = false;
-            if (hit) hit.active = false;
-            if (captionHit) captionHit.active = false;
-            return;
-          }
-          if (!drone) {
-            drone = this.nodeAt(this.battleCast, 'equipped-drone', -20, y, 64, 64);
-            this.label(drone, '', 0, -43, 136, 22, 13, C.text).node.name = 'drone-name';
-          }
-          drone.active = true;
-          if (((_drone$getComponent = drone.getComponent(Sprite)) == null ? void 0 : _drone$getComponent.spriteFrame) !== this.ui.frames.get('drones/' + id)) this.ui.paint(drone, 'drones/' + id);
-          var caption = drone.getChildByName('drone-name');
-          caption.setPosition(0, -43);
-          caption.getComponent(Label).string = this.tr('pet.' + id);
-          drone.setPosition(-20, y + (s.extra.effects ? Math.sin(this.age * 2.6) * 4 : 0));
-          // Keep the body and caption separately touchable without covering the supply button.
-          if (!hit) {
-            hit = this.nodeAt(this.root, 'drone-hover-hit', 0, 0, 64, 64);
-            this.touchAction(hit, function () {
-              return _this9.extensions.petDetail(_this9.game.s.activePet);
-            });
-          }
-          if (!captionHit) {
-            captionHit = this.nodeAt(this.root, 'drone-name-hit', 0, 0, 136, 24);
-            this.touchAction(captionHit, function () {
-              return _this9.extensions.petDetail(_this9.game.s.activePet);
-            });
-          }
-          var root = this.root.getComponent(UITransform);
-          hit.active = true;
-          hit.setPosition(root.convertToNodeSpaceAR(drone.worldPosition));
-          captionHit.active = true;
-          captionHit.setPosition(root.convertToNodeSpaceAR(caption.worldPosition));
-          captionHit.getComponent(UITransform).setContentSize(136 * this.battleCast.scale.x, 24);
+          this.droneFleet.syncBattle();
         };
         _proto.battleDensity = function battleDensity() {
           return battleDensityScale(waveSize(this.game.s.run.stage, this.game.s.run.boss));
         };
         _proto.layoutBattlefield = function layoutBattlefield() {
           var _this$combatMotion,
-            _this10 = this;
+            _this9 = this;
           // Party projection depends only on the viewport, not hostile bodies or attack poses.
           var _partyBattlefieldLayo = partyBattlefieldLayout(this.folded, this.heightExtra, this.safeBottom, this.safeTop),
             scale = _partyBattlefieldLayo.scale,
@@ -44681,8 +45138,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               layer.setScale(scale, scale, 1);
             }
           }
-          this.allies.setScale(1, 1, 1);
-          this.actor.parent.setScale(1, 1, 1);
+          var support = partyBattlefieldLayout(this.folded, this.heightExtra, this.safeBottom, this.safeTop, this.game.equippedDrones().length > 1 ? 120 : 0);
+          var allyScale = support.scale / scale;
+          this.allies.setPosition(-128 * (1 - allyScale), (support.y - y) / scale, 0);
+          this.allies.setScale(allyScale, allyScale, 1);
           (_this$combatMotion = this.combatMotion) == null || _this$combatMotion.projectCaptain(this.actor, 1);
           this.placement.projectAll();
           // Fit hostile ranks in the whole available field without moving the party.
@@ -44691,8 +45150,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var bossBounds = bossUnit ? this.ui.spriteVisibleBounds(bossUnit, bossUnit) : null;
           var bossHeight = bossBounds ? bossBounds.y + bossBounds.height + 9 : 0;
           var bounds = this.enemy.children.map(function (unit) {
-            var b = _this10.ui.spriteVisibleBounds(unit, unit),
-              rest = _this10.enemySlots.get(unit) || {
+            var b = _this9.ui.spriteVisibleBounds(unit, unit),
+              rest = _this9.enemySlots.get(unit) || {
                 x: unit.position.x,
                 y: unit.position.y
               };
@@ -44796,14 +45255,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           g.fill();
         };
         _proto.pixels = function pixels(parent, rows, palette, scale) {
-          var _this11 = this;
+          var _this10 = this;
           var g = parent.addComponent(Graphics),
             w = rows[0].length,
             h = rows.length;
           rows.forEach(function (row, y) {
             return row.split('').forEach(function (c, x) {
               if (palette[c]) {
-                g.fillColor = _this11.color(palette[c]);
+                g.fillColor = _this10.color(palette[c]);
                 g.rect((x - w / 2) * scale, (h - y) * scale - h * scale / 2, scale, scale);
                 g.fill();
               }
@@ -44841,7 +45300,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           return this.game.s.totalKills + ":" + this.game.s.run.boss + ":" + Math.floor((this.game.s.run.stage - 1) / 25);
         };
         _proto.syncEnemyDeath = function syncEnemyDeath() {
-          var _this12 = this;
+          var _this11 = this;
           if (this.game.s.totalKills === this.seenKills) return;
           this.seenKills = this.game.s.totalKills;
           this.enemyTransition = this.zoneTransition.observe() ? 0 : .65;
@@ -44865,13 +45324,13 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.enemy.children.filter(function (n) {
             return n.active;
           }).forEach(function (n) {
-            return _this12.enemyPop(n);
+            return _this11.enemyPop(n);
           });
           this.sound(95);
           this.updateHUD();
         };
         _proto.populateEnemies = function populateEnemies() {
-          var _this13 = this;
+          var _this12 = this;
           var count = waveSize(this.game.s.run.stage, this.game.s.run.boss);
           var seed = Math.imul(this.game.s.run.stage, 73856093) ^ Math.imul(this.game.s.totalKills, 19349663) ^ (this.game.s.run.boss ? 83492791 : 0);
           var positions = enemyFormation(count, seed, this.game.s.run.boss);
@@ -44886,43 +45345,43 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }).forEach(function (_ref3) {
             var pos = _ref3.pos,
               i = _ref3.i;
-            var unit = _this13.nodeAt(_this13.enemy, 'hostile-' + i, pos.x, pos.y, 40, 40);
-            _this13.sentinel(unit, i);
-            var visible = _this13.ui.spriteVisibleBounds(unit, unit),
-              centralBoss = _this13.game.s.run.boss && i === 0;
+            var unit = _this12.nodeAt(_this12.enemy, 'hostile-' + i, pos.x, pos.y, 40, 40);
+            _this12.sentinel(unit, i);
+            var visible = _this12.ui.spriteVisibleBounds(unit, unit),
+              centralBoss = _this12.game.s.run.boss && i === 0;
             unit.setPosition(centralBoss ? pos.x : Math.max(20 - visible.x, Math.min(pos.x, 210 - visible.x - visible.width)), pos.y);
-            _this13.enemySlots.set(unit, {
+            _this12.enemySlots.set(unit, {
               x: unit.position.x,
               y: unit.position.y
             });
-            _this13.groundShadow(unit, unit.getComponent(UITransform).height);
+            _this12.groundShadow(unit, unit.getComponent(UITransform).height);
             var width = centralBoss ? 72 : 32,
-              bar = _this13.nodeAt(unit, 'health', 0, visible.y + visible.height + 5, width, 4);
-            _this13.rect(bar, 0, 0, width, 4, '#111820');
-            var fill = _this13.nodeAt(bar, 'fill', -(width - 2) / 2, 0, width - 2, 2);
+              bar = _this12.nodeAt(unit, 'health', 0, visible.y + visible.height + 5, width, 4);
+            _this12.rect(bar, 0, 0, width, 4, '#111820');
+            var fill = _this12.nodeAt(bar, 'fill', -(width - 2) / 2, 0, width - 2, 2);
             fill.getComponent(UITransform).setAnchorPoint(0, .5);
-            _this13.rect(fill, (width - 2) / 2, 0, width - 2, 2, '#ffdb48');
+            _this12.rect(fill, (width - 2) / 2, 0, width - 2, 2, '#ffdb48');
           });
         };
         _proto.syncWave = function syncWave() {
-          var _this14 = this;
+          var _this13 = this;
           if (this.enemyTransition) return;
           var hp = this.game.enemyHealth();
           this.enemy.children.forEach(function (unit) {
             var index = Number(unit.name.split('-')[1]),
               alive = hp[index] !== ZERO;
-            if (!alive && unit.active) _this14.enemyPop(unit);
+            if (!alive && unit.active) _this13.enemyPop(unit);
             unit.active = alive;
             var bar = unit.getChildByName('health');
             if (bar) {
               var _bar$getChildByName;
               bar.active = alive;
-              (_bar$getChildByName = bar.getChildByName('fill')) == null || _bar$getChildByName.setScale(Math.max(.001, ratio(hp[index], _this14.game.enemyMaxHP(index))), 1, 1);
+              (_bar$getChildByName = bar.getChildByName('fill')) == null || _bar$getChildByName.setScale(Math.max(.001, ratio(hp[index], _this13.game.enemyMaxHP(index))), 1, 1);
             }
           });
         };
         _proto.enemyPop = function enemyPop(unit) {
-          var _this15 = this;
+          var _this14 = this;
           if (!this.game.s.extra.effects) return;
           var index = Number(unit.name.split('-')[1]) || 0,
             t = unit.getComponent(UITransform),
@@ -44939,8 +45398,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
           var layer = this.particles;
           var _loop = function _loop(f) {
-            _this15.scheduleOnce(function () {
-              if (isValid(n, true) && _this15.particles === layer) _this15.ui.paint(n, "death/" + variant + "/" + f);
+            _this14.scheduleOnce(function () {
+              if (isValid(n, true) && _this14.particles === layer) _this14.ui.paint(n, "death/" + variant + "/" + f);
             }, f * .06);
           };
           for (var f = 1; f < 5; f++) {
@@ -44994,7 +45453,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           if (unit) this.enemyFeedback.hit(unit, hit);
         };
         _proto.damageFloat = function damageFloat(target, damage, hero, hit, batched) {
-          var _this16 = this;
+          var _this15 = this;
           if (hero === void 0) {
             hero = -1;
           }
@@ -45016,7 +45475,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return;
           }
           this.damageNumbers = this.damageNumbers.filter(function (n) {
-            return isValid(n.node, true) && n.node.parent === _this16.damageLayer;
+            return isValid(n.node, true) && n.node.parent === _this15.damageLayer;
           });
           var kind = hit != null && hit.critical ? hit.special ? 'specialCritical' : 'critical' : hit != null && hit.special ? 'special' : 'normal';
           var tone = {
@@ -45044,7 +45503,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }
           }
           var overlap = function overlap(point) {
-            return _this16.damageNumbers.reduce(function (sum, n) {
+            return _this15.damageNumbers.reduce(function (sum, n) {
               var x = (n.width + width) / 2 + 6 / scale.x - Math.abs(n.node.position.x - point.x),
                 y = (n.height + height) / 2 + 4 / scale.y - Math.abs(n.node.position.y - point.y);
               return sum + (x > 0 && y > 0 ? Math.min(x, y) * (n.node.getComponent(UIOpacity).opacity / 255) : 0);
@@ -45155,7 +45614,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           });
         };
         _proto.syncAllies = function syncAllies() {
-          var _this17 = this,
+          var _this16 = this,
             _this$actor$parent;
           var ids = this.game.activeMercenaries(),
             density = .8,
@@ -45177,29 +45636,29 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               index: index
             };
           }).reverse().forEach(function (_ref4) {
-            var _this17$combatMotion;
+            var _this16$combatMotion;
             var id = _ref4.id,
               index = _ref4.index;
             var _allyPosition = allyPosition(index + 1, ids.length),
               x = _allyPosition.x,
               y = _allyPosition.y,
-              actor = _this17.nodeAt(_this17.allies, "hero-" + id, x, y, SOLDIER_SIZE, SOLDIER_SIZE),
-              body = _this17.nodeAt(actor, 'body', 0, 0, SOLDIER_SIZE, SOLDIER_SIZE);
+              actor = _this16.nodeAt(_this16.allies, "hero-" + id, x, y, SOLDIER_SIZE, SOLDIER_SIZE),
+              body = _this16.nodeAt(actor, 'body', 0, 0, SOLDIER_SIZE, SOLDIER_SIZE);
             actor.setPosition(Math.max(x, -190 + MOTION_LEFT[mercenaryArt(id)] * soldierSize(y) * density / 192), y);
             body.setScale(soldierSize(y) * density / SOLDIER_SIZE, soldierSize(y) * density / SOLDIER_SIZE, 1);
             body.getComponent(UITransform).setAnchorPoint(.5, 6 / 192);
-            _this17.ui.actor(body, 'merc-' + mercenaryArt(id));
-            (_this17$combatMotion = _this17.combatMotion) == null || _this17$combatMotion.bind(body, mercenaryArt(id));
-            _this17.groundShadow(actor, soldierSize(y) * density);
-            _this17.placement.bind(actor, id, index + 1);
+            _this16.ui.actor(body, 'merc-' + mercenaryArt(id));
+            (_this16$combatMotion = _this16.combatMotion) == null || _this16$combatMotion.bind(body, mercenaryArt(id));
+            _this16.groundShadow(actor, soldierSize(y) * density);
+            _this16.placement.bind(actor, id, index + 1);
             if (attackSeconds(id) > .3) {
               var width = 36 * soldierSize(y) * density / SOLDIER_SIZE,
-                bar = _this17.nodeAt(actor, 'attack-cooldown', 0, -7, width + 2, 4);
-              _this17.rect(bar, 0, 0, width + 2, 4, '#111820');
-              var fill = _this17.nodeAt(bar, 'fill', -width / 2, 0, width, 2);
+                bar = _this16.nodeAt(actor, 'attack-cooldown', 0, -7, width + 2, 4);
+              _this16.rect(bar, 0, 0, width + 2, 4, '#111820');
+              var fill = _this16.nodeAt(bar, 'fill', -width / 2, 0, width, 2);
               fill.getComponent(UITransform).setAnchorPoint(0, .5);
-              _this17.rect(fill, width / 2, 0, width, 2, '#46b4ff');
-              _this17.cooldownBars.push({
+              _this16.rect(fill, width / 2, 0, width, 2, '#46b4ff');
+              _this16.cooldownBars.push({
                 hero: id,
                 bar: bar,
                 fill: fill
@@ -45225,14 +45684,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
         };
         _proto.groundShadow = function groundShadow(unit, size) {
-          var _this18 = this;
+          var _this17 = this;
           var w = size * .8,
             h = size * .17,
             n = this.nodeAt(this.groundShadows, 'shadow-' + unit.name, unit.position.x, unit.position.y - 2, w, h),
             g = n.addComponent(Graphics);
           // Stepped bands match the pixel sprites; a broad soft edge and dark contact core.
           var ellipse = function ellipse(width, height, alpha) {
-            g.fillColor = _this18.color('#101710', alpha);
+            g.fillColor = _this17.color('#101710', alpha);
             var step = Math.max(1, Math.round(size / 48));
             for (var y = -height / 2; y < height / 2; y += step) {
               var center = Math.min(height / 2, y + step / 2),
@@ -45253,7 +45712,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           });
         };
         _proto.syncGroundShadows = function syncGroundShadows() {
-          var _this19 = this;
+          var _this18 = this;
           if (!this.groundShadows || !isValid(this.groundShadows, true)) return;
           var space = this.groundShadows.getComponent(UITransform);
           this.shadowUnits = this.shadowUnits.filter(function (_ref6) {
@@ -45270,12 +45729,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               var _unit$getChildByName;
               var feet = space.convertToNodeSpaceAR(unit.worldPosition);
               shadow.setPosition(feet.x, feet.y - 2);
-              var fixed = _this19.game.s.run.boss && unit.name === 'hostile-0',
-                ally = unit === _this19.actor || unit.parent === _this19.allies,
-                size = unit === _this19.actor ? unit.getComponent(UITransform).height : (((_unit$getChildByName = unit.getChildByName('body')) == null ? void 0 : _unit$getChildByName.scale.y) || 1) * SOLDIER_SIZE,
-                factor = ally ? size / (shadow.getComponent(UITransform).width / .8) : unit.parent === _this19.enemy && !fixed ? _this19.enemy.scale.y : 1;
+              var fixed = _this18.game.s.run.boss && unit.name === 'hostile-0',
+                ally = unit === _this18.actor || unit.parent === _this18.allies,
+                size = unit === _this18.actor ? unit.getComponent(UITransform).height : (((_unit$getChildByName = unit.getChildByName('body')) == null ? void 0 : _unit$getChildByName.scale.y) || 1) * SOLDIER_SIZE,
+                factor = ally ? size / (shadow.getComponent(UITransform).width / .8) : unit.parent === _this18.enemy && !fixed ? _this18.enemy.scale.y : 1;
               shadow.setScale(factor, factor, 1);
-              shadow.getComponent(UIOpacity).opacity = unit.parent === _this19.enemy ? _this19.enemy.getComponent(UIOpacity).opacity : 255;
+              shadow.getComponent(UIOpacity).opacity = unit.parent === _this18.enemy ? _this18.enemy.getComponent(UIOpacity).opacity : 255;
             }
             return true;
           });
@@ -45295,7 +45754,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           return unit ? unit.getComponent(UITransform).height / SOLDIER_SIZE * unit.worldScale.y / this.particles.worldScale.y : 1;
         };
         _proto.bulletImpact = function bulletImpact(x, y, index) {
-          var _this20 = this;
+          var _this19 = this;
           if (index === void 0) {
             index = this.game.lastHit;
           }
@@ -45313,8 +45772,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             var _arr6$_i = _arr6[_i6],
               frame = _arr6$_i[0],
               delay = _arr6$_i[1];
-            _this20.scheduleOnce(function () {
-              if (isValid(flash, true) && _this20.particles === layer) _this20.ui.paint(flash, 'death/0/' + frame);
+            _this19.scheduleOnce(function () {
+              if (isValid(flash, true) && _this19.particles === layer) _this19.ui.paint(flash, 'death/0/' + frame);
             }, delay);
           };
           for (var _i6 = 0, _arr6 = [[2, .045], [3, .095]]; _i6 < _arr6.length; _i6++) {
@@ -45335,9 +45794,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             opacity: 0
           }).start();
           var _loop3 = function _loop3() {
-            var chip = _this20.combatSprite('sparkle', 'hit-chip', x + random(-3, 3) * factor, y + random(-3, 3) * factor, random(6, 11) * factor);
+            var chip = _this19.combatSprite('sparkle', 'hit-chip', x + random(-3, 3) * factor, y + random(-3, 3) * factor, random(6, 11) * factor);
             if (!chip) return 1; // continue
-            _this20.ui.paint(chip, 'death/0/4');
+            _this19.ui.paint(chip, 'death/0/4');
             chip.angle = random(-180, 180);
             var angle = random(0, Math.PI * 2),
               speed = random(14, 30) * factor,
@@ -45376,11 +45835,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
         };
         _proto.fireBurst = function fireBurst(x, y) {
-          var _this21 = this;
+          var _this20 = this;
           var layer = this.particles;
           [0, .065, .13].forEach(function (delay) {
-            return _this21.scheduleOnce(function () {
-              if (_this21.particles === layer && isValid(layer, true) && !_this21.enemyTransition) _this21.gunshot(x, y);
+            return _this20.scheduleOnce(function () {
+              if (_this20.particles === layer && isValid(layer, true) && !_this20.enemyTransition) _this20.gunshot(x, y);
             }, delay);
           });
         };
@@ -45605,7 +46064,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
         };
         _proto.drawNav = function drawNav() {
-          var _this22 = this;
+          var _this21 = this;
           var old = this.root.getChildByName('navigation');
           if (old) {
             old.removeFromParent();
@@ -45615,40 +46074,40 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.rect(nav, 0, 0, 480, 56, C.bg);
           this.rect(nav, 0, 27, 480, 2, '#9da3af');
           var _loop4 = function _loop4(i) {
-            var unlocked = tabUnlocked(_this22.game.s, i),
-              n = _this22.nodeAt(nav, 'tab-' + i, -200 + i * 80, 0, 80, 56),
-              title = _this22.tr(['nav.master', 'nav.heroes', 'nav.equipment', 'nav.pets', 'nav.artifacts', 'nav.shop'][i]);
-            if (i > 0) _this22.rect(n, -40, 0, 1, 40, '#626978');
+            var unlocked = tabUnlocked(_this21.game.s, i),
+              n = _this21.nodeAt(nav, 'tab-' + i, -200 + i * 80, 0, 80, 56),
+              title = _this21.tr(['nav.master', 'nav.heroes', 'nav.equipment', 'nav.pets', 'nav.artifacts', 'nav.shop'][i]);
+            if (i > 0) _this21.rect(n, -40, 0, 1, 40, '#626978');
             var tone = [BUTTON_TONES.upgrade, BUTTON_TONES.deck, BUTTON_TONES.codex, BUTTON_TONES.synergy, BUTTON_TONES.ascend, BUTTON_TONES.shop][i],
-              selected = i === _this22.tab;
-            var tint = _this22.color(tone),
+              selected = i === _this21.tab;
+            var tint = _this21.color(tone),
               fill = unlocked ? selected ? tone : '#' + [tint.r, tint.g, tint.b].map(function (v) {
                 return Math.round(v * .48).toString(16).padStart(2, '0');
               }).join('') : '#444852';
-            var plate = _this22.nodeAt(n, selected ? 'selected-tab' : 'category-tab', 0, selected ? 3 : 0, 76, selected ? 62 : 52);
-            _this22.ui.surface(plate, fill, selected ? 'slant' : 'cut', 255, true);
-            _this22.buttonReasons.set(n, function () {
-              return tabUnlocked(_this22.game.s, i) ? null : _this22.tr('unlock.stage', {
+            var plate = _this21.nodeAt(n, selected ? 'selected-tab' : 'category-tab', 0, selected ? 3 : 0, 76, selected ? 62 : 52);
+            _this21.ui.surface(plate, fill, selected ? 'slant' : 'cut', 255, true);
+            _this21.buttonReasons.set(n, function () {
+              return tabUnlocked(_this21.game.s, i) ? null : _this21.tr('unlock.stage', {
                 name: title,
                 stage: TAB_STAGES[i]
               });
             });
-            _this22.touchAction(n, function () {
-              return _this22.tutorial.tab(i);
+            _this21.touchAction(n, function () {
+              return _this21.tutorial.tab(i);
             }, title);
-            var icon = _this22.nodeAt(n, 'tab-icon', 0, selected ? 10 : 9, selected ? 32 : 30, selected ? 32 : 30);
-            _this22.hudIcon(icon, i, selected ? contrastInk(tone) : C.text);
-            _this22.label(n, title, 0, -17, 74, 18, 14, unlocked ? selected ? contrastInk(tone) : C.text : '#b5b8c0').node.name = 'tab-caption';
-            if (i !== _this22.tab) icon.addComponent(UIOpacity).opacity = unlocked ? 210 : 60;
-            if (!unlocked) _this22.lockIcon(n, 23, 12);
-            if (i === 3 && unlocked && Date.now() >= _this22.game.s.eggAt) _this22.rect(n, 25, 18, 6, 6, C.danger);
+            var icon = _this21.nodeAt(n, 'tab-icon', 0, selected ? 10 : 9, selected ? 32 : 30, selected ? 32 : 30);
+            _this21.hudIcon(icon, i, selected ? contrastInk(tone) : C.text);
+            _this21.label(n, title, 0, -17, 74, 18, 14, unlocked ? selected ? contrastInk(tone) : C.text : '#b5b8c0').node.name = 'tab-caption';
+            if (i !== _this21.tab) icon.addComponent(UIOpacity).opacity = unlocked ? 210 : 60;
+            if (!unlocked) _this21.lockIcon(n, 23, 12);
+            if (i === 3 && unlocked && Date.now() >= _this21.game.s.eggAt) _this21.rect(n, 25, 18, 6, 6, C.danger);
           };
           for (var i = 0; i < 6; i++) {
             _loop4(i);
           }
         };
         _proto.scroll = function scroll(parent, x, y, w, h, rows) {
-          var _this23 = this;
+          var _this22 = this;
           var viewport = this.nodeAt(parent, 'scroll', x, y, w, h);
           viewport.addComponent(Mask);
           var sv = viewport.addComponent(ScrollView);
@@ -45666,16 +46125,16 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             var rowHeight = r.height || (r.members ? 134 : 77),
               yy = -rowHeight / 2 - offset;
             offset += rowHeight;
-            var card = _this23.nodeAt(content, 'list-row', 0, yy, w - 8, rowHeight - 7);
+            var card = _this22.nodeAt(content, 'list-row', 0, yy, w - 8, rowHeight - 7);
             var shopStyle = r.shopCategory ? SHOP_STYLE[r.shopCategory] : null;
-            _this23.ui.surface(card, r.background || (shopStyle ? _this23.ui.inPopup(card) ? shopStyle.dark : shopStyle.light : _this23.ui.inPopup(card) ? '#2b3028' : C.paper), 'cut');
-            if (shopStyle) _this23.rect(card, -w / 2 + 8, 0, 4, rowHeight - 21, shopStyle.accent).name = 'shop-category-' + r.shopCategory;
-            if (r.action === _this23.tr('action.claim')) {
-              var marker = _this23.rect(card, -w / 2 + 9, 0, 4, 54, C.gold),
+            _this22.ui.surface(card, r.background || (shopStyle ? _this22.ui.inPopup(card) ? shopStyle.dark : shopStyle.light : _this22.ui.inPopup(card) ? '#2b3028' : C.paper), 'cut');
+            if (shopStyle) _this22.rect(card, -w / 2 + 8, 0, 4, rowHeight - 21, shopStyle.accent).name = 'shop-category-' + r.shopCategory;
+            if (r.action === _this22.tr('action.claim')) {
+              var marker = _this22.rect(card, -w / 2 + 9, 0, 4, 54, C.gold),
                 refresh = function refresh() {
                   marker.active = !r.locked && !(r.unavailable != null && r.unavailable());
                 };
-              _this23.buttonStates.push({
+              _this22.buttonStates.push({
                 node: marker,
                 refresh: refresh
               });
@@ -45686,27 +46145,27 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               return;
             }
             if (r.locked && !r.mercenary && !r.revealLockedArt) {
-              _this23.lockIcon(card, -w / 2 + 35, 0);
+              _this22.lockIcon(card, -w / 2 + 35, 0);
             }
-            if (r.tint && !r.locked && !r.mercenary) _this23.polygon(card, -w / 2 + 33, 0, 48, 48, [[0, -.5], [.5, 0], [0, .5], [-.5, 0]], r.tint, 90);
-            if (r.mercenary) _this23.squadUI.profile(card, r.mercenary.id, -w / 2 + 43, 0, 72, r.mercenary.assigned, !!r.locked);else if (r.icon !== undefined && (!r.locked || r.revealLockedArt)) {
+            if (r.tint && !r.locked && !r.mercenary) _this22.polygon(card, -w / 2 + 33, 0, 48, 48, [[0, -.5], [.5, 0], [0, .5], [-.5, 0]], r.tint, 90);
+            if (r.mercenary) _this22.squadUI.profile(card, r.mercenary.id, -w / 2 + 43, 0, 72, r.mercenary.assigned, !!r.locked);else if (r.icon !== undefined && (!r.locked || r.revealLockedArt)) {
               if (shopStyle) {
-                var art = _this23.nodeAt(card, 'item-art', -w / 2 + 39, 0, 56, 56);
-                _this23.ui.surface(art, shopStyle.accent, 'cut');
-                _this23.ui.icon(_this23.nodeAt(art, 'glyph', 0, 0, 50, 50), r.art);
-              } else _this23.glyph(card, -w / 2 + 35, 0, r.icon, r.tint || C.gold, r.art);
+                var art = _this22.nodeAt(card, 'item-art', -w / 2 + 39, 0, 56, 56);
+                _this22.ui.surface(art, shopStyle.accent, 'cut');
+                _this22.ui.icon(_this22.nodeAt(art, 'glyph', 0, 0, 50, 50), r.art);
+              } else _this22.glyph(card, -w / 2 + 35, 0, r.icon, r.tint || C.gold, r.art);
             }
             if (r.locked && r.revealLockedArt) {
               var _art = card.getChildByName('item-art');
               if (_art) _art.addComponent(UIOpacity).opacity = 100;
-              _this23.lockIcon(card, -w / 2 + 51, -18);
+              _this22.lockIcon(card, -w / 2 + 51, -18);
             }
             if (r.badge && !r.mercenary) {
-              var badge = _this23.nodeAt(card, 'role-badge', -w / 2 + 65, 0, 22, 22);
-              _this23.ui.surface(badge, r.badge.tone, 'cut');
-              _this23.ui.icon(_this23.nodeAt(badge, 'role-icon', 0, 0, 16, 16), r.badge.icon, contrastInk(r.badge.tone));
-              _this23.touchAction(badge, function () {
-                return _this23.tooltip(badge, r.badge.hint);
+              var badge = _this22.nodeAt(card, 'role-badge', -w / 2 + 65, 0, 22, 22);
+              _this22.ui.surface(badge, r.badge.tone, 'cut');
+              _this22.ui.icon(_this22.nodeAt(badge, 'role-icon', 0, 0, 16, 16), r.badge.icon, contrastInk(r.badge.tone));
+              _this22.touchAction(badge, function () {
+                return _this22.tooltip(badge, r.badge.hint);
               }, r.badge.hint);
             }
             var hasIcon = r.icon !== undefined,
@@ -45714,31 +46173,31 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             var left = -w / 2 + (hasIcon ? r.mercenary ? 90 : shopStyle ? 78 : r.badge ? 82 : 66 : 16),
               right = w / 2 - (hasAction ? 106 : 16),
               width = right - left;
-            var rowInk = shopStyle && !_this23.ui.inPopup(card) ? C.ink : C.text,
-              rowMuted = shopStyle && !_this23.ui.inPopup(card) ? '#474b43' : C.muted;
-            _this23.label(card, r.title, left + width / 2, shopStyle ? r.sub || r.metrics ? rowHeight < 84 ? 15 : 19 : 0 : r.members ? 43 : r.height ? rowHeight / 2 - 22 : r.sub || r.metrics ? 15 : 0, width, 28, 17, rowInk, Label.HorizontalAlign.LEFT);
+            var rowInk = shopStyle && !_this22.ui.inPopup(card) ? C.ink : C.text,
+              rowMuted = shopStyle && !_this22.ui.inPopup(card) ? '#474b43' : C.muted;
+            _this22.label(card, r.title, left + width / 2, shopStyle ? r.sub || r.metrics ? rowHeight < 84 ? 15 : 19 : 0 : r.members ? 43 : r.height ? rowHeight / 2 - 22 : r.sub || r.metrics ? 15 : 0, width, 28, 17, rowInk, Label.HorizontalAlign.LEFT);
             if (r.members) r.members.forEach(function (member, j) {
               var x = left + (j + .5) * width / r.members.length,
                 style = SQUAD_ROLE_STYLE[squadRole(member.id)],
-                tile = _this23.nodeAt(card, 'combo-member-' + member.id, x, 3, width / r.members.length - 5, 64);
-              _this23.ui.surface(tile, style.background, 'cut');
-              _this23.ui.face(_this23.nodeAt(tile, 'combo-portrait', 0, 10, 32, 34), 'merc-' + mercenaryArt(member.id));
-              _this23.label(tile, _this23.tr('hero.' + member.id), 0, -19, width / r.members.length - 9, 22, 14, member.active ? C.text : C.muted);
-              var badge = _this23.nodeAt(tile, 'role-badge', 29, 20, 18, 18);
-              _this23.ui.surface(badge, style.color, 'cut');
-              _this23.ui.icon(_this23.nodeAt(badge, 'role-icon', 0, 0, 14, 14), style.icon, C.ink);
-              _this23.touchAction(badge, function () {
-                return _this23.tooltip(badge, _this23.tr('squad.role.' + squadRole(member.id)) + '\n' + _this23.tr('squad.roleDesc.' + squadRole(member.id)));
+                tile = _this22.nodeAt(card, 'combo-member-' + member.id, x, 3, width / r.members.length - 5, 64);
+              _this22.ui.surface(tile, style.background, 'cut');
+              _this22.ui.face(_this22.nodeAt(tile, 'combo-portrait', 0, 10, 32, 34), 'merc-' + mercenaryArt(member.id));
+              _this22.label(tile, _this22.tr('hero.' + member.id), 0, -19, width / r.members.length - 9, 22, 14, member.active ? C.text : C.muted);
+              var badge = _this22.nodeAt(tile, 'role-badge', 29, 20, 18, 18);
+              _this22.ui.surface(badge, style.color, 'cut');
+              _this22.ui.icon(_this22.nodeAt(badge, 'role-icon', 0, 0, 14, 14), style.icon, C.ink);
+              _this22.touchAction(badge, function () {
+                return _this22.tooltip(badge, _this22.tr('squad.role.' + squadRole(member.id)) + '\n' + _this22.tr('squad.roleDesc.' + squadRole(member.id)));
               });
-              if (member.active) _this23.ui.icon(_this23.nodeAt(tile, 'combo-active', -25, 20, 14, 14), 'symbol:check', C.gold);else tile.addComponent(UIOpacity).opacity = 170;
-              _this23.touchAction(tile, member.click, _this23.tr('hero.' + member.id));
+              if (member.active) _this22.ui.icon(_this22.nodeAt(tile, 'combo-active', -25, 20, 14, 14), 'symbol:check', C.gold);else tile.addComponent(UIOpacity).opacity = 170;
+              _this22.touchAction(tile, member.click, _this22.tr('hero.' + member.id));
             });
             if (r.metrics) r.metrics.forEach(function (m, j) {
-              return _this23.metric(card, m.icon, m.value, left + (j + .5) * width / r.metrics.length, -16, width / r.metrics.length - 5, m.hint);
+              return _this22.metric(card, m.icon, m.value, left + (j + .5) * width / r.metrics.length, -16, width / r.metrics.length - 5, m.hint);
             });else if (r.sub) {
               var sub = r.sub,
-                l = _this23.label(card, typeof sub === 'function' ? sub() : sub, left + width / 2, r.members ? -47 : r.height ? -12 : -16, width, r.members ? 26 : shopStyle && rowHeight < 84 ? 32 : r.height ? 46 : 31, 14, rowMuted, Label.HorizontalAlign.LEFT);
-              if (typeof sub === 'function') _this23.buttonStates.push({
+                l = _this22.label(card, typeof sub === 'function' ? sub() : sub, left + width / 2, r.members ? -47 : r.height ? -12 : -16, width, r.members ? 26 : shopStyle && rowHeight < 84 ? 32 : r.height ? 46 : 31, 14, rowMuted, Label.HorizontalAlign.LEFT);
+              if (typeof sub === 'function') _this22.buttonStates.push({
                 node: l.node,
                 refresh: function refresh() {
                   l.string = sub();
@@ -45746,18 +46205,18 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               });
             }
             if (r.detail) {
-              var target = _this23.nodeAt(card, 'details', left + width / 2, 0, width, 65);
+              var target = _this22.nodeAt(card, 'details', left + width / 2, 0, width, 65);
               target.setSiblingIndex(1);
-              _this23.touchAction(target, r.detail, r.title);
+              _this22.touchAction(target, r.detail, r.title);
               var portrait = card.getChildByName('item-art');
-              if (portrait) _this23.touchAction(portrait, r.detail, r.title);
+              if (portrait) _this22.touchAction(portrait, r.detail, r.title);
             }
             if (r.action) {
-              var settled = [_this23.tr('action.equipped'), _this23.tr('action.claimed'), _this23.tr('action.selected')].includes(r.action);
+              var settled = [_this22.tr('action.equipped'), _this22.tr('action.claimed'), _this22.tr('action.selected')].includes(r.action);
               var browse = ['action.details', 'action.open', 'action.back'].some(function (key) {
-                return r.action === _this23.tr(key);
+                return r.action === _this22.tr(key);
               });
-              var actionButton = _this23.button(card, r.action, w / 2 - 54, 0, 90, 50, r.click || function () {}, !settled && (!_this23.ui.inPopup(card) || !browse), {
+              var actionButton = _this22.button(card, r.action, w / 2 - 54, 0, 90, 50, r.click || function () {}, !settled && (!_this22.ui.inPopup(card) || !browse), {
                 style: r.buttonStyle || (r.locked ? 'disabled' : settled ? 'selected' : browse ? 'secondary' : 'primary'),
                 category: r.actionCategory,
                 completed: r.actionCompleted,
@@ -45766,18 +46225,22 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                 iconOnly: false,
                 hint: r.actionHint,
                 label: r.actionLabel,
-                unavailable: r.unavailable || (r.action === _this23.tr('action.claimed') ? function () {
-                  return _this23.tr('action.alreadyClaimed');
+                unavailable: r.unavailable || (r.action === _this22.tr('action.claimed') ? function () {
+                  return _this22.tr('action.alreadyClaimed');
                 } : r.locked ? function () {
                   var _r$metrics;
                   return (typeof r.sub === 'function' ? r.sub() : r.sub) || ((_r$metrics = r.metrics) == null || (_r$metrics = _r$metrics.find(function (m) {
                     return m.hint;
-                  })) == null ? void 0 : _r$metrics.hint) || _this23.tr('error.locked');
+                  })) == null ? void 0 : _r$metrics.hint) || _this22.tr('error.locked');
                 } : undefined)
               });
               if (r.tutorialId) actionButton.name = r.tutorialId;
             } else if (r.click) card.on(Node.EventType.TOUCH_END, r.click);
           });
+          var scope = parent === this.panel ? "main:" + this.tab + ":" + (this.tab === 2 ? this.filter : this.tab === 5 ? this.shopTab : 0) : parent.scrollIdentity;
+          if (scope) this.scrollPositions.attach(viewport, scope + ':' + (parent.children.filter(function (n) {
+            return n.name === 'scroll';
+          }).length - 1));
         };
         _proto.glyph = function glyph(parent, x, y, id, color, art) {
           var n = this.nodeAt(parent, 'item-art', x, y, 44, 44);
@@ -45813,8 +46276,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
         };
         _proto.drawPanel = function drawPanel() {
-          var _this24 = this;
+          var _this23 = this;
           this.syncDrone();
+          this.scrollPositions.capture(this.panel);
           this.clear(this.panel);
           if (!tabUnlocked(this.game.s, this.tab)) {
             this.tab = 0;
@@ -45840,17 +46304,17 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               value: this.format(g.tapDamage())
             }));
             var captainUpgrade = this.button(this.panel, this.levelButtonLabel(-1), 164, 112, 135, 60, function () {
-              g.buy(-1, _this24.mode);
-              _this24.drawPanel();
-              _this24.flushNotice();
+              g.buy(-1, _this23.mode);
+              _this23.drawPanel();
+              _this23.flushNotice();
             }, true, {
               category: 'upgrade',
               label: function label() {
-                return _this24.levelButtonLabel(-1);
+                return _this23.levelButtonLabel(-1);
               },
               hint: this.tr('layout.upgrade'),
               unavailable: function unavailable() {
-                return _this24.levelReason(-1);
+                return _this23.levelReason(-1);
               }
             });
             captainUpgrade.name = 'tutorial-captain-upgrade';
@@ -45863,18 +46327,25 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               this.metric(this.panel, 'flag', '60', -106, 13, 110, this.tr('prestige.locked'));
               this.metric(this.panel, 'scroll', this.format(g.prestigeReward()), 11, 13, 116, this.tr('prestige.desc'));
               this.button(this.panel, this.tr('prestige.title'), 159, 13, 145, 60, function () {
-                return _this24.prestige();
+                return _this23.prestige();
               }, r.stage >= 60, {
                 icon: 'symbol:discharge',
                 fontSize: 15,
                 hint: this.tr('prestige.title'),
                 unavailable: function unavailable() {
-                  return _this24.game.s.run.stage < 60 ? _this24.tr('prestige.locked') : null;
+                  return _this23.game.s.run.stage < 60 ? _this23.tr('prestige.locked') : null;
                 }
               }).name = 'tutorial-redeploy';
             }
             this.polygon(this.panel, -6, showPrestige ? -36 : 62, 468, 26, [[-.5, -.5], [.48, -.5], [.5, .5], [-.5, .5]], C.paperMuted);
             this.label(this.panel, this.tr('spell.title'), -103, showPrestige ? -36 : 62, 242, 24, 15, C.ink, Label.HorizontalAlign.LEFT);
+            this.button(this.panel, this.tr('tactic.manageOpen'), 151, showPrestige ? -36 : 62, 142, 30, function () {
+              return _this23.spells(0);
+            }, false, {
+              category: 'deck',
+              icon: 'symbol:next',
+              fontSize: 14
+            }).name = 'captain-tactics-open';
             this.scroll(this.panel, 0, showPrestige ? -100 : -51, 474, showPrestige ? 99 : 197, SPELLS.filter(function (sp) {
               var _SPELLS$find;
               return r.master >= sp.unlock || sp.id === ((_SPELLS$find = SPELLS.find(function (sp) {
@@ -45884,32 +46355,32 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               return {
                 revealLockedArt: true,
                 locked: r.master < sp.unlock,
-                title: _this24.tr("spell." + sp.id) + (_this24.game.s.spellSlots.includes(sp.id) ? ' · ' + _this24.tr('tactic.assigned', {
-                  slot: _this24.game.s.spellSlots.indexOf(sp.id) + 1
+                title: _this23.tr("spell." + sp.id) + (_this23.game.s.spellSlots.includes(sp.id) ? ' · ' + _this23.tr('tactic.assigned', {
+                  slot: _this23.game.s.spellSlots.indexOf(sp.id) + 1
                 }) : ''),
-                tint: _this24.game.s.spellSlots.includes(sp.id) ? C.mint : C.violet,
+                tint: _this23.game.s.spellSlots.includes(sp.id) ? C.mint : C.violet,
                 metrics: [{
                   icon: r.master < sp.unlock ? 'lock' : 'symbol:up',
                   value: String(r.master < sp.unlock ? sp.unlock : r.spellLevels[sp.id]),
-                  hint: _this24.tr('spell.detail', {
+                  hint: _this23.tr('spell.detail', {
                     level: r.spellLevels[sp.id],
                     unlock: sp.unlock,
-                    mana: _this24.game.spellMana(sp.id)
+                    mana: _this23.game.spellMana(sp.id)
                   })
                 }, {
                   icon: 'symbol:canteen',
-                  value: String(_this24.game.spellMana(sp.id)),
-                  hint: _this24.tr('spell.energyCost', {
-                    cost: _this24.game.spellMana(sp.id)
+                  value: String(_this23.game.spellMana(sp.id)),
+                  hint: _this23.tr('spell.energyCost', {
+                    cost: _this23.game.spellMana(sp.id)
                   })
                 }],
                 art: tacticIcon(sp.id),
                 icon: sp.id,
-                action: _this24.tr(r.master < sp.unlock ? 'action.level' : 'action.details', {
+                action: _this23.tr(r.master < sp.unlock ? 'action.level' : 'action.details', {
                   level: sp.unlock
                 }),
                 click: function click() {
-                  return _this24.spellDetail(sp.id, Math.max(0, _this24.game.s.spellSlots.indexOf(sp.id)));
+                  return _this23.spellDetail(sp.id, Math.max(0, _this23.game.s.spellSlots.indexOf(sp.id)));
                 }
               };
             }));
@@ -45918,18 +46389,18 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               count: g.activeMercenaries().length,
               limit: SQUAD_LIMIT
             }), -157, 127, 160, 38, function () {
-              return _this24.squadUI.deck();
+              return _this23.squadUI.deck();
             }, false, {
               fontSize: 15
             }).name = 'squad-deck-open';
             this.button(this.panel, this.tr('squad.codex'), -15, 127, 112, 38, function () {
-              return _this24.squadUI.codex();
+              return _this23.squadUI.codex();
             }, false, {
               fontSize: 14
             }).name = 'squad-codex-open';
             this.button(this.panel, '×' + (this.mode === -1 ? '∞' : this.mode), 148, 127, 168, 38, function () {
-              _this24.mode = [1, 10, 100, -1][([1, 10, 100, -1].indexOf(_this24.mode) + 1) % 4];
-              _this24.drawPanel();
+              _this23.mode = [1, 10, 100, -1][([1, 10, 100, -1].indexOf(_this23.mode) + 1) % 4];
+              _this23.drawPanel();
             }, false, {
               category: 'upgrade',
               hint: this.tr('master.buyMode', {
@@ -45952,61 +46423,61 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                 actionCategory: 'upgrade',
                 locked: s.maxStage < h.unlock,
                 unavailable: function unavailable() {
-                  return _this24.levelReason(h.id);
+                  return _this23.levelReason(h.id);
                 },
                 actionLabel: function actionLabel() {
-                  return s.maxStage < h.unlock ? _this24.tr('action.locked') : _this24.levelButtonLabel(h.id);
+                  return s.maxStage < h.unlock ? _this23.tr('action.locked') : _this23.levelButtonLabel(h.id);
                 },
-                title: _this24.tr(h.name),
-                sub: s.maxStage < h.unlock ? _this24.tr('hero.locked', {
+                title: _this23.tr(h.name),
+                sub: s.maxStage < h.unlock ? _this23.tr('hero.locked', {
                   stage: h.unlock
                 }) : undefined,
                 metrics: s.maxStage < h.unlock ? [{
                   icon: 'flag',
                   value: String(h.unlock),
-                  hint: _this24.tr('hero.locked', {
+                  hint: _this23.tr('hero.locked', {
                     stage: h.unlock
                   })
                 }] : [{
                   icon: 'symbol:up',
                   value: String(r.heroes[h.id]),
-                  hint: _this24.tr('action.level', {
+                  hint: _this23.tr('action.level', {
                     level: r.heroes[h.id]
                   })
                 }, {
                   icon: 'symbol:damage',
-                  value: _this24.format(g.heroDamage(h.id)),
-                  hint: _this24.tr('hero.stats', {
+                  value: _this23.format(g.heroDamage(h.id)),
+                  hint: _this23.tr('hero.stats', {
                     level: r.heroes[h.id],
-                    damage: _this24.format(g.heroDamage(h.id))
+                    damage: _this23.format(g.heroDamage(h.id))
                   })
                 }],
                 detail: function detail() {
-                  return _this24.extensions.hero(h.id);
+                  return _this23.extensions.hero(h.id);
                 },
                 icon: h.id,
                 art: 'face:merc-' + mercenaryArt(h.id),
                 badge: {
                   icon: SQUAD_ROLE_STYLE[squadRole(h.id)].icon,
                   tone: SQUAD_ROLE_STYLE[squadRole(h.id)].color,
-                  hint: _this24.tr('squad.roleDesc.' + squadRole(h.id)),
+                  hint: _this23.tr('squad.roleDesc.' + squadRole(h.id)),
                   click: function click() {
-                    return _this24.squadUI.roles();
+                    return _this23.squadUI.roles();
                   }
                 },
                 tint: [C.ember, C.mint, C.blue, C.violet][h.id % 4],
-                action: s.maxStage < h.unlock ? _this24.tr('action.locked') : _this24.levelButtonLabel(h.id),
+                action: s.maxStage < h.unlock ? _this23.tr('action.locked') : _this23.levelButtonLabel(h.id),
                 click: function click() {
                   if (s.maxStage < h.unlock) {
-                    _this24.info(_this24.tr('unlock.title'), _this24.tr('hero.locked', {
+                    _this23.info(_this23.tr('unlock.title'), _this23.tr('hero.locked', {
                       stage: h.unlock
                     }), 'blocked');
                     return;
                   }
-                  g.buy(h.id, _this24.mode);
-                  _this24.drawPanel();
-                  _this24.tutorial.event('progress');
-                  _this24.flushNotice();
+                  g.buy(h.id, _this23.mode);
+                  _this23.drawPanel();
+                  _this23.tutorial.event('progress');
+                  _this23.flushNotice();
                 }
               };
             }));
@@ -46014,22 +46485,22 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             this.metric(this.panel, 'face:compass', String(s.shards), -158, 127, 130, this.tr('equipment.craft'));
             this.metric(this.panel, 'symbol:bag', s.equipment.length + '/100', -25, 127, 120, this.tr('equipment.title'));
             this.button(this.panel, '⋯', 73, 127, 40, 34, function () {
-              return _this24.equipmentTools();
+              return _this23.equipmentTools();
             });
             this.button(this.panel, this.tr('equipment.craft'), 172, 127, 110, 34, function () {
-              return _this24.craft();
+              return _this23.craft();
             }, false, {
               unavailable: function unavailable() {
-                return s.equipment.length >= 100 ? _this24.tr('error.full') : _this24.costReason('shards', g.craftCost());
+                return s.equipment.length >= 100 ? _this23.tr('error.full') : _this23.costReason('shards', g.craftCost());
               }
             });
             var _loop5 = function _loop5(i) {
               var tone = [BUTTON_TONES.battle, BUTTON_TONES.shop, BUTTON_TONES.upgrade, BUTTON_TONES.ascend, BUTTON_TONES.confirm][i];
-              _this24.button(_this24.panel, _this24.tr("slot." + i), -180 + i * 90, 80, 84, 40, function () {
-                _this24.filter = _this24.filter === i ? -1 : i;
-                _this24.drawPanel();
-              }, _this24.filter === i, {
-                style: _this24.filter === i ? 'selected' : 'quiet',
+              _this23.button(_this23.panel, _this23.tr("slot." + i), -180 + i * 90, 80, 84, 40, function () {
+                _this23.filter = _this23.filter === i ? -1 : i;
+                _this23.drawPanel();
+              }, _this23.filter === i, {
+                style: _this23.filter === i ? 'selected' : 'quiet',
                 category: 'codex',
                 tone: tone,
                 icon: ['equipment:rifle', 'equipment:helmet', 'equipment:vest', 'equipment:radio', 'equipment:rank'][i],
@@ -46041,78 +46512,18 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               _loop5(i);
             }
             var items = s.equipment.filter(function (e) {
-              return _this24.filter < 0 || e.slot === _this24.filter;
+              return _this23.filter < 0 || e.slot === _this23.filter;
             }).sort(function (a, b) {
               return b.power - a.power;
             });
             this.scroll(this.panel, 0, -46, 458, 204, items.map(function (e) {
-              return equipmentListRow(_this24, e, 'inventory', function () {
-                return _this24.equipItem(e.id);
+              return equipmentListRow(_this23, e, 'inventory', function () {
+                return _this23.equipItem(e.id);
               });
             }));
             if (!items.length) this.label(this.panel, this.tr('equipment.empty'), 0, -22, 410, 60, 16, C.muted);
           } else if (this.tab === 3) {
-            this.label(this.panel, this.tr('pet.title'), -112, 127, 220, 28, 21, C.gold, Label.HorizontalAlign.LEFT);
-            this.button(this.panel, Date.now() >= s.eggAt ? this.tr('pet.hatch') : this.tr('action.remaining', {
-              seconds: Math.ceil((s.eggAt - Date.now()) / 1000)
-            }), 143, 127, 164, 36, function () {
-              return _this24.rewards.local(_this24.tr('pet.hatch'), 'hatch:' + _this24.game.s.eggAt, function (g) {
-                return g.hatch(_this24.id('egg'));
-              }, function () {
-                return _this24.drawPanel();
-              });
-            }, false, {
-              label: function label() {
-                return _this24.game.now() >= _this24.game.s.eggAt ? _this24.tr('pet.hatch') : _this24.tr('action.remaining', {
-                  seconds: Math.ceil((_this24.game.s.eggAt - _this24.game.now()) / 1000)
-                });
-              },
-              unavailable: function unavailable() {
-                return _this24.game.now() < _this24.game.s.eggAt ? _this24.tr('action.waitSeconds', {
-                  seconds: Math.ceil((_this24.game.s.eggAt - _this24.game.now()) / 1000)
-                }) : null;
-              }
-            });
-            this.scroll(this.panel, 0, -24, 458, 244, PETS.map(function (p) {
-              return {
-                actionCategory: 'confirm',
-                locked: s.pets[p.id] === 0,
-                title: _this24.tr(p.name),
-                metrics: [{
-                  icon: 'symbol:up',
-                  value: String(s.pets[p.id]),
-                  hint: _this24.tr('action.level', {
-                    level: s.pets[p.id]
-                  })
-                }, {
-                  icon: ['symbol:coin', 'symbol:damage', 'symbol:damage'][p.effect],
-                  value: '×' + (1 + s.pets[p.id] * .025).toFixed(2),
-                  hint: _this24.tr(['pet.effectGold', 'pet.effectTap', 'pet.effectHero'][p.effect])
-                }],
-                detail: function detail() {
-                  return _this24.extensions.petDetail(p.id);
-                },
-                icon: p.id,
-                art: 'drones:' + p.id,
-                tint: C.mint,
-                action: !s.pets[p.id] ? _this24.tr('action.locked') : s.activePet === p.id ? _this24.tr('action.equipped') : _this24.tr('action.equip'),
-                click: function click() {
-                  if (!s.pets[p.id]) _this24.toast(_this24.tr('error.locked'), 'blocked');else {
-                    if (s.activePet === p.id) {
-                      _this24.toast(_this24.tr('action.alreadyEquipped'), 'blocked');
-                      return;
-                    }
-                    if (!g.equipPet(p.id)) {
-                      _this24.flushNotice();
-                      return;
-                    }
-                    _this24.tutorial.complete('first:pet');
-                    g.persist();
-                    _this24.drawPanel();
-                  }
-                }
-              };
-            }));
+            this.droneFleet.panel(this.panel);
           } else if (this.tab === 4) {
             this.metric(this.panel, 'scroll', this.tr('artifact.balance', {
               value: this.formatIntel(s.relics)
@@ -46122,12 +46533,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             this.button(this.panel, this.tr('artifact.discover', {
               cost: this.formatIntel(g.discoverCost())
             }), 149, 127, 154, 36, function () {
-              return _this24.act(function () {
-                return g.discover(_this24.id('discover'));
+              return _this23.act(function () {
+                return g.discover(_this23.id('discover'));
               }, function () {
-                _this24.tutorial.complete('first:discover');
-                _this24.drawPanel();
-                _this24.tutorial.draw();
+                _this23.tutorial.complete('first:discover');
+                _this23.drawPanel();
+                _this23.tutorial.draw();
               });
             }, true, {
               fontSize: 15,
@@ -46137,19 +46548,19 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               unavailable: function unavailable() {
                 return s.artifacts.every(function (v, i) {
                   return v > 0 || s.salvaged.includes(i);
-                }) ? _this24.tr('error.complete') : _this24.costReason('relics', g.discoverCost());
+                }) ? _this23.tr('error.complete') : _this23.costReason('relics', g.discoverCost());
               }
             }).name = 'tutorial-intel-discover';
             var owned = ARTIFACTS.filter(function (a) {
               return s.artifacts[a.id];
             });
             this.button(this.panel, '⋯', -208, 89, 40, 26, function () {
-              return _this24.salvaged();
+              return _this23.salvaged();
             });
             this.button(this.panel, this.tr('learn.open'), -118, 89, 122, 28, function () {
-              return _this24.tutorial.explain('intel', function () {
-                _this24.close();
-                _this24.tutorial.tab(4, true);
+              return _this23.tutorial.explain('intel', function () {
+                _this23.close();
+                _this23.tutorial.tab(4, true);
               }, true);
             }, false, {
               fontSize: 14,
@@ -46157,20 +46568,20 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }).name = 'intel-tab-help';
             this.scroll(this.panel, 0, -37, 458, 221, owned.map(function (a, index) {
               return {
-                title: _this24.tr(a.name),
+                title: _this23.tr(a.name),
                 height: 86,
-                sub: _this24.tr('intel.row', {
+                sub: _this23.tr('intel.row', {
                   level: s.artifacts[a.id],
-                  effect: _this24.tr('intel.effect.' + a.effect),
-                  value: _this24.artifactMultiplier(a.id)
+                  effect: _this23.tr('intel.effect.' + a.effect),
+                  value: _this23.artifactMultiplier(a.id)
                 }),
                 icon: a.id,
                 art: 'scroll',
                 tint: C.violet,
-                action: _this24.tr('action.details'),
+                action: _this23.tr('action.details'),
                 tutorialId: index === 0 ? 'tutorial-intel-detail' : undefined,
                 click: function click() {
-                  return _this24.artifactDetail(a.id);
+                  return _this23.artifactDetail(a.id);
                 }
               };
             }));
@@ -46189,9 +46600,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             level: e.level
           });
         };
-        _proto.open = function open(title, height, closable, surface, guided, back) {
+        _proto.open = function open(title, height, closable, surface, guided, back, scrollIdentity) {
           var _this$tutorial3,
-            _this25 = this;
+            _this24 = this;
           if (height === void 0) {
             height = 600;
           }
@@ -46204,6 +46615,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           if (guided === void 0) {
             guided = true;
           }
+          if (scrollIdentity === void 0) {
+            scrollIdentity = title;
+          }
           this.close();
           this.hideToast();
           this.modalBack = back || null;
@@ -46212,6 +46626,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.rect(this.modal, 0, 0, 480, this.designH, '#000000', undefined, 128);
           height = Math.min(height, this.designH - this.safeTop - this.safeBottom - 70);
           var box = this.nodeAt(this.modal, 'modal-panel', 0, (this.safeBottom - this.safeTop) / 2, 432, height);
+          box.scrollIdentity = 'modal:' + scrollIdentity;
           if (surface === 'blocked') this.ui.surface(box, BLOCKED_NOTICE.background, 'panel', 255, true);else this.ui.paint(box, surface === 'slate' ? 'popup/slate' : 'popup/panel', true);
           var panelAccent = surface === 'blocked' ? BLOCKED_NOTICE.border : this.game.s.extra.cosmetics[1] > 0 ? [C.line, C.gold, C.blue, C.violet, C.mint, C.ember][this.game.s.extra.cosmetics[1]] : this.tabTone;
           var heading = this.polygon(box, -40, height / 2 - 38, 336, 60, [[-.5, -.5], [.43, -.5], [.5, .5], [-.5, .5]], surface === 'blocked' ? BLOCKED_NOTICE.heading : C.paper);
@@ -46219,7 +46634,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.rect(box, 0, height / 2 - 70, 388, 1, surface === 'blocked' ? BLOCKED_NOTICE.border : C.line);
           if (!guided || !((_this$tutorial3 = this.tutorial) != null && _this$tutorial3.popup(title, heading))) this.label(heading, title, 0, 0, 280, 44, 23, surface === 'blocked' ? BLOCKED_NOTICE.text : C.ink);
           if (closable) this.button(box, '×', 176, height / 2 - 38, 56, 56, function () {
-            return _this25.dismissModal();
+            return _this24.dismissModal();
           }, false, {
             style: 'quiet',
             category: 'back',
@@ -46241,6 +46656,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.modalRefresh = null;
           if (this.modal) {
             var _this$tutorial4;
+            this.scrollPositions.capture(this.modal);
             this.modal.removeFromParent();
             this.modal.destroy();
             this.modal = null;
@@ -46248,7 +46664,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
         };
         _proto.confirm = function confirm(title, body, yes, options, tone) {
-          var _this26 = this;
+          var _this25 = this;
           if (options === void 0) {
             options = {};
           }
@@ -46258,19 +46674,19 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var p = this.open(title, 370, true, tone === 'blocked' ? 'blocked' : 'teal', tone !== 'blocked');
           this.label(p, body, 0, 10, 372, 195, 19, C.text);
           this.button(p, this.tr('action.cancel'), -103, -132, 178, 48, function () {
-            return _this26.close();
+            return _this25.close();
           });
           this.button(p, this.tr('action.confirm'), 103, -132, 178, 48, yes, true, options);
         };
         _proto.info = function info(title, body, tone) {
-          var _this27 = this;
+          var _this26 = this;
           if (tone === void 0) {
             tone = 'normal';
           }
           var p = this.open(title, 390, true, tone === 'blocked' ? 'blocked' : 'teal', tone !== 'blocked');
           this.label(p, body, 0, 0, 375, 245, 18, C.text);
           this.button(p, this.tr('action.close'), 0, -145, 260, 45, function () {
-            return _this27.close();
+            return _this26.close();
           });
         };
         _proto.act = function act(action, done, successKey) {
@@ -46285,49 +46701,49 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           } else this.flushNotice();
         };
         _proto.menu = function menu(operations) {
-          var _this28 = this;
+          var _this27 = this;
           if (operations === void 0) {
             operations = false;
           }
           var p = this.open(this.tr(operations ? 'hud.operations' : 'hud.menu'), 706);
           var actions = operations ? [['daily', function () {
-            return _this28.daily();
+            return _this27.daily();
           }], ['milestones', function () {
-            return _this28.milestones();
+            return _this27.milestones();
           }], ['raid', function () {
-            return _this28.raidLobby();
+            return _this27.raidLobby();
           }], ['cards', function () {
-            return _this28.cards();
+            return _this27.cards();
           }], ['event', function () {
-            return _this28.events();
+            return _this27.events();
           }], ['meta', function () {
-            return _this28.meta();
+            return _this27.meta();
           }], ['clan', function () {
-            return _this28.guild();
+            return _this27.guild();
           }], ['tournament', function () {
-            return _this28.competition();
+            return _this27.competition();
           }]] : [['hud.operations', function () {
-            return _this28.menu(true);
+            return _this27.menu(true);
           }], ['learn.library', function () {
-            return _this28.tutorial.lessons(function () {
-              return _this28.menu();
+            return _this27.tutorial.lessons(function () {
+              return _this27.menu();
             });
           }], ['squad.deck', function () {
-            return _this28.squadUI.deck();
+            return _this27.squadUI.deck();
           }], ['squad.codex', function () {
-            return _this28.squadUI.codex();
+            return _this27.squadUI.codex();
           }], ['registry.title', function () {
-            return _this28.squadUI.registry();
+            return _this27.squadUI.registry();
           }], ['profile', function () {
-            return _this28.profile();
+            return _this27.profile();
           }], ['achievements', function () {
-            return _this28.achievements();
+            return _this27.achievements();
           }], ['inbox', function () {
-            return _this28.extensions.inbox();
+            return _this27.extensions.inbox();
           }], ['settings', function () {
-            return _this28.settings();
+            return _this27.settings();
           }], ['cheat.short', function () {
-            return _this28.cheats.open();
+            return _this27.cheats.open();
           }]];
           var icons = {
             daily: 'chest',
@@ -46357,13 +46773,13 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           };
           actions.filter(function (_ref7) {
             var key = _ref7[0];
-            return featureUnlocked(_this28.game.s, 'menu.' + key);
+            return featureUnlocked(_this27.game.s, 'menu.' + key);
           }).forEach(function (_ref8, i) {
             var key = _ref8[0],
               f = _ref8[1];
-            return _this28.button(p, _this28.tr(key.includes('.') ? key : "menu." + key), i % 2 ? 101 : -101, 245 - Math.floor(i / 2) * 91, 184, 70, function () {
-              if (!lessons[key] || !_this28.tutorial.explain(lessons[key], f, false, function () {
-                return _this28.menu(operations);
+            return _this27.button(p, _this27.tr(key.includes('.') ? key : "menu." + key), i % 2 ? 101 : -101, 245 - Math.floor(i / 2) * 91, 184, 70, function () {
+              if (!lessons[key] || !_this27.tutorial.explain(lessons[key], f, false, function () {
+                return _this27.menu(operations);
               })) f();
             }, false, {
               style: 'secondary',
@@ -46373,15 +46789,15 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             });
           });
           if (operations) this.button(p, this.tr('extra.hub'), 0, -304, 380, 44, function () {
-            return _this28.extensions.hub();
+            return _this27.extensions.hub();
           }, false, {
             style: 'quiet'
           });
         };
         _proto.prestige = function prestige() {
-          var _this29 = this;
+          var _this28 = this;
           if (this.tutorial.explain('redeploy', function () {
-            return _this29.prestige();
+            return _this28.prestige();
           })) return;
           this.tutorial.finishPractice('redeploy');
           var g = this.game;
@@ -46390,11 +46806,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }) + '\n' + this.tr('prestige.start', {
             stage: Math.max(1, Math.floor(g.s.maxStage * .05))
           }), function () {
-            if (g.prestige(_this29.id('prestige'))) {
-              _this29.close();
-              _this29.drawPanel();
-              _this29.toast(_this29.tr('prestige.done'));
-            } else _this29.flushNotice();
+            if (g.prestige(_this28.id('prestige'))) {
+              _this28.close();
+              _this28.drawPanel();
+              _this28.toast(_this28.tr('prestige.done'));
+            } else _this28.flushNotice();
           }, {
             icon: 'symbol:discharge'
           });
@@ -46417,10 +46833,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           return true;
         };
         _proto.item = function item(e) {
-          var _this30 = this;
+          var _this29 = this;
           this.tutorial.complete('first:gear');
           var current = this.game.s.equipment.find(function (x) {
-              return x.id === _this30.game.s.equipped[e.slot];
+              return x.id === _this29.game.s.equipped[e.slot];
             }),
             equipped = (current == null ? void 0 : current.id) === e.id,
             p = this.open(this.tr("slot." + e.slot), 620, true, 'slate');
@@ -46434,7 +46850,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var arrow = this.nodeAt(p, 'compare-arrow', 0, -46, 28, 28);
           this.ui.icon(arrow, 'symbol:next');
           this.iconHelp(arrow, function () {
-            return _this30.tr('ui.help.compare', {
+            return _this29.tr('ui.help.compare', {
               gain: (e.power / ((current == null ? void 0 : current.power) || 1) * 100 - 100).toFixed(1)
             });
           });
@@ -46442,7 +46858,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var gain = (e.power / ((current == null ? void 0 : current.power) || 1) - 1) * 100;
           this.metric(p, gain >= 0 ? 'symbol:up' : 'symbol:down', (gain >= 0 ? '+' : '') + gain.toFixed(1) + '%', 0, -90, 188, equipmentHelp(this, e, 'damage')).name = 'equipment-gain';
           this.button(p, this.tr(equipped ? 'action.equipped' : 'action.equip'), -128, -159, 112, 58, function () {
-            return _this30.equipItem(e.id);
+            return _this29.equipItem(e.id);
           }, true, {
             category: 'confirm',
             style: equipped ? 'selected' : 'primary',
@@ -46451,22 +46867,22 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }
           }).name = 'equipment-equip';
           this.button(p, this.tr('action.lock'), 0, -159, 112, 58, function () {
-            _this30.game.lock(e.id);
-            _this30.item(e);
+            _this29.game.lock(e.id);
+            _this29.item(e);
           }, false, {
             style: e.locked ? 'selected' : 'secondary'
           });
           this.button(p, this.tr('action.sell'), 128, -159, 112, 58, function () {
             if (e.locked || equipped) {
-              _this30.toast(_this30.tr('equipment.protected'), 'blocked');
+              _this29.toast(_this29.tr('equipment.protected'), 'blocked');
               return;
             }
-            _this30.confirm(_this30.itemName(e), _this30.tr('equipment.sellConfirm'), function () {
-              return _this30.act(function () {
-                return _this30.game.sell([e.id], _this30.id('sell'));
+            _this29.confirm(_this29.itemName(e), _this29.tr('equipment.sellConfirm'), function () {
+              return _this29.act(function () {
+                return _this29.game.sell([e.id], _this29.id('sell'));
               }, function () {
-                _this30.close();
-                _this30.drawPanel();
+                _this29.close();
+                _this29.drawPanel();
               });
             });
           }, false, {
@@ -46474,30 +46890,30 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             hint: this.tr('action.sell') + ' · ' + (e.rarity + 1)
           });
           this.button(p, this.tr(this.squadUI.itemRegistered(e) ? 'registry.registered' : 'registry.register'), -98, -246, 174, 44, function () {
-            return _this30.squadUI.registerItem(e, function () {
-              return _this30.item(e);
+            return _this29.squadUI.registerItem(e, function () {
+              return _this29.item(e);
             });
           }, false, {
             category: 'confirm',
             completed: function completed() {
-              return _this30.squadUI.itemRegistered(e);
+              return _this29.squadUI.itemRegistered(e);
             },
             label: function label() {
-              return _this30.tr(_this30.squadUI.itemRegistered(e) ? 'registry.registered' : 'registry.register');
+              return _this29.tr(_this29.squadUI.itemRegistered(e) ? 'registry.registered' : 'registry.register');
             },
             unavailable: function unavailable() {
-              return _this30.squadUI.itemRegistered(e) ? _this30.tr('registry.registered') : null;
+              return _this29.squadUI.itemRegistered(e) ? _this29.tr('registry.registered') : null;
             }
           });
           var guide = this.button(p, this.tr('ui.iconHelp'), 98, -246, 174, 44, function () {
-            return _this30.tooltip(guide, _this30.tr('ui.equipmentHelp'));
+            return _this29.tooltip(guide, _this29.tr('ui.equipmentHelp'));
           }, false, {
             icon: 'symbol:info',
             category: 'details'
           });
         };
         _proto.craft = function craft(set, slot, done) {
-          var _this31 = this;
+          var _this30 = this;
           var g = this.game,
             part = g.nextCraft(),
             setId = set != null ? set : Math.floor(part / 5),
@@ -46512,9 +46928,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.ui.surface(portrait, tones[piece], 'cut');
           this.ui.icon(this.nodeAt(portrait, 'craft-piece-art', 0, 0, 78, 78), icons[piece]);
           this.iconHelp(portrait, function () {
-            return _this31.tr('equipment.craftPieceInfo', {
-              name: _this31.tr('slot.' + piece),
-              state: _this31.tr('equipment.craftTargetState')
+            return _this30.tr('equipment.craftPieceInfo', {
+              name: _this30.tr('slot.' + piece),
+              state: _this30.tr('equipment.craftTargetState')
             });
           });
           this.label(p, this.tr('equipment.craftNext'), 36, 174, 228, 22, 15, C.muted, Label.HorizontalAlign.LEFT);
@@ -46529,18 +46945,18 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }), 36, 108, 228, 24, 16, C.gold, Label.HorizontalAlign.LEFT).node.name = 'craft-set-progress';
           var _loop6 = function _loop6(i) {
             var collected = g.s.setHistory.includes(setId * 5 + i),
-              n = _this31.nodeAt(p, 'craft-set-piece-' + i, -148 + i * 74, 31, 68, 90),
-              plate = _this31.nodeAt(n, 'piece-plate', 0, 13, 44, 44);
-            _this31.ui.surface(plate, tones[i], 'cut');
-            var art = _this31.nodeAt(plate, 'piece-art', 0, 0, 34, 34);
-            _this31.ui.icon(art, icons[i]);
+              n = _this30.nodeAt(p, 'craft-set-piece-' + i, -148 + i * 74, 31, 68, 90),
+              plate = _this30.nodeAt(n, 'piece-plate', 0, 13, 44, 44);
+            _this30.ui.surface(plate, tones[i], 'cut');
+            var art = _this30.nodeAt(plate, 'piece-art', 0, 0, 34, 34);
+            _this30.ui.icon(art, icons[i]);
             if (i !== piece && !collected) art.addComponent(UIOpacity).opacity = 155;
-            if (i === piece) _this31.rect(plate, 0, -6, 28, 3, contrastInk(tones[i]));
-            _this31.label(n, _this31.tr('slot.' + i), 0, -24, 68, 30, 14, C.text);
-            _this31.iconHelp(n, function () {
-              return _this31.tr('equipment.craftPieceInfo', {
-                name: _this31.tr('slot.' + i),
-                state: _this31.tr(collected ? 'extra.collected' : i === piece ? 'equipment.craftTargetState' : 'extra.missing')
+            if (i === piece) _this30.rect(plate, 0, -6, 28, 3, contrastInk(tones[i]));
+            _this30.label(n, _this30.tr('slot.' + i), 0, -24, 68, 30, 14, C.text);
+            _this30.iconHelp(n, function () {
+              return _this30.tr('equipment.craftPieceInfo', {
+                name: _this30.tr('slot.' + i),
+                state: _this30.tr(collected ? 'extra.collected' : i === piece ? 'equipment.craftTargetState' : 'extra.missing')
               });
             });
           };
@@ -46558,25 +46974,25 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           };
           this.label(p, this.tr(set === undefined ? 'equipment.craftNextHint' : 'equipment.craftChosenHint'), 0, -151, 374, 48, 17, C.muted);
           this.button(p, this.tr('action.cancel'), -98, -226, 176, 50, function () {
-            return _this31.close();
+            return _this30.close();
           }, false, {
             category: 'back'
           }).name = 'craft-cancel';
           this.button(p, this.tr('equipment.craft'), 98, -226, 176, 50, function () {
-            return _this31.act(function () {
-              return g.craft(_this31.id(set === undefined ? 'craft' : 'craft-part'), setId, piece);
+            return _this30.act(function () {
+              return g.craft(_this30.id(set === undefined ? 'craft' : 'craft-part'), setId, piece);
             }, function () {
               if (done) done();else {
-                _this31.close();
-                _this31.drawPanel();
-                _this31.item(g.s.equipment[g.s.equipment.length - 1]);
+                _this30.close();
+                _this30.drawPanel();
+                _this30.item(g.s.equipment[g.s.equipment.length - 1]);
               }
             });
           }, true, {
             category: 'upgrade',
             icon: 'symbol:hammer',
             unavailable: function unavailable() {
-              return g.s.setHistory.includes(setId * 5 + piece) ? _this31.tr('action.alreadyCrafted') : g.s.equipment.length >= 100 ? _this31.tr('error.full') : _this31.costReason('shards', cost);
+              return g.s.setHistory.includes(setId * 5 + piece) ? _this30.tr('action.alreadyCrafted') : g.s.equipment.length >= 100 ? _this30.tr('error.full') : _this30.costReason('shards', cost);
             }
           }).name = 'craft-confirm';
         };
@@ -46592,42 +47008,42 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.skills = function skills(fresh) {
-          var _this32 = this;
+          var _this31 = this;
           if (fresh === void 0) {
             fresh = true;
           }
           if (fresh && this.tutorial.explain('skills', function () {
-            return _this32.skills();
+            return _this31.skills();
           })) return;
           if (fresh) this.draft = [].concat(this.game.s.skills);
           // The tree remains an editable draft, outside single-button popup guides.
           skillTree(this);
         };
         _proto.perks = function perks() {
-          var _this33 = this;
+          var _this32 = this;
           var p = this.open(this.tr('perks.title'), 650);
           this.label(p, this.tr('perks.info'), 0, 242, 370, 50, 16, C.muted);
           this.scroll(p, 0, -25, 400, 450, Array.from({
             length: 6
           }, function (_, i) {
             return {
-              title: _this33.tr('perks.row', {
-                name: _this33.tr("branch." + i),
-                count: _this33.game.s.perks[i]
+              title: _this32.tr('perks.row', {
+                name: _this32.tr("branch." + i),
+                count: _this32.game.s.perks[i]
               }),
-              sub: Date.now() < _this33.game.s.perkUntil[i] ? _this33.tr('action.remaining', {
-                seconds: Math.ceil((_this33.game.s.perkUntil[i] - Date.now()) / 1000)
+              sub: Date.now() < _this32.game.s.perkUntil[i] ? _this32.tr('action.remaining', {
+                seconds: Math.ceil((_this32.game.s.perkUntil[i] - Date.now()) / 1000)
               }) : '',
               unavailable: function unavailable() {
-                return _this33.needReason(_this33.tr("branch." + i), _this33.game.s.perks[i], 1);
+                return _this32.needReason(_this32.tr("branch." + i), _this32.game.s.perks[i], 1);
               },
               icon: i,
-              action: _this33.tr('action.apply'),
+              action: _this32.tr('action.apply'),
               click: function click() {
-                return _this33.act(function () {
-                  return _this33.game.usePerk(i, _this33.id('perk'));
+                return _this32.act(function () {
+                  return _this32.game.usePerk(i, _this32.id('perk'));
                 }, function () {
-                  return _this33.extensions.perks();
+                  return _this32.extensions.perks();
                 });
               }
             };
@@ -46648,77 +47064,79 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.daily = function daily() {
-          var _this34 = this;
+          var _this33 = this;
           var p = this.open(this.tr('daily.title'), 570);
           this.scroll(p, 0, -24, 400, 450, [0, 1, 2, 3].map(function (i) {
             return {
-              title: _this34.tr("daily." + i),
+              title: _this33.tr("daily." + i),
               sub: function sub() {
-                return _this34.tr('daily.progress', {
-                  current: _this34.game.dailyProgress(i),
-                  goal: _this34.game.dailyGoal(i)
+                return _this33.tr('daily.progress', {
+                  current: _this33.game.dailyProgress(i),
+                  goal: _this33.game.dailyGoal(i)
                 });
               },
               unavailable: function unavailable() {
-                return _this34.rewardReason(_this34.tr("daily." + i), _this34.game.dailyProgress(i), _this34.game.dailyGoal(i), _this34.game.s.claims.includes("daily." + i));
+                return _this33.rewardReason(_this33.tr("daily." + i), _this33.game.dailyProgress(i), _this33.game.dailyGoal(i), _this33.game.s.claims.includes("daily." + i));
               },
               icon: i,
-              art: i === 3 ? 'symbol:discharge' : undefined,
+              art: i === 3 ? 'symbol:discharge' : ['shop:free', 'symbol:coin', 'shop:milestone'][i],
               tint: C.mint,
-              action: _this34.tr('action.claim'),
+              action: _this33.tr('action.claim'),
               click: function click() {
-                return _this34.rewards.local(_this34.tr('daily.' + i), 'daily:' + _this34.game.s.day + ':' + i, function (g) {
+                return _this33.rewards.local(_this33.tr('daily.' + i), 'daily:' + _this33.game.s.day + ':' + i, function (g) {
                   return g.claimDaily(i);
                 }, function () {
-                  return _this34.daily();
+                  return _this33.daily();
                 });
               }
             };
           }));
         };
         _proto.milestones = function milestones() {
-          var _this35 = this;
+          var _this34 = this;
           var p = this.open(this.tr('milestone.title'), 630);
           this.scroll(p, 0, -28, 400, 514, [8, 15, 60, 100, 500, 1000, 100000, 180000].map(function (stage) {
             return {
-              title: _this35.tr('hud.stage', {
+              title: _this34.tr('hud.stage', {
                 stage: stage
               }),
-              sub: _this35.tr('milestone.row', {
+              sub: _this34.tr('milestone.row', {
                 stage: stage
               }),
               unavailable: function unavailable() {
-                return _this35.rewardReason(_this35.tr('achievement.2'), _this35.game.s.maxStage, stage, _this35.game.s.claims.includes("milestone." + stage));
+                return _this34.rewardReason(_this34.tr('achievement.2'), _this34.game.s.maxStage, stage, _this34.game.s.claims.includes("milestone." + stage));
               },
-              action: _this35.tr('action.claim'),
+              icon: 0,
+              art: 'shop:milestone',
+              action: _this34.tr('action.claim'),
               click: function click() {
-                return _this35.rewards.local(_this35.tr('hud.stage', {
+                return _this34.rewards.local(_this34.tr('hud.stage', {
                   stage: stage
                 }), 'milestone:' + stage, function (g) {
                   return g.claimMilestone(stage);
                 }, function () {
-                  return _this35.milestones();
+                  return _this34.milestones();
                 });
               }
             };
           }));
         };
         _proto.offline = function offline() {
-          var _this36 = this;
+          var _this35 = this;
           var p = this.open(this.tr('offline.title'), 380);
-          this.label(p, this.tr('offline.reward', {
+          this.shopUI.identity(p, 'free', this.tr('offline.reward', {
             gold: this.format(this.game.s.offline)
-          }), 0, 40, 370, 65, 24, C.gold);
-          this.label(p, this.tr('offline.info'), 0, -26, 370, 56, 17, C.muted);
+          }), 54, 98, 22);
+          this.label(p, this.tr('offline.info'), 0, -38, 370, 56, 17, C.muted);
           this.button(p, this.tr('action.claim'), 0, -126, 310, 50, function () {
-            return _this36.rewards.local(_this36.tr('offline.title'), 'offline:' + _this36.id('claim'), function (g) {
-              return g.collectOffline(_this36.id('offline'));
+            return _this35.rewards.local(_this35.tr('offline.title'), 'offline:' + _this35.id('claim'), function (g) {
+              return g.collectOffline(_this35.id('offline'));
             }, function () {
-              return _this36.close();
+              return _this35.close();
             });
           }, true, {
             unavailable: function unavailable() {
-              return _this36.game.s.offline <= ZERO ? _this36.tr('action.alreadyClaimed') : null;
+              return _this35.game.s.offline <= ZERO ? _this35.tr('action.alreadyClaimed') : null;
             }
           });
         };
@@ -46739,18 +47157,18 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.settings = function settings() {
-          var _this37 = this;
+          var _this36 = this;
           var p = this.open(this.tr('menu.settings'), 700);
           this.label(p, this.tr('settings.language'), 0, 239, 340, 30, 16, '#38696b');
           var language = function language(locale) {
-            _this37.game.s.locale = locale;
-            _this37.game.persist();
-            if (_this37.liveOps.push.supported && _this37.liveOps.push.choice === 'on') void _this37.liveOps.push.set(true, locale)["catch"](function (e) {
-              return _this37.operations.report('push.locale', e);
+            _this36.game.s.locale = locale;
+            _this36.game.persist();
+            if (_this36.liveOps.push.supported && _this36.liveOps.push.choice === 'on') void _this36.liveOps.push.set(true, locale)["catch"](function (e) {
+              return _this36.operations.report('push.locale', e);
             });
-            _this37.close();
-            _this37.draw();
-            _this37.settings();
+            _this36.close();
+            _this36.draw();
+            _this36.settings();
           };
           this.button(p, this.tr('locale.ko'), -94, 192, 175, 46, function () {
             return language('ko');
@@ -46765,54 +47183,54 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.button(p, this.tr('settings.audio', {
             state: this.tr(this.game.s.audio ? 'settings.on' : 'settings.off')
           }), 0, 120, 365, 48, function () {
-            _this37.game.s.audio = !_this37.game.s.audio;
-            _this37.game.persist();
-            _this37.settings();
+            _this36.game.s.audio = !_this36.game.s.audio;
+            _this36.game.persist();
+            _this36.settings();
           }, false, {
             icon: 'heart'
           });
           this.button(p, this.tr('settings.saveButton'), 0, 57, 365, 48, function () {
-            if (_this37.game.persist()) void _this37.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
+            if (_this36.game.persist()) void _this36.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
               return _regeneratorRuntime().wrap(function _callee2$(_context2) {
                 while (1) switch (_context2.prev = _context2.next) {
                   case 0:
                     _context2.next = 2;
-                    return _this37.operations.save();
+                    return _this36.operations.save();
                   case 2:
-                    _this37.toast(_this37.tr('settings.save'));
+                    _this36.toast(_this36.tr('settings.save'));
                   case 3:
                   case "end":
                     return _context2.stop();
                 }
               }, _callee2);
-            })));else _this37.flushNotice();
+            })));else _this36.flushNotice();
           }, true, {
             icon: 'scroll'
           });
           this.button(p, this.tr('live.17'), 0, -6, 365, 46, function () {
-            return _this37.liveOps.hub();
+            return _this36.liveOps.hub();
           }, false, {
             icon: 'mail'
           });
           this.button(p, this.tr('tutorial.replay'), 0, -66, 365, 38, function () {
-            return _this37.confirm(_this37.tr('tutorial.replay'), _this37.tr('tutorial.replayBody'), function () {
-              replayTutorial(_this37.game.s);
-              _this37.tutorial.resetSessionGuides();
-              _this37.game.revision++;
-              _this37.game.persist();
-              void _this37.operations.save()["catch"](function (e) {
-                return _this37.operations.report('tutorial.replay', e);
+            return _this36.confirm(_this36.tr('tutorial.replay'), _this36.tr('tutorial.replayBody'), function () {
+              replayTutorial(_this36.game.s);
+              _this36.tutorial.resetSessionGuides();
+              _this36.game.revision++;
+              _this36.game.persist();
+              void _this36.operations.save()["catch"](function (e) {
+                return _this36.operations.report('tutorial.replay', e);
               });
-              _this37.tab = 0;
-              _this37.folded = false;
-              _this37.draw();
+              _this36.tab = 0;
+              _this36.folded = false;
+              _this36.draw();
             });
           }, false, {
             style: 'quiet',
             fontSize: 14
           });
           this.button(p, this.tr('cheat.title'), 0, -120, 365, 38, function () {
-            return _this37.cheats.open();
+            return _this36.cheats.open();
           }, false, {
             style: 'quiet',
             icon: 'settings',
@@ -46820,7 +47238,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           });
           resources.load('branding/tt-softs-ci/texture', Texture2D, function (err, texture) {
             if (err || !p.isValid) return;
-            var n = _this37.nodeAt(p, 'company-ci', 0, -188, 120, 120 * texture.height / texture.width),
+            var n = _this36.nodeAt(p, 'company-ci', 0, -188, 120, 120 * texture.height / texture.width),
               sp = n.addComponent(Sprite),
               frame = new SpriteFrame();
             frame.texture = texture;
@@ -46829,26 +47247,26 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             n.getComponent(UITransform).setContentSize(120, 120 * texture.height / texture.width);
           });
           this.button(p, this.tr('complete.display'), -124, -270, 116, 68, function () {
-            return _this37.extensions.displaySettings();
+            return _this36.extensions.displaySettings();
           }, false, {
             style: 'quiet',
             icon: 'settings'
           });
           this.button(p, this.tr('complete.account'), 0, -270, 116, 68, function () {
-            return _this37.extensions.account();
+            return _this36.extensions.account();
           }, false, {
             style: 'quiet',
             icon: 'adventurer'
           });
           this.button(p, this.tr('complete.support'), 124, -270, 116, 68, function () {
-            return _this37.extensions.support();
+            return _this36.extensions.support();
           }, false, {
             style: 'quiet',
             icon: 'mail'
           });
         };
         _proto.cards = function cards() {
-          var _this38 = this;
+          var _this37 = this;
           var s = this.game.s,
             p = this.open(this.tr('menu.cards'), 720);
           this.label(p, this.tr('raid.deck', {
@@ -46861,64 +47279,65 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }), 0, 225, 385, 26, 15, C.gold);
           this.scroll(p, 0, -25, 400, 450, CARDS.map(function (c) {
             return {
-              title: _this38.tr(c.name),
-              sub: _this38.tr('raid.card', {
+              title: _this37.tr(c.name),
+              sub: _this37.tr('raid.card', {
                 level: s.cards[c.id],
                 fragments: s.fragments[c.id]
               }),
               icon: c.id,
               tint: [C.ember, C.violet, C.mint][c.type],
-              action: _this38.tr('action.details'),
+              action: _this37.tr('action.details'),
               click: function click() {
-                return _this38.cardDetail(c.id);
+                return _this37.cardDetail(c.id);
               }
             };
           }));
           this.button(p, this.tr('extra.dustShop'), -101, -306, 190, 44, function () {
-            return _this38.extensions.dustShop();
+            return _this37.extensions.dustShop();
           });
           this.button(p, this.tr('extra.crystal'), 101, -306, 190, 44, function () {
-            return _this38.extensions.crystal();
+            return _this37.extensions.crystal();
           });
         };
         _proto.cardDetail = function cardDetail(i) {
-          var _this39 = this;
+          var _this38 = this;
           var s = this.game.s,
             p = this.open(this.tr("card." + i), 570);
-          this.label(p, this.tr('complete.cardProc.' + i % 3), 0, 170, 370, 85, 18);
+          this.ui.icon(this.nodeAt(p, 'popup-subject-art', -139, 166, 82, 82), 'cards');
+          this.label(p, this.tr('complete.cardProc.' + i % 3), 43, 166, 268, 102, 18);
           this.label(p, this.tr('raid.card', {
             level: s.cards[i],
             fragments: s.fragments[i]
           }), 0, 70, 360, 60, 22);
           this.button(p, this.tr(s.deck.includes(i) ? 'action.selected' : 'action.select'), 0, 0, 360, 48, function () {
-            _this39.game.setDeck(i);
-            _this39.cards();
+            _this38.game.setDeck(i);
+            _this38.cards();
           }, true, {
             category: 'deck',
             completed: function completed() {
-              return _this39.game.s.deck.includes(i);
+              return _this38.game.s.deck.includes(i);
             },
             unavailable: function unavailable() {
-              return _this39.raidChangeReason() || (_this39.game.s.deck.includes(i) ? _this39.tr('action.alreadyApplied') : null);
+              return _this38.raidChangeReason() || (_this38.game.s.deck.includes(i) ? _this38.tr('action.alreadyApplied') : null);
             }
           });
           this.button(p, this.tr('raid.upgrade', {
             cost: s.cards[i] * 10
           }), 0, -73, 360, 48, function () {
-            return _this39.act(function () {
-              return _this39.game.upgradeCard(i, _this39.id('card'));
+            return _this38.act(function () {
+              return _this38.game.upgradeCard(i, _this38.id('card'));
             }, function () {
-              return _this39.cardDetail(i);
+              return _this38.cardDetail(i);
             });
           }, true, {
             unavailable: function unavailable() {
-              return _this39.raidChangeReason() || _this39.costReason('dust', s.cards[i] * 10) || _this39.needReason(_this39.tr('feedback.fragments', {
+              return _this38.raidChangeReason() || _this38.costReason('dust', s.cards[i] * 10) || _this38.needReason(_this38.tr('feedback.fragments', {
                 index: i + 1
               }), s.fragments[i], s.cards[i]);
             }
           });
           this.button(p, this.tr('action.back'), 0, -192, 360, 44, function () {
-            return _this39.cards();
+            return _this38.cards();
           });
         };
         _proto.format = function format(value) {
@@ -46928,7 +47347,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.extensions.solo();
         };
         _proto.raidView = function raidView() {
-          var _this40 = this;
+          var _this39 = this;
           var p = this.open(this.tr('raid.title'), 700),
             r = this.game.raid;
           var status = this.label(p, '', 0, 266, 375, 32, 20, C.gold);
@@ -46936,45 +47355,45 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var _loop7 = function _loop7(i) {
             var x = i % 2 ? -94 : 94,
               y = 178 - Math.floor(i / 2) * 88;
-            var b = _this40.button(p, '', x, y, 170, 70, function () {
-              _this40.game.raidTap(i);
-              _this40.sound(170 + i * 30);
+            var b = _this39.button(p, '', x, y, 170, 70, function () {
+              _this39.game.raidTap(i);
+              _this39.sound(170 + i * 30);
             }, false, {
               category: 'battle',
               unavailable: function unavailable() {
-                return r.ended ? _this40.tr('action.battleEnded') : r.hp[i] <= 0 ? _this40.tr('action.targetDefeated') : null;
+                return r.ended ? _this39.tr('action.battleEnded') : r.hp[i] <= 0 ? _this39.tr('action.targetDefeated') : null;
               }
             });
-            parts.push(_this40.label(b, '', 0, 0, 156, 61, 16, C.text));
+            parts.push(_this39.label(b, '', 0, 0, 156, 61, 16, C.text));
           };
           for (var i = 0; i < 8; i++) {
             _loop7(i);
           }
           var done = this.button(p, this.tr('action.claim'), 0, -243, 365, 51, function () {
             if (!r.ended) return;
-            _this40.rewards.local(_this40.tr('raid.result'), 'raid:' + r.portal + ':' + r.expiresAt, function (g) {
-              return g.claimRaid(_this40.id('raid'));
+            _this39.rewards.local(_this39.tr('raid.result'), 'raid:' + r.portal + ':' + r.expiresAt, function (g) {
+              return g.claimRaid(_this39.id('raid'));
             }, function (multiplier) {
               if (multiplier === void 0) {
                 multiplier = 1;
               }
-              return _this40.info(_this40.tr('raid.result'), _this40.tr('raid.reward', {
+              return _this39.info(_this39.tr('raid.result'), _this39.tr('raid.reward', {
                 damage: display(r.damage),
                 dust: Math.floor(r.damage / 100) * multiplier
               }));
             });
           }, true, {
             unavailable: function unavailable() {
-              return r.claimed ? _this40.tr('action.alreadyClaimed') : !r.ended ? _this40.tr('action.battleRunning') : null;
+              return r.claimed ? _this39.tr('action.alreadyClaimed') : !r.ended ? _this39.tr('action.battleRunning') : null;
             }
           });
           this.modalRefresh = function () {
-            status.string = _this40.tr('raid.damage', {
+            status.string = _this39.tr('raid.damage', {
               damage: display(r.damage),
               seconds: Math.ceil(r.seconds)
             });
             parts.forEach(function (l, i) {
-              return l.string = _this40.tr('raid.part', {
+              return l.string = _this39.tr('raid.part', {
                 part: i + 1
               }) + '\n' + display(r.hp[i] + r.armor[i]);
             });
@@ -46983,7 +47402,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.modalRefresh();
         };
         _proto.events = function events() {
-          var _this41 = this;
+          var _this40 = this;
           var p = this.open(this.tr('event.title'), 670);
           this.label(p, this.tr('event.balance', {
             tokens: this.game.s.eventTokens
@@ -46991,56 +47410,58 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.label(p, this.tr('event.rule'), 0, 158, 380, 116, 17, C.muted);
           explorationEntry(this, p);
           this.button(p, this.tr('extra.eventModes'), 99, 57, 182, 50, function () {
-            return _this41.extensions.eventHub();
+            return _this40.extensions.eventHub();
           });
           this.scroll(p, 0, -140, 400, 270, Array.from({
             length: 10
           }, function (_, i) {
             return {
-              title: _this41.tr('event.reward', {
+              title: _this40.tr('event.reward', {
                 tokens: (i + 1) * 100
               }),
               unavailable: function unavailable() {
-                return _this41.rewardReason(_this41.tr('feedback.eventTokens'), Math.max(_this41.game.s.extra.eventEarned, _this41.game.s.eventTokens), (i + 1) * 100, _this41.game.s.claims.includes("event." + i));
+                return _this40.rewardReason(_this40.tr('feedback.eventTokens'), Math.max(_this40.game.s.extra.eventEarned, _this40.game.s.eventTokens), (i + 1) * 100, _this40.game.s.claims.includes("event." + i));
               },
-              action: _this41.tr('action.claim'),
+              icon: 0,
+              art: 'shop:free',
+              action: _this40.tr('action.claim'),
               click: function click() {
-                return _this41.rewards.local(_this41.tr('event.title'), 'event:' + _this41.game.s.extra.eventSeason + ':' + i, function (g) {
+                return _this40.rewards.local(_this40.tr('event.title'), 'event:' + _this40.game.s.extra.eventSeason + ':' + i, function (g) {
                   return g.claimEvent(i);
                 }, function () {
-                  return _this41.events();
+                  return _this40.events();
                 });
               }
             };
           }));
         };
         _proto.board = function board(first) {
-          var _this42 = this;
+          var _this41 = this;
           if (first === void 0) {
             first = true;
           }
           if (first && this.tutorial.explain('exploration', function () {
-            return _this42.board(false);
+            return _this41.board(false);
           })) return;
           explorationBoard(this);
         };
         _proto.meta = function meta() {
-          var _this43 = this;
+          var _this42 = this;
           var p = this.open(this.tr('meta.title'), 540);
           [['meta.souls', function () {
-            return _this43.extensions.souls();
+            return _this42.extensions.souls();
           }], ['meta.gems', function () {
-            return _this43.extensions.gems();
+            return _this42.extensions.gems();
           }], ['meta.research', function () {
-            return _this43.research();
+            return _this42.research();
           }], ['meta.monuments', function () {
-            return _this43.extensions.monuments();
+            return _this42.extensions.monuments();
           }]].forEach(function (v, i) {
-            return _this43.button(p, _this43.tr(v[0]), 0, 139 - i * 91, 372, 70, v[1]);
+            return _this42.button(p, _this42.tr(v[0]), 0, 139 - i * 91, 372, 70, v[1]);
           });
         };
         _proto.souls = function souls() {
-          var _this44 = this;
+          var _this43 = this;
           var s = this.game.s,
             p = this.open(this.tr('meta.souls'), 440);
           this.label(p, this.tr('meta.soulInfo', {
@@ -47048,19 +47469,19 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             count: s.titans.filter(Boolean).length
           }), 0, 60, 380, 160, 20);
           this.button(p, this.tr('meta.summon'), 0, -105, 370, 55, function () {
-            return _this44.act(function () {
-              return _this44.game.summon(_this44.id('summon'));
+            return _this43.act(function () {
+              return _this43.game.summon(_this43.id('summon'));
             }, function () {
-              return _this44.souls();
+              return _this43.souls();
             });
           }, true, {
             unavailable: function unavailable() {
-              return _this44.extensions.summonReason(1);
+              return _this43.extensions.summonReason(1);
             }
           });
         };
         _proto.stones = function stones() {
-          var _this45 = this;
+          var _this44 = this;
           var s = this.game.s,
             p = this.open(this.tr('meta.gems'), 680);
           this.label(p, this.tr('meta.gemInfo', {
@@ -47068,19 +47489,19 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             count: s.stones.filter(Boolean).length
           }), 0, 251, 375, 42, 19, C.gold);
           this.button(p, this.tr('meta.crack'), 0, 190, 375, 46, function () {
-            return _this45.act(function () {
-              return _this45.game.crack(_this45.id('geode'));
+            return _this44.act(function () {
+              return _this44.game.crack(_this44.id('geode'));
             }, function () {
-              return _this45.stones();
+              return _this44.stones();
             });
           }, true, {
             unavailable: function unavailable() {
-              return _this45.costReason('geodes', 1);
+              return _this44.costReason('geodes', 1);
             }
           });
           this.scroll(p, 0, -74, 400, 440, s.stones.map(function (level, i) {
             return {
-              title: _this45.tr('meta.stone', {
+              title: _this44.tr('meta.stone', {
                 index: i + 1,
                 level: level
               }),
@@ -47090,35 +47511,35 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.research = function research() {
-          var _this46 = this;
+          var _this45 = this;
           var s = this.game.s,
             p = this.open(this.tr('meta.research'), 650);
           this.scroll(p, 0, -25, 400, 520, s.research.map(function (level, i) {
             return {
-              title: _this46.tr('meta.researchNode', {
+              title: _this45.tr('meta.researchNode', {
                 index: i + 1,
                 level: level
               }),
               unavailable: function unavailable() {
-                return i % 3 && _this46.game.s.research[i - 1] < 3 ? _this46.tr('action.previousLevel', {
+                return i % 3 && _this45.game.s.research[i - 1] < 3 ? _this45.tr('action.previousLevel', {
                   level: 3
-                }) : _this46.needReason(_this46.tr('extra.researchCurrency'), Math.floor(_this46.game.s.extra.summonCount / 5) - _this46.game.s.research.reduce(function (a, b) {
+                }) : _this45.needReason(_this45.tr('extra.researchCurrency'), Math.floor(_this45.game.s.extra.summonCount / 5) - _this45.game.s.research.reduce(function (a, b) {
                   return a + b;
                 }, 0), 1);
               },
-              action: _this46.tr('action.upgrade'),
+              action: _this45.tr('action.upgrade'),
               click: function click() {
-                return _this46.act(function () {
-                  return _this46.game.upgradeResearch(i, _this46.id('research'));
+                return _this45.act(function () {
+                  return _this45.game.upgradeResearch(i, _this45.id('research'));
                 }, function () {
-                  return _this46.research();
+                  return _this45.research();
                 });
               }
             };
           }));
         };
         _proto.monuments = function monuments() {
-          var _this47 = this;
+          var _this46 = this;
           var s = this.game.s,
             p = this.open(this.tr('meta.monuments'), 670);
           this.label(p, this.tr('meta.monumentInfo', {
@@ -47126,22 +47547,22 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }), 0, 225, 380, 80, 19, C.gold);
           this.scroll(p, 0, -66, 400, 460, s.monuments.map(function (level, i) {
             return {
-              title: _this47.tr('meta.monument', {
+              title: _this46.tr('meta.monument', {
                 index: i + 1,
                 level: level
               }),
               unavailable: function unavailable() {
-                return _this47.game.s.maxStage < 180000 ? _this47.tr('hero.locked', {
+                return _this46.game.s.maxStage < 180000 ? _this46.tr('hero.locked', {
                   stage: 180000
-                }) : _this47.costReason('mementos', Math.log10(Math.pow(2, i) * (_this47.game.s.monuments[i] + 1)));
+                }) : _this46.costReason('mementos', Math.log10(Math.pow(2, i) * (_this46.game.s.monuments[i] + 1)));
               },
-              action: _this47.tr('action.upgrade'),
+              action: _this46.tr('action.upgrade'),
               icon: i,
               click: function click() {
-                return _this47.act(function () {
-                  return _this47.game.monument(i, _this47.id('monument'));
+                return _this46.act(function () {
+                  return _this46.game.monument(i, _this46.id('monument'));
                 }, function () {
-                  return _this47.monuments();
+                  return _this46.monuments();
                 });
               }
             };
@@ -47150,7 +47571,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         _proto.remote = /*#__PURE__*/function () {
           var _remote = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(work) {
             var _this$tutorial5,
-              _this48 = this;
+              _this47 = this;
             var firstUseKey, before, _this$operations3, key;
             return _regeneratorRuntime().wrap(function _callee3$(_context3) {
               while (1) switch (_context3.prev = _context3.next) {
@@ -47178,7 +47599,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                   key = _context3.t0.message;
                   if (key === 'online.unreachable') {
                     this.confirm(this.tr('extra.retry'), this.tr(key), function () {
-                      void _this48.remote(work);
+                      void _this47.remote(work);
                     }, {}, 'blocked');
                   } else this.toast(this.tr(key.startsWith('online.') || key.startsWith('error.') || key.startsWith('extra.') ? key : 'online.serverError'), 'blocked');
                 case 16:
@@ -47214,14 +47635,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           return field;
         };
         _proto.guild = function guild() {
-          var _this49 = this;
+          var _this48 = this;
           void this.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
             var boot, guilds, _p, name, data, p, message;
             return _regeneratorRuntime().wrap(function _callee7$(_context7) {
               while (1) switch (_context7.prev = _context7.next) {
                 case 0:
                   _context7.next = 2;
-                  return _this49.onlineService.connect(_this49.tr('online.defaultName'));
+                  return _this48.onlineService.connect(_this48.tr('online.defaultName'));
                 case 2:
                   boot = _context7.sent;
                   if (boot.membership) {
@@ -47229,25 +47650,25 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                     break;
                   }
                   _context7.next = 6;
-                  return _this49.onlineService.request('/guilds');
+                  return _this48.onlineService.request('/guilds');
                 case 6:
                   guilds = _context7.sent;
-                  _p = _this49.open(_this49.tr('menu.clan'), 690);
-                  name = _this49.edit(_p, 0, 230, 375, 48, _this49.tr('online.guildName'));
+                  _p = _this48.open(_this48.tr('menu.clan'), 690);
+                  name = _this48.edit(_p, 0, 230, 375, 48, _this48.tr('online.guildName'));
                   name.maxLength = 24;
-                  _this49.button(_p, _this49.tr('online.create'), 0, 163, 375, 46, function () {
+                  _this48.button(_p, _this48.tr('online.create'), 0, 163, 375, 46, function () {
                     var value = name.string;
-                    void _this49.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+                    void _this48.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
                       return _regeneratorRuntime().wrap(function _callee4$(_context4) {
                         while (1) switch (_context4.prev = _context4.next) {
                           case 0:
                             _context4.next = 2;
-                            return _this49.onlineService.command('/guild/create', {
+                            return _this48.onlineService.command('/guild/create', {
                               name: value
                             });
                           case 2:
-                            _this49.remoteBusy = false;
-                            _this49.guild();
+                            _this48.remoteBusy = false;
+                            _this48.guild();
                           case 4:
                           case "end":
                             return _context4.stop();
@@ -47256,63 +47677,63 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                     })));
                   }, true, {
                     unavailable: function unavailable() {
-                      return _this49.textReason(name.string, 2, 24);
+                      return _this48.textReason(name.string, 2, 24);
                     }
                   });
-                  _this49.scroll(_p, 0, -80, 400, 400, guilds.map(function (g) {
+                  _this48.scroll(_p, 0, -80, 400, 400, guilds.map(function (g) {
                     return {
                       title: g.name,
-                      sub: _this49.tr('online.members', {
+                      sub: _this48.tr('online.members', {
                         count: g.members
                       }),
                       unavailable: function unavailable() {
-                        return g.members >= 50 ? _this49.tr('online.full') : null;
+                        return g.members >= 50 ? _this48.tr('online.full') : null;
                       },
-                      action: _this49.tr('online.join'),
+                      action: _this48.tr('online.join'),
                       click: function click() {
-                        return _this49.extensions.joinGuild(g.id, g.name);
+                        return _this48.extensions.joinGuild(g.id, g.name);
                       }
                     };
                   }));
                   return _context7.abrupt("return");
                 case 13:
                   _context7.next = 15;
-                  return _this49.onlineService.request('/guild');
+                  return _this48.onlineService.request('/guild');
                 case 15:
                   data = _context7.sent;
-                  p = _this49.open(data.guild.name, 710);
-                  _this49.label(p, _this49.tr('online.members', {
+                  p = _this48.open(data.guild.name, 710);
+                  _this48.label(p, _this48.tr('online.members', {
                     count: data.members.length
                   }), -60, 271, 250, 30, 18, C.gold);
-                  _this49.button(p, '⋯', 164, 271, 55, 34, function () {
-                    return _this49.extensions.guildTools();
+                  _this48.button(p, '⋯', 164, 271, 55, 34, function () {
+                    return _this48.extensions.guildTools();
                   });
-                  _this49.button(p, _this49.tr('online.roster'), -101, 221, 185, 43, function () {
-                    return _this49.guildMembers(data);
+                  _this48.button(p, _this48.tr('online.roster'), -101, 221, 185, 43, function () {
+                    return _this48.guildMembers(data);
                   });
-                  _this49.button(p, _this49.tr('online.guildRaid'), 101, 221, 185, 43, function () {
-                    return _this49.guildRaid(data);
+                  _this48.button(p, _this48.tr('online.guildRaid'), 101, 221, 185, 43, function () {
+                    return _this48.guildRaid(data);
                   });
-                  _this49.scroll(p, 0, 10, 400, 355, data.messages.map(function (m) {
+                  _this48.scroll(p, 0, 10, 400, 355, data.messages.map(function (m) {
                     return {
                       title: m.name,
-                      sub: /^\[sticker:[0-5]\]$/.test(m.body) ? _this49.tr('extra.sticker.' + m.body[9]) : m.body
+                      sub: /^\[sticker:[0-5]\]$/.test(m.body) ? _this48.tr('extra.sticker.' + m.body[9]) : m.body
                     };
                   }));
-                  message = _this49.edit(p, -35, -216, 303, 46, _this49.tr('online.message'));
-                  _this49.button(p, _this49.tr('online.send'), 161, -216, 70, 46, function () {
+                  message = _this48.edit(p, -35, -216, 303, 46, _this48.tr('online.message'));
+                  _this48.button(p, _this48.tr('online.send'), 161, -216, 70, 46, function () {
                     var value = message.string;
-                    void _this49.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+                    void _this48.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
                       return _regeneratorRuntime().wrap(function _callee5$(_context5) {
                         while (1) switch (_context5.prev = _context5.next) {
                           case 0:
                             _context5.next = 2;
-                            return _this49.onlineService.command('/guild/chat', {
+                            return _this48.onlineService.command('/guild/chat', {
                               body: value
                             });
                           case 2:
-                            _this49.remoteBusy = false;
-                            _this49.guild();
+                            _this48.remoteBusy = false;
+                            _this48.guild();
                           case 4:
                           case "end":
                             return _context5.stop();
@@ -47321,23 +47742,23 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                     })));
                   }, true, {
                     unavailable: function unavailable() {
-                      return _this49.textReason(message.string, 1, 240);
+                      return _this48.textReason(message.string, 1, 240);
                     }
                   });
-                  _this49.button(p, _this49.tr('online.refresh'), -101, -281, 185, 44, function () {
-                    return _this49.guild();
+                  _this48.button(p, _this48.tr('online.refresh'), -101, -281, 185, 44, function () {
+                    return _this48.guild();
                   });
-                  _this49.button(p, _this49.tr('online.leave'), 101, -281, 185, 44, function () {
-                    return _this49.confirm(_this49.tr('online.leave'), _this49.tr('online.leaveConfirm'), function () {
-                      void _this49.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+                  _this48.button(p, _this48.tr('online.leave'), 101, -281, 185, 44, function () {
+                    return _this48.confirm(_this48.tr('online.leave'), _this48.tr('online.leaveConfirm'), function () {
+                      void _this48.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
                         return _regeneratorRuntime().wrap(function _callee6$(_context6) {
                           while (1) switch (_context6.prev = _context6.next) {
                             case 0:
                               _context6.next = 2;
-                              return _this49.onlineService.command('/guild/leave');
+                              return _this48.onlineService.command('/guild/leave');
                             case 2:
-                              _this49.remoteBusy = false;
-                              _this49.guild();
+                              _this48.remoteBusy = false;
+                              _this48.guild();
                             case 4:
                             case "end":
                               return _context6.stop();
@@ -47347,7 +47768,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                     });
                   }, false, {
                     unavailable: function unavailable() {
-                      return data.role === 'leader' && data.members.length > 1 ? _this49.tr('online.transferFirst') : null;
+                      return data.role === 'leader' && data.members.length > 1 ? _this48.tr('online.transferFirst') : null;
                     }
                   });
                 case 26:
@@ -47358,34 +47779,34 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           })));
         };
         _proto.guildMembers = function guildMembers(data) {
-          var _this50 = this;
+          var _this49 = this;
           var p = this.open(this.tr('online.roster'), 650);
           this.scroll(p, 0, -28, 400, 520, data.members.map(function (m) {
             return {
               title: m.name,
               detail: function detail() {
-                return _this50.extensions.member(m.id);
+                return _this49.extensions.member(m.id);
               },
-              sub: _this50.tr(m.role === 'leader' ? 'online.leader' : 'online.member'),
-              action: data.role === 'leader' && m.id !== _this50.onlineService.accountId ? _this50.tr('action.details') : undefined,
+              sub: _this49.tr(m.role === 'leader' ? 'online.leader' : 'online.member'),
+              action: data.role === 'leader' && m.id !== _this49.onlineService.accountId ? _this49.tr('action.details') : undefined,
               click: function click() {
-                if (data.role !== 'leader' || m.id === _this50.onlineService.accountId) return;
-                var box = _this50.open(m.name, 350);
+                if (data.role !== 'leader' || m.id === _this49.onlineService.accountId) return;
+                var box = _this49.open(m.name, 350);
                 ['transfer', 'kick'].forEach(function (action, i) {
-                  return _this50.button(box, _this50.tr("online." + action), 0, 30 - i * 86, 360, 55, function () {
-                    return _this50.confirm(_this50.tr("online." + action), m.name, function () {
-                      void _this50.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
+                  return _this49.button(box, _this49.tr("online." + action), 0, 30 - i * 86, 360, 55, function () {
+                    return _this49.confirm(_this49.tr("online." + action), m.name, function () {
+                      void _this49.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
                         return _regeneratorRuntime().wrap(function _callee8$(_context8) {
                           while (1) switch (_context8.prev = _context8.next) {
                             case 0:
                               _context8.next = 2;
-                              return _this50.onlineService.command('/guild/role', {
+                              return _this49.onlineService.command('/guild/role', {
                                 target: m.id,
                                 action: action
                               });
                             case 2:
-                              _this50.remoteBusy = false;
-                              _this50.guild();
+                              _this49.remoteBusy = false;
+                              _this49.guild();
                             case 4:
                             case "end":
                               return _context8.stop();
@@ -47400,17 +47821,17 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.guildRaid = function guildRaid(data) {
-          var _this51 = this;
+          var _this50 = this;
           var p = this.open(this.tr('online.guildRaid'), 440);
           this.label(p, this.tr('online.guildHP', {
             hp: display(data.guild.raid_hp)
           }), 0, 90, 380, 60, 24, C.ember);
           this.label(p, this.tr('online.guildRaidInfo'), 0, 9, 380, 90, 18, C.muted);
           this.button(p, this.tr('action.attack'), 0, -124, 370, 55, function () {
-            _this51.extensions.guildBattle();
+            _this50.extensions.guildBattle();
           }, true, {
             unavailable: function unavailable() {
-              return data.guild.raid_hp <= 0 ? _this51.tr('online.raidComplete') : null;
+              return data.guild.raid_hp <= 0 ? _this50.tr('online.raidComplete') : null;
             }
           });
         };
@@ -47418,7 +47839,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.extensions.tournaments();
         };
         _proto.competitionBattle = function competitionBattle(state) {
-          var _this52 = this;
+          var _this51 = this;
           var p = this.open(this.tr(this.competitionId < 0 ? 'complete.regular' : 'online.abyss'), 680);
           this.label(p, this.tr('hud.stage', {
             stage: state.run.stage
@@ -47431,20 +47852,20 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             if (hero === void 0) {
               hero = -1;
             }
-            void _this52.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
+            void _this51.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
               var result;
               return _regeneratorRuntime().wrap(function _callee9$(_context9) {
                 while (1) switch (_context9.prev = _context9.next) {
                   case 0:
                     _context9.next = 2;
-                    return _this52.onlineService.command('/competition/action', {
-                      id: _this52.competitionId,
+                    return _this51.onlineService.command('/competition/action', {
+                      id: _this51.competitionId,
                       action: action,
                       hero: hero
                     });
                   case 2:
                     result = _context9.sent;
-                    _this52.competitionBattle(result.state);
+                    _this51.competitionBattle(result.state);
                   case 4:
                   case "end":
                     return _context9.stop();
@@ -47456,26 +47877,26 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return command('tap');
           }, true, {
             unavailable: function unavailable() {
-              return _this52.competitionReason(state);
+              return _this51.competitionReason(state);
             }
           });
           this.button(p, this.tr('competition.chest', {
             currency: this.tr('feedback.gems')
           }), 0, -203, 375, 44, function () {
-            return _this52.confirm(_this52.tr('competition.chest', {
-              currency: _this52.tr('feedback.gems')
-            }), _this52.tr('shop.confirm', {
+            return _this51.confirm(_this51.tr('competition.chest', {
+              currency: _this51.tr('feedback.gems')
+            }), _this51.tr('shop.confirm', {
               cost: 100
             }), function () {
               return command('shop');
             }, {
               unavailable: function unavailable() {
-                return _this52.competitionReason(state, undefined, true);
+                return _this51.competitionReason(state, undefined, true);
               }
             });
           }, false, {
             unavailable: function unavailable() {
-              return _this52.competitionReason(state, undefined, true);
+              return _this51.competitionReason(state, undefined, true);
             }
           });
           this.button(p, this.tr('online.upgradeMaster', {
@@ -47484,7 +47905,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return command('upgrade');
           }, false, {
             unavailable: function unavailable() {
-              return _this52.competitionReason(state, -1);
+              return _this51.competitionReason(state, -1);
             }
           });
           this.button(p, this.tr('nav.heroes'), -100, -140, 180, 50, function () {
@@ -47492,19 +47913,19 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }, false, {
             category: 'upgrade',
             unavailable: function unavailable() {
-              return _this52.competitionReason(state, 0);
+              return _this51.competitionReason(state, 0);
             }
           });
           this.button(p, this.tr(state.run.boss ? 'battle.leave' : 'battle.fight'), 100, -140, 180, 50, function () {
             return command('boss');
           }, false, {
             unavailable: function unavailable() {
-              return _this52.competitionReason(state);
+              return _this51.competitionReason(state);
             }
           });
           this.button(p, this.tr('online.backMain'), 0, -270, 375, 50, function () {
-            _this52.close();
-            _this52.drawPanel();
+            _this51.close();
+            _this51.drawPanel();
           });
         };
         _proto.spells = function spells(slot) {
@@ -47523,9 +47944,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           skillDetail(this, i);
         };
         _proto.artifactDetail = function artifactDetail(i) {
-          var _this53 = this;
+          var _this52 = this;
           if (this.tutorial.explain('intel', function () {
-            return _this53.artifactDetail(i);
+            return _this52.artifactDetail(i);
           })) return;
           this.tutorial.finishPractice('intel');
           this.tutorial.complete('first:artifact');
@@ -47546,191 +47967,191 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.button(p, this.tr('intel.upgrade', {
             cost: this.formatIntel(this.game.artifactCost(i))
           }), 0, -49, 370, 54, function () {
-            return _this53.act(function () {
-              return _this53.game.upgradeArtifact(i, _this53.id('artifact'));
+            return _this52.act(function () {
+              return _this52.game.upgradeArtifact(i, _this52.id('artifact'));
             }, function () {
-              _this53.drawPanel();
-              _this53.artifactDetail(i);
+              _this52.drawPanel();
+              _this52.artifactDetail(i);
             });
           }, true, {
             fontSize: 18,
             unavailable: function unavailable() {
-              return _this53.costReason('relics', _this53.game.artifactCost(i));
+              return _this52.costReason('relics', _this52.game.artifactCost(i));
             }
           }).name = 'intel-upgrade';
           this.button(p, this.tr('artifact.salvage'), -96, -129, 178, 54, function () {
-            return _this53.confirm(_this53.tr('artifact.salvage'), _this53.tr('artifact.salvageInfo'), function () {
-              return _this53.act(function () {
-                return _this53.game.salvageArtifact(i, _this53.id('salvage'));
+            return _this52.confirm(_this52.tr('artifact.salvage'), _this52.tr('artifact.salvageInfo'), function () {
+              return _this52.act(function () {
+                return _this52.game.salvageArtifact(i, _this52.id('salvage'));
               }, function () {
-                _this53.close();
-                _this53.drawPanel();
+                _this52.close();
+                _this52.drawPanel();
               });
             });
           }, false, {
             style: 'danger',
             unavailable: function unavailable() {
-              return s.enchanted[i] ? _this53.tr('error.protected') : _this53.costReason('gems', 20);
+              return s.enchanted[i] ? _this52.tr('error.protected') : _this52.costReason('gems', 20);
             }
           });
           this.button(p, this.tr('intel.enchantButton'), 96, -129, 178, 54, function () {
-            return _this53.act(function () {
-              return _this53.game.enchantArtifact(i, _this53.id('enchant'));
+            return _this52.act(function () {
+              return _this52.game.enchantArtifact(i, _this52.id('enchant'));
             }, function () {
-              return _this53.artifactDetail(i);
+              return _this52.artifactDetail(i);
             });
           }, false, {
             hint: this.tr('artifact.enchantInfo'),
             unavailable: function unavailable() {
-              return s.enchanted[i] ? _this53.tr('action.alreadyApplied') : !s.artifacts.every(function (v) {
+              return s.enchanted[i] ? _this52.tr('action.alreadyApplied') : !s.artifacts.every(function (v) {
                 return v > 0;
-              }) ? _this53.tr('artifact.enchantInfo') : _this53.costReason('relics', 3);
+              }) ? _this52.tr('artifact.enchantInfo') : _this52.costReason('relics', 3);
             }
           });
           this.button(p, this.tr('learn.open'), -96, -226, 178, 44, function () {
-            return _this53.tutorial.explain('intel', function () {
-              return _this53.artifactDetail(i);
+            return _this52.tutorial.explain('intel', function () {
+              return _this52.artifactDetail(i);
             }, true);
           }, false).name = 'intel-detail-help';
           this.button(p, this.tr('intel.details'), 96, -226, 178, 44, function () {
-            var body = _this53.tr('intel.detailBody', {
-              name: _this53.tr('artifact.' + i),
+            var body = _this52.tr('intel.detailBody', {
+              name: _this52.tr('artifact.' + i),
               effect: effect,
-              current: _this53.artifactMultiplier(i),
-              next: _this53.artifactMultiplier(i, 1),
-              cost: _this53.formatIntel(_this53.game.artifactCost(i)),
-              points: _this53.formatIntel(s.relics)
+              current: _this52.artifactMultiplier(i),
+              next: _this52.artifactMultiplier(i, 1),
+              cost: _this52.formatIntel(_this52.game.artifactCost(i)),
+              points: _this52.formatIntel(s.relics)
             });
-            var detail = _this53.open(_this53.tr('intel.details'), 550, true, 'teal', false, function () {
-              return _this53.artifactDetail(i);
+            var detail = _this52.open(_this52.tr('intel.details'), 550, true, 'teal', false, function () {
+              return _this52.artifactDetail(i);
             });
-            _this53.label(detail, body, 0, 5, 374, 340, 17, C.text);
-            _this53.button(detail, _this53.tr('action.back'), 0, -211, 370, 44, function () {
-              return _this53.artifactDetail(i);
+            _this52.label(detail, body, 0, 5, 374, 340, 17, C.text);
+            _this52.button(detail, _this52.tr('action.back'), 0, -211, 370, 44, function () {
+              return _this52.artifactDetail(i);
             });
           }, false);
         };
         _proto.salvaged = function salvaged() {
-          var _this54 = this;
+          var _this53 = this;
           var p = this.open(this.tr('artifact.salvaged'), 600);
           this.scroll(p, 0, -24, 400, 480, this.game.s.salvaged.map(function (i) {
             return {
-              title: _this54.tr("artifact." + i),
-              sub: _this54.tr('artifact.rebuyInfo'),
+              title: _this53.tr("artifact." + i),
+              sub: _this53.tr('artifact.rebuyInfo'),
               unavailable: function unavailable() {
-                return _this54.costReason('gems', 25);
+                return _this53.costReason('gems', 25);
               },
               icon: i,
-              action: _this54.tr('action.buy'),
+              action: _this53.tr('action.buy'),
               click: function click() {
-                return _this54.act(function () {
-                  return _this54.game.rebuyArtifact(i, _this54.id('rebuy'));
+                return _this53.act(function () {
+                  return _this53.game.rebuyArtifact(i, _this53.id('rebuy'));
                 }, function () {
-                  _this54.drawPanel();
-                  _this54.salvaged();
+                  _this53.drawPanel();
+                  _this53.salvaged();
                 });
               }
             };
           }));
         };
         _proto.equipmentTools = function equipmentTools() {
-          var _this55 = this;
+          var _this54 = this;
           var p = this.open(this.tr('nav.equipment'), 460);
           [['registry.title', function () {
-            return _this55.squadUI.registry();
+            return _this54.squadUI.registry();
           }], ['equipment.sets', function () {
-            return _this55.sets();
+            return _this54.sets();
           }], ['equipment.bulk', function () {
-            return _this55.confirm(_this55.tr('equipment.bulk'), _this55.tr('equipment.bulkInfo'), function () {
-              return _this55.act(function () {
-                return _this55.game.sell(_this55.game.s.equipment.filter(function (e) {
-                  return !e.locked && !_this55.game.s.equipped.includes(e.id);
+            return _this54.confirm(_this54.tr('equipment.bulk'), _this54.tr('equipment.bulkInfo'), function () {
+              return _this54.act(function () {
+                return _this54.game.sell(_this54.game.s.equipment.filter(function (e) {
+                  return !e.locked && !_this54.game.s.equipped.includes(e.id);
                 }).map(function (e) {
                   return e.id;
-                }), _this55.id('bulk'));
+                }), _this54.id('bulk'));
               }, function () {
-                _this55.close();
-                _this55.drawPanel();
+                _this54.close();
+                _this54.drawPanel();
               });
             });
           }], ['equipment.transmog', function () {
-            return _this55.transmog();
+            return _this54.transmog();
           }]].forEach(function (v, i) {
-            return _this55.button(p, _this55.tr(v[0]), 0, 114 - i * 96, 375, 60, v[1], false, {
+            return _this54.button(p, _this54.tr(v[0]), 0, 114 - i * 96, 375, 60, v[1], false, {
               unavailable: i === 2 ? function () {
-                return _this55.game.s.equipment.some(function (e) {
-                  return !e.locked && !_this55.game.s.equipped.includes(e.id);
-                }) ? null : _this55.tr('extra.noSellable');
+                return _this54.game.s.equipment.some(function (e) {
+                  return !e.locked && !_this54.game.s.equipped.includes(e.id);
+                }) ? null : _this54.tr('extra.noSellable');
               } : undefined
             });
           });
         };
         _proto.transmog = function transmog() {
-          var _this56 = this;
+          var _this55 = this;
           var p = this.open(this.tr('equipment.transmog'), 650);
           this.scroll(p, 0, -24, 400, 520, this.game.s.equipment.map(function (e) {
             return {
-              title: _this56.itemName(e),
+              title: _this55.itemName(e),
               icon: e.slot,
               unavailable: function unavailable() {
-                return _this56.game.s.appearance[e.slot] === e.id ? _this56.tr('action.alreadyApplied') : null;
+                return _this55.game.s.appearance[e.slot] === e.id ? _this55.tr('action.alreadyApplied') : null;
               },
-              action: _this56.tr(_this56.game.s.appearance[e.slot] === e.id ? 'action.selected' : 'action.apply'),
+              action: _this55.tr(_this55.game.s.appearance[e.slot] === e.id ? 'action.selected' : 'action.apply'),
               click: function click() {
-                return _this56.act(function () {
-                  return _this56.game.transmog(e.slot, e.id, _this56.id('transmog'));
+                return _this55.act(function () {
+                  return _this55.game.transmog(e.slot, e.id, _this55.id('transmog'));
                 }, function () {
-                  _this56.close();
-                  _this56.draw();
+                  _this55.close();
+                  _this55.draw();
                 });
               }
             };
           }));
         };
         _proto.achievements = function achievements() {
-          var _this57 = this;
+          var _this56 = this;
           var p = this.open(this.tr('achievement.title'), 570);
           this.scroll(p, 0, -24, 400, 450, [0, 1, 2, 3].map(function (i) {
             return {
-              title: _this57.tr("achievement." + i),
+              title: _this56.tr("achievement." + i),
               sub: function sub() {
-                return _this57.tr('daily.progress', {
-                  current: _this57.game.achievementProgress(i),
-                  goal: _this57.game.achievementGoal(i)
+                return _this56.tr('daily.progress', {
+                  current: _this56.game.achievementProgress(i),
+                  goal: _this56.game.achievementGoal(i)
                 });
               },
               unavailable: function unavailable() {
-                return _this57.rewardReason(_this57.tr("achievement." + i), _this57.game.achievementProgress(i), _this57.game.achievementGoal(i));
+                return _this56.rewardReason(_this56.tr("achievement." + i), _this56.game.achievementProgress(i), _this56.game.achievementGoal(i));
               },
               icon: i,
               art: i === 3 ? 'symbol:discharge' : undefined,
               tint: C.gold,
-              action: _this57.tr('action.claim'),
+              action: _this56.tr('action.claim'),
               click: function click() {
-                return _this57.rewards.local(_this57.tr('achievement.' + i), 'achievement:' + i + ':' + _this57.game.s.achievements[i], function (g) {
-                  return g.claimAchievement(i, _this57.id('achievement'));
+                return _this56.rewards.local(_this56.tr('achievement.' + i), 'achievement:' + i + ':' + _this56.game.s.achievements[i], function (g) {
+                  return g.claimAchievement(i, _this56.id('achievement'));
                 }, function () {
-                  return _this57.achievements();
+                  return _this56.achievements();
                 });
               }
             };
           }));
         };
         _proto.globalRaid = function globalRaid() {
-          var _this58 = this;
+          var _this57 = this;
           void this.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10() {
             var data;
             return _regeneratorRuntime().wrap(function _callee10$(_context10) {
               while (1) switch (_context10.prev = _context10.next) {
                 case 0:
                   _context10.next = 2;
-                  return _this58.onlineService.connect(_this58.tr('online.defaultName'));
+                  return _this57.onlineService.connect(_this57.tr('online.defaultName'));
                 case 2:
                   _context10.next = 4;
-                  return _this58.onlineService.request('/global');
+                  return _this57.onlineService.request('/global');
                 case 4:
                   data = _context10.sent;
-                  _this58.globalRaidPanel(data);
+                  _this57.globalRaidPanel(data);
                 case 6:
                 case "end":
                   return _context10.stop();
@@ -47739,22 +48160,22 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           })));
         };
         _proto.globalRaidPanel = function globalRaidPanel(data) {
-          var _this59 = this;
+          var _this58 = this;
           var p = this.open(this.tr('extra.globalRaid'), 450);
           this.label(p, this.tr('online.guildHP', {
             hp: display(data.hp)
           }), 0, 90, 375, 70, 24);
           this.button(p, this.tr('action.attack'), 0, -65, 375, 60, function () {
-            void _this59.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
+            void _this58.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
               var next;
               return _regeneratorRuntime().wrap(function _callee11$(_context11) {
                 while (1) switch (_context11.prev = _context11.next) {
                   case 0:
                     _context11.next = 2;
-                    return _this59.onlineService.command('/global/attack');
+                    return _this58.onlineService.command('/global/attack');
                   case 2:
                     next = _context11.sent;
-                    _this59.globalRaidPanel(next);
+                    _this58.globalRaidPanel(next);
                   case 4:
                   case "end":
                     return _context11.stop();
@@ -47763,32 +48184,32 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             })));
           }, true, {
             unavailable: function unavailable() {
-              return data.hp <= 0 ? _this59.tr('online.raidComplete') : null;
+              return data.hp <= 0 ? _this58.tr('online.raidComplete') : null;
             }
           });
         };
         _proto.eventRanks = function eventRanks() {
-          var _this60 = this;
+          var _this59 = this;
           void this.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12() {
             var rows, p;
             return _regeneratorRuntime().wrap(function _callee12$(_context12) {
               while (1) switch (_context12.prev = _context12.next) {
                 case 0:
                   _context12.next = 2;
-                  return _this60.onlineService.connect(_this60.tr('online.defaultName'));
+                  return _this59.onlineService.connect(_this59.tr('online.defaultName'));
                 case 2:
                   _context12.next = 4;
-                  return _this60.onlineService.request('/global/ranks');
+                  return _this59.onlineService.request('/global/ranks');
                 case 4:
                   rows = _context12.sent;
-                  p = _this60.open(_this60.tr('extra.eventRanks'), 660);
-                  _this60.scroll(p, 0, -25, 400, 530, rows.map(function (r, i) {
+                  p = _this59.open(_this59.tr('extra.eventRanks'), 660);
+                  _this59.scroll(p, 0, -25, 400, 530, rows.map(function (r, i) {
                     return {
-                      title: _this60.tr('online.rank', {
+                      title: _this59.tr('online.rank', {
                         rank: i + 1,
                         name: r.name
                       }),
-                      sub: _this60.tr('extra.contribution', {
+                      sub: _this59.tr('extra.contribution', {
                         value: r.damage
                       })
                     };
@@ -47813,14 +48234,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           return !!this.game && !!((_this$entry = this.entry) != null && _this$entry.playing) && this.game.s.maxStage >= 3 && this.game.fairyReady() && this.operations.ready && !this.operations.busy && !this.operations.conflict && !this.remoteBusy && !this.feedback.asyncPending && !this.liveOps.blocked;
         };
         _proto.updateHUD = function updateHUD() {
-          var _this61 = this;
+          var _this60 = this;
           var g = this.game,
             r = g.s.run;
           updateEquipmentDropButton(this, this.equipmentPile);
           this.fairy.active = this.fairyClaimReady();
           this.stageLabel.string = String(this.zoneTransition.displayedStage || r.stage);
           this.stageNeighbors.forEach(function (l, i) {
-            return l.string = String(Math.max(1, (_this61.zoneTransition.displayedStage || r.stage) + (i ? 1 : -1)));
+            return l.string = String(Math.max(1, (_this60.zoneTransition.displayedStage || r.stage) + (i ? 1 : -1)));
           });
           this.enemyLabel.string = this.tr('battle.wave', {
             count: g.enemyHealth().filter(function (h) {
@@ -47849,7 +48270,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var l = this.bossButton.getComponentInChildren(Label);
           if (l) l.string = this.tr(r.boss ? 'battle.leave' : 'battle.fight');
           this.spellLabels.forEach(function (l, slot) {
-            var i = _this61.spellShown[slot];
+            var i = _this60.spellShown[slot];
             l.string = r.master < SPELLS[i].unlock ? String(SPELLS[i].unlock) : i !== 0 && r.spells[i] > 0 ? Math.ceil(r.spells[i]) + 's ×' + r.stacks[i] : r.cooldowns[i] > 0 ? Math.ceil(r.cooldowns[i]) + 's' : '✓';
           });
         };
@@ -47943,11 +48364,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }).start();
         };
         _proto.spark = function spark(x, y, color) {
-          var _this62 = this;
+          var _this61 = this;
           var magic = color === C.violet;
           this.burst(magic ? 'ring' : 'impact', x, y, magic ? 92 : 66, magic ? .3 : .2);
           var _loop8 = function _loop8() {
-            var n = _this62.combatSprite(magic ? 'shard' : 'sparkle', 'hit-particle', x, y, 12 + i % 3 * 3);
+            var n = _this61.combatSprite(magic ? 'shard' : 'sparkle', 'hit-particle', x, y, 12 + i % 3 * 3);
             if (!n) return 1; // continue
             var angle = i * Math.PI / 3 + Math.random() * .3,
               opacity = n.addComponent(UIOpacity);
@@ -47987,7 +48408,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           } catch (_unused) {}
         };
         _proto.toast = function toast(text, tone) {
-          var _this63 = this;
+          var _this62 = this;
           if (tone === void 0) {
             tone = 'normal';
           }
@@ -47999,11 +48420,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.label(n, text, 0, 0, 404, 72, 16, C.text);
           tween(n).delay(3.2).call(function () {
             if (isValid(n, true)) n.destroy();
-            if (_this63.toastNode === n) _this63.toastNode = null;
+            if (_this62.toastNode === n) _this62.toastNode = null;
           }).start();
         };
         _proto.flushNotice = function flushNotice() {
-          var _this64 = this;
+          var _this63 = this;
           if (!this.modal && !this.tutorial.active && this.game.s.extra.unlockNotices.length) {
             var stage = this.game.s.extra.unlockNotices.shift();
             this.game.persist();
@@ -48021,7 +48442,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                 sp: reward.count
               }
             }, function () {
-              return _this64.close();
+              return _this63.close();
             });else this.feedback.notice('complete.reward.' + reward.kind, {
               value: reward.value,
               count: reward.count,
@@ -50681,6 +51102,80 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './SkillText.ts', './Discha
         'bossIntro.fight': 'Tap to begin battle'
       });
       applyDischargeText(translations);
+      Object.assign(translations.ko, {
+        'drone.fleet.count': '지원 편대 {count}/3',
+        'drone.fleet.manage': '편대 관리',
+        'drone.fleet.slot': '슬롯 {slot}',
+        'drone.fleet.empty': '드론 선택',
+        'drone.fleet.assigned': '슬롯 {slot} 편성',
+        'drone.fleet.reserve': '미편성',
+        'drone.fleet.remove': '편성 해제',
+        'drone.fleet.chooseForSlot': '슬롯 {slot}에 넣을 드론을 선택하세요',
+        'drone.fleet.chooseReplacement': '드론을 고르면 교체할 슬롯을 선택합니다',
+        'drone.fleet.rowEffect': '{effect} ×{value}',
+        'drone.fleet.trainingTarget': '정비·성장 보상 대상: {name}',
+        'drone.fleet.slotPrompt': '편성할 슬롯을 선택하세요',
+        'drone.fleet.addToSlot': '슬롯 {slot}에 편성',
+        'drone.fleet.replaceSlot': '슬롯 {slot} · {name} 교체',
+        'drone.fleet.moveSlot': '슬롯 {slot}으로 이동·교환',
+        'drone.fleet.battleName': '{kind}\nMk.{mark}',
+        'drone.fleet.kind.0': '정찰',
+        'drone.fleet.kind.1': '공격',
+        'drone.fleet.kind.2': '보급',
+        'drone.fleet.proc.0': '코인 +{percent}%\n{count}회',
+        'drone.fleet.proc.1': '대장 +{percent}%\n{count}회',
+        'drone.fleet.proc.2': '용병 +{percent}%\n{count}회',
+        'drone.fleet.procWide.0': '코인 +{percent}% · {count}회',
+        'drone.fleet.procWide.1': '대장 피해 +{percent}% · {count}회',
+        'drone.fleet.procWide.2': '용병 피해 +{percent}% · {count}회',
+        'drone.fleet.total': '{effect}\n×{value}',
+        'error.droneFleetFull': '3대가 편성되어 있습니다. 교체할 슬롯을 선택하세요.',
+        'pet.info': '드론을 최대 3대 편성합니다. 같은 드론은 한 번만 넣을 수 있습니다. 편성 효과는 각각 100%, 미편성 효과는 레벨/100(최대 100%)로 적용합니다.'
+      });
+      Object.assign(translations.en, {
+        'drone.fleet.count': 'Drone fleet {count}/3',
+        'drone.fleet.manage': 'Manage fleet',
+        'drone.fleet.slot': 'Slot {slot}',
+        'drone.fleet.empty': 'Pick a drone',
+        'drone.fleet.assigned': 'Slot {slot} active',
+        'drone.fleet.reserve': 'In reserve',
+        'drone.fleet.remove': 'Remove from fleet',
+        'drone.fleet.chooseForSlot': 'Choose a drone for slot {slot}',
+        'drone.fleet.chooseReplacement': 'Pick a drone, then choose which slot to replace',
+        'drone.fleet.rowEffect': '{effect} ×{value}',
+        'drone.fleet.trainingTarget': 'Maintenance and growth rewards: {name}',
+        'drone.fleet.slotPrompt': 'Choose a fleet slot',
+        'drone.fleet.addToSlot': 'Deploy in slot {slot}',
+        'drone.fleet.replaceSlot': 'Slot {slot} · Replace {name}',
+        'drone.fleet.moveSlot': 'Move or swap into slot {slot}',
+        'drone.fleet.battleName': '{kind}\nMk.{mark}',
+        'drone.fleet.kind.0': 'Recon',
+        'drone.fleet.kind.1': 'Attack',
+        'drone.fleet.kind.2': 'Supply',
+        'drone.fleet.proc.0': 'Coins +{percent}%\n×{count}',
+        'drone.fleet.proc.1': 'Captain +{percent}%\n×{count}',
+        'drone.fleet.proc.2': 'Squad +{percent}%\n×{count}',
+        'drone.fleet.procWide.0': 'Coins +{percent}% · ×{count}',
+        'drone.fleet.procWide.1': 'Captain +{percent}% · ×{count}',
+        'drone.fleet.procWide.2': 'Squad +{percent}% · ×{count}',
+        'drone.fleet.total': '{effect}\n×{value}',
+        'error.droneFleetFull': 'Three drones are deployed. Choose a slot to replace.',
+        'pet.info': 'Deploy up to three different drones. Each deployed bonus works at full power. Reserve efficiency is level/100, capped at 100%.'
+      });
+      Object.assign(translations.ko, {
+        'drone.fleet.totalType.0': '코인',
+        'drone.fleet.totalType.1': '대장 피해',
+        'drone.fleet.totalType.2': '용병 피해',
+        'drone.fleet.totalHelp': '드론 지원 · {effect} ×{value}\n편성 드론의 100% 효과와 미편성 드론의 레벨 기반 효과를 함께 계산합니다.',
+        'guide.pet': '위의 세 슬롯에 최대 3대의 드론을 편성합니다. 먼저 빈 슬롯을 고른 다음 아래 목록에서 드론을 장착하세요. 편성 드론은 효과 100%를 적용합니다.'
+      });
+      Object.assign(translations.en, {
+        'drone.fleet.totalType.0': 'Coins',
+        'drone.fleet.totalType.1': 'Captain damage',
+        'drone.fleet.totalType.2': 'Squad damage',
+        'drone.fleet.totalHelp': 'Drone support · {effect} ×{value}\nIncludes full deployed bonuses and level-based bonuses from reserve drones.',
+        'guide.pet': 'Deploy up to three drones in the slots above. Select an empty slot, then equip a drone from the list below. Deployed drones grant their full bonus.'
+      });
       cclegacy._RF.pop();
     }
   };
@@ -51253,9 +51748,9 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossEntranceUI.ts', './BossTimerUI.ts', './BrandSplashUI.ts', './CheatUI.ts', './CombatMotion.ts', './DischargeIcon.ts', './DroneFeedbackUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MercenaryDetailUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardArtUI.ts', './RewardClaimUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillIconArt.ts', './SkillTrainingUI.ts', './SkillUI.ts', './SpeechIllustrationUI.ts', './SquadUI.ts', './TacticDetailUI.ts', './TitleUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './BossEntrance.ts', './BrandSplash.ts', './Config.ts', './Dialogue.ts', './DischargeText.ts', './DroneEffects.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './SkillCatalog.ts', './SkillText.ts', './SpeechArtBounds.ts', './Squad.ts', './SquadName.ts', './TitleArtBounds.ts', './TitleCast.ts', './firebase-sdk.js'], function () {
+System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossEntranceUI.ts', './BossTimerUI.ts', './BrandSplashUI.ts', './CheatUI.ts', './CombatMotion.ts', './DischargeIcon.ts', './DroneFeedbackUI.ts', './DroneFleetUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MercenaryDetailUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardArtUI.ts', './RewardClaimUI.ts', './RewardContentsUI.ts', './RewardGlowUI.ts', './ScrollPositionUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillIconArt.ts', './SkillTrainingUI.ts', './SkillUI.ts', './SpeechIllustrationUI.ts', './SquadUI.ts', './TacticDetailUI.ts', './TitleUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './BossEntrance.ts', './BrandSplash.ts', './Config.ts', './Dialogue.ts', './DischargeText.ts', './DroneEffects.ts', './DroneFleet.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './SkillCatalog.ts', './SkillText.ts', './SpeechArtBounds.ts', './Squad.ts', './SquadName.ts', './TitleArtBounds.ts', './TitleCast.ts', './firebase-sdk.js'], function () {
   return {
-    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     execute: function () {}
   };
 });
@@ -52724,7 +53219,7 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
   };
 });
 
-System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Monetization.ts', './Config.ts'], function (exports) {
+System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Monetization.ts', './Config.ts', './ShopTheme.ts'], function (exports) {
   var _asyncToGenerator, _regeneratorRuntime, _extends, cclegacy, PRODUCTS, AD_PLACEMENTS, VIP_THRESHOLDS, CONFIG;
   return {
     setters: [function (module) {
@@ -52739,7 +53234,7 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
       VIP_THRESHOLDS = module.VIP_THRESHOLDS;
     }, function (module) {
       CONFIG = module.CONFIG;
-    }],
+    }, null],
     execute: function () {
       cclegacy._RF.push({}, "815d12yMuxKj65Sdc0agPDg", "MonetizationUI", undefined);
       var MonetizationUI = exports('MonetizationUI', /*#__PURE__*/function () {
@@ -52949,7 +53444,9 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
                     break;
                   }
                   _context5.next = 3;
-                  return _this3.model.billing.catalog(PRODUCTS.map(function (p) {
+                  return _this3.model.billing.catalog(PRODUCTS.filter(function (p) {
+                    return p.kind !== 'season';
+                  }).map(function (p) {
                     return p.id;
                   }));
                 case 3:
@@ -52979,7 +53476,7 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
                     sub: _this3.tr('money.priceRegion'),
                     height: 112
                   })].concat(_this3.rows(), PRODUCTS.filter(function (p) {
-                    return p.kind !== 'consumable';
+                    return p.kind !== 'consumable' && p.kind !== 'season';
                   }).map(function (p) {
                     return _this3.a.shopUI.row(p.kind === 'season' ? 'pass' : 'bundle', {
                       title: _this3.tr(p.name),
@@ -53054,9 +53551,10 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
         _proto.product = function product(id) {
           var _this4 = this;
           var product = PRODUCTS.find(function (p) {
-              return p.id === id;
-            }),
-            p = this.a.open(this.tr(product.name, {
+            return p.id === id;
+          });
+          if (product.kind === 'season') return;
+          var p = this.a.open(this.tr(product.name, {
               count: product.gems
             }), 640),
             quote = this.quotes.find(function (q) {
@@ -53130,9 +53628,7 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
                       tier: s.tier,
                       points: s.vipPoints
                     }),
-                    sub: _this5.tr('money.vipPass', {
-                      time: s.passUntil > Date.now() ? new Date(s.passUntil).toLocaleString(_this5.a.game.s.locale) : _this5.tr('money.noPass')
-                    })
+                    sub: undefined
                   }].concat(VIP_THRESHOLDS.map(function (points, i) {
                     return {
                       points: points,
@@ -55291,8 +55787,8 @@ System.register("chunks:///_virtual/RewardClaims.ts", ['./rollupPluginModLoBabel
   };
 });
 
-System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './RewardArtUI.ts', './RewardClaims.ts', './Amount.ts', './UITheme.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, UITransform, rewardBackground, rewardDelta, rewardAvailable, previewReward, REWARD_CURRENCIES, REWARD_COLLECTIONS, display, mul, UI;
+System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './RewardArtUI.ts', './RewardContentsUI.ts', './RewardClaims.ts', './UITheme.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, UITransform, rewardBackground, rewardContents, rewardDelta, rewardAvailable, previewReward, UI;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -55304,14 +55800,11 @@ System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabe
     }, function (module) {
       rewardBackground = module.rewardBackground;
     }, function (module) {
+      rewardContents = module.rewardContents;
+    }, function (module) {
       rewardDelta = module.rewardDelta;
       rewardAvailable = module.rewardAvailable;
       previewReward = module.previewReward;
-      REWARD_CURRENCIES = module.REWARD_CURRENCIES;
-      REWARD_COLLECTIONS = module.REWARD_COLLECTIONS;
-    }, function (module) {
-      display = module.display;
-      mul = module.mul;
     }, function (module) {
       UI = module.UI;
     }],
@@ -55393,47 +55886,6 @@ System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabe
           });
           return value;
         };
-        _proto.summary = function summary(bundle, multiplier) {
-          var _bundle$equipment;
-          var a = this.a,
-            lines = [];
-          for (var _iterator = _createForOfIteratorHelperLoose(REWARD_CURRENCIES), _step; !(_step = _iterator()).done;) {
-            var _bundle$currencies;
-            var key = _step.value;
-            var value = (((_bundle$currencies = bundle.currencies) == null ? void 0 : _bundle$currencies[key]) || 0) * multiplier;
-            if (value) lines.push(a.tr('reward.amount', {
-              name: a.tr('feedback.' + key),
-              value: display(value)
-            }));
-          }
-          for (var _iterator2 = _createForOfIteratorHelperLoose(['gold', 'relics', 'mementos']), _step2; !(_step2 = _iterator2()).done;) {
-            var _key = _step2.value;
-            if (bundle[_key] !== undefined) lines.push(a.tr('reward.amount', {
-              name: a.tr('feedback.' + _key),
-              value: a.format(mul(bundle[_key], multiplier))
-            }));
-          }
-          for (var _iterator3 = _createForOfIteratorHelperLoose(REWARD_COLLECTIONS), _step3; !(_step3 = _iterator3()).done;) {
-            var _bundle$collections;
-            var _key2 = _step3.value;
-            var _value = ((_bundle$collections = bundle.collections) == null || (_bundle$collections = _bundle$collections[_key2]) == null ? void 0 : _bundle$collections.reduce(function (sum, n) {
-              return sum + n;
-            }, 0)) || 0;
-            if (_value) lines.push(a.tr('reward.amount', {
-              name: a.tr('reward.type.' + _key2),
-              value: display(_value * multiplier)
-            }));
-          }
-          if ((_bundle$equipment = bundle.equipment) != null && _bundle$equipment.length) lines.push(a.tr('reward.amount', {
-            name: a.tr('reward.type.equipment'),
-            value: display(bundle.equipment.length * multiplier)
-          }));
-          if (bundle.mana) lines.push(a.tr('reward.amount', {
-            name: a.tr('reward.type.mana'),
-            value: display(bundle.mana * multiplier)
-          }));
-          return lines.join('\n') || a.tr('reward.empty');
-        };
         _proto.offer = function offer(o) {
           var _this = this;
           if (this.busy) return;
@@ -55450,21 +55902,24 @@ System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabe
           rewardBackground(a, p);
           var h = p.getComponent(UITransform).height,
             bottom = -h / 2,
-            cardHeight = Math.max(120, Math.min(180, h - 474)),
+            cardHeight = Math.max(170, Math.min(230, h - 444)),
             cardBottom = bottom + 225,
             cardTop = cardBottom + cardHeight;
           var instruction = a.nodeAt(p, 'reward-instruction-plate', 0, cardTop + 24, 380, 42);
           a.ui.surface(instruction, '#172018', 'cut', 220, false, false);
           a.label(instruction, a.tr(o.received ? 'reward.receivedInfo' : 'reward.chooseInfo'), 0, 0, 370, 42, 16, UI.text).node.name = 'reward-choice-instruction';
-          var summaries = [];
-          for (var _iterator4 = _createForOfIteratorHelperLoose([1, 2].entries()), _step4; !(_step4 = _iterator4()).done;) {
-            var _step4$value = _step4.value,
-              index = _step4$value[0],
-              _multiplier = _step4$value[1];
+          var cards = [];
+          for (var _iterator = _createForOfIteratorHelperLoose([1, 2].entries()), _step; !(_step = _iterator()).done;) {
+            var _step$value = _step.value,
+              index = _step$value[0],
+              _multiplier = _step$value[1];
             var box = a.nodeAt(p, 'reward-option-' + _multiplier, index ? 98 : -98, cardBottom + cardHeight / 2, 184, cardHeight);
-            a.ui.surface(box, '#252b24', 'cut');
+            a.ui.surface(box, _multiplier === 1 ? '#3c3823' : '#244039', 'cut');
+            box.scrollIdentity = 'reward:' + o.key + ':' + _multiplier;
             a.label(box, a.tr(_multiplier === 1 ? 'reward.base' : 'reward.double'), 0, cardHeight / 2 - 22, 174, 28, 18, _multiplier === 1 ? UI.gold : '#8be8ff');
-            summaries.push(a.label(box, '', 0, -15, 170, cardHeight - 56, 16, UI.text));
+            a.ui.icon(a.nodeAt(box, 'reward-option-art', -43, cardHeight / 2 - 68, 64, 64), _multiplier === 1 ? 'shop:free' : 'shop:ad');
+            a.label(box, '×' + _multiplier, 43, cardHeight / 2 - 67, 66, 42, 30, _multiplier === 1 ? UI.gold : '#8be8ff').node.name = 'reward-option-multiplier';
+            cards.push(box);
           }
           a.label(p, a.tr(a.payments.model.previewAds ? 'reward.previewInfo' : 'reward.adInfo'), 0, bottom + 200, 374, 40, 14, UI.muted);
           var credit = a.payments.model.availableDouble(o.key) || null;
@@ -55571,8 +56026,8 @@ System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabe
                     success = multiplier === 2 ? a.payments.model.redeemDouble(credit, o.claim, o.received ? o.bundle() : undefined) : a.game.transaction('reward-base:' + o.key, function () {
                       var before = JSON.parse(JSON.stringify(a.game.s));
                       a.game.require(o.claim(a.game), a.game.notice || 'error.claimed');
-                      for (var _iterator5 = _createForOfIteratorHelperLoose(rewardDelta(before, a.game.s).equipment || []), _step5; !(_step5 = _iterator5()).done;) {
-                        var item = _step5.value;
+                      for (var _iterator2 = _createForOfIteratorHelperLoose(rewardDelta(before, a.game.s).equipment || []), _step2; !(_step2 = _iterator2()).done;) {
+                        var item = _step2.value;
                         a.game.s.claims.push('reward-choice:' + item.id);
                       }
                       if (credit && a.game.s.extra.commerce.doubleRewardKeys[credit] === o.key) {
@@ -55654,11 +56109,15 @@ System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabe
           a.button(p, a.tr('action.cancel'), 0, bottom + 37, 374, 38, leave, false, {
             category: 'back'
           }).name = 'reward-claim-cancel';
+          var lastQuote = '';
           var refresh = function refresh() {
             if (_this.busy) return;
-            var state = _this.preview(o);
-            summaries.forEach(function (label, i) {
-              return label.string = _this.summary(state.reward, i + 1);
+            var state = _this.preview(o),
+              quote = JSON.stringify(state.reward);
+            if (quote === lastQuote) return;
+            lastQuote = quote;
+            cards.forEach(function (box, i) {
+              return rewardContents(a, box, state.reward, i + 1);
             });
           };
           a.modalRefresh = refresh;
@@ -55666,6 +56125,109 @@ System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabe
         };
         return RewardClaimUI;
       }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/RewardContentsUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './RewardClaims.ts', './Amount.ts', './UITheme.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, cclegacy, UITransform, Label, REWARD_CURRENCIES, REWARD_COLLECTIONS, display, mul, UI;
+  return {
+    setters: [function (module) {
+      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+      UITransform = module.UITransform;
+      Label = module.Label;
+    }, function (module) {
+      REWARD_CURRENCIES = module.REWARD_CURRENCIES;
+      REWARD_COLLECTIONS = module.REWARD_COLLECTIONS;
+    }, function (module) {
+      display = module.display;
+      mul = module.mul;
+    }, function (module) {
+      UI = module.UI;
+    }],
+    execute: function () {
+      exports('rewardContents', rewardContents);
+      cclegacy._RF.push({}, "dcc57lwsv1BJazRV7CwcsDt", "RewardContentsUI", undefined);
+      var ICONS = {
+        gold: 'symbol:coin',
+        gems: 'face:gems',
+        shards: 'shop:shards',
+        dust: 'face:laurel',
+        souls: 'heart',
+        geodes: 'face:aura',
+        sp: 'scroll',
+        eventTokens: 'flag',
+        relics: 'scroll',
+        mementos: 'trophy',
+        pets: 'shop:drone',
+        fragments: 'cards',
+        titans: 'adventurer',
+        stones: 'face:aura',
+        scrolls: 'scroll',
+        weapons: 'equipment:rifle',
+        perks: 'lightning',
+        equipment: 'shop:equipment',
+        mana: 'symbol:canteen'
+      };
+
+      /** Display the exact claim quote. Images never determine the reward or its quantity. */
+      function rewardContents(a, box, bundle, multiplier) {
+        var _bundle$equipment;
+        var entries = [];
+        var add = function add(key, value, collection) {
+          if (collection === void 0) {
+            collection = false;
+          }
+          return entries.push({
+            key: key,
+            name: a.tr((collection ? 'reward.type.' : 'feedback.') + key),
+            value: value
+          });
+        };
+        for (var _iterator = _createForOfIteratorHelperLoose(REWARD_CURRENCIES), _step; !(_step = _iterator()).done;) {
+          var _bundle$currencies;
+          var key = _step.value;
+          var n = ((_bundle$currencies = bundle.currencies) == null ? void 0 : _bundle$currencies[key]) || 0;
+          if (n) add(key, display(n * multiplier));
+        }
+        for (var _iterator2 = _createForOfIteratorHelperLoose(['gold', 'relics', 'mementos']), _step2; !(_step2 = _iterator2()).done;) {
+          var _key = _step2.value;
+          if (bundle[_key] !== undefined) add(_key, a.format(mul(bundle[_key], multiplier)));
+        }
+        for (var _iterator3 = _createForOfIteratorHelperLoose(REWARD_COLLECTIONS), _step3; !(_step3 = _iterator3()).done;) {
+          var _bundle$collections;
+          var _key2 = _step3.value;
+          var _n = ((_bundle$collections = bundle.collections) == null || (_bundle$collections = _bundle$collections[_key2]) == null ? void 0 : _bundle$collections.reduce(function (sum, n) {
+            return sum + n;
+          }, 0)) || 0;
+          if (_n) add(_key2, display(_n * multiplier), true);
+        }
+        if ((_bundle$equipment = bundle.equipment) != null && _bundle$equipment.length) add('equipment', display(bundle.equipment.length * multiplier), true);
+        if (bundle.mana) add('mana', display(bundle.mana * multiplier), true);
+        var old = box.getChildByName('scroll');
+        if (old) {
+          old.removeFromParent();
+          old.destroy();
+        }
+        var height = box.getComponent(UITransform).height - 112;
+        a.scroll(box, 0, -46, 172, height, entries.map(function (entry) {
+          return {
+            title: '',
+            height: 46,
+            render: function render(row) {
+              row.name = 'reward-content-' + entry.key;
+              a.ui.icon(a.nodeAt(row, 'reward-content-icon', -60, 0, 30, 30), ICONS[entry.key]);
+              a.label(row, entry.name, 18, 11, 116, 18, 12, UI.muted, Label.HorizontalAlign.LEFT).node.name = 'reward-content-name';
+              a.label(row, '+' + entry.value, 18, -10, 116, 24, 18, UI.text, Label.HorizontalAlign.LEFT).node.name = 'reward-content-quantity';
+            }
+          };
+        }));
+        if (!entries.length) a.label(box, a.tr('reward.empty'), 0, -46, 158, height, 14, UI.muted);
+        box.rewardQuote = entries;
+      }
       cclegacy._RF.pop();
     }
   };
@@ -55797,6 +56359,59 @@ System.register("chunks:///_virtual/RewardGlowUI.ts", ['./rollupPluginModLoBabel
   };
 });
 
+System.register("chunks:///_virtual/ScrollPositionUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc'], function (exports) {
+  var _createForOfIteratorHelperLoose, cclegacy, isValid, ScrollView, Vec2;
+  return {
+    setters: [function (module) {
+      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+      isValid = module.isValid;
+      ScrollView = module.ScrollView;
+      Vec2 = module.Vec2;
+    }],
+    execute: function () {
+      cclegacy._RF.push({}, "3c707BXzPVALoulUWXzFphE", "ScrollPositionUI", undefined);
+      /** Session-only view state. Redrawing a list never changes account progress. */
+      var ScrollPositionUI = exports('ScrollPositionUI', /*#__PURE__*/function () {
+        function ScrollPositionUI(a) {
+          this.offsets = new Map();
+          this.keys = new WeakMap();
+          this.a = a;
+        }
+        var _proto = ScrollPositionUI.prototype;
+        _proto.capture = function capture(parent) {
+          if (!parent || !isValid(parent, true)) return;
+          var key = this.keys.get(parent),
+            view = parent.getComponent(ScrollView);
+          if (key && view) this.offsets.set(key, Math.max(0, view.getScrollOffset().y));
+          for (var _iterator = _createForOfIteratorHelperLoose(parent.children), _step; !(_step = _iterator()).done;) {
+            var child = _step.value;
+            this.capture(child);
+          }
+        };
+        _proto.attach = function attach(viewport, key) {
+          var _this = this;
+          this.keys.set(viewport, key);
+          var view = viewport.getComponent(ScrollView);
+          var remember = function remember() {
+            return _this.capture(viewport);
+          };
+          viewport.on(ScrollView.EventType.SCROLLING, remember);
+          viewport.on(ScrollView.EventType.SCROLL_ENDED, remember);
+          var offset = this.offsets.get(key) || 0;
+          this.a.scheduleOnce(function () {
+            if (!isValid(viewport, true) || !viewport.parent) return;
+            view.scrollToOffset(new Vec2(0, Math.min(offset, Math.max(0, view.getMaxScrollOffset().y))), 0);
+          }, 0);
+        };
+        return ScrollPositionUI;
+      }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
 System.register("chunks:///_virtual/ShopTheme.ts", ['cc'], function (exports) {
   var cclegacy;
   return {
@@ -55806,6 +56421,8 @@ System.register("chunks:///_virtual/ShopTheme.ts", ['cc'], function (exports) {
     execute: function () {
       cclegacy._RF.push({}, "a4e7aLyEFlIEo8tg+dXQkqL", "ShopTheme", undefined);
       /** Supply-shop presentation only; prices, rewards and saved IDs stay in their existing models. */
+      // Hide the unfinished season-pass storefront while preserving existing entitlements.
+      var SEASON_PASS_VISIBLE = exports('SEASON_PASS_VISIBLE', false);
       var SHOP_ICONS = exports('SHOP_ICONS', ['regular', 'growth', 'limited', 'pass', 'diamond', 'equipment', 'ad', 'free', 'drone', 'shards', 'expedition', 'milestone', 'vip', 'restore', 'bundle', 'boost']);
       var SHOP_STYLE = exports('SHOP_STYLE', {
         regular: {
@@ -55895,13 +56512,14 @@ System.register("chunks:///_virtual/ShopTheme.ts", ['cc'], function (exports) {
 });
 
 System.register("chunks:///_virtual/ShopUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './ShopTheme.ts', './UITheme.ts'], function (exports) {
-  var _extends, cclegacy, Label, SHOP_STYLE, UI;
+  var _extends, cclegacy, Label, UITransform, SHOP_STYLE, UI;
   return {
     setters: [function (module) {
       _extends = module.extends;
     }, function (module) {
       cclegacy = module.cclegacy;
       Label = module.Label;
+      UITransform = module.UITransform;
     }, function (module) {
       SHOP_STYLE = module.SHOP_STYLE;
     }, function (module) {
@@ -56034,26 +56652,7 @@ System.register("chunks:///_virtual/ShopUI.ts", ['./rollupPluginModLoBabelHelper
                 return _this.milestone(stage);
               }
             });
-          }) : [this.row('equipment', {
-            title: a.tr('extra.limitedOffer'),
-            metrics: [{
-              icon: 'face:gems',
-              value: '100',
-              hint: a.tr('extra.limitedInfo')
-            }, {
-              icon: 'shop:shards',
-              value: '+20',
-              hint: a.tr('extra.limitedInfo')
-            }, {
-              icon: 'cards',
-              value: '+10',
-              hint: a.tr('extra.limitedInfo')
-            }],
-            action: a.tr('action.open'),
-            click: function click() {
-              return a.extensions.limited();
-            }
-          })];
+          }) : [this.bundleRow(false)];
           rows.unshift(this.row('diamond', {
             title: a.tr('money.store'),
             metrics: [{
@@ -56084,24 +56683,88 @@ System.register("chunks:///_virtual/ShopUI.ts", ['./rollupPluginModLoBabelHelper
               return a.payments.ads('shop');
             }
           }));
-          if (a.shopTab === 2) rows.unshift(this.row('pass', {
-            title: a.tr('money.pass'),
-            action: a.payments.price('season_pass'),
-            click: function click() {
-              return a.payments.product('season_pass');
-            }
-          }));
           a.scroll(a.panel, 0, -35, 458, 230, rows.map(function (row) {
             return _extends({}, row, {
-              height: 76
+              height: row.render ? row.height : 76
             });
           }));
+        };
+        _proto.bundleReason = function bundleReason() {
+          return this.a.game.s.claims.includes('daily.limited') ? this.a.tr('action.alreadyPurchased') : this.a.costReason('gems', 100);
+        };
+        _proto.bundleRow = function bundleRow(purchase) {
+          var _this2 = this;
+          var a = this.a,
+            style = SHOP_STYLE.equipment;
+          return this.row('equipment', {
+            title: a.tr('extra.limitedOffer'),
+            height: 152,
+            render: function render(card) {
+              card.name = 'shop-bundle-card';
+              var width = card.getComponent(UITransform).width,
+                left = -width / 2,
+                ink = a.ui.inPopup(card) ? UI.text : UI.ink;
+              var art = a.nodeAt(card, 'item-art', left + 43, 28, 58, 58);
+              a.ui.surface(art, style.accent, 'cut');
+              a.ui.icon(a.nodeAt(art, 'glyph', 0, 0, 50, 50), 'shop:equipment');
+              var title = a.label(card, a.tr('extra.limitedOffer'), 43, 48, width - 104, 34, 24, ink, Label.HorizontalAlign.LEFT);
+              title.node.name = 'shop-bundle-title';
+              title.isBold = true;
+              a.metric(card, 'shop:shards', '+20', left + 148, 10, 130, a.tr('extra.limitedInfo')).name = 'shop-bundle-shards';
+              a.metric(card, 'cards', '+10', left + 285, 10, 130, a.tr('extra.limitedInfo')).name = 'shop-bundle-fragments';
+              var price = a.metric(card, 'face:gems', '×100', left + 88, -45, 140, a.tr('extra.limitedInfo'));
+              price.name = 'shop-bundle-price';
+              var amount = price.getChildByName('text').getComponent(Label);
+              amount.fontSize = 22;
+              amount.lineHeight = 26;
+              a.button(card, a.tr('action.buy'), width / 2 - 95, -45, 162, 44, function () {
+                return purchase ? _this2.buyBundle() : _this2.limited();
+              }, true, {
+                category: 'shop',
+                label: function label() {
+                  return a.tr(a.game.s.claims.includes('daily.limited') ? 'action.purchased' : 'action.buy');
+                },
+                completed: function completed() {
+                  return a.game.s.claims.includes('daily.limited');
+                },
+                unavailable: function unavailable() {
+                  return _this2.bundleReason();
+                }
+              }).name = 'shop-bundle-buy';
+            }
+          });
+        };
+        _proto.limited = function limited() {
+          var a = this.a,
+            p = a.open(a.tr('extra.limited'), 320, true, 'teal', false);
+          p.name = 'shop-bundle-panel';
+          a.scroll(p, 0, -15, 400, 190, [this.bundleRow(true)]);
+          var caption = a.label(p, a.game.s.locale === 'ko' ? '하루 한 번 구매' : 'Once per day', 0, -124, 372, 24, 15, UI.muted);
+          caption.node.name = 'shop-bundle-daily';
+        };
+        _proto.buyBundle = function buyBundle() {
+          var _this3 = this;
+          var a = this.a,
+            g = a.game,
+            day = Math.floor(g.now() / 86400000);
+          a.act(function () {
+            return g.transaction("limited-" + day, function () {
+              g.require(!g.s.claims.includes('daily.limited'), 'error.claimed');
+              g.require(g.s.gems >= 100);
+              g.s.claims.push('daily.limited');
+              g.s.gems -= 100;
+              g.s.shards += 20;
+              a.extensions.e.fortune(10);
+            });
+          }, function () {
+            return _this3.limited();
+          }, 'complete.applied');
         };
         _proto.dealReason = function dealReason(i) {
           return this.a.costReason('gems', [30, 60, 100][i]) || (i === 2 && this.a.game.s.equipment.length >= 100 ? this.a.tr('error.full') : null);
         };
         _proto.deal = function deal(i) {
-          var _this2 = this;
+          var _this4 = this;
           var a = this.a,
             category = ['drone', 'shards', 'expedition'][i],
             p = a.open(a.tr(['shop.pet', 'shop.shards', 'shop.chest'][i]), 540, true, 'teal', false);
@@ -56122,7 +56785,7 @@ System.register("chunks:///_virtual/ShopUI.ts", ['./rollupPluginModLoBabelHelper
             });
           }, true, {
             unavailable: function unavailable() {
-              return _this2.dealReason(i);
+              return _this4.dealReason(i);
             }
           }).name = 'shop-deal-confirm';
         };
@@ -56554,15 +57217,18 @@ System.register("chunks:///_virtual/SkillText.ts", ['./rollupPluginModLoBabelHel
           'tactic.timing': '에너지 {mana} · 지속 {duration}초 · 재사용 {cooldown}초',
           'tactic.stackEffect': '현재 효과 계산: {stacks}중첩',
           'tactic.fixedEffect': '현재 효과는 고정입니다. 레벨·중첩으로 이 효과가 추가 증가하지 않습니다.',
-          'tactic.currentSlot': '슬롯 {slot} · {name}',
-          'tactic.assigned': '슬롯 {slot}에 배치',
+          'tactic.manageTitle': '전술 배치',
+          'tactic.manageOpen': '전술 배치',
+          'tactic.manageHelp': '대장이 사용할 전술 6칸입니다.\n위의 칸을 고른 뒤 아래 목록에서 전술을 바꾸세요.',
+          'tactic.currentSlot': '선택한 전술 {slot}번 칸 · {name}',
+          'tactic.assigned': '전술 {slot}번 칸에 배치',
           'tactic.levelHelp': '전술 레벨 {level}/{max}\n재배치 시 전술 레벨이 초기화됩니다.',
           'tactic.durationHelp': '활성 효과가 {seconds}초 유지됩니다.',
           'tactic.cooldownHelp': '사용 후 {seconds}초 대기합니다. 중첩 가능한 활성 스킬은 다시 사용할 수 있습니다.',
           'tactic.instant': '즉시 한 번 공격합니다. 다른 적에게 초과 피해를 넘기지 않습니다.',
           'tactic.active': '활성 {seconds}초 · {stacks}중첩',
           'tactic.ready': '사용 준비 완료',
-          'tactic.swap': '슬롯 {slot}: {old} → {next}\n교체할 스킬의 기존 활성 효과는 종료됩니다.',
+          'tactic.swap': '전술 {slot}번 칸: {old} → {next}\n교체할 스킬의 기존 활성 효과는 종료됩니다.',
           'talent.stat.coin': '코인 획득',
           'talent.stat.tap': '대장 탭 피해',
           'talent.stat.hero': '용병 자동 공격 피해',
@@ -56585,8 +57251,11 @@ System.register("chunks:///_virtual/SkillText.ts", ['./rollupPluginModLoBabelHel
           'tactic.timing': 'Energy {mana} · duration {duration}s · cooldown {cooldown}s',
           'tactic.stackEffect': 'Current effect uses {stacks} stack(s)',
           'tactic.fixedEffect': 'This effect is fixed. Levels and extra stacks do not increase this effect.',
-          'tactic.currentSlot': 'Slot {slot} · {name}',
-          'tactic.assigned': 'Assigned to slot {slot}',
+          'tactic.manageTitle': 'Tactic Slots',
+          'tactic.manageOpen': 'Tactic Slots',
+          'tactic.manageHelp': 'Six tactic slots for your captain.\nPick a slot above, then choose a tactic below.',
+          'tactic.currentSlot': 'Selected slot {slot} · {name}',
+          'tactic.assigned': 'Tactic slot {slot}',
           'tactic.levelHelp': 'Tactic level {level}/{max}\nTactic levels reset on redeployment.',
           'tactic.durationHelp': 'The active effect lasts {seconds}s.',
           'tactic.cooldownHelp': 'Wait {seconds}s after use. Active skills that support stacking can be used again.',
@@ -57004,7 +57673,7 @@ System.register("chunks:///_virtual/SkillUI.ts", ['cc', './TacticDetailUI.ts', '
         }
         var g = a.game,
           s = g.s,
-          p = a.open(a.tr('spell.title'), 715, true, 'teal', false);
+          p = a.open(a.tr('tactic.manageTitle'), 715, true, 'teal', false);
         p.name = 'tactics-panel';
         var _loop = function _loop(j) {
           var id = s.spellSlots[j],
@@ -57029,7 +57698,8 @@ System.register("chunks:///_virtual/SkillUI.ts", ['cc', './TacticDetailUI.ts', '
           slot: slot + 1,
           name: a.tr('spell.' + s.spellSlots[slot])
         }), 0, 193, 376, 30, 17, UI.mint).node.name = 'tactic-current';
-        a.scroll(p, 0, -44, 400, 438, SPELLS.filter(function (c) {
+        a.label(p, a.tr('tactic.manageHelp'), 0, 147, 376, 42, 14, UI.muted).node.name = 'tactic-slot-guide';
+        a.scroll(p, 0, -70, 400, 386, SPELLS.filter(function (c) {
           var _SPELLS$find;
           return s.run.master >= c.unlock || c.id === ((_SPELLS$find = SPELLS.find(function (c) {
             return s.run.master < c.unlock;
@@ -57696,7 +58366,7 @@ System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpe
           this.current = page;
           var panel = this.a.open(title, height, true, 'teal', false, function () {
             return _this.back();
-          });
+          }, 'squad:' + key);
           this.panel = panel;
           this.a.scheduleOnce(function () {
             var _panel$getChildByName;
@@ -58375,7 +59045,7 @@ System.register("chunks:///_virtual/TacticDetailUI.ts", ['./rollupPluginModLoBab
         var tag = a.nodeAt(p, 'tactic-assignment', -132, 113, 96, 23);
         a.ui.surface(tag, assigned >= 0 ? '#31594e' : '#4c5960', 'cut');
         a.ui.icon(a.nodeAt(tag, 'assignment-icon', -33, 0, 14, 14), assigned >= 0 ? 'symbol:check' : 'symbol:next', '#eff5ee');
-        a.label(tag, assigned >= 0 ? 'SLOT ' + (assigned + 1) : '—', 9, 0, 70, 20, 12, '#eff5ee');
+        a.label(tag, assigned >= 0 ? a.game.s.locale === 'ko' ? assigned + 1 + '번 칸' : 'SLOT ' + (assigned + 1) : '—', 9, 0, 70, 20, 12, '#eff5ee');
         badge(a, p, 'level', 'symbol:up', 'LV ' + r.spellLevels[id] + ' / ' + c.cap, -95, 59, a.tr('tactic.levelHelp', {
           level: r.spellLevels[id],
           max: c.cap
