@@ -8739,7 +8739,8 @@ System.register("chunks:///_virtual/Feedback.ts", ['./rollupPluginModLoBabelHelp
     execute: function () {
       exports({
         feedbackDiff: feedbackDiff,
-        feedbackSnapshot: feedbackSnapshot
+        feedbackSnapshot: feedbackSnapshot,
+        growthCounters: growthCounters
       });
       cclegacy._RF.push({}, "da5da2Nc7ZOh6ckKJeeHZV+", "Feedback", undefined);
       function feedbackSnapshot(g) {
@@ -8945,6 +8946,36 @@ System.register("chunks:///_virtual/Feedback.ts", ['./rollupPluginModLoBabelHelp
           dps: after.dps > before.dps + 1e-9 ? [before.dps, after.dps] : null
         };
       }
+      /** Refresh successful growth values while keeping the visible message's baseline. */
+      function growthCounters(diff, current) {
+        var _current$growth, _current$kind;
+        var growth = ((_current$growth = current == null ? void 0 : current.growth) != null ? _current$growth : diff.growth).map(function (entry) {
+          var _latest$args, _entry$args2, _latest$args2;
+          var latest = diff.growth.find(function (e) {
+            var _e$args2, _entry$args;
+            return e.key === entry.key && ((_e$args2 = e.args) == null ? void 0 : _e$args2.index) === ((_entry$args = entry.args) == null ? void 0 : _entry$args.index);
+          });
+          if (!latest || ((_latest$args = latest.args) == null ? void 0 : _latest$args.after) === undefined) return entry;
+          var before = (_entry$args2 = entry.args) == null ? void 0 : _entry$args2.before,
+            after = (_latest$args2 = latest.args) == null ? void 0 : _latest$args2.after;
+          return _extends({}, entry, {
+            args: _extends({}, entry.args, {
+              after: after
+            }),
+            value: typeof before === 'number' && typeof after === 'number' ? after - before : entry.value
+          });
+        });
+        var merge = function merge(previous, next) {
+          var _previous$;
+          return next ? [(_previous$ = previous == null ? void 0 : previous[0]) != null ? _previous$ : next[0], next[1]] : previous != null ? previous : null;
+        };
+        return {
+          growth: growth,
+          tap: merge(current == null ? void 0 : current.tap, diff.tap),
+          dps: merge(current == null ? void 0 : current.dps, diff.dps),
+          kind: diff.tap ? 'tap' : diff.dps ? 'dps' : (_current$kind = current == null ? void 0 : current.kind) != null ? _current$kind : null
+        };
+      }
       /** Keep one readable line and the latest successful action, with no gap between them. */
       var GrowthFeedbackQueue = exports('GrowthFeedbackQueue', /*#__PURE__*/function () {
         function GrowthFeedbackQueue() {
@@ -9003,7 +9034,7 @@ System.register("chunks:///_virtual/Feedback.ts", ['./rollupPluginModLoBabelHelp
 });
 
 System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SpeechIllustrationUI.ts', './MercenaryUnlock.ts', './EquipmentUI.ts', './RewardArtUI.ts', './Feedback.ts', './UITheme.ts', './Mercenaries.ts', './Config.ts', './Amount.ts', './Dialogue.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _extends, _createClass, cclegacy, BlockInputEvents, Node, isValid, UITransform, tween, Vec3, Label, Graphics, Mask, UIOpacity, speechIllustration, mercenaryUnlocked, equipmentReward, rewardBackground, feedbackSnapshot, feedbackDiff, GrowthFeedbackQueue, UI, attackSeconds, mercenaryArt, PETS, ARTIFACTS, CARDS, HEROES, display, DIALOGUE_CONTEXTS, DialogueDeck, DialogueDirector;
+  var _createForOfIteratorHelperLoose, _extends, _createClass, cclegacy, BlockInputEvents, Node, isValid, UITransform, tween, Vec3, Label, Graphics, Mask, UIOpacity, speechIllustration, mercenaryUnlocked, equipmentReward, rewardBackground, feedbackSnapshot, feedbackDiff, growthCounters, GrowthFeedbackQueue, UI, attackSeconds, mercenaryArt, PETS, ARTIFACTS, CARDS, HEROES, display, DIALOGUE_CONTEXTS, DialogueDeck, DialogueDirector;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -9032,6 +9063,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
     }, function (module) {
       feedbackSnapshot = module.feedbackSnapshot;
       feedbackDiff = module.feedbackDiff;
+      growthCounters = module.growthCounters;
       GrowthFeedbackQueue = module.GrowthFeedbackQueue;
     }, function (module) {
       UI = module.UI;
@@ -9062,6 +9094,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           this.displayedGrowth = null;
           this.announcedGrowth = new WeakSet();
           this.growthLines = new WeakMap();
+          this.growthValues = new WeakMap();
           this.dialogue = new DialogueDeck();
           this.director = new DialogueDirector();
           this.chatter = [];
@@ -9600,6 +9633,9 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           this.banner = null;
         };
         _proto.growth = function growth(diff) {
+          var _this$displayedGrowth, _this$growthValues$ge;
+          var visible = (_this$displayedGrowth = this.displayedGrowth) == null ? void 0 : _this$displayedGrowth.diff;
+          if (visible && !visible.equipment.length && !diff.equipment.length) this.growthValues.set(visible, growthCounters(diff, (_this$growthValues$ge = this.growthValues.get(visible)) != null ? _this$growthValues$ge : growthCounters(visible)));
           this.growthQueue.request(this.a.game.s.run, diff);
           this.clearChatter();
           this.tickGrowth();
@@ -9630,7 +9666,10 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
             this.displayedGrowth = null;
             return;
           }
-          if (cue === this.displayedGrowth && this.banner && isValid(this.banner, true)) return;
+          if (cue === this.displayedGrowth && this.banner && isValid(this.banner, true)) {
+            this.refreshGrowthLabels(cue.diff);
+            return;
+          }
           this.clearBanner();
           this.clearChatter();
           this.displayedGrowth = cue;
@@ -9651,20 +9690,9 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           var first = diff.growth[0],
             soldier = first != null && first.key.startsWith('hero.') ? Number(first.key.slice(5)) : -1;
           var profile = speechIllustration(a, n, 'growth-portrait', soldier, -75, 0, 58, 160).clip;
-          a.label(n, first ? a.tr('merc.level', {
-            before: first.args.before,
-            after: first.args.after
-          }) : a.tr('feedback.power'), 34, 61, 140, 28, 15, UI.gold);
-          var stats = diff.tap || diff.dps;
-          var before = stats ? a.format(stats[0]) : '',
-            after = stats ? a.format(stats[1]) : '';
-          var changed = stats ? before === after ? a.tr('feedback.statPercent', {
-            percent: ((Math.pow(10, stats[1] - stats[0]) - 1) * 100).toFixed(1)
-          }) : a.tr('merc.statChange', {
-            before: before,
-            after: after
-          }) : a.tr('feedback.improved');
-          a.label(n, changed, 34, 31, 140, 30, 13, UI.text);
+          a.label(n, '', 34, 61, 140, 28, 15, UI.gold).node.name = 'growth-level';
+          a.label(n, '', 34, 31, 140, 30, 13, UI.text).node.name = 'growth-power';
+          this.refreshGrowthLabels(diff);
           var context = soldier >= 0 && Number(first == null || (_first$args = first.args) == null ? void 0 : _first$args.before) === 0 ? 'recruit' : 'growth';
           // Rebuilding the same visible cue keeps its original line and expiry.
           var line = this.growthLines.get(diff);
@@ -9685,6 +9713,34 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
               }).start();
             }
             this.chime();
+          }
+        };
+        _proto.refreshGrowthLabels = function refreshGrowthLabels(diff) {
+          var _this$growthValues$ge2;
+          if (diff.equipment.length || !this.banner || !isValid(this.banner, true)) return;
+          var a = this.a,
+            values = (_this$growthValues$ge2 = this.growthValues.get(diff)) != null ? _this$growthValues$ge2 : growthCounters(diff),
+            first = values.growth[0];
+          this.growthValues.set(diff, values);
+          var stats = values.kind === 'tap' ? values.tap : values.kind === 'dps' ? values.dps : null;
+          var before = stats ? a.format(stats[0]) : '',
+            after = stats ? a.format(stats[1]) : '';
+          var changed = stats ? before === after ? a.tr('feedback.statPercent', {
+            percent: ((Math.pow(10, stats[1] - stats[0]) - 1) * 100).toFixed(1)
+          }) : a.tr('merc.statChange', {
+            before: before,
+            after: after
+          }) : a.tr('feedback.improved');
+          for (var _i = 0, _arr = [['growth-level', first ? a.tr('merc.level', {
+              before: first.args.before,
+              after: first.args.after
+            }) : a.tr('feedback.power')], ['growth-power', changed]]; _i < _arr.length; _i++) {
+            var _this$banner$getChild;
+            var _arr$_i = _arr[_i],
+              name = _arr$_i[0],
+              text = _arr$_i[1];
+            var label = (_this$banner$getChild = this.banner.getChildByName(name)) == null ? void 0 : _this$banner$getChild.getComponent(Label);
+            if (label && label.string !== text) label.string = text;
           }
         };
         _proto.showEquipment = function showEquipment(e) {
@@ -52054,9 +52110,9 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossEntranceUI.ts', './BossTimerUI.ts', './BrandSplashUI.ts', './CheatUI.ts', './CombatMotion.ts', './DischargeIcon.ts', './DroneFeedbackUI.ts', './DroneFleetUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentDetailUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './FontUI.ts', './GameApp.ts', './LiveOpsUI.ts', './MercenaryDetailUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardArtUI.ts', './RewardClaimUI.ts', './RewardContentsUI.ts', './RewardGlowUI.ts', './ScrollPositionUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillIconArt.ts', './SkillTrainingUI.ts', './SkillUI.ts', './SpeechIllustrationUI.ts', './SquadUI.ts', './TacticDetailUI.ts', './TitleUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './BossEntrance.ts', './BrandSplash.ts', './Config.ts', './Dialogue.ts', './DischargeText.ts', './DroneEffects.ts', './DroneFleet.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MercenaryUnlock.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './SkillCatalog.ts', './SkillText.ts', './SpeechArtBounds.ts', './Squad.ts', './SquadName.ts', './TitleArtBounds.ts', './TitleCast.ts', './UIFontCatalog.ts', './firebase-sdk.js'], function () {
+System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossEntranceUI.ts', './BossTimerUI.ts', './BrandSplashUI.ts', './CheatUI.ts', './CombatMotion.ts', './DischargeIcon.ts', './DroneFeedbackUI.ts', './DroneFleetUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentDetailUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './FontUI.ts', './GameApp.ts', './LiveOpsUI.ts', './MercenaryDetailUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PopupIllustrationUI.ts', './PushNotifications.ts', './RewardArtUI.ts', './RewardClaimUI.ts', './RewardContentsUI.ts', './RewardGlowUI.ts', './ScrollPositionUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillIconArt.ts', './SkillTrainingUI.ts', './SkillUI.ts', './SpeechIllustrationUI.ts', './SquadUI.ts', './TacticDetailUI.ts', './TitleUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './BossEntrance.ts', './BrandSplash.ts', './Config.ts', './Dialogue.ts', './DischargeText.ts', './DroneEffects.ts', './DroneFleet.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MercenaryUnlock.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './SkillCatalog.ts', './SkillText.ts', './SpeechArtBounds.ts', './Squad.ts', './SquadName.ts', './TitleArtBounds.ts', './TitleCast.ts', './UIFontCatalog.ts', './firebase-sdk.js'], function () {
   return {
-    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     execute: function () {}
   };
 });
@@ -55557,6 +55613,70 @@ System.register("chunks:///_virtual/OperationsClient.ts", ['./rollupPluginModLoB
         }]);
         return OperationsClient;
       }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/PopupIllustrationUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './AreaTransition.ts', './UITheme.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, cclegacy, UITransform, Mask, AREA_TRANSITION_ART, BLOCKED_NOTICE;
+  return {
+    setters: [function (module) {
+      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+      UITransform = module.UITransform;
+      Mask = module.Mask;
+    }, function (module) {
+      AREA_TRANSITION_ART = module.AREA_TRANSITION_ART;
+    }, function (module) {
+      BLOCKED_NOTICE = module.BLOCKED_NOTICE;
+    }],
+    execute: function () {
+      exports('popupIllustration', popupIllustration);
+      cclegacy._RF.push({}, "f32c8P4rtZCSobffUDHortI", "PopupIllustrationUI", undefined);
+
+      /** Stable art on redraw; character/reward art and flat controls remain in front. */
+      function popupIllustration(a, panel, identity, blocked) {
+        if (blocked === void 0) {
+          blocked = false;
+        }
+        var hash = 0;
+        for (var _iterator = _createForOfIteratorHelperLoose(identity), _step; !(_step = _iterator()).done;) {
+          var c = _step.value;
+          hash = Math.imul(hash, 31) + c.codePointAt(0) >>> 0;
+        }
+        var index = (hash + Math.max(0, a.game.s.run.stage - 2)) % AREA_TRANSITION_ART.length,
+          key = 'transition/' + AREA_TRANSITION_ART[index],
+          frame = a.ui.frames.get(key);
+        if (!frame) return;
+        var old = panel.getChildByName('popup-illustration-background');
+        if (old) {
+          old.removeFromParent();
+          old.destroy();
+        }
+        var _contentSize = panel.getComponent(UITransform).contentSize,
+          width = _contentSize.width,
+          height = _contentSize.height,
+          clip = a.nodeAt(panel, 'popup-illustration-background', 0, 0, width, height);
+        clip.setSiblingIndex(1);
+        var mask = clip.addComponent(Mask);
+        mask.type = Mask.Type.GRAPHICS_STENCIL;
+        var g = mask.subComp,
+          points = a.ui.contours.get(panel);
+        g.clear();
+        g.moveTo(points[0][0], points[0][1]);
+        points.slice(1).forEach(function (p) {
+          return g.lineTo(p[0], p[1]);
+        });
+        g.close();
+        g.fill();
+        var scale = Math.max(width / frame.width, height / frame.height),
+          art = a.nodeAt(clip, 'popup-landscape-art', 0, 0, frame.width * scale, frame.height * scale);
+        a.ui.paint(art, key);
+        a.rect(clip, 0, 0, width, height, blocked ? BLOCKED_NOTICE.background : '#09120e', undefined, blocked ? 222 : 174).name = 'popup-landscape-shade';
+        clip.illustrationKey = key;
+      }
       cclegacy._RF.pop();
     }
   };
