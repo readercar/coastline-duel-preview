@@ -2518,8 +2518,8 @@ System.register("chunks:///_virtual/EntryPolicy.ts", ['cc'], function (exports) 
   };
 });
 
-System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './UITheme.ts', './EntryPolicy.ts', './FeedbackUI.ts', './TutorialUI.ts', './LiveOps.ts', './SquadName.ts'], function (exports) {
-  var _createClass, _asyncToGenerator, _regeneratorRuntime, cclegacy, Mask, sys, EditBox, UITransform, Label, ScrollView, UI, CONSENT_KEY, consentReceipt, parseConsent, FeedbackUI, TutorialUI, requiresUpdate, squadNameError;
+System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './UITheme.ts', './TitleUI.ts', './EntryPolicy.ts', './FeedbackUI.ts', './TutorialUI.ts', './LiveOps.ts', './SquadName.ts'], function (exports) {
+  var _createClass, _asyncToGenerator, _regeneratorRuntime, cclegacy, sys, EditBox, UITransform, Mask, Label, ScrollView, UI, TitleUI, CONSENT_KEY, consentReceipt, parseConsent, FeedbackUI, TutorialUI, requiresUpdate, squadNameError;
   return {
     setters: [function (module) {
       _createClass = module.createClass;
@@ -2527,14 +2527,16 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
       _regeneratorRuntime = module.regeneratorRuntime;
     }, function (module) {
       cclegacy = module.cclegacy;
-      Mask = module.Mask;
       sys = module.sys;
       EditBox = module.EditBox;
       UITransform = module.UITransform;
+      Mask = module.Mask;
       Label = module.Label;
       ScrollView = module.ScrollView;
     }, function (module) {
       UI = module.UI;
+    }, function (module) {
+      TitleUI = module.TitleUI;
     }, function (module) {
       CONSENT_KEY = module.CONSENT_KEY;
       consentReceipt = module.consentReceipt;
@@ -2552,6 +2554,29 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
       cclegacy._RF.push({}, "87fbbvBf4BBPLHd+6QkB3Qm", "EntryUI", undefined);
       /** Entry owns authentication; no gameplay or account request runs before consent. */
       var EntryUI = exports('EntryUI', /*#__PURE__*/function () {
+        var _proto = EntryUI.prototype;
+        _proto.requestStart = function requestStart() {
+          if (this.busy || this.starting || this.screen !== 'title') return;
+          if (!this.a.game.s.extra.effects) {
+            this.begin();
+            return;
+          }
+          this.starting = true;
+          this.startElapsed = 0;
+          this.a.sound(540);
+        };
+        _proto.tick = function tick(dt) {
+          var _this$title;
+          if (this.playing) return;
+          if (this.starting) {
+            this.startElapsed += Math.max(0, dt);
+            if (this.startElapsed >= .32) {
+              this.begin();
+              return;
+            }
+          }
+          (_this$title = this.title) == null || _this$title.tick(dt, this.starting ? this.startElapsed / .32 : 0);
+        };
         function EntryUI(a) {
           this.screen = 'title';
           this.document = 'terms';
@@ -2565,10 +2590,18 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
           this.error = '';
           this.reviewing = false;
           this.nameDraft = '';
+          this.starting = false;
+          this.startElapsed = 0;
+          this.title = null;
           this.a = a;
         }
-        var _proto = EntryUI.prototype;
         _proto.back = function back() {
+          if (this.starting) {
+            this.starting = false;
+            this.startElapsed = 0;
+            this.a.draw();
+            return;
+          }
           if (this.reviewing) {
             this.reviewing = false;
             this.a.close();
@@ -2589,13 +2622,14 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
           this.documentPanel();
         };
         _proto.language = function language(locale) {
-          if (this.busy) return;
+          if (this.busy || this.starting) return;
           this.a.game.s.locale = locale;
           this.a.game.persist();
           this.a.draw();
         };
         _proto.begin = function begin() {
           if (this.busy) return;
+          this.starting = false;
           if (!this.accepted) {
             this.screen = 'consent';
             this.a.draw();
@@ -2613,39 +2647,10 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
             H = a.designH;
           a.root = a.nodeAt(a.node, 'EmberRoot', 0, 0, 480, H);
           a.rect(a.root, 0, 0, 480, H, UI.bg);
-          var backdrop = a.nodeAt(a.root, 'entry-world', 0, 0, 480, H);
-          backdrop.addComponent(Mask);
-          a.ui.paint(a.nodeAt(backdrop, 'forest', 0, (H - Math.max(H, 480)) / 2, Math.max(H, 480), Math.max(H, 480)), 'world/0');
-          a.polygon(a.root, 0, H / 2 - 151, 480, 260, [[-.5, .5], [.5, .5], [.5, -.18], [-.18, -.5], [-.5, -.33]], UI.bg, 238);
-          a.polygon(a.root, 166, H / 2 - 245, 148, 8, [[-.5, -.5], [.45, -.5], [.5, .5], [-.45, .5]], UI.violet);
-          a.label(a.root, a.tr('game.name'), 0, H / 2 - 140, 430, 100, 62, UI.text);
-          a.label(a.root, a.tr('entry.subtitle'), 0, H / 2 - 207, 426, 40, 18, UI.muted);
-          a.ui.actor(a.nodeAt(a.root, 'title-guardian', -18, -H / 2 + a.safeBottom + 400, 220, 220), 'guardian');
-          a.ui.actor(a.nodeAt(a.root, 'title-ally', 148, -H / 2 + a.safeBottom + 401, 124, 124), 'rowen');
-          a.ui.actor(a.nodeAt(a.root, 'title-spirit', -145, -H / 2 + a.safeBottom + 370, 82, 82), 'ember-fox');
-          a.polygon(a.root, 0, -H / 2 + a.safeBottom + 95, 480, 190, [[-.5, -.5], [.5, -.5], [.5, .28], [.12, .5], [-.5, .34]], UI.bg, 242);
-          a.ui.paint(a.nodeAt(a.root, 'company-ci', 0, -H / 2 + a.safeBottom + 60, 165, 82.5), 'branding');
-          var preview = globalThis.TAPWAR_PREVIEW_BUILD;
-          a.label(a.root, a.tr('entry.version', {
-            version: a.liveOps.version + (typeof preview === 'string' ? ' · ' + preview : '')
-          }), 0, -H / 2 + a.safeBottom + 23, 440, 22, 12, UI.text).node.name = 'preview-build-version';
-          var langs = a.nodeAt(a.root, 'entry-language', 0, H / 2 - 37 - a.safeTop, 220, 34);
-          ['ko', 'en'].forEach(function (l, i) {
-            return a.button(langs, a.tr('locale.' + l), i ? 65 : -65, 0, 120, 32, function () {
-              return _this.language(l);
-            }, a.game.s.locale === l);
+          this.title = new TitleUI(a, this.screen === 'title', function () {
+            return _this.requestStart();
           });
-          if (this.screen === 'title') {
-            a.button(a.root, a.tr('entry.start'), 0, -H / 2 + a.safeBottom + 236, 368, 62, function () {
-              return _this.begin();
-            }, true, {
-              icon: 'symbol:play',
-              iconOnly: false,
-              fontSize: 22
-            });
-            a.label(a.root, a.tr('entry.titleHint'), 0, -H / 2 + a.safeBottom + 163, 382, 56, 17, UI.text);
-            return;
-          }
+          if (this.screen === 'title') return;
           if (this.screen === 'document') {
             this.documentPanel();
             return;
@@ -42897,7 +42902,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var _this$tutorial;
           if ((_this$tutorial = this.tutorial) != null && _this$tutorial.active && !this.modal && this.entry.playing) return;
           if (!this.entry.playing) {
-            if (e.keyCode === KeyCode.ESCAPE) this.entry.back();
+            if (e.keyCode === KeyCode.ESCAPE) this.entry.back();else if (e.keyCode === KeyCode.ENTER || e.keyCode === KeyCode.SPACE) this.entry.requestStart();
             return;
           }
           if (e.keyCode === KeyCode.ESCAPE) this.dismissModal();
@@ -47164,7 +47169,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.refreshButtons();
           if (this.game && this.fairy && isValid(this.fairy, true)) this.fairy.active = this.fairyClaimReady();
           this.rewardGlow.tick(dt);
-          if (!this.game || !((_this$entry2 = this.entry) != null && _this$entry2.playing)) return;
+          if (!this.game) return;
+          if (!((_this$entry2 = this.entry) != null && _this$entry2.playing)) {
+            var _this$entry3;
+            (_this$entry3 = this.entry) == null || _this$entry3.tick(dt);
+            return;
+          }
           this.bossTimer.tick();
           this.droneFeedback.tick(dt);
           this.enemyFeedback.tick(dt, this.game.s.extra.effects);
@@ -50329,9 +50339,9 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './CheatUI.ts', './CombatMotion.ts', './DroneFeedbackUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardClaimUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillIconArt.ts', './SkillTrainingUI.ts', './SkillUI.ts', './SquadUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './Dialogue.ts', './DroneEffects.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './SkillCatalog.ts', './SkillText.ts', './Squad.ts', './SquadName.ts', './firebase-sdk.js'], function () {
+System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './CheatUI.ts', './CombatMotion.ts', './DroneFeedbackUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardClaimUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillIconArt.ts', './SkillTrainingUI.ts', './SkillUI.ts', './SquadUI.ts', './TitleUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './Dialogue.ts', './DroneEffects.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './SkillCatalog.ts', './SkillText.ts', './Squad.ts', './SquadName.ts', './firebase-sdk.js'], function () {
   return {
-    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     execute: function () {}
   };
 });
@@ -56898,6 +56908,360 @@ System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpe
           }
         }]);
         return SquadUI;
+      }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/TitleUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc'], function (exports) {
+  var _createForOfIteratorHelperLoose, cclegacy, UIOpacity, UITransform, Vec3, isValid, Mask, Graphics, Label, Node;
+  return {
+    setters: [function (module) {
+      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+      UIOpacity = module.UIOpacity;
+      UITransform = module.UITransform;
+      Vec3 = module.Vec3;
+      isValid = module.isValid;
+      Mask = module.Mask;
+      Graphics = module.Graphics;
+      Label = module.Label;
+      Node = module.Node;
+    }],
+    execute: function () {
+      cclegacy._RF.push({}, "a1981nRWlZHl6XoeF2bbvRN", "TitleUI", undefined);
+      var LINES = {
+        ko: ['대장 준비 완료. 이제 우리 차례야.', '분대는 내가 챙길게. 전선은 네가 골라.', '망설이지 마. 끝까지 함께 갈 테니까.'],
+        en: ['Captain ready. It is our turn.', 'I have the squad. You choose the front.', 'No hesitation. We go together.']
+      };
+      /** Presentation only. EntryUI still owns consent, authentication and the start route. */
+      var TitleUI = exports('TitleUI', /*#__PURE__*/function () {
+        function TitleUI(a, interactive, requestStart) {
+          var _this = this;
+          this.root = void 0;
+          this.layers = [];
+          this.elapsed = 0;
+          this.pointer = {
+            x: 0,
+            y: 0
+          };
+          this.offset = {
+            x: 0,
+            y: 0
+          };
+          this.pointerAge = 10;
+          this.motes = [];
+          this.hero = void 0;
+          this.drone = void 0;
+          this.response = null;
+          this.responseLabel = null;
+          this.responseTime = 0;
+          this.line = 0;
+          this.heroPulse = 0;
+          this.ring = void 0;
+          this.ringAge = 2;
+          this.sweep = void 0;
+          this.start = null;
+          this.startLabel = null;
+          this.charge = null;
+          this.pressed = false;
+          this.dragStart = null;
+          this.dragged = false;
+          this.a = a;
+          this.interactive = interactive;
+          this.requestStart = requestStart;
+          var H = a.designH,
+            top = H / 2 - a.safeTop,
+            bottom = -H / 2 + a.safeBottom,
+            stageY = (top + bottom) / 2 - 34;
+          this.root = a.nodeAt(a.root, 'title-presentation', 0, 0, 480, H);
+          var backdrop = a.nodeAt(this.root, 'title-backdrop', 0, 0, 480, H);
+          backdrop.addComponent(Mask);
+          var cover = Math.max(560, H) * 1.045,
+            world = a.nodeAt(backdrop, 'title-base', 0, 20, cover, cover);
+          a.ui.paint(world, 'world/0');
+          this.layer(world, .25, 0, 0);
+          a.rect(backdrop, 0, 0, 480, H, '#10170f', undefined, 58);
+          // Perspective landing strip, kept behind the squad and foreground illustration.
+          var runway = a.nodeAt(backdrop, 'title-runway', 0, stageY - 180, 480, 300),
+            g = runway.addComponent(Graphics);
+          g.strokeColor = a.color('#ffdb77', 58);
+          g.lineWidth = 1;
+          for (var _i = 0, _arr = [-225, -115, 115, 225]; _i < _arr.length; _i++) {
+            var x = _arr[_i];
+            g.moveTo(x, -150);
+            g.lineTo(x * .2, 150);
+            g.stroke();
+          }
+          this.layer(runway, .8, .08, 12);
+          var squad = a.nodeAt(backdrop, 'title-squad', 0, stageY, 480, 400);
+          var left = a.nodeAt(squad, 'title-rear-left', 157, 30, 150, 150);
+          a.ui.actor(left, 'merc-2');
+          var right = a.nodeAt(squad, 'title-rear-right', 111, -76, 190, 190);
+          a.ui.actor(right, 'merc-1');
+          for (var _i2 = 0, _arr2 = [[157, -41, 83], [111, -166, 114]]; _i2 < _arr2.length; _i2++) {
+            var _arr2$_i = _arr2[_i2],
+              _x = _arr2$_i[0],
+              y = _arr2$_i[1],
+              w = _arr2$_i[2];
+            a.polygon(squad, _x, y, w, 12, [[-.5, 0], [-.35, -.5], [.35, -.5], [.5, 0], [.35, .5], [-.35, .5]], '#0b140d', 100);
+          }
+          // Shadows precede sprites; their positions stay in the same depth layer.
+          left.setSiblingIndex(squad.children.length - 1);
+          right.setSiblingIndex(squad.children.length - 1);
+          this.layer(squad, 1.15, .12, 20);
+          var heroH = Math.min(600, Math.max(448, (H - 340) * 1.08));
+          this.hero = a.nodeAt(backdrop, 'title-captain', -64, stageY - 24, heroH * .75, heroH);
+          a.ui.paint(this.hero, 'cutin/0');
+          this.layer(this.hero, 2.4, .18, 38);
+          this.drone = a.nodeAt(backdrop, 'title-drone', 167, stageY + 159, 78, 78);
+          a.ui.paint(this.drone, 'drones/0');
+          this.layer(this.drone, 1.7, .34, 25);
+          var tag = a.nodeAt(this.drone, 'title-drone-tag', 0, -42, 94, 20);
+          a.label(tag, a.game.s.locale === 'ko' ? '지원 드론' : 'SUPPORT DRONE', 0, 0, 94, 20, 11, '#e1e8cf');
+          var dust = a.nodeAt(backdrop, 'title-atmosphere', 0, 0, 480, H);
+          for (var i = 0; i < 12; i++) {
+            var _x2 = i * 137 % 454 - 227,
+              _y = bottom + 230 + i * 89 % Math.max(160, H - 490),
+              n = a.rect(dust, _x2, _y, i % 3 === 0 ? 3 : 2, i % 3 === 0 ? 3 : 2, '#ffe0a2', undefined, 80);
+            this.motes.push({
+              node: n,
+              x: _x2,
+              y: _y,
+              phase: i * .71
+            });
+          }
+          this.ring = a.nodeAt(backdrop, 'title-touch-ring', 0, 0, 74, 74);
+          var r = this.ring.addComponent(Graphics);
+          r.strokeColor = a.color('#ffda64');
+          r.lineWidth = 1.5;
+          for (var _i3 = 0, _arr3 = [[-25, -25, 1, 1], [25, -25, -1, 1], [-25, 25, 1, -1], [25, 25, -1, -1]]; _i3 < _arr3.length; _i3++) {
+            var _arr3$_i = _arr3[_i3],
+              _x3 = _arr3$_i[0],
+              _y2 = _arr3$_i[1],
+              sx = _arr3$_i[2],
+              sy = _arr3$_i[3];
+            r.moveTo(_x3, _y2 + sy * 9);
+            r.lineTo(_x3, _y2);
+            r.lineTo(_x3 + sx * 9, _y2);
+            r.stroke();
+          }
+          this.ring.addComponent(UIOpacity).opacity = 0;
+          // Strong typography and a small operations stamp; no generated UI background.
+          a.polygon(this.root, -74, top - 135, 405, 282, [[-.5, .5], [.5, .5], [.42, -.22], [.12, -.5], [-.5, -.35]], '#0c140e', 225);
+          a.polygon(this.root, -147, top - 79, 143, 24, [[-.5, -.5], [.41, -.5], [.5, .5], [-.42, .5]], '#ffda64');
+          a.label(this.root, 'STEEL FRONT', -147, top - 79, 132, 24, 12, '#131c10');
+          var title = a.nodeAt(this.root, 'title-logo', -56, top - 160, 330, 164);
+          this.layer(title, .35, .03, 18);
+          var logo = a.game.s.locale === 'ko' ? '여군\n키우기' : 'ARMY\nGIRL';
+          a.label(title, logo, 3, -3, 330, 164, a.game.s.locale === 'ko' ? 69 : 65, '#172010', Label.HorizontalAlign.LEFT).lineHeight = 72;
+          var face = a.label(title, logo, 0, 0, 330, 164, a.game.s.locale === 'ko' ? 69 : 65, '#fff9df', Label.HorizontalAlign.LEFT);
+          face.lineHeight = 72;
+          face.node.name = 'title-wordmark';
+          a.polygon(this.root, -196, top - 254, 42, 4, [[-.5, -.5], [.5, -.5], [.5, .5], [-.5, .5]], '#ffda64');
+          a.label(this.root, a.tr('entry.subtitle'), -17, top - 254, 320, 28, 15, '#ece6cb', Label.HorizontalAlign.LEFT).node.name = 'title-subtitle';
+          var stamp = a.nodeAt(this.root, 'title-operation-stamp', 187, top - 112, 64, 76);
+          var sg = stamp.addComponent(Graphics);
+          sg.strokeColor = a.color('#f8dfa0', 150);
+          sg.lineWidth = 1;
+          sg.rect(-29, -32, 58, 64);
+          sg.stroke();
+          a.label(stamp, '01', 0, 4, 54, 38, 30, '#ffda64');
+          a.label(stamp, a.game.s.locale === 'ko' ? '작전 개시' : 'DEPLOY', 0, -23, 58, 18, 10, '#eee8d4');
+          // Footer masks the cropped illustration naturally, while keeping CI and version readable.
+          a.polygon(this.root, 0, bottom + 129, 480, 258, [[-.5, -.5], [.5, -.5], [.5, .4], [.13, .5], [-.5, .37]], '#0d160e', 240);
+          a.polygon(this.root, -171, bottom + 258, 111, 4, [[-.5, -.5], [.46, -.5], [.5, .5], [-.46, .5]], '#ffda64');
+          a.label(this.root, a.tr('entry.titleHint'), 0, bottom + 143, 398, 44, 14, '#d3dac5');
+          a.ui.paint(a.nodeAt(this.root, 'company-ci', 0, bottom + 66, 148, 74), 'branding');
+          var preview = globalThis.TAPWAR_PREVIEW_BUILD;
+          a.label(this.root, a.tr('entry.version', {
+            version: a.liveOps.version + (typeof preview === 'string' ? ' · ' + preview : '')
+          }), 0, bottom + 23, 440, 22, 12, '#c6cdbb').node.name = 'preview-build-version';
+          this.sweep = a.rect(this.root, -215, bottom + 274, 43, 2, '#ffda64');
+          if (interactive) {
+            this.start = a.button(this.root, a.tr('entry.start'), 0, bottom + 210, 382, 66, requestStart, true, {
+              icon: 'symbol:play',
+              fontSize: 23,
+              category: 'confirm'
+            });
+            this.start.name = 'title-start';
+            this.startLabel = this.start.getChildByName('button-label').getComponent(Label);
+            var edge = a.nodeAt(this.start, 'title-start-glow', 0, 0, 382, 66).addComponent(Graphics);
+            edge.strokeColor = a.color('#fff1b6');
+            edge.lineWidth = 1;
+            edge.moveTo(-185, 20);
+            edge.lineTo(-180, 28);
+            edge.lineTo(177, 28);
+            edge.stroke();
+            this.charge = a.rect(this.start, 0, -27, 354, 3, '#263420');
+            this.charge.name = 'title-start-charge';
+            this.charge.active = false;
+            this.start.on(Node.EventType.TOUCH_START, function () {
+              _this.pressed = true;
+            });
+            this.start.on(Node.EventType.TOUCH_CANCEL, function () {
+              _this.pressed = false;
+            });
+            this.start.on(Node.EventType.TOUCH_END, function () {
+              _this.pressed = false;
+            });
+            var hit = a.nodeAt(this.hero, 'title-captain-touch', 0, 22, heroH * .58, heroH * .65);
+            hit.on(Node.EventType.TOUCH_END, function (e) {
+              e.propagationStopped = true;
+              if (!_this.dragged) _this.respond();
+            });
+            var droneHit = a.nodeAt(this.drone, 'title-drone-touch', 0, 0, 82, 82);
+            droneHit.on(Node.EventType.TOUCH_END, function (e) {
+              e.propagationStopped = true;
+              if (!_this.dragged) _this.respond(true);
+            });
+            this.response = a.nodeAt(this.root, 'title-response', 53, bottom + 298, 348, 63);
+            a.ui.surface(this.response, '#182718', 'cut', 235, true);
+            this.response.active = false;
+            this.responseLabel = a.label(this.response, '', 0, 0, 321, 53, 15, '#fff5d9');
+          }
+          var langs = a.nodeAt(this.root, 'entry-language', 143, top - 32, 178, 36);
+          ['ko', 'en'].forEach(function (l, i) {
+            a.button(langs, a.tr('locale.' + l), i ? 47 : -47, 0, 88, 36, function () {
+              return a.entry.language(l);
+            }, a.game.s.locale === l, {
+              fontSize: 14,
+              category: 'settings'
+            }).name = 'title-language-' + l;
+          });
+          if (interactive) {
+            this.root.on(Node.EventType.MOUSE_MOVE, function (e) {
+              return _this.point(e);
+            });
+            this.root.on(Node.EventType.MOUSE_LEAVE, function () {
+              _this.pointer = {
+                x: 0,
+                y: 0
+              };
+            });
+            this.root.on(Node.EventType.TOUCH_START, function (e) {
+              _this.dragged = false;
+              var p = e.getUILocation();
+              _this.dragStart = new Vec3(p.x, p.y);
+              _this.point(e);
+            });
+            this.root.on(Node.EventType.TOUCH_MOVE, function (e) {
+              var p = e.getUILocation();
+              if (_this.dragStart && Math.hypot(p.x - _this.dragStart.x, p.y - _this.dragStart.y) > 10) _this.dragged = true;
+              _this.point(e);
+            });
+            this.root.on(Node.EventType.TOUCH_CANCEL, function () {
+              _this.pointer = {
+                x: 0,
+                y: 0
+              };
+              _this.dragged = true;
+              _this.pressed = false;
+            });
+            this.root.on(Node.EventType.TOUCH_END, function (e) {
+              if (!_this.dragged) _this.ping(e);
+              _this.dragStart = null;
+            });
+          }
+          this.tick(0, 0);
+        }
+        var _proto = TitleUI.prototype;
+        _proto.layer = function layer(node, depth, delay, lift) {
+          this.layers.push({
+            node: node,
+            x: node.position.x,
+            y: node.position.y,
+            depth: depth,
+            delay: delay,
+            lift: lift
+          });
+          node.addComponent(UIOpacity);
+        };
+        _proto.point = function point(e) {
+          var p = e.getUILocation(),
+            local = this.root.getComponent(UITransform).convertToNodeSpaceAR(new Vec3(p.x, p.y));
+          this.pointer = {
+            x: Math.max(-1, Math.min(1, local.x / 240)),
+            y: Math.max(-1, Math.min(1, local.y / (this.a.designH / 2)))
+          };
+          this.pointerAge = 0;
+        };
+        _proto.ping = function ping(e) {
+          if (!this.a.game.s.extra.effects) return;
+          var p = e.getUILocation(),
+            local = this.root.getComponent(UITransform).convertToNodeSpaceAR(new Vec3(p.x, p.y));
+          this.ring.setPosition(local);
+          this.ringAge = 0;
+        };
+        _proto.respond = function respond(drone) {
+          if (drone === void 0) {
+            drone = false;
+          }
+          if (this.a.entry.starting || this.a.entry.busy) return;
+          var locale = this.a.game.s.locale;
+          this.responseLabel.string = drone ? locale === 'ko' ? '신호 양호. 전선 지원 준비 완료.' : 'Signal clear. Front-line support ready.' : LINES[locale][this.line++ % LINES[locale].length];
+          this.responseTime = 2.5;
+          this.response.active = true;
+          this.heroPulse = drone ? 0 : .35;
+          this.a.sound(drone ? 740 : 430);
+        };
+        _proto.tick = function tick(dt, departure) {
+          if (!isValid(this.root, true)) return;
+          dt = Math.min(.05, Math.max(0, dt));
+          this.elapsed += dt;
+          this.pointerAge += dt;
+          this.ringAge += dt;
+          this.heroPulse = Math.max(0, this.heroPulse - dt);
+          var fx = this.a.game.s.extra.effects && this.interactive;
+          if (this.pointerAge > 1.8) this.pointer = {
+            x: 0,
+            y: 0
+          };
+          var ease = 1 - Math.exp(-dt * 7);
+          this.offset.x += ((fx ? this.pointer.x : 0) - this.offset.x) * ease;
+          this.offset.y += ((fx ? this.pointer.y : 0) - this.offset.y) * ease;
+          for (var _iterator = _createForOfIteratorHelperLoose(this.layers), _step; !(_step = _iterator()).done;) {
+            var l = _step.value;
+            var t = fx ? Math.min(1, Math.max(0, (this.elapsed - l.delay) / .7)) : 1,
+              reveal = 1 - Math.pow(1 - t, 3);
+            l.node.setPosition(l.x + (fx ? this.offset.x * l.depth * 7 : 0), l.y + (fx ? this.offset.y * l.depth * 4 : 0) - (1 - reveal) * l.lift - departure * l.depth * 5);
+            l.node.getComponent(UIOpacity).opacity = 255 * reveal;
+          }
+          this.hero.setScale(fx ? 1 + Math.sin(this.heroPulse / .35 * Math.PI) * .013 : 1, fx ? 1 + Math.sin(this.heroPulse / .35 * Math.PI) * .013 : 1, 1);
+          if (fx) this.drone.setPosition(this.drone.position.x, this.drone.position.y + Math.sin(this.elapsed * 2) * 3);
+          for (var _iterator2 = _createForOfIteratorHelperLoose(this.motes), _step2; !(_step2 = _iterator2()).done;) {
+            var m = _step2.value;
+            m.node.active = fx;
+            if (fx) {
+              m.node.setPosition(m.x + Math.sin(this.elapsed * .6 + m.phase) * 8, m.y + (this.elapsed * 8 + m.phase * 4) % 45);
+            }
+          }
+          this.ring.active = fx && this.ringAge < .5;
+          if (this.ring.active) {
+            this.ring.setScale(1 + this.ringAge * 1.2, 1 + this.ringAge * 1.2, 1);
+            this.ring.getComponent(UIOpacity).opacity = 180 * (1 - this.ringAge / .5);
+          }
+          this.sweep.active = fx;
+          if (fx) this.sweep.setPosition(-215 + this.elapsed * .17 % 1 * 430, this.sweep.position.y);
+          if (this.start) {
+            var scale = fx && this.pressed ? .984 : 1;
+            this.start.setScale(scale, scale, 1);
+            this.startLabel.string = departure > 0 ? this.a.game.s.locale === 'ko' ? '출격 준비' : 'Deploying' : this.a.tr('entry.start');
+            this.charge.active = departure > 0;
+            if (departure > 0) {
+              var w = 354 * Math.min(1, departure);
+              this.charge.setPosition(-177 + w / 2, -27);
+              this.charge.setScale(w / 354, 1, 1);
+            }
+          }
+          if (this.response) {
+            this.responseTime = Math.max(0, this.responseTime - dt);
+            this.response.active = this.responseTime > 0 && departure === 0;
+          }
+        };
+        return TitleUI;
       }());
       cclegacy._RF.pop();
     }
