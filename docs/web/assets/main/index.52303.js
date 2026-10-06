@@ -44,7 +44,7 @@ System.register("chunks:///_virtual/AllyPlacement.ts", ['cc', './MotionBounds.ts
         var y = desired.y,
           size = 0;
         for (var i = 0; i < 8; i++) {
-          size = Math.min(soldierSize((y - originY) / scale), (ALLY_RIGHT - ALLY_LEFT - pad * 2) * 192 / (left + right) / scale);
+          size = Math.min(soldierSize((y - originY) / scale) * .8, (ALLY_RIGHT - ALLY_LEFT - pad * 2) * 192 / (left + right) / scale);
           var _unit = size * scale / 192;
           y = Math.max(field.bottom + pad + bottom * _unit, Math.min(field.top - pad - top * _unit, y));
         }
@@ -276,7 +276,7 @@ System.register("chunks:///_virtual/BattleFormation.ts", ['./rollupPluginModLoBa
         if (mercenaries === void 0) {
           mercenaries = 4;
         }
-        var feet = [[-128, 83], [-154, 158], [-102, 158], mercenaries === 3 ? [-128, 248] : [-154, 248], [-102, 248]];
+        var feet = [[-128, 83], [-153.5, 158], [-102.5, 158], mercenaries === 3 ? [-128, 248] : [-153.5, 248], [-102.5, 248]];
         var _feet$Math$max = feet[Math.max(0, Math.min(index, feet.length - 1))],
           x = _feet$Math$max[0],
           y = _feet$Math$max[1],
@@ -454,6 +454,440 @@ System.register("chunks:///_virtual/BattleFormation.ts", ['./rollupPluginModLoBa
   };
 });
 
+System.register("chunks:///_virtual/BattlePlacementUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './BattleFormation.ts', './AllyPlacement.ts', './Mercenaries.ts', './UITheme.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _createClass, cclegacy, Node, UITransform, Vec3, isValid, Graphics, partyBattlefieldLayout, allyPosition, SOLDIER_SIZE, soldierSize, battleField, projectAlly, ALLY_RIGHT, mercenaryArt, UI;
+  return {
+    setters: [function (module) {
+      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
+      _createClass = module.createClass;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+      Node = module.Node;
+      UITransform = module.UITransform;
+      Vec3 = module.Vec3;
+      isValid = module.isValid;
+      Graphics = module.Graphics;
+    }, function (module) {
+      partyBattlefieldLayout = module.partyBattlefieldLayout;
+      allyPosition = module.allyPosition;
+      SOLDIER_SIZE = module.SOLDIER_SIZE;
+      soldierSize = module.soldierSize;
+    }, function (module) {
+      battleField = module.battleField;
+      projectAlly = module.projectAlly;
+      ALLY_RIGHT = module.ALLY_RIGHT;
+    }, function (module) {
+      mercenaryArt = module.mercenaryArt;
+    }, function (module) {
+      UI = module.UI;
+    }],
+    execute: function () {
+      cclegacy._RF.push({}, "b3932xfBVpJe5qU/dEMOMwA", "BattlePlacementUI", undefined);
+      var BattlePlacementUI = exports('BattlePlacementUI', /*#__PURE__*/function () {
+        function BattlePlacementUI(a) {
+          this.actors = new Map();
+          this.gesture = null;
+          this.guide = null;
+          this.a = a;
+        }
+        var _proto = BattlePlacementUI.prototype;
+        _proto.reset = function reset() {
+          this.cancel();
+          this.actors.clear();
+        };
+        _proto.allowed = function allowed() {
+          var a = this.a;
+          return a.entry.playing && a.operations.ready && !a.modal && !a.zoneTransition.active && !a.feedback.showing && !a.operations.busy && !a.operations.conflict && !a.remoteBusy && !a.tutorial.active;
+        };
+        _proto.bind = function bind(node, hero, index) {
+          var _this = this;
+          var hit = this.a.nodeAt(node, 'character-drag-target', 0, 30, 56, 66),
+            record = {
+              node: node,
+              hero: hero,
+              index: index,
+              hit: hit
+            };
+          this.actors.set(node, record);
+          hit.on(Node.EventType.TOUCH_START, function (e) {
+            var _e$getID;
+            e.propagationStopped = true;
+            if (!_this.allowed() || _this.gesture) return;
+            var p = e.getUILocation(),
+              root = _this.a.root.getComponent(UITransform),
+              foot = root.convertToNodeSpaceAR(node.worldPosition);
+            var g = {
+              actor: record,
+              id: (_e$getID = e.getID()) != null ? _e$getID : 0,
+              start: new Vec3(p.x, p.y, 0),
+              foot: foot,
+              armed: false,
+              moved: false,
+              arm: function arm() {
+                if (_this.gesture === g && _this.allowed() && !g.moved) {
+                  g.armed = true;
+                  _this.showGuide();
+                  _this.a.stopAutoFire();
+                }
+              }
+            };
+            _this.gesture = g;
+            _this.a.scheduleOnce(g.arm, 1.5);
+          });
+          hit.on(Node.EventType.TOUCH_MOVE, function (e) {
+            var _e$getID2;
+            e.propagationStopped = true;
+            var g = _this.gesture;
+            if (!g || ((_e$getID2 = e.getID()) != null ? _e$getID2 : 0) !== g.id) return;
+            var p = e.getUILocation();
+            if (!g.armed) {
+              if (Math.hypot(p.x - g.start.x, p.y - g.start.y) > 10) {
+                g.moved = true;
+                _this.a.unschedule(g.arm);
+              }
+              return;
+            }
+            if (!_this.allowed()) {
+              _this.cancel();
+              return;
+            }
+            var root = _this.a.root.getComponent(UITransform),
+              start = root.convertToNodeSpaceAR(g.start),
+              now = root.convertToNodeSpaceAR(new Vec3(p.x, p.y, 0)),
+              field = _this.field();
+            g.draft = {
+              x: Math.max(0, Math.min(.4, (g.foot.x + now.x - start.x + 240) / 480)),
+              y: Math.max(0, Math.min(1, (g.foot.y + now.y - start.y - field.bottom) / (field.top - field.bottom)))
+            };
+            _this.project(record, g.draft);
+            _this.a.syncGroundShadows();
+            _this.sort();
+            _this.mark();
+          });
+          var release = function release(e) {
+            var _e$getID3;
+            e.propagationStopped = true;
+            var g = _this.gesture;
+            if (!g || ((_e$getID3 = e.getID()) != null ? _e$getID3 : 0) !== g.id) return;
+            _this.a.unschedule(g.arm);
+            if (g.armed) {
+              var root = _this.a.root.getComponent(UITransform),
+                foot = root.convertToNodeSpaceAR(node.worldPosition),
+                field = _this.field();
+              var x = Math.max(0, Math.min(.4, (foot.x + 240) / 480)),
+                y = Math.max(0, Math.min(1, (foot.y - field.bottom) / (field.top - field.bottom)));
+              if (g.draft && _this.a.game.setBattlePosition(hero, x, y, _this.a.id('battle-position'))) void _this.a.operations.save()["catch"](function (e) {
+                return _this.a.operations.report('battle.position', e);
+              });
+              _this.gesture = null;
+              _this.hideGuide();
+              _this.project(record);
+              _this.a.syncGroundShadows();
+              _this.a.flushNotice();
+            } else {
+              var tap = !g.moved;
+              _this.gesture = null;
+              if (tap && !_this.a.tutorial.inputRestricted) _this.a.attack();
+            }
+          };
+          hit.on(Node.EventType.TOUCH_END, release);
+          // Creator emits CANCEL when a clamped actor no longer sits beneath the release point.
+          hit.on(Node.EventType.TOUCH_CANCEL, function (e) {
+            var _this$gesture, _e$getID4, _this$gesture2;
+            e.propagationStopped = true;
+            if (((_this$gesture = _this.gesture) == null ? void 0 : _this$gesture.id) !== ((_e$getID4 = e.getID()) != null ? _e$getID4 : 0)) return;
+            if ((_this$gesture2 = _this.gesture) != null && _this$gesture2.armed && _this.gesture.draft && _this.allowed()) release(e);else _this.cancel();
+          });
+        };
+        _proto.field = function field() {
+          var a = this.a;
+          return battleField(a.folded, a.heightExtra, a.safeBottom, a.safeTop);
+        };
+        _proto.projectAll = function projectAll() {
+          for (var _iterator = _createForOfIteratorHelperLoose(this.actors), _step; !(_step = _iterator()).done;) {
+            var _this$gesture3;
+            var _step$value = _step.value,
+              node = _step$value[0],
+              actor = _step$value[1];
+            if (!isValid(node, true)) {
+              this.actors["delete"](node);
+              continue;
+            }
+            this.project(actor, ((_this$gesture3 = this.gesture) == null ? void 0 : _this$gesture3.actor) === actor ? this.gesture.draft : undefined);
+          }
+          this.sort();
+        };
+        _proto.project = function project(actor, draft) {
+          var a = this.a,
+            field = this.field(),
+            camera = partyBattlefieldLayout(a.folded, a.heightExtra, a.safeBottom, a.safeTop),
+            saved = draft || a.game.s.extra.battlePositions[actor.hero < 0 ? 'captain' : String(actor.hero)];
+          var fallback = allyPosition(actor.index, a.game.activeMercenaries().length),
+            desired = saved ? {
+              x: saved.x * 480 - 240,
+              y: field.bottom + saved.y * (field.top - field.bottom)
+            } : {
+              x: fallback.x * camera.scale,
+              y: camera.y + fallback.y * camera.scale
+            };
+          var result = projectAlly(actor.hero < 0 ? -1 : mercenaryArt(actor.hero), desired, camera.scale, camera.y, field),
+            p = new Vec3(result.x / camera.scale, (result.y - camera.y) / camera.scale, 0);
+          actor.node.setPosition(p);
+          var body = actor.hero < 0 ? actor.node : actor.node.getChildByName('body');
+          if (actor.hero < 0) {
+            a.ui.resize(body, result.size, result.size);
+            a.placeCaptain(p);
+          } else body.setScale(result.size / SOLDIER_SIZE, result.size / SOLDIER_SIZE, 1);
+          var _result$bounds = result.bounds,
+            left = _result$bounds[0],
+            right = _result$bounds[1],
+            top = _result$bounds[2],
+            bottom = _result$bounds[3],
+            k = result.size / 192;
+          actor.hit.setPosition((right - left) * k / 2, (top - bottom) * k / 2);
+          actor.hit.getComponent(UITransform).setContentSize((left + right) * k, (top + bottom) * k);
+          var bar = actor.node.getChildByName('attack-cooldown');
+          if (bar) {
+            var ratio = result.size / (soldierSize(fallback.y) * .8);
+            bar.setScale(ratio, ratio, 1);
+          }
+        };
+        _proto.sort = function sort() {
+          var actors = [].concat(this.actors.values()).filter(function (r) {
+            return isValid(r.node, true);
+          });
+          actors.sort(function (a, b) {
+            return b.node.position.y - a.node.position.y;
+          }).forEach(function (r, i) {
+            return r.node.setSiblingIndex(i);
+          });
+        };
+        _proto.cancel = function cancel() {
+          var g = this.gesture;
+          if (g) {
+            this.a.unschedule(g.arm);
+            this.gesture = null;
+            if (isValid(g.actor.node, true)) this.project(g.actor);
+          }
+          this.hideGuide();
+        };
+        _proto.refreshHits = function refreshHits() {
+          for (var _iterator2 = _createForOfIteratorHelperLoose(this.actors.values()), _step2; !(_step2 = _iterator2()).done;) {
+            var record = _step2.value;
+            if (!isValid(record.node, true)) continue;
+            var body = record.hero < 0 ? record.node : record.node.getChildByName('body'),
+              b = this.a.ui.spriteVisibleBounds(body, record.node);
+            record.hit.setPosition(b.x + b.width / 2, b.y + b.height / 2);
+            record.hit.getComponent(UITransform).setContentSize(Math.max(40, b.width + 6), Math.max(40, b.height + 6));
+          }
+        };
+        _proto.tick = function tick() {
+          if (this.gesture && !this.allowed()) this.cancel();
+          this.refreshHits();
+          if (this.dragging) this.mark();
+        };
+        _proto.showGuide = function showGuide() {
+          var a = this.a,
+            field = this.field();
+          this.hideGuide();
+          var guide = this.guide = a.nodeAt(a.root, 'deployment-drag-guide', 0, (field.top + field.bottom) / 2, 480, field.top - field.bottom),
+            g = guide.addComponent(Graphics);
+          g.strokeColor = a.color(UI.gold);
+          g.lineWidth = 2;
+          for (var y = -guide.getComponent(UITransform).height / 2; y < guide.getComponent(UITransform).height / 2; y += 16) {
+            g.moveTo(ALLY_RIGHT, y);
+            g.lineTo(ALLY_RIGHT, y + 9);
+          }
+          g.stroke();
+          a.label(guide, a.tr('battle.dragGuide'), -123, guide.getComponent(UITransform).height / 2 - 25, 200, 42, 15, UI.gold).node.name = 'drag-hint';
+          a.nodeAt(guide, 'drag-selected-frame', 0, 0, 100, 100).addComponent(Graphics);
+          this.mark();
+        };
+        _proto.mark = function mark() {
+          if (!this.guide || !this.gesture) return;
+          var record = this.gesture.actor,
+            n = this.guide.getChildByName('drag-selected-frame'),
+            b = this.a.ui.spriteVisibleBounds(record.hero < 0 ? record.node : record.node.getChildByName('body'), this.guide),
+            g = n.getComponent(Graphics);
+          n.setPosition(b.x + b.width / 2, b.y + b.height / 2);
+          g.clear();
+          g.lineWidth = 2;
+          g.strokeColor = this.a.color(UI.gold);
+          g.rect(-b.width / 2 - 3, -b.height / 2 - 3, b.width + 6, b.height + 6);
+          g.stroke();
+        };
+        _proto.hideGuide = function hideGuide() {
+          if (this.guide && isValid(this.guide, true)) {
+            this.guide.removeFromParent();
+            this.guide.destroy();
+          }
+          this.guide = null;
+        };
+        _createClass(BattlePlacementUI, [{
+          key: "dragging",
+          get: function get() {
+            var _this$gesture4;
+            return !!((_this$gesture4 = this.gesture) != null && _this$gesture4.armed);
+          }
+        }, {
+          key: "dragTarget",
+          get: function get() {
+            var _this$gesture5;
+            return (_this$gesture5 = this.gesture) != null && _this$gesture5.armed ? this.gesture.actor.hit : null;
+          }
+        }]);
+        return BattlePlacementUI;
+      }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/BattleTransitionUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './AllyPlacement.ts', './UITheme.ts'], function (exports) {
+  var _createClass, cclegacy, Mask, BlockInputEvents, Tween, tween, Vec3, isValid, battleField, UI;
+  return {
+    setters: [function (module) {
+      _createClass = module.createClass;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+      Mask = module.Mask;
+      BlockInputEvents = module.BlockInputEvents;
+      Tween = module.Tween;
+      tween = module.tween;
+      Vec3 = module.Vec3;
+      isValid = module.isValid;
+    }, function (module) {
+      battleField = module.battleField;
+    }, function (module) {
+      UI = module.UI;
+    }],
+    execute: function () {
+      cclegacy._RF.push({}, "420acWFB79Ku6m9OH8VUAc7", "BattleTransitionUI", undefined);
+      /** One continuous left-to-right cover, reveal at full coverage, then exit. */
+      var BattleTransitionUI = exports('BattleTransitionUI', /*#__PURE__*/function () {
+        function BattleTransitionUI(a) {
+          this.displayedStage = 0;
+          this.seen = 0;
+          this.to = 0;
+          this.elapsed = 0;
+          this.swapped = false;
+          this.layer = null;
+          this.slab = null;
+          this.title = null;
+          this.number = null;
+          this.a = a;
+        }
+        var _proto = BattleTransitionUI.prototype;
+        _proto.reset = function reset() {
+          this.destroy();
+          this.seen = this.displayedStage = this.to = 0;
+          this.elapsed = 0;
+        };
+        _proto.attach = function attach() {
+          if (!this.seen) this.seen = this.displayedStage = this.a.game.s.run.stage;
+          if (this.active) {
+            this.destroy();
+            this.make();
+            this.paint();
+          }
+        };
+        _proto.observe = function observe() {
+          var a = this.a,
+            stage = a.game.s.run.stage;
+          if (!this.seen) this.seen = this.displayedStage = stage;
+          if (this.active || stage === this.seen || a.modal || a.feedback.showing || a.tutorial.active || !a.operations.ready || a.operations.busy || a.operations.conflict || a.remoteBusy) return this.active;
+          this.to = stage;
+          this.elapsed = 0;
+          this.swapped = false;
+          a.placement.cancel();
+          a.stopAutoFire();
+          a.clearPendingShots();
+          this.make();
+          this.paint();
+          return true;
+        };
+        _proto.tick = function tick(dt) {
+          if (!this.active) return;
+          this.elapsed += dt;
+          var effects = this.a.game.s.extra.effects,
+            cover = effects ? .42 : 0,
+            total = effects ? 1.7 : .7;
+          if (!this.swapped && this.elapsed >= cover) {
+            this.swapped = true;
+            this.seen = this.displayedStage = this.to;
+            this.a.revealArea();
+            this.pulse();
+          }
+          this.paint();
+          if (this.elapsed >= total) {
+            this.destroy();
+            this.to = 0;
+            this.a.updateHUD();
+          }
+        };
+        _proto.make = function make() {
+          var a = this.a,
+            field = battleField(a.folded, a.heightExtra, a.safeBottom, a.safeTop),
+            h = field.top - field.bottom;
+          var layer = this.layer = a.nodeAt(a.root, 'area-transition', 0, (field.top + field.bottom) / 2, 480, h);
+          layer.addComponent(Mask);
+          layer.addComponent(BlockInputEvents);
+          var w = 740,
+            slab = this.slab = a.nodeAt(layer, 'area-wipe-image', 0, 0, w, h);
+          a.ui.polygon(slab, [[-w / 2, -h / 2], [w / 2 - 70, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]], '#172025');
+          a.polygon(slab, w / 2 - 70, 0, 36, h, [[-.5, -.5], [.2, -.5], [.5, .5], [-.2, .5]], UI.gold);
+          for (var i = 0; i < 7; i++) a.polygon(slab, -205 + i * 76, -h / 2 + 17, 44, 14, [[-.5, -.5], [.16, -.5], [.5, .5], [-.16, .5]], '#556343');
+          for (var _i = 0; _i < 8; _i++) a.rect(slab, -290 + _i * 74, h / 2 - 21, 36, 3, '#738056');
+          a.ui.icon(a.nodeAt(slab, 'area-flag', 0, 65, 42, 42), 'symbol:flag', UI.gold);
+          this.title = a.label(slab, a.tr('battle.entering'), 0, 13, 440, 54, 27, UI.text);
+          this.title.node.name = 'area-transition-title';
+          this.number = a.label(slab, a.tr('battle.areaMove', {
+            stage: this.to
+          }), 0, -42, 420, 40, 23, UI.gold);
+          this.number.node.name = 'area-transition-number';
+        };
+        _proto.paint = function paint() {
+          if (!this.slab) return;
+          var effects = this.a.game.s.extra.effects,
+            t = this.elapsed;
+          this.slab.setPosition(effects ? t < .42 ? -740 + 740 * (1 - Math.pow(1 - t / .42, 3)) : t <= 1.28 ? 0 : 740 * Math.pow((t - 1.28) / .42, 3) : 0, 0);
+          if (this.title) this.title.string = this.a.tr(t >= .95 || !effects ? 'battle.entered' : 'battle.entering');
+        };
+        _proto.pulse = function pulse() {
+          var a = this.a,
+            plate = a.stageLabel.node.parent;
+          Tween.stopAllByTarget(plate);
+          plate.setScale(1, 1, 1);
+          if (a.game.s.extra.effects) tween(plate).to(.12, {
+            scale: new Vec3(1.18, 1.18, 1)
+          }).to(.24, {
+            scale: new Vec3(1, 1, 1)
+          }, {
+            easing: 'quadOut'
+          }).start();
+          a.updateHUD();
+        };
+        _proto.destroy = function destroy() {
+          if (this.layer && isValid(this.layer, true)) {
+            this.layer.removeFromParent();
+            this.layer.destroy();
+          }
+          this.layer = this.slab = null;
+          this.title = this.number = null;
+        };
+        _createClass(BattleTransitionUI, [{
+          key: "active",
+          get: function get() {
+            return this.to > 0;
+          }
+        }]);
+        return BattleTransitionUI;
+      }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
 System.register("chunks:///_virtual/CheatUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Mercenaries.ts', './PrototypeCheats.ts', './FeedbackUI.ts', './TutorialUI.ts', './UITheme.ts'], function (exports) {
   var _createClass, _asyncToGenerator, _regeneratorRuntime, cclegacy, sys, MERCENARY_COUNT, prototypeCheat, freshPrototype, FeedbackUI, TutorialUI, UI;
   return {
@@ -591,7 +1025,7 @@ System.register("chunks:///_virtual/CheatUI.ts", ['./rollupPluginModLoBabelHelpe
                 case 7:
                   _context.prev = 7;
                   _context.t0 = _context["catch"](3);
-                  a.toast(a.tr('error.storage'));
+                  a.toast(a.tr('error.storage'), 'blocked');
                   return _context.abrupt("return");
                 case 11:
                   _context.next = 13;
@@ -654,7 +1088,7 @@ System.register("chunks:///_virtual/CheatUI.ts", ['./rollupPluginModLoBabelHelpe
                   _context2.prev = 23;
                   _context2.t0 = _context2["catch"](5);
                   key = _context2.t0.message;
-                  a.toast(a.tr(/^(error|online)\./.test(key) ? key : 'online.serverError'));
+                  a.toast(a.tr(/^(error|online)\./.test(key) ? key : 'online.serverError'), 'blocked');
                 case 27:
                   _context2.prev = 27;
                   a.remoteBusy = false;
@@ -1784,7 +2218,7 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
                 sys.localStorage.setItem(CONSENT_KEY, JSON.stringify(consentReceipt()));
                 _this.afterConsent();
               } catch (_unused) {
-                a.toast(a.tr('error.storage'));
+                a.toast(a.tr('error.storage'), 'blocked');
               }
             }, ready, {
               style: ready ? 'primary' : 'disabled',
@@ -2039,7 +2473,7 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
                     _context3.next = 3;
                     break;
                   }
-                  this.a.toast(this.a.tr('money.busy'));
+                  this.a.toast(this.a.tr('money.busy'), 'blocked');
                   return _context3.abrupt("return");
                 case 3:
                   this.busy = true;
@@ -2063,7 +2497,7 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
                   _context3.t0 = _context3["catch"](6);
                   this.screen = 'game';
                   this.a.draw();
-                  this.a.toast(this.a.tr(/^(online|entry|error)\./.test(_context3.t0.message) ? _context3.t0.message : 'online.unreachable'));
+                  this.a.toast(this.a.tr(/^(online|entry|error)\./.test(_context3.t0.message) ? _context3.t0.message : 'online.unreachable'), 'blocked');
                 case 22:
                   _context3.prev = 22;
                   this.busy = false;
@@ -2103,7 +2537,7 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
                 case 10:
                   _context4.prev = 10;
                   _context4.t0 = _context4["catch"](4);
-                  this.a.toast(this.a.tr('online.unreachable'));
+                  this.a.toast(this.a.tr('online.unreachable'), 'blocked');
                 case 13:
                   _context4.prev = 13;
                   this.busy = false;
@@ -3459,7 +3893,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             _this11 = this;
           var raw = (_this$g$storage = this.g.storage) == null ? void 0 : _this$g$storage.getItem('ember-ascent-before-restore');
           if (!raw) {
-            this.a.toast(this.tr('error.locked'));
+            this.a.toast(this.tr('error.locked'), 'blocked');
             return;
           }
           try {
@@ -3475,13 +3909,13 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
               });
             });
           } catch (_unused) {
-            this.a.toast(this.tr('error.save'));
+            this.a.toast(this.tr('error.save'), 'blocked');
           }
         };
         _proto.importSave = function importSave() {
           var _this12 = this;
           if (typeof document === 'undefined') {
-            this.a.toast(this.tr('extra.browserOnly'));
+            this.a.toast(this.tr('extra.browserOnly'), 'blocked');
             return;
           }
           var input = document.createElement('input');
@@ -3492,7 +3926,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             var file = (_input$files = input.files) == null ? void 0 : _input$files[0];
             if (!file) return;
             if (file.size > 1000000) {
-              _this12.a.toast(_this12.tr('error.invalid'));
+              _this12.a.toast(_this12.tr('error.invalid'), 'blocked');
               return;
             }
             void file.text().then(function (raw) {
@@ -3509,10 +3943,10 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                   });
                 });
               } catch (_unused2) {
-                _this12.a.toast(_this12.tr('error.save'));
+                _this12.a.toast(_this12.tr('error.save'), 'blocked');
               }
             })["catch"](function () {
-              return _this12.a.toast(_this12.tr('error.save'));
+              return _this12.a.toast(_this12.tr('error.save'), 'blocked');
             });
           };
           input.click();
@@ -3725,7 +4159,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                 data = JSON.parse(raw);
                 if (!/^[a-f0-9]{64}$/.test(data.token) || !/^[a-f0-9]{24}$/.test(data.accountId)) throw Error();
               } catch (_unused4) {
-                _this15.a.toast(_this15.tr('error.invalid'));
+                _this15.a.toast(_this15.tr('error.invalid'), 'blocked');
                 return;
               }
               _this15.a.confirm(_this15.tr('complete.recoveryImport'), _this15.tr('complete.switchAccount'), function () {
@@ -3974,7 +4408,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           a.metric(p, 'lightning', '×' + active, 0, 31, 126, this.tr('pet.info'));
           a.metric(p, 'heart', '×' + passive, 124, 31, 120, this.tr('pet.info'));
           a.button(p, this.tr(!level ? 'action.locked' : this.g.s.activePet === i ? 'action.equipped' : 'action.equip'), -127, -54, 112, 56, function () {
-            if (!level) a.toast(_this21.tr('error.locked'));else if (_this21.g.s.activePet === i) a.toast(_this21.tr('action.alreadyEquipped'));else {
+            if (!level) a.toast(_this21.tr('error.locked'), 'blocked');else if (_this21.g.s.activePet === i) a.toast(_this21.tr('action.alreadyEquipped'), 'blocked');else {
               if (!_this21.g.equipPet(i)) {
                 a.flushNotice();
                 return;
@@ -4186,7 +4620,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
               action: _this26.tr(unlocked ? 'action.select' : 'action.locked'),
               click: function click() {
                 if (!unlocked) {
-                  _this26.a.toast(_this26.tr('error.locked'));
+                  _this26.a.toast(_this26.tr('error.locked'), 'blocked');
                   return;
                 }
                 _this26.list('extra.crystal', _this26.g.s.cards.map(function (level, i) {
@@ -4666,7 +5100,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                   if (typeof Notification === 'undefined' || Notification.permission === 'denied') {
                     _this38.x.notifications[i] = false;
                     _this38.g.persist();
-                    _this38.a.toast(_this38.a.tr('live.16'));
+                    _this38.a.toast(_this38.a.tr('live.16'), 'blocked');
                   } else if (Notification.permission === 'default') void Notification.requestPermission().then(function (permission) {
                     if (permission !== 'granted') {
                       _this38.x.notifications[i] = false;
@@ -4684,7 +5118,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
         };
         _proto.exportSave = function exportSave() {
           if (typeof document === 'undefined') {
-            this.a.toast(this.tr('extra.browserOnly'));
+            this.a.toast(this.tr('extra.browserOnly'), 'blocked');
             return;
           }
           var blob = new Blob([JSON.stringify(this.g.s, null, 2)], {
@@ -6281,7 +6715,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
         _proto.chatterTick = function chatterTick(dt) {
           var _this2 = this;
           var a = this.a,
-            blocked = !a.entry.playing || !!a.modal || this.showing || !!(a.toastNode && isValid(a.toastNode, true)) || !!(a.tooltipNode && isValid(a.tooltipNode, true)) || !!(this.banner && isValid(this.banner, true)) || this.growthQueue.waiting || a.tutorial.active || a.tutorial.firstBoss || a.liveOps.blocked || !a.operations.ready || a.operations.busy || a.operations.conflict || a.remoteBusy || this.asyncPending > 0;
+            blocked = !a.entry.playing || a.zoneTransition.active || a.placement.dragging || !!a.modal || this.showing || !!(a.toastNode && isValid(a.toastNode, true)) || !!(a.tooltipNode && isValid(a.tooltipNode, true)) || !!(this.banner && isValid(this.banner, true)) || this.growthQueue.waiting || a.tutorial.active || a.tutorial.firstBoss || a.liveOps.blocked || !a.operations.ready || a.operations.busy || a.operations.conflict || a.remoteBusy || this.asyncPending > 0;
           if (blocked) this.clearChatter();
           var r = a.game.s.run,
             cue = this.director.step({
@@ -6590,7 +7024,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
             this.displayedGrowth = null;
             return;
           }
-          var blocked = !!a.modal || this.showing || !!(a.toastNode && isValid(a.toastNode, true)) || !!(a.tooltipNode && isValid(a.tooltipNode, true)) || a.liveOps.blocked || !a.operations.ready || a.operations.busy || a.operations.conflict || a.remoteBusy || this.asyncPending > 0;
+          var blocked = a.zoneTransition.active || a.placement.dragging || !!a.modal || this.showing || !!(a.toastNode && isValid(a.toastNode, true)) || !!(a.tooltipNode && isValid(a.tooltipNode, true)) || a.liveOps.blocked || !a.operations.ready || a.operations.busy || a.operations.conflict || a.remoteBusy || this.asyncPending > 0;
           var cue = this.growthQueue.step(a.game.s.run, a.game.now(), blocked);
           if (!cue) {
             this.clearBanner();
@@ -40959,8 +41393,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
   };
 });
 
-System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts', './EnemyArtBounds.ts', './SquadUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, Sprite, ScrollView, BlockInputEvents, resources, Texture2D, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, enemyType, ENEMY_HIT_POINTS, SquadUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, soldierSize, partyBattlefieldLayout, bossSize, enemyFormation, CheatUI, FeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, UI, SQUAD_ROLE_STYLE, UITheme;
+System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts', './EnemyArtBounds.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
+  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, Sprite, ScrollView, BlockInputEvents, resources, Texture2D, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, enemyType, ENEMY_HIT_POINTS, SquadUI, BattlePlacementUI, BattleTransitionUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
@@ -41008,6 +41442,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
     }, function (module) {
       SquadUI = module.SquadUI;
     }, function (module) {
+      BattlePlacementUI = module.BattlePlacementUI;
+    }, function (module) {
+      BattleTransitionUI = module.BattleTransitionUI;
+    }, function (module) {
       ShopUI = module.ShopUI;
     }, function (module) {
       RewardGlowUI = module.RewardGlowUI;
@@ -41031,9 +41469,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       SOLDIER_SIZE = module.SOLDIER_SIZE;
       battleDensityScale = module.battleDensityScale;
       waveSize = module.waveSize;
-      soldierSize = module.soldierSize;
       partyBattlefieldLayout = module.partyBattlefieldLayout;
       bossSize = module.bossSize;
+      soldierSize = module.soldierSize;
       enemyFormation = module.enemyFormation;
     }, function (module) {
       CheatUI = module.CheatUI;
@@ -41077,6 +41515,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       featureUnlocked = module.featureUnlocked;
       replayTutorial = module.replayTutorial;
       designHeight = module.designHeight;
+      TAB_STAGES = module.TAB_STAGES;
     }, function (module) {
       Online = module.Online;
     }, function (module) {
@@ -41089,6 +41528,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       BUTTON_TONES = module.BUTTON_TONES;
       contrastInk = module.contrastInk;
       ICON_HELP_KEYS = module.ICON_HELP_KEYS;
+      BLOCKED_NOTICE = module.BLOCKED_NOTICE;
       UI = module.UI;
       SQUAD_ROLE_STYLE = module.SQUAD_ROLE_STYLE;
       UITheme = module.UITheme;
@@ -41154,6 +41594,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           _this.squadUI = new SquadUI(_assertThisInitialized(_this));
           _this.shopUI = new ShopUI(_assertThisInitialized(_this));
           _this.rewardGlow = new RewardGlowUI(_assertThisInitialized(_this));
+          _this.placement = new BattlePlacementUI(_assertThisInitialized(_this));
+          _this.zoneTransition = new BattleTransitionUI(_assertThisInitialized(_this));
           _this.game = void 0;
           _this.root = void 0;
           _this.panel = void 0;
@@ -41200,6 +41642,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           _this.cheats = new CheatUI(_assertThisInitialized(_this));
           _this.worldKey = -1;
           _this.enemyKinds = new WeakMap();
+          _this.enemySlots = new WeakMap();
           _this.hitCells = new WeakMap();
           _this.damageLayer = void 0;
           _this.damageTime = 0;
@@ -41536,7 +41979,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           return n;
         };
         _proto.denied = function denied(node, reason) {
-          this.toast(reason);
+          this.toast(reason, 'blocked');
           this.sound(110);
           if (this.game.s.extra.effects && isValid(node, true)) {
             var origin = node.position.clone();
@@ -41640,9 +42083,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
           var held = false;
           var reveal = function reveal() {
-            if (isValid(n, true) && hint) {
+            if (!isValid(n, true)) return;
+            var reason = _this4.buttonReason(n);
+            if (reason || hint) {
               held = true;
-              _this4.tooltip(n, hint);
+              _this4.tooltip(n, reason || hint, reason ? 'blocked' : 'normal');
             }
           };
           var rest = n.position.clone(),
@@ -41663,7 +42108,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           n.on(Node.EventType.TOUCH_START, function () {
             held = false;
             press();
-            if (hint) _this4.scheduleOnce(reveal, .55);
+            if (hint || _this4.buttonReasons.has(n)) _this4.scheduleOnce(reveal, .55);
           });
           n.on(Node.EventType.TOUCH_CANCEL, function () {
             _this4.unschedule(reveal);
@@ -41724,11 +42169,23 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
           this.tooltipNode = null;
         };
-        _proto.tooltip = function tooltip(anchor, text) {
+        _proto.hideToast = function hideToast() {
+          if (this.toastNode && isValid(this.toastNode, true)) {
+            Tween.stopAllByTarget(this.toastNode);
+            this.toastNode.removeFromParent();
+            this.toastNode.destroy();
+          }
+          this.toastNode = null;
+        };
+        _proto.tooltip = function tooltip(anchor, text, tone) {
           var _this$modal,
             _this7 = this;
+          if (tone === void 0) {
+            tone = 'normal';
+          }
           if (!isValid(anchor, true) || !this.root) return;
           this.hideTooltip();
+          this.hideToast();
           var layer = ((_this$modal = this.modal) == null ? void 0 : _this$modal.getChildByName('modal-panel')) || this.root,
             transform = layer.getComponent(UITransform),
             a = anchor.getComponent(UITransform);
@@ -41749,10 +42206,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           if (y < bottom) y = point.y + a.height / 2 + h / 2 + 9;
           var n = this.nodeAt(layer, 'icon-tooltip', Math.max(left, Math.min(right, point.x)), Math.max(bottom, Math.min(top, y)), w, h);
           this.tooltipNode = n;
-          this.ui.surface(n, '#202631', 'cut', 255, false, false);
+          this.ui.surface(n, tone === 'blocked' ? BLOCKED_NOTICE.background : '#202631', 'cut', 255, tone === 'blocked', false);
           var edge = this.nodeAt(n, 'tooltip-border', 0, 0, w, h).addComponent(Graphics),
             points = this.ui.contours.get(n);
-          edge.strokeColor = this.color(BUTTON_TONES.details);
+          edge.strokeColor = this.color(tone === 'blocked' ? BLOCKED_NOTICE.border : BUTTON_TONES.details);
           edge.lineWidth = 2;
           edge.moveTo(points[0][0], points[0][1]);
           points.slice(1).forEach(function (p) {
@@ -41779,6 +42236,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         };
         _proto.draw = function draw() {
           var _this8 = this;
+          this.placement.reset();
           this.hideTooltip();
           this.modal = null;
           this.modalRefresh = null;
@@ -41791,6 +42249,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             if (isValid(n, true)) n.destroy();
           });
           if (!this.entry.playing) {
+            this.zoneTransition.reset();
             this.entry.draw();
             return;
           }
@@ -41845,11 +42304,13 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           settings.name = 'hud-settings';
           this.stageNeighbors = [];
           [-1, 1].forEach(function (offset, i) {
-            var n = _this8.nodeAt(hud, 'nearby-stage', i ? 48 : -48, 450, 22, 32);
-            _this8.stageNeighbors.push(_this8.label(n, String(Math.max(1, _this8.game.s.run.stage + offset)), 0, 0, 22, 30, 14, C.muted));
+            var n = _this8.nodeAt(hud, 'nearby-stage', i ? 62 : -62, 450, 18, 32);
+            _this8.stageNeighbors.push(_this8.label(n, String(Math.max(1, _this8.game.s.run.stage + offset)), 0, 0, 18, 30, 14, C.muted));
           });
-          var stage = this.polygon(hud, 0, 450, 45, 45, [[0, -.5], [.5, 0], [0, .5], [-.5, 0]], C.paper);
-          this.stageLabel = this.label(stage, '', 0, 0, 38, 36, 21, C.ink);
+          var stage = this.nodeAt(hud, 'stage-number-plate', 0, 450, 78, 56);
+          this.ui.surface(stage, C.gold, 'cut', 255, true);
+          this.label(stage, this.tr('battle.areaLabel'), 0, 18, 60, 16, 14, C.ink);
+          this.stageLabel = this.label(stage, '', 0, -6, 68, 34, 28, C.ink);
           this.bossButton = this.button(hud, this.tr('battle.fight'), -92, 350, 116, 36, function () {
             return _this8.game.toggleBoss();
           }, false, {
@@ -41903,17 +42364,19 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.allies = this.nodeAt(this.battleCast, 'allies', 0, 0, 480, 500);
           this.syncAllies();
           var captain = allyPosition(0);
-          this.actor = this.nodeAt(this.nodeAt(this.battleCast, 'captain-projection', 0, 0, 480, 500), 'guardian', captain.x, captain.y, SOLDIER_SIZE, SOLDIER_SIZE);
+          this.actor = this.nodeAt(this.allies, 'guardian', captain.x, captain.y, SOLDIER_SIZE, SOLDIER_SIZE);
           this.guardian(this.actor);
           this.actor.getComponent(UITransform).setAnchorPoint(.5, 6 / 192);
           this.actor.setScale(1, 1, 1);
           this.combatMotion.bindCaptain(this.actor);
           this.groundShadow(this.actor, SOLDIER_SIZE);
+          this.placement.bind(this.actor, -1, 0);
           var battleBottom = (this.folded ? -337 : -39) - this.heightExtra + this.safeBottom + 16;
           var target = this.nodeAt(this.root, 'battle-input', 0, (this.designH / 2 - 184 + battleBottom) / 2, 470, this.designH / 2 - battleBottom - 184);
           target.on(Node.EventType.TOUCH_END, function () {
             if (!_this8.modal) _this8.attack();
           });
+          target.setSiblingIndex(2);
           this.fairy = this.button(hud, this.tr('action.claimReady'), -162, 306, 120, 34, function () {
             return _this8.payments.fairy();
           }, true, {
@@ -41979,7 +42442,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                       level: _this8.game.s.run.spellLevels[id],
                       unlock: SPELLS[id].unlock,
                       mana: _this8.game.spellMana(id)
-                    }));
+                    }), 'blocked');
                     return;
                   }
                   if (_this8.game.cast(id)) _this8.spark(0, 95, C.violet);
@@ -42059,6 +42522,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.drawPanel();
           this.drawNav();
           this.tutorial.draw();
+          this.zoneTransition.attach();
           this.updateHUD();
         };
         _proto.syncDrone = function syncDrone() {
@@ -42088,15 +42552,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           return battleDensityScale(waveSize(this.game.s.run.stage, this.game.s.run.boss));
         };
         _proto.layoutBattlefield = function layoutBattlefield() {
-          var _this10 = this,
-            _this$combatMotion;
-          var captain = allyPosition(0),
-            captainSize = soldierSize(captain.y) * .8;
-          this.ui.resize(this.actor, captainSize, captainSize);
-          var captainShadow = this.shadowUnits.find(function (s) {
-            return s.unit === _this10.actor;
-          });
-          captainShadow == null || captainShadow.shadow.setScale(captainSize / SOLDIER_SIZE, captainSize / SOLDIER_SIZE, 1);
+          var _this$combatMotion,
+            _this10 = this;
           // Party projection depends only on the viewport, not hostile bodies or attack poses.
           var _partyBattlefieldLayo = partyBattlefieldLayout(this.folded, this.heightExtra, this.safeBottom, this.safeTop),
             scale = _partyBattlefieldLayo.scale,
@@ -42111,32 +42568,47 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.allies.setScale(1, 1, 1);
           this.actor.parent.setScale(1, 1, 1);
           (_this$combatMotion = this.combatMotion) == null || _this$combatMotion.projectCaptain(this.actor, 1);
-          // Fit only the enemy ranks; own-space pixel bounds ignore entrance animation.
+          this.placement.projectAll();
+          // Fit hostile ranks in the whole available field without moving the party.
+          // Rear ranks compensate for the boss's fixed body height, not just its foot.
+          var bossUnit = this.game.s.run.boss ? this.enemy.getChildByName('hostile-0') : null;
+          var bossBounds = bossUnit ? this.ui.spriteVisibleBounds(bossUnit, bossUnit) : null;
+          var bossHeight = bossBounds ? bossBounds.y + bossBounds.height + 9 : 0;
           var bounds = this.enemy.children.map(function (unit) {
             var b = _this10.ui.spriteVisibleBounds(unit, unit),
-              fixed = _this10.game.s.run.boss && unit.name === 'hostile-0';
+              rest = _this10.enemySlots.get(unit) || {
+                x: unit.position.x,
+                y: unit.position.y
+              };
+            var fixed = unit === bossUnit,
+              rear = !!bossUnit && !fixed && rest.y > 104;
+            var compensation = rear ? bossHeight : 0;
             return {
               unit: unit,
+              rest: rest,
               fixed: fixed,
+              rear: rear,
               low: {
-                a: unit.position.y + (fixed ? 0 : b.y - 10),
-                b: fixed ? b.y - 10 : 0
+                a: rest.y + (fixed ? 0 : b.y) - compensation,
+                b: fixed ? b.y : compensation
               },
               high: {
-                a: unit.position.y + (fixed ? 0 : b.y + b.height + 9),
-                b: fixed ? b.y + b.height + 9 : 0
+                a: rest.y + (fixed ? 0 : b.y + b.height + 9) - compensation,
+                b: fixed ? b.y + b.height + 9 : compensation
               }
             };
           });
           if (bounds.length) {
+            var bottom = (this.folded ? -337 : -39) - this.heightExtra + this.safeBottom,
+              top = 290 + this.heightExtra - this.safeTop;
+            var available = Math.max(40, (top - bottom - 20) / scale);
             var fit = 1;
-            // The large boss keeps its physical size while escorts fit around it.
             for (var _iterator2 = _createForOfIteratorHelperLoose(bounds), _step2; !(_step2 = _iterator2()).done;) {
               var _low = _step2.value;
               for (var _iterator5 = _createForOfIteratorHelperLoose(bounds), _step5; !(_step5 = _iterator5()).done;) {
                 var _high = _step5.value;
                 var span = _high.high.a - _low.low.a;
-                if (span > 0) fit = Math.min(fit, (270 + _low.low.b - _high.high.b) / span);
+                if (span > 0) fit = Math.min(fit, (available + _low.low.b - _high.high.b) / span);
               }
             }
             fit = Math.max(.05, fit);
@@ -42146,19 +42618,22 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               high = Math.max.apply(Math, bounds.map(function (b) {
                 return b.high.a * fit + b.high.b;
               }));
-            this.enemy.setPosition(0, Math.max(50 - low, Math.min(0, 320 - high)));
+            this.enemy.setPosition(0, 185 - (low + high) / 2);
             this.enemy.setScale(1, fit, 1);
             for (var _iterator3 = _createForOfIteratorHelperLoose(bounds), _step3; !(_step3 = _iterator3()).done;) {
               var _step3$value = _step3.value,
                 unit = _step3$value.unit,
-                fixed = _step3$value.fixed;
+                rest = _step3$value.rest,
+                fixed = _step3$value.fixed,
+                rear = _step3$value.rear;
+              unit.setPosition(rest.x, rest.y + (rear ? bossHeight * (1 - fit) / fit : 0));
               unit.setScale(fixed ? 1 : fit, fixed ? 1 / fit : 1, 1);
             }
             for (var _iterator4 = _createForOfIteratorHelperLoose(this.shadowUnits), _step4; !(_step4 = _iterator4()).done;) {
               var _step4$value = _step4.value,
                 _unit = _step4$value.unit,
                 shadow = _step4$value.shadow;
-              if (_unit.parent === this.enemy) shadow.setScale(fit, fit, 1);
+              if (_unit.parent === this.enemy) shadow.setScale(_unit === bossUnit ? 1 : fit, _unit === bossUnit ? 1 : fit, 1);
             }
           }
         };
@@ -42253,6 +42728,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var _this12 = this;
           if (this.game.s.totalKills === this.seenKills) return;
           this.seenKills = this.game.s.totalKills;
+          if (this.zoneTransition.observe()) return;
           this.enemyTransition = .65;
           for (var _i3 = 0, _arr3 = [].concat(this.particles.children); _i3 < _arr3.length; _i3++) {
             var missile = _arr3[_i3];
@@ -42300,6 +42776,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             var visible = _this13.ui.spriteVisibleBounds(unit, unit),
               centralBoss = _this13.game.s.run.boss && i === 0;
             unit.setPosition(centralBoss ? pos.x : Math.max(20 - visible.x, Math.min(pos.x, 210 - visible.x - visible.width)), pos.y);
+            _this13.enemySlots.set(unit, {
+              x: unit.position.x,
+              y: unit.position.y
+            });
             _this13.groundShadow(unit, unit.getComponent(UITransform).height);
             var width = centralBoss ? 72 : 32,
               bar = _this13.nodeAt(unit, 'health', 0, visible.y + visible.height + 5, width, 4);
@@ -42549,8 +43029,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             density = .8,
             key = ids.join(',');
           if (this.allySignature === key) return;
+          this.placement.cancel();
           this.allySignature = key;
-          this.clear(this.allies);
+          this.allies.children.filter(function (n) {
+            return n.name !== 'guardian';
+          }).forEach(function (n) {
+            n.removeFromParent();
+            n.destroy();
+          });
           this.clear(this.footholds);
           this.cooldownBars = [];
           ids.map(function (id, index) {
@@ -42573,6 +43059,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             _this17.ui.actor(body, 'merc-' + mercenaryArt(id));
             (_this17$combatMotion = _this17.combatMotion) == null || _this17$combatMotion.bind(body, mercenaryArt(id));
             _this17.groundShadow(actor, soldierSize(y) * density);
+            _this17.placement.bind(actor, id, index + 1);
             if (attackSeconds(id) > .3) {
               var width = 36 * soldierSize(y) * density / SOLDIER_SIZE,
                 bar = _this17.nodeAt(actor, 'attack-cooldown', 0, -7, width + 2, 4);
@@ -42648,10 +43135,13 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }
             shadow.active = unit.activeInHierarchy;
             if (shadow.active) {
+              var _unit$getChildByName;
               var feet = space.convertToNodeSpaceAR(unit.worldPosition);
               shadow.setPosition(feet.x, feet.y - 2);
               var fixed = _this19.game.s.run.boss && unit.name === 'hostile-0',
-                factor = unit.parent === _this19.enemy && !fixed ? _this19.enemy.scale.y : 1;
+                ally = unit === _this19.actor || unit.parent === _this19.allies,
+                size = unit === _this19.actor ? unit.getComponent(UITransform).height : (((_unit$getChildByName = unit.getChildByName('body')) == null ? void 0 : _unit$getChildByName.scale.y) || 1) * SOLDIER_SIZE,
+                factor = ally ? size / (shadow.getComponent(UITransform).width / .8) : unit.parent === _this19.enemy && !fixed ? _this19.enemy.scale.y : 1;
               shadow.setScale(factor, factor, 1);
               shadow.getComponent(UIOpacity).opacity = unit.parent === _this19.enemy ? _this19.enemy.getComponent(UIOpacity).opacity : 255;
             }
@@ -43005,6 +43495,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               }).join('') : '#444852';
             var plate = _this22.nodeAt(n, selected ? 'selected-tab' : 'category-tab', 0, selected ? 3 : 0, 76, selected ? 62 : 52);
             _this22.ui.surface(plate, fill, selected ? 'slant' : 'cut', 255, true);
+            _this22.buttonReasons.set(n, function () {
+              return tabUnlocked(_this22.game.s, i) ? null : _this22.tr('unlock.stage', {
+                name: title,
+                stage: TAB_STAGES[i]
+              });
+            });
             _this22.touchAction(n, function () {
               return _this22.tutorial.tab(i);
             }, title);
@@ -43347,7 +43843,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                   if (s.maxStage < h.unlock) {
                     _this24.info(_this24.tr('unlock.title'), _this24.tr('hero.locked', {
                       stage: h.unlock
-                    }));
+                    }), 'blocked');
                     return;
                   }
                   g.buy(h.id, _this24.mode);
@@ -43464,9 +43960,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                 tint: C.mint,
                 action: !s.pets[p.id] ? _this24.tr('action.locked') : s.activePet === p.id ? _this24.tr('action.equipped') : _this24.tr('action.equip'),
                 click: function click() {
-                  if (!s.pets[p.id]) _this24.toast(_this24.tr('error.locked'));else {
+                  if (!s.pets[p.id]) _this24.toast(_this24.tr('error.locked'), 'blocked');else {
                     if (s.activePet === p.id) {
-                      _this24.toast(_this24.tr('action.alreadyEquipped'));
+                      _this24.toast(_this24.tr('action.alreadyEquipped'), 'blocked');
                       return;
                     }
                     if (!g.equipPet(p.id)) {
@@ -43572,18 +44068,19 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             guided = true;
           }
           this.close();
+          this.hideToast();
           this.modalBack = back || null;
           this.modal = this.nodeAt(this.root, 'modal', 0, 0, 480, this.designH);
           this.modal.addComponent(BlockInputEvents);
           this.rect(this.modal, 0, 0, 480, this.designH, '#000000', undefined, 128);
           height = Math.min(height, this.designH - this.safeTop - this.safeBottom - 70);
           var box = this.nodeAt(this.modal, 'modal-panel', 0, (this.safeBottom - this.safeTop) / 2, 432, height);
-          this.ui.paint(box, surface === 'slate' ? 'popup/slate' : 'popup/panel', true);
-          var panelAccent = this.game.s.extra.cosmetics[1] > 0 ? [C.line, C.gold, C.blue, C.violet, C.mint, C.ember][this.game.s.extra.cosmetics[1]] : this.tabTone;
-          var heading = this.polygon(box, -40, height / 2 - 38, 336, 60, [[-.5, -.5], [.43, -.5], [.5, .5], [-.5, .5]], C.paper);
+          if (surface === 'blocked') this.ui.surface(box, BLOCKED_NOTICE.background, 'panel', 255, true);else this.ui.paint(box, surface === 'slate' ? 'popup/slate' : 'popup/panel', true);
+          var panelAccent = surface === 'blocked' ? BLOCKED_NOTICE.border : this.game.s.extra.cosmetics[1] > 0 ? [C.line, C.gold, C.blue, C.violet, C.mint, C.ember][this.game.s.extra.cosmetics[1]] : this.tabTone;
+          var heading = this.polygon(box, -40, height / 2 - 38, 336, 60, [[-.5, -.5], [.43, -.5], [.5, .5], [-.5, .5]], surface === 'blocked' ? BLOCKED_NOTICE.heading : C.paper);
           this.polygon(box, -199, height / 2 - 38, 34, 60, [[-.5, -.5], [.15, -.5], [.5, .5], [-.5, .5]], panelAccent);
-          this.rect(box, 0, height / 2 - 70, 388, 1, C.line);
-          if (!guided || !((_this$tutorial3 = this.tutorial) != null && _this$tutorial3.popup(title, heading))) this.label(heading, title, 0, 0, 280, 44, 23, C.ink);
+          this.rect(box, 0, height / 2 - 70, 388, 1, surface === 'blocked' ? BLOCKED_NOTICE.border : C.line);
+          if (!guided || !((_this$tutorial3 = this.tutorial) != null && _this$tutorial3.popup(title, heading))) this.label(heading, title, 0, 0, 280, 44, 23, surface === 'blocked' ? BLOCKED_NOTICE.text : C.ink);
           if (closable) this.button(box, '×', 176, height / 2 - 38, 56, 56, function () {
             return _this25.dismissModal();
           }, false, {
@@ -43613,21 +44110,27 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             (_this$tutorial4 = this.tutorial) == null || _this$tutorial4.popupClosed();
           }
         };
-        _proto.confirm = function confirm(title, body, yes, options) {
+        _proto.confirm = function confirm(title, body, yes, options, tone) {
           var _this26 = this;
           if (options === void 0) {
             options = {};
           }
-          var p = this.open(title, 370);
+          if (tone === void 0) {
+            tone = 'normal';
+          }
+          var p = this.open(title, 370, true, tone === 'blocked' ? 'blocked' : 'teal', tone !== 'blocked');
           this.label(p, body, 0, 10, 372, 195, 19, C.text);
           this.button(p, this.tr('action.cancel'), -103, -132, 178, 48, function () {
             return _this26.close();
           });
           this.button(p, this.tr('action.confirm'), 103, -132, 178, 48, yes, true, options);
         };
-        _proto.info = function info(title, body) {
+        _proto.info = function info(title, body, tone) {
           var _this27 = this;
-          var p = this.open(title, 390);
+          if (tone === void 0) {
+            tone = 'normal';
+          }
+          var p = this.open(title, 390, true, tone === 'blocked' ? 'blocked' : 'teal', tone !== 'blocked');
           this.label(p, body, 0, 0, 375, 245, 18, C.text);
           this.button(p, this.tr('action.close'), 0, -145, 260, 45, function () {
             return _this27.close();
@@ -43786,7 +44289,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.label(p, (gain >= 0 ? '+' : '') + gain.toFixed(1) + '%', 0, -47, 230, 26, 20, gain >= 0 ? C.mint : C.danger);
           this.button(p, this.tr(equipped ? 'action.equipped' : 'action.equip'), -128, -103, 112, 58, function () {
             if (equipped) {
-              _this30.toast(_this30.tr('action.alreadyEquipped'));
+              _this30.toast(_this30.tr('action.alreadyEquipped'), 'blocked');
               return;
             }
             _this30.game.equip(e.id);
@@ -43803,7 +44306,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           });
           this.button(p, this.tr('action.sell'), 128, -103, 112, 58, function () {
             if (e.locked || equipped) {
-              _this30.toast(_this30.tr('equipment.protected'));
+              _this30.toast(_this30.tr('equipment.protected'), 'blocked');
               return;
             }
             _this30.confirm(_this30.itemName(e), _this30.tr('equipment.sellConfirm'), function () {
@@ -44055,7 +44558,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           });
         };
         _proto.online = function online() {
-          this.info(this.tr('online.title'), this.tr('online.unavailable'));
+          this.info(this.tr('online.title'), this.tr('online.unavailable'), 'blocked');
         };
         _proto.profile = function profile() {
           var s = this.game.s;
@@ -44526,8 +45029,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                   if (key === 'online.unreachable') {
                     this.confirm(this.tr('extra.retry'), this.tr(key), function () {
                       void _this48.remote(work);
-                    });
-                  } else this.toast(this.tr(key.startsWith('online.') || key.startsWith('error.') || key.startsWith('extra.') ? key : 'online.serverError'));
+                    }, {}, 'blocked');
+                  } else this.toast(this.tr(key.startsWith('online.') || key.startsWith('error.') || key.startsWith('extra.') ? key : 'online.serverError'), 'blocked');
                 case 16:
                   _context3.prev = 16;
                   this.remoteBusy = false;
@@ -45256,9 +45759,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             count: g.s.extra.unseenEquipment.length
           });
           this.fairy.active = this.fairyClaimReady();
-          this.stageLabel.string = String(r.stage);
+          this.stageLabel.string = String(this.zoneTransition.displayedStage || r.stage);
           this.stageNeighbors.forEach(function (l, i) {
-            return l.string = String(Math.max(1, r.stage + (i ? 1 : -1)));
+            return l.string = String(Math.max(1, (_this63.zoneTransition.displayedStage || r.stage) + (i ? 1 : -1)));
           });
           this.enemyLabel.string = this.tr('battle.wave', {
             count: g.enemyHealth().filter(function (h) {
@@ -45292,7 +45795,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           });
         };
         _proto.canAttack = function canAttack() {
-          return this.entry.playing && !this.liveOps.blocked && this.enemyTransition <= 0 && this.operations.ready && !this.operations.busy && !this.operations.conflict && !this.remoteBusy && !this.feedback.asyncPending && !this.feedback.showing;
+          return !this.zoneTransition.active && !this.placement.dragging && this.entry.playing && !this.liveOps.blocked && this.enemyTransition <= 0 && this.operations.ready && !this.operations.busy && !this.operations.conflict && !this.remoteBusy && !this.feedback.asyncPending && !this.feedback.showing;
         };
         _proto.canAutoFire = function canAutoFire() {
           return this.canAttack() && !this.modal && !this.tutorial.active && !this.tutorial.firstBoss && this.payments.model.autoFireActive() && (typeof document === 'undefined' || !document.hidden);
@@ -45424,13 +45927,15 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             o.stop(ctx.currentTime + .1);
           } catch (_unused) {}
         };
-        _proto.toast = function toast(text) {
+        _proto.toast = function toast(text, tone) {
           var _this65 = this;
-          if (this.toastNode && isValid(this.toastNode, true)) {
-            this.toastNode.removeFromParent();
-            this.toastNode.destroy();
+          if (tone === void 0) {
+            tone = 'normal';
           }
-          var n = this.rect(this.root, 0, -302, 434, 82, '#334754', C.gold);
+          this.hideTooltip();
+          this.hideToast();
+          var n = tone === 'blocked' ? this.nodeAt(this.root, 'condition-toast', 0, -302, 434, 82) : this.rect(this.root, 0, -302, 434, 82, '#334754', C.gold);
+          if (tone === 'blocked') this.ui.surface(n, BLOCKED_NOTICE.background, 'cut', 255, true);
           this.toastNode = n;
           this.label(n, text, 0, 0, 404, 72, 16, C.text);
           tween(n).delay(3.2).call(function () {
@@ -45456,16 +45961,37 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return;
           }
           if (this.game.notice) {
-            this.toast(this.tr(this.game.notice));
+            var key = this.game.notice;
+            this.toast(this.tr(key), key.startsWith('error.') || key === 'action.alreadyEquipped' || key === 'battle.autoExpired' ? 'blocked' : 'normal');
             this.game.notice = '';
           }
         };
+        _proto.placeCaptain = function placeCaptain(position) {
+          var _this$combatMotion6;
+          (_this$combatMotion6 = this.combatMotion) == null || _this$combatMotion6.placeCaptain(this.actor, position);
+        };
+        _proto.clearPendingShots = function clearPendingShots() {
+          this.pendingTaps = [];
+        };
+        _proto.revealArea = function revealArea() {
+          this.enemyTransition = 0;
+          this.world();
+          this.spawnEnemy();
+          this.syncWave();
+          this.syncGroundShadows();
+        };
         _proto.update = function update(dt) {
-          var _this$entry2, _this$combatMotion6;
+          var _this$entry2, _this$combatMotion7;
           this.refreshButtons();
           if (this.game && this.fairy && isValid(this.fairy, true)) this.fairy.active = this.fairyClaimReady();
           this.rewardGlow.tick(dt);
           if (!this.game || !((_this$entry2 = this.entry) != null && _this$entry2.playing)) return;
+          this.placement.tick();
+          if (this.zoneTransition.observe()) {
+            this.zoneTransition.tick(dt);
+            this.syncGroundShadows();
+            return;
+          }
           this.damageTime += dt;
           if (this.showDamageHits()) this.syncEnemyDeath();
           this.syncGroundShadows();
@@ -45476,7 +46002,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.feedback.chatterTick(dt);
           if (!this.canAutoFire()) this.stopAutoFire();
           if (this.liveOps.blocked || !this.operations.ready || this.operations.busy || this.operations.conflict || this.remoteBusy || this.feedback.asyncPending || this.feedback.showing) return;
-          (_this$combatMotion6 = this.combatMotion) == null || _this$combatMotion6.tick(dt, this.game.s.extra.effects);
+          (_this$combatMotion7 = this.combatMotion) == null || _this$combatMotion7.tick(dt, this.game.s.extra.effects);
           var due = this.pendingTaps.filter(function (t) {
             return t.delay <= dt;
           });
@@ -45489,9 +46015,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           });
           for (var _iterator8 = _createForOfIteratorHelperLoose(due), _step8; !(_step8 = _iterator8()).done;) {
             var shot = _step8.value;
-            if (this.enemyTransition) break;
+            if (this.enemyTransition || this.zoneTransition.active) break;
             if (!shot.automatic || this.canAutoFire()) this.resolveTap(shot.automatic);
           }
+          if (this.zoneTransition.active) return;
           this.tickAutoFire(dt);
           if (this.particles) {
             if (!this.game.s.extra.effects && this.particles.active) this.clear(this.particles);
@@ -45512,6 +46039,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             this.showDamageHits();
             this.syncEnemyDeath();
           }
+          if (this.zoneTransition.active) return;
           if (!this.enemyTransition) {
             var look = this.enemyKey();
             if (this.enemyLook !== look) this.spawnEnemy();
@@ -47727,6 +48255,20 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureL
       Object.assign(translations.en, {
         'ui.help.intel': 'Intel · Document\nEarned through redeployment. Spend it to discover and upgrade intel for permanent growth effects.'
       });
+      Object.assign(translations.ko, {
+        'battle.areaLabel': '구역',
+        'battle.entering': '작전지역에 진입중',
+        'battle.entered': '작전지역 진입 완료',
+        'battle.areaMove': '구역 {stage}',
+        'battle.dragGuide': '드래그해서 배치\n왼쪽 40% 안에서 이동'
+      });
+      Object.assign(translations.en, {
+        'battle.areaLabel': 'ZONE',
+        'battle.entering': 'Entering operation area',
+        'battle.entered': 'Operation area entered',
+        'battle.areaMove': 'Zone {stage}',
+        'battle.dragGuide': 'Drag to reposition\nStay within the left 40%'
+      });
       cclegacy._RF.pop();
     }
   };
@@ -48009,7 +48551,7 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
             void _this3.push.set(true, a.game.s.locale).then(function () {
               return a.close();
             })["catch"](function () {
-              return a.toast(a.tr('online.unreachable'));
+              return a.toast(a.tr('online.unreachable'), 'blocked');
             });
           }, true);
         };
@@ -48277,9 +48819,9 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/main", ['./CheatUI.ts', './CombatMotion.ts', './EntryUI.ts', './ExpansionUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SquadUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './Dialogue.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './Squad.ts', './SquadName.ts', './firebase-sdk.js'], function () {
+System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './CheatUI.ts', './CombatMotion.ts', './EntryUI.ts', './ExpansionUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SquadUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './Dialogue.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './Squad.ts', './SquadName.ts', './firebase-sdk.js'], function () {
   return {
-    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     execute: function () {}
   };
 });
@@ -49324,7 +49866,7 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
                   _context2.prev = 12;
                   _context2.t0 = _context2["catch"](3);
                   key = _context2.t0.message;
-                  this.a.info(this.tr('money.result'), this.tr(/^(money|error|online)\./.test(key) ? key : 'money.verification'));
+                  this.a.info(this.tr('money.result'), this.tr(/^(money|error|online)\./.test(key) ? key : 'money.verification'), 'blocked');
                 case 16:
                   _context2.prev = 16;
                   this.a.feedback.asyncPending--;
@@ -49536,7 +50078,8 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
           });
         };
         _proto.result = function result(key) {
-          this.a.info(this.tr('money.result'), this.tr(key));
+          var blocked = key.startsWith('error.') || ['money.bundleUnknown', 'money.disabled', 'money.pending', 'money.adStatus.no-fill', 'battle.autoExpired'].includes(key);
+          this.a.info(this.tr('money.result'), this.tr(key), blocked ? 'blocked' : 'normal');
           this.a.updateHUD();
         };
         _proto.vip = function vip() {
@@ -49759,6 +50302,9 @@ System.register("chunks:///_virtual/MotionBounds.ts", ['cc'], function (exports)
 
       /** Union of every idle, ready and firing frame: left/right/top/bottom from the foot. */
       var MOTION_BOUNDS = exports('MOTION_BOUNDS', [[68, 165, 178, 0], [107, 250, 172, 0], [76, 188, 178, 0], [77, 162, 178, 0], [74, 141, 178, 0], [81, 90, 178, 0], [86, 181, 178, 0], [121, 111, 178, 0], [98, 105, 178, 0], [94, 167, 174, 0], [134, 211, 178, 0], [129, 143, 178, 0], [136, 145, 178, 0], [123, 199, 178, 0], [117, 250, 168, 0], [109, 250, 176, 0], [89, 179, 126, 0], [76, 92, 178, 0], [74, 100, 178, 0], [79, 88, 178, 0], [82, 117, 178, 0], [77, 250, 155, 0], [84, 108, 178, 0], [81, 103, 174, 0], [65, 117, 174, 0], [56, 85, 131, 0], [80, 94, 178, 0], [56, 98, 155, 0], [77, 123, 169, 0], [82, 80, 182, 0]]);
+
+      /** Visible pixels of each 448 × 192 pose, excluding transparent canvas. */
+      var MOTION_FRAMES = exports('MOTION_FRAMES', [[[132, 8, 263, 186], [132, 8, 263, 186], [126, 8, 316, 186], [124, 9, 357, 186]], [[85, 15, 290, 186], [89, 14, 290, 186], [105, 23, 353, 186], [111, 18, 442, 186]], [[122, 8, 276, 186], [124, 9, 279, 186], [116, 9, 306, 186], [116, 9, 380, 186]], [[125, 8, 257, 186], [126, 9, 259, 186], [117, 12, 294, 186], [115, 12, 354, 186]], [[128, 8, 256, 186], [125, 8, 256, 186], [123, 11, 292, 186], [118, 10, 333, 186]], [[129, 8, 272, 186], [129, 8, 275, 186], [115, 10, 269, 186], [111, 8, 282, 186]], [[126, 8, 300, 186], [121, 9, 297, 186], [114, 10, 285, 186], [106, 11, 373, 186]], [[92, 9, 293, 186], [90, 9, 292, 186], [83, 8, 303, 186], [71, 15, 300, 186]], [[113, 20, 275, 186], [101, 19, 275, 186], [94, 8, 289, 186], [100, 8, 297, 186]], [[111, 13, 268, 186], [102, 12, 274, 186], [102, 27, 312, 186], [98, 19, 359, 186]], [[99, 8, 358, 186], [96, 8, 348, 186], [58, 8, 346, 186], [77, 30, 403, 186]], [[109, 23, 304, 186], [107, 23, 300, 186], [103, 8, 273, 186], [63, 36, 335, 186]], [[113, 16, 317, 186], [109, 17, 318, 186], [107, 8, 279, 186], [56, 19, 337, 186]], [[100, 19, 272, 186], [97, 19, 275, 186], [84, 8, 292, 186], [69, 37, 391, 186]], [[91, 25, 281, 186], [89, 25, 282, 186], [92, 18, 285, 186], [75, 34, 442, 186]], [[101, 18, 299, 186], [94, 19, 290, 186], [91, 10, 293, 186], [83, 17, 442, 186]], [[113, 62, 290, 186], [117, 65, 280, 186], [103, 60, 272, 186], [105, 60, 371, 186]], [[129, 8, 277, 186], [132, 9, 274, 186], [128, 9, 284, 186], [116, 11, 278, 186]], [[120, 8, 280, 186], [120, 10, 280, 186], [122, 14, 292, 186], [118, 23, 287, 186]], [[126, 8, 276, 186], [128, 9, 278, 186], [120, 13, 280, 186], [113, 15, 279, 186]], [[111, 8, 288, 186], [118, 8, 290, 186], [115, 10, 309, 186], [110, 19, 284, 186]], [[126, 31, 287, 186], [126, 32, 290, 186], [117, 34, 322, 186], [115, 34, 442, 186]], [[124, 8, 291, 186], [127, 8, 290, 186], [121, 10, 300, 186], [108, 14, 289, 186]], [[124, 12, 261, 186], [121, 13, 263, 186], [111, 14, 273, 186], [117, 17, 295, 186]], [[140, 12, 294, 186], [140, 12, 290, 186], [129, 19, 309, 186], [127, 19, 307, 186]], [[146, 55, 240, 186], [147, 56, 237, 186], [140, 58, 251, 186], [136, 61, 277, 186]], [[127, 8, 281, 186], [126, 8, 283, 186], [115, 15, 276, 186], [112, 19, 286, 186]], [[145, 31, 248, 186], [147, 32, 253, 186], [141, 32, 253, 186], [136, 35, 290, 186]], [[123, 17, 263, 186], [121, 17, 263, 186], [129, 23, 279, 186], [115, 39, 315, 186]], [[114, 18, 272, 186], [124, 20, 256, 186], [116, 4, 259, 186], [110, 45, 272, 186]]]);
       cclegacy._RF.pop();
     }
   };
@@ -52372,7 +52918,7 @@ System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpe
           }
           var reason = this.deployReason(id);
           if (reason) {
-            this.a.toast(reason);
+            this.a.toast(reason, 'blocked');
             return;
           }
           var ids = this.g.s.extra.mercenaryDeck,
@@ -53001,7 +53547,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             a.toast(a.tr('unlock.stage', {
               name: a.tr(topic.title),
               stage: topic.stage
-            }));
+            }), 'blocked');
             return;
           }
           if ('tab' in topic) {
@@ -53460,6 +54006,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
               guide = _this9.find('tutorial-guide-root'),
               guided = _this9.active || (a.modal ? !!_this9.popupTarget : !!_this9.inputTarget);
             if (!guided || a.feedback.showing || _this9.practiceTopic && !_this9.active) return;
+            if (a.placement.dragging) return;
             var loc = e.getUILocation(),
               point = new Vec3(loc.x, loc.y, 0),
               allowed = [];
@@ -53470,6 +54017,13 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
               n.children.forEach(info);
             };
             info(a.modal || a.root);
+            if (!_this9.active && !a.modal) {
+              var characters = function characters(n) {
+                if (n.name === 'character-drag-target') allowed.push(n);
+                n.children.forEach(characters);
+              };
+              characters(a.root);
+            }
             var controls = function controls(n) {
               if (n.getChildByName('button-label')) allowed.push(n);else n.children.forEach(controls);
             };
@@ -53717,6 +54271,13 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             }
           }
           if (a.tooltipNode && isValid(a.tooltipNode, true)) hole(a.tooltipNode);
+          if (a.placement.dragging) {
+            var _a$root$getChildByNam;
+            var target = a.placement.dragTarget;
+            if (target) hole(target);
+            var hint = (_a$root$getChildByNam = a.root.getChildByName('deployment-drag-guide')) == null ? void 0 : _a$root$getChildByNam.getChildByName('drag-hint');
+            if (hint) hole(hint);
+          }
           var signature = JSON.stringify({
             area: area,
             holes: holes
@@ -53819,7 +54380,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           this.a.info(this.a.tr('unlock.title'), this.a.tr('unlock.stage', {
             name: this.a.tr(['nav.master', 'nav.heroes', 'nav.equipment', 'nav.pets', 'nav.artifacts', 'nav.shop'][tab]),
             stage: TAB_STAGES[tab]
-          }));
+          }), 'blocked');
         };
         _proto.tab = function tab(_tab, skipLesson) {
           var _this12 = this;
@@ -53853,6 +54414,11 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             return this.a.game.s.tutorial.step < TUTORIAL_DONE;
           }
         }, {
+          key: "inputRestricted",
+          get: function get() {
+            return this.active || !!(this.inputTarget && isValid(this.inputTarget, true)) || !!(this.popupTarget && isValid(this.popupTarget, true));
+          }
+        }, {
           key: "firstBoss",
           get: function get() {
             return !this.active && this.a.game.s.maxStage < 2 && (this.a.game.s.run.boss || this.a.game.s.run.bossFailed);
@@ -53879,8 +54445,8 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
   };
 });
 
-System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts', './EnemyArtBounds.ts', './Mercenaries.ts', './ShopTheme.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, Color, resources, Texture2D, SpriteFrame, Graphics, UITransform, Node, Mask, Sprite, Vec3, Font, ENEMY_TYPES, BOSS_TYPES, ENEMY_ALPHA_BOUNDS, MERCENARY_COUNT, SHOP_ICONS;
+System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts', './EnemyArtBounds.ts', './Mercenaries.ts', './MotionBounds.ts', './ShopTheme.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, Color, resources, Texture2D, SpriteFrame, Graphics, UITransform, Node, Mask, Sprite, Vec3, Font, ENEMY_TYPES, BOSS_TYPES, ENEMY_ALPHA_BOUNDS, MERCENARY_COUNT, MOTION_FRAMES, SHOP_ICONS;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -53906,6 +54472,8 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
       ENEMY_ALPHA_BOUNDS = module.ENEMY_ALPHA_BOUNDS;
     }, function (module) {
       MERCENARY_COUNT = module.MERCENARY_COUNT;
+    }, function (module) {
+      MOTION_FRAMES = module.MOTION_FRAMES;
     }, function (module) {
       SHOP_ICONS = module.SHOP_ICONS;
     }],
@@ -53946,6 +54514,12 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
         settings: '#9caece',
         back: '#aeb6c2',
         danger: '#ef2144'
+      });
+      var BLOCKED_NOTICE = exports('BLOCKED_NOTICE', {
+        background: '#a52639',
+        heading: '#bd3045',
+        border: '#ff9cab',
+        text: '#ffffff'
       });
       /** Shared meanings, independent of primary/secondary and enabled/disabled states. */
       var BUTTON_CATEGORY_KEYS = exports('BUTTON_CATEGORY_KEYS', {
@@ -54245,6 +54819,11 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
                 if (bounds) _this2.frameContent.set(frame, bounds.map(function (n) {
                   return n / 192;
                 }));
+                var motion = /^motion\/(\d+)\/(\d+)$/.exec(key);
+                if (motion) {
+                  var b = MOTION_FRAMES[Number(motion[1])][Number(motion[2])];
+                  _this2.frameContent.set(frame, [b[0] / 448, b[1] / 192, b[2] / 448, b[3] / 192]);
+                }
               }
               resolve();
             });
@@ -54409,7 +54988,7 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
           var edge = face.getComponent(Graphics);
           edge.lineWidth = 1.5;
           var ink = new Color();
-          Color.fromHEX(ink, [UI.ember, UI.raised, UI.danger, UI.mint].includes(fill) ? '#ffacb9' : [UI.paper, UI.paperMuted, UI.text].includes(fill) ? '#515563' : '#939aa9');
+          Color.fromHEX(ink, [BLOCKED_NOTICE.background, BLOCKED_NOTICE.heading].includes(fill) ? BLOCKED_NOTICE.border : [UI.ember, UI.raised, UI.danger, UI.mint].includes(fill) ? '#ffacb9' : [UI.paper, UI.paperMuted, UI.text].includes(fill) ? '#515563' : '#939aa9');
           ink.a = alpha;
           edge.strokeColor = ink;
           edge.moveTo(points[0][0] * ((w - 2) / w), points[0][1] * ((h - 2) / h));
