@@ -4565,6 +4565,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
               a.drawPanel();
             }
           }, true, {
+            category: 'confirm',
             style: this.g.s.activePet === i && level > 0 ? 'selected' : level > 0 ? 'primary' : 'disabled'
           });
           a.button(p, this.tr('extra.maintenanceShort'), 0, -54, 112, 56, function () {
@@ -4763,6 +4764,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                   return a + b;
                 }, 0), _this26.e.crystalUnlock(type, index)) : null;
               },
+              actionCategory: 'synergy',
               action: _this26.tr(unlocked ? 'action.select' : 'action.locked'),
               click: function click() {
                 if (!unlocked) {
@@ -4786,6 +4788,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                     unavailable: function unavailable() {
                       return _this26.g.raid && !_this26.g.raid.ended ? _this26.tr('action.raidRunning') : _this26.x.crystal.includes(c.i) ? _this26.tr('action.alreadyApplied') : null;
                     },
+                    actionCategory: 'synergy',
                     action: _this26.tr(_this26.x.crystal.includes(c.i) ? 'action.selected' : 'action.select'),
                     click: function click() {
                       return _this26.action(function () {
@@ -41619,7 +41622,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
 });
 
 System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts', './env', './EnemyArtBounds.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, SquadUI, BattlePlacementUI, BattleTransitionUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme;
+  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, SquadUI, BattlePlacementUI, BattleTransitionUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
@@ -41764,6 +41767,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       UI = module.UI;
       SQUAD_ROLE_STYLE = module.SQUAD_ROLE_STYLE;
       UITheme = module.UITheme;
+      BUTTON_COMPLETED_KEYS = module.BUTTON_COMPLETED_KEYS;
+      BUTTON_STATE_TONES = module.BUTTON_STATE_TONES;
     }],
     execute: function () {
       var _dec, _class;
@@ -42134,35 +42139,33 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var claimable = text === this.tr('action.claim') || text === this.tr('action.claimReady');
           var n = this.nodeAt(parent, 'ui-button', x, y, w, h);
           n.name = 'ui-button';
-          // One silhouette and one outline: changing availability only changes its fill.
-          var paint = function paint(blocked) {
-            return _this2.ui.surface(n, blocked ? '#444852' : tone, 'cut', 255, true, false);
+          // Completion and unavailable actions share geometry, but have distinct fills.
+          var paint = function paint(blocked, completed) {
+            return _this2.ui.surface(n, completed ? BUTTON_STATE_TONES.completed : blocked ? BUTTON_STATE_TONES.unavailable : tone, 'cut', 255, true, false);
           };
-          paint(style === 'disabled');
           var ink = options.ink || contrastInk(tone);
           var stacked = !!icon && !iconOnly && w < 140 && h >= 48,
             iconSize = options.iconSize ? Math.min(options.iconSize, h - 12) : iconOnly ? Math.min(36, h - 12) : stacked ? 20 : 24;
-          var iconBlocked;
-          var renderIcon = function renderIcon(blocked) {
-            if (!icon || iconBlocked === blocked) return;
-            iconBlocked = blocked;
+          var iconInk = '';
+          var renderIcon = function renderIcon(color) {
+            if (!icon || iconInk === color) return;
+            iconInk = color;
             var old = n.getChildByName('button-art-icon');
             if (old) {
               old.removeFromParent();
               old.destroy();
             }
-            _this2.ui.icon(_this2.nodeAt(n, 'button-art-icon', iconOnly || stacked ? 0 : -w / 2 + 24, stacked ? 10 : 0, iconSize, iconSize), icon, blocked ? C.muted : ink);
+            _this2.ui.icon(_this2.nodeAt(n, 'button-art-icon', iconOnly || stacked ? 0 : -w / 2 + 24, stacked ? 10 : 0, iconSize, iconSize), icon, color);
           };
-          renderIcon(style === 'disabled');
           var label = this.label(n, iconOnly ? '' : text === this.tr('action.claim') ? this.tr('action.claimReady') : text, icon && !iconOnly && !stacked ? 17 : 0, stacked ? -13 : 0, w - (icon && !iconOnly && !stacked ? 60 : 20), stacked ? 23 : h - 10, stacked ? 14 : options.fontSize || 18, ink);
           label.node.name = 'button-label';
           var edge = this.nodeAt(n, 'button-outline', 0, 0, w, h).addComponent(Graphics);
           var marker = this.nodeAt(n, 'button-category', 0, 0, w, h).addComponent(Graphics);
-          var outlineState = function outlineState(blocked) {
+          var outlineState = function outlineState(blocked, completed) {
             var outline = _this2.ui.contours.get(n);
             edge.clear();
             edge.lineWidth = 1.5;
-            edge.strokeColor = _this2.color(claimable && !blocked ? C.gold : '#929889');
+            edge.strokeColor = _this2.color(completed ? '#9ccdaf' : claimable && !blocked ? C.gold : '#929889');
             edge.moveTo(outline[0][0], outline[0][1]);
             outline.slice(1).forEach(function (p) {
               return edge.lineTo(p[0], p[1]);
@@ -42170,13 +42173,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             edge.close();
             edge.stroke();
             marker.clear();
-            if (blocked || style === 'selected') {
-              marker.fillColor = _this2.color(blocked ? tone : ink);
+            if (blocked || completed || style === 'selected') {
+              marker.fillColor = _this2.color(blocked || completed ? tone : ink);
               marker.rect(-w / 2 + 12, -h / 2 + 4, w - 24, 3);
               marker.fill();
             }
           };
-          outlineState(style === 'disabled');
           var unavailable = options.unavailable || (text === this.tr('action.claimed') ? function () {
             return _this2.tr('action.alreadyClaimed');
           } : text === this.tr('action.equipped') ? function () {
@@ -42184,27 +42186,30 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           } : style === 'disabled' ? function () {
             return text === _this2.tr('action.sell') ? _this2.tr('equipment.protected') : options.hint || _this2.tr('error.locked');
           } : null);
-          if (unavailable || options.label) {
-            var last = '';
-            var refresh = function refresh() {
-              var reason = unavailable == null ? void 0 : unavailable(),
-                blocked = !!reason,
-                next = (options.label == null ? void 0 : options.label()) || (claimable ? _this2.tr(!blocked ? 'action.claimReady' : reason === _this2.tr('action.alreadyClaimed') ? 'action.claimed' : 'action.notReady') : text),
-                signature = String(blocked) + next;
-              if (last === signature) return;
-              last = signature;
-              paint(blocked);
-              if (!iconOnly) label.string = next;
-              label.color = _this2.color(blocked ? '#c2c5cc' : ink);
-              outlineState(blocked);
-              renderIcon(blocked);
-            };
-            this.buttonStates.push({
-              node: n,
-              refresh: refresh
-            });
-            refresh();
-          }
+          var last = '';
+          var refresh = function refresh() {
+            var _options$completed;
+            var reason = unavailable == null ? void 0 : unavailable(),
+              blocked = !!reason,
+              next = (options.label == null ? void 0 : options.label()) || (claimable ? _this2.tr(!blocked ? 'action.claimReady' : reason === _this2.tr('action.alreadyClaimed') ? 'action.claimed' : 'action.notReady') : text);
+            var completed = typeof options.completed === 'function' ? options.completed() : (_options$completed = options.completed) != null ? _options$completed : BUTTON_COMPLETED_KEYS.some(function (key) {
+              return next === _this2.tr(key);
+            }) || blocked && next === _this2.tr('action.selected');
+            var signature = String(blocked) + String(completed) + next;
+            if (last === signature) return;
+            last = signature;
+            paint(blocked, completed);
+            if (!iconOnly) label.string = next;
+            var color = completed ? C.text : blocked ? '#c2c5cc' : ink;
+            label.color = _this2.color(color);
+            outlineState(blocked, completed);
+            renderIcon(color);
+          };
+          if (unavailable || options.label || typeof options.completed === 'function') this.buttonStates.push({
+            node: n,
+            refresh: refresh
+          });
+          refresh();
           if (unavailable) this.buttonReasons.set(n, unavailable);
           if (claimable || options.rewardReady) this.rewardGlow.register(n, function () {
             var _options$rewardReady;
@@ -43868,6 +43873,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               var actionButton = _this23.button(card, r.action, w / 2 - 54, 0, 90, 50, r.click || function () {}, !settled && (!_this23.ui.inPopup(card) || !browse), {
                 style: r.buttonStyle || (r.locked ? 'disabled' : settled ? 'selected' : browse ? 'secondary' : 'primary'),
                 category: r.actionCategory,
+                completed: r.actionCompleted,
                 fontSize: 18,
                 icon: r.actionIcon,
                 iconOnly: false,
@@ -44190,6 +44196,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             });
             this.scroll(this.panel, 0, -24, 458, 244, PETS.map(function (p) {
               return {
+                actionCategory: 'confirm',
                 locked: s.pets[p.id] === 0,
                 title: _this24.tr(p.name),
                 metrics: [{
@@ -44577,6 +44584,13 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               return _this30.item(e);
             });
           }, false, {
+            category: 'confirm',
+            completed: function completed() {
+              return _this30.squadUI.itemRegistered(e);
+            },
+            label: function label() {
+              return _this30.tr(_this30.squadUI.itemRegistered(e) ? 'registry.registered' : 'registry.register');
+            },
             unavailable: function unavailable() {
               return _this30.squadUI.itemRegistered(e) ? _this30.tr('registry.registered') : null;
             }
@@ -44628,8 +44642,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return _this32.skills();
           })) return;
           if (fresh) this.draft = [].concat(this.game.s.skills);
+          // A skill tree is an editable draft: the generic first-use guide would
+          // focus Revert/Reset and block every dynamically labelled level button.
           var s = this.game.s,
-            p = this.open(this.tr('skills.title'), 718);
+            p = this.open(this.tr('skills.title'), 718, true, 'teal', false);
+          p.name = 'skills-panel';
           var total = s.sp + s.skills.reduce(function (a, l) {
               return a + l * (l + 1) / 2;
             }, 0),
@@ -44665,7 +44682,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                     level: 3
                   }) : null;
                 }
-              });
+              }).name = 'skill-node-' + i;
             };
             for (var tier = 0; tier < 3; tier++) {
               _loop6(tier);
@@ -44673,11 +44690,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
           this.button(p, this.tr('action.revert'), -137, -285, 124, 46, function () {
             return _this32.skills();
-          });
+          }).name = 'skills-revert';
           this.button(p, this.tr('action.reset'), 0, -285, 124, 46, function () {
             _this32.draft = Array(18).fill(0);
             _this32.skills(false);
-          });
+          }).name = 'skills-reset';
           this.button(p, this.tr('action.apply'), 137, -285, 124, 46, function () {
             return _this32.act(function () {
               return _this32.game.applySkills(_this32.draft, _this32.id('skills'));
@@ -44690,7 +44707,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                 return l === _this32.game.s.skills[i];
               }) ? _this32.tr('action.alreadyApplied') : null);
             }
-          });
+          }).name = 'skills-apply';
         };
         _proto.perks = function perks() {
           var _this33 = this;
@@ -44980,6 +44997,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             _this39.game.setDeck(i);
             _this39.cards();
           }, true, {
+            category: 'deck',
+            completed: function completed() {
+              return _this39.game.s.deck.includes(i);
+            },
             unavailable: function unavailable() {
               return _this39.raidChangeReason() || (_this39.game.s.deck.includes(i) ? _this39.tr('action.alreadyApplied') : null);
             }
@@ -45022,6 +45043,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               _this40.game.raidTap(i);
               _this40.sound(170 + i * 30);
             }, false, {
+              category: 'battle',
               unavailable: function unavailable() {
                 return r.ended ? _this40.tr('action.battleEnded') : r.hp[i] <= 0 ? _this40.tr('action.targetDefeated') : null;
               }
@@ -45591,6 +45613,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.button(p, this.tr('nav.heroes'), -100, -140, 180, 50, function () {
             return command('upgrade', 0);
           }, false, {
+            category: 'upgrade',
             unavailable: function unavailable() {
               return _this52.competitionReason(state, 0);
             }
@@ -45617,7 +45640,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var _loop9 = function _loop9(j) {
             _this53.button(p, String(j + 1), -165 + j * 66, 260, 60, 40, function () {
               return _this53.spells(j);
-            }, j === slot);
+            }, j === slot, {
+              category: 'battle',
+              style: j === slot ? 'selected' : 'secondary'
+            });
           };
           for (var j = 0; j < 6; j++) {
             _loop9(j);
@@ -45679,7 +45705,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               branch: this.tr("branch." + branch),
               tier: i % 3 + 1,
               level: this.draft[i]
-            }), 440);
+            }), 440, true, 'teal', false, function () {
+              return _this54.skills(false);
+            });
+          p.name = 'skill-detail-panel';
           var card = this.rect(p, 0, 64, 372, 120, C.panel, C.line);
           this.ui.icon(this.nodeAt(card, 'skill-art', -136, 0, 64, 64), ['sword', 'fox', 'flag', 'lightning', 'adventurer', 'scroll'][branch]);
           this.label(card, this.tr('skills.info'), 39, 0, 254, 100, 14, '#38696b');
@@ -45692,7 +45721,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             unavailable: function unavailable() {
               return _this54.draft[i] <= 0 ? _this54.tr('action.minReached') : null;
             }
-          });
+          }).name = 'skill-decrease';
           this.button(p, '+', 90, -57, 160, 54, function () {
             _this54.draft[i] = Math.min(SKILLS[i].max, _this54.draft[i] + 1);
             _this54.skillNode(i);
@@ -45707,10 +45736,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                 return a + l * (l + 1) / 2;
               }, 0), _this54.draft[i] + 1);
             }
-          });
+          }).name = 'skill-increase';
           this.button(p, this.tr('action.back'), 0, -157, 350, 44, function () {
             return _this54.skills(false);
-          });
+          }).name = 'skill-back';
         };
         _proto.artifactDetail = function artifactDetail(i) {
           var _this55 = this;
@@ -48542,6 +48571,12 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureL
         'money.previewCompleted': 'Reward granted without an ad.',
         'battle.autoPreview': 'AUTO\nFree · 15 min',
         'battle.autoPreviewInfo': 'Web and test builds give the captain 15 minutes of Auto Fire without an ad.\n\nTap AUTO to turn it on or off. Time continues while AUTO is off or the app is closed.\n\nFiring pauses during popups and tutorials.'
+      });
+      Object.assign(translations.ko, {
+        'registry.allRegistered': '전체 등록 완료'
+      });
+      Object.assign(translations.en, {
+        'registry.allRegistered': 'All Registered'
       });
       cclegacy._RF.pop();
     }
@@ -53658,6 +53693,17 @@ System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpe
               return _this14.registry();
             });
           }, true, {
+            category: 'confirm',
+            completed: function completed() {
+              return x.equipmentObtained.length > 0 && x.equipmentObtained.every(function (k) {
+                return x.equipmentRegistry.includes(k);
+              });
+            },
+            label: function label() {
+              return _this14.tr(x.equipmentObtained.length > 0 && x.equipmentObtained.every(function (k) {
+                return x.equipmentRegistry.includes(k);
+              }) ? 'registry.allRegistered' : 'registry.registerAll');
+            },
             unavailable: function unavailable() {
               return x.equipmentObtained.some(function (k) {
                 return !x.equipmentRegistry.includes(k);
@@ -53674,6 +53720,13 @@ System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpe
               icon: Number(key.split(':')[2]),
               art: 'face:' + ['blade', 'helmet', 'breastplate', 'aura', 'compass'][Number(key.split(':')[2])],
               action: _this14.tr(x.equipmentRegistry.includes(key) ? 'registry.buttonRegistered' : 'registry.register'),
+              actionCategory: 'confirm',
+              actionCompleted: function actionCompleted() {
+                return x.equipmentRegistry.includes(key);
+              },
+              actionLabel: function actionLabel() {
+                return _this14.tr(x.equipmentRegistry.includes(key) ? 'registry.buttonRegistered' : 'registry.register');
+              },
               unavailable: function unavailable() {
                 return x.equipmentRegistry.includes(key) ? _this14.tr('registry.registered') : !x.equipmentObtained.includes(key) ? _this14.tr('registry.needItem') : null;
               },
@@ -53749,6 +53802,13 @@ System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpe
               title: _this16.partName(key),
               sub: _this16.tr(g.s.extra.equipmentObtained.includes(key) ? 'squad.owned' : 'squad.missing'),
               action: _this16.tr(g.s.extra.equipmentRegistry.includes(key) ? 'registry.buttonRegistered' : 'registry.register'),
+              actionCategory: 'confirm',
+              actionCompleted: function actionCompleted() {
+                return g.s.extra.equipmentRegistry.includes(key);
+              },
+              actionLabel: function actionLabel() {
+                return _this16.tr(g.s.extra.equipmentRegistry.includes(key) ? 'registry.buttonRegistered' : 'registry.register');
+              },
               unavailable: function unavailable() {
                 return g.s.extra.equipmentRegistry.includes(key) ? _this16.tr('registry.registered') : !g.s.extra.equipmentObtained.includes(key) ? _this16.tr('registry.needItem') : null;
               },
@@ -54933,20 +54993,25 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
         border: '#ff9cab',
         text: '#ffffff'
       });
+      var BUTTON_STATE_TONES = exports('BUTTON_STATE_TONES', {
+        completed: '#53765f',
+        unavailable: '#444852'
+      });
+      var BUTTON_COMPLETED_KEYS = exports('BUTTON_COMPLETED_KEYS', ['action.equipped', 'action.claimed', 'action.crafted', 'action.purchased', 'registry.registered', 'registry.buttonRegistered']);
       /** Shared meanings, independent of primary/secondary and enabled/disabled states. */
       var BUTTON_CATEGORY_KEYS = exports('BUTTON_CATEGORY_KEYS', {
-        confirm: ['action.confirm', 'action.apply', 'action.equip', 'action.equipped', 'action.select', 'action.selected', 'action.claim', 'action.claimReady', 'action.claimed', 'registry.register', 'registry.registered', 'registry.registerAll', 'settings.saveButton', 'entry.nameConfirm', 'entry.start', 'entry.agree', 'ops.pushAllow'],
-        details: ['action.details', 'action.open', 'ui.iconHelp', 'merc.preview', 'extra.petEffects', 'extra.puzzleHelp', 'extra.puzzleHelpReturn', 'intel.details', 'extra.serviceStatus', 'complete.support', 'menu.profile', 'online.roster', 'money.vip'],
-        codex: ['squad.codex', 'squad.collections', 'registry.title', 'registry.combos', 'hero.mastery', 'merc.gallery', 'equipment.sets', 'equipment.transmog', 'extra.mastery', 'extra.masterySets', 'extra.petMilestones', 'extra.petMilestoneShort'],
-        upgrade: ['action.upgrade', 'layout.upgrade', 'master.buyMode', 'extra.heroSkill', 'equipment.craft', 'artifact.discover', 'intel.upgrade', 'intel.enchantButton', 'pet.hatch', 'master.skills', 'extra.maintenanceShort', 'extra.weapons', 'extra.search', 'extra.ingredient', 'meta.crack', 'meta.summon', 'raid.upgrade'],
+        confirm: ['action.confirm', 'action.apply', 'action.equip', 'action.equipped', 'action.select', 'action.selected', 'action.claim', 'action.claimReady', 'action.claimed', 'registry.register', 'registry.registered', 'registry.buttonRegistered', 'registry.allRegistered', 'registry.registerAll', 'settings.saveButton', 'entry.nameConfirm', 'entry.start', 'entry.agree', 'entry.readBoth', 'entry.readToEnd', 'entry.google', 'entry.guest', 'ops.pushAllow', 'online.create', 'online.send', 'online.transfer', 'extra.raidSubmit', 'learn.practice', 'tutorial.begin'],
+        details: ['action.details', 'action.open', 'ui.iconHelp', 'merc.preview', 'extra.petEffects', 'extra.puzzleHelp', 'extra.puzzleHelpReturn', 'intel.details', 'extra.serviceStatus', 'complete.support', 'menu.profile', 'online.roster', 'money.vip', 'learn.open', 'learn.next', 'action.checkRewards', 'extra.setDetails', 'consent.terms.title', 'consent.privacy.title', 'entry.required', 'live.7'],
+        codex: ['squad.codex', 'squad.collections', 'registry.title', 'registry.combos', 'hero.mastery', 'merc.gallery', 'equipment.sets', 'equipment.transmog', 'extra.mastery', 'extra.masterySets', 'extra.petMilestones', 'extra.petMilestoneShort', 'menu.daily', 'menu.milestones', 'menu.achievements', 'extra.seasonRewards', 'live.12', 'live.13', 'learn.library', 'extra.banner'],
+        upgrade: ['action.upgrade', 'layout.upgrade', 'master.buyMode', 'extra.heroSkill', 'equipment.craft', 'action.crafted', 'artifact.discover', 'intel.upgrade', 'intel.enchantButton', 'pet.hatch', 'master.skills', 'extra.maintenanceShort', 'extra.weapons', 'extra.search', 'extra.ingredient', 'meta.crack', 'meta.summon', 'raid.upgrade', 'online.upgradeMaster', 'meta.research', 'extra.mysticResearch', 'extra.summon', 'extra.levelAll', 'extra.combine', 'extra.scrolls', 'extra.enchantChoices', 'menu.meta'],
         ascend: ['extra.ascend', 'prestige.title', 'intel.redeployButton', 'intel.redeployLocked', 'action.rebirth'],
-        deck: ['squad.deck', 'squad.count', 'squad.deploy', 'squad.remove', 'nav.heroes', 'menu.cards', 'complete.saveDeck', 'complete.presets'],
-        synergy: ['squad.synergies', 'squad.roles'],
-        battle: ['action.attack', 'battle.fight', 'hud.operations', 'menu.raid', 'menu.expeditions', 'menu.tournaments', 'online.enter', 'online.join', 'online.guildRaid', 'extra.door', 'battle.autoAd', 'battle.autoPreview', 'battle.autoTime'],
-        shop: ['action.buy', 'money.store', 'money.watch', 'money.previewClaim', 'money.previewShort', 'money.fairyBonus', 'extra.dustShop', 'extra.dustOffer', 'shop.regular', 'shop.progression', 'shop.limited', 'money.restore', 'money.retry'],
-        settings: ['hud.menu', 'hud.settings', 'menu.settings', 'menu.inbox', 'action.lock', 'settings.audio', 'locale.ko', 'locale.en', 'complete.account', 'complete.display', 'extra.hub', 'live.17', 'extra.notifications', 'extra.export', 'complete.import', 'complete.restoreBackup', 'tutorial.replay', 'cheat.title', 'cheat.restore', 'settings.on', 'settings.off', 'ops.osSettings'],
-        back: ['action.cancel', 'action.back', 'action.close', 'action.next', 'action.previous', 'layout.collapse', 'layout.expand', 'guide.later', 'learn.previous', 'tutorial.skip', 'entry.backLogin', 'ops.pushDecline'],
-        danger: ['action.sell', 'action.reset', 'action.revert', 'extra.delete', 'cheat.reset', 'artifact.salvage', 'online.leave', 'ops.block']
+        deck: ['squad.deck', 'squad.count', 'squad.deploy', 'squad.remove', 'nav.heroes', 'menu.cards', 'complete.saveDeck', 'complete.presets', 'extra.replace'],
+        synergy: ['squad.synergies', 'squad.roles', 'extra.crystal'],
+        battle: ['action.attack', 'battle.fight', 'battle.leave', 'hud.operations', 'menu.raid', 'menu.expeditions', 'menu.tournaments', 'menu.tournament', 'menu.event', 'menu.clan', 'online.enter', 'online.join', 'online.guildRaid', 'extra.door', 'battle.autoAd', 'battle.autoPreview', 'battle.autoTime', 'action.remaining', 'event.board', 'event.tile', 'event.found', 'raid.part', 'extra.eventModes', 'extra.dropBall'],
+        shop: ['action.buy', 'action.purchased', 'money.store', 'money.watch', 'money.previewClaim', 'money.previewShort', 'money.fairyBonus', 'extra.dustShop', 'extra.dustOffer', 'shop.regular', 'shop.progression', 'shop.limited', 'money.restore', 'money.retry', 'competition.chest', 'live.4'],
+        settings: ['hud.menu', 'hud.settings', 'menu.settings', 'menu.inbox', 'action.lock', 'settings.audio', 'locale.ko', 'locale.en', 'complete.account', 'complete.display', 'extra.hub', 'live.17', 'extra.notifications', 'extra.export', 'complete.exportFile', 'complete.import', 'complete.restoreBackup', 'tutorial.replay', 'cheat.title', 'cheat.short', 'cheat.restore', 'cheat.stage', 'cheat.funds', 'cheat.squad', 'settings.on', 'settings.off', 'ops.osSettings', 'live.5', 'live.8', 'online.refresh', 'entry.nameReload', 'money.adsOn', 'money.adsOff', 'ops.unblock'],
+        back: ['action.cancel', 'action.back', 'action.close', 'action.next', 'action.previous', 'layout.collapse', 'layout.expand', 'guide.later', 'learn.previous', 'tutorial.skip', 'entry.backLogin', 'entry.logout', 'ops.pushDecline', 'online.backMain'],
+        danger: ['action.sell', 'action.reset', 'action.revert', 'extra.delete', 'cheat.reset', 'artifact.salvage', 'equipment.bulk', 'online.leave', 'online.kick', 'ops.block', 'ops.report']
       });
       var ICON_HELP_KEYS = exports('ICON_HELP_KEYS', {
         'symbol:up': 'ui.help.level',
