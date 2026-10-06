@@ -484,8 +484,8 @@ System.register("chunks:///_virtual/BattleFormation.ts", ['./rollupPluginModLoBa
   };
 });
 
-System.register("chunks:///_virtual/BattlePlacementUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './BattleFormation.ts', './AllyPlacement.ts', './Mercenaries.ts', './UITheme.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _createClass, cclegacy, Node, UITransform, Vec3, isValid, Graphics, partyBattlefieldLayout, allyPosition, SOLDIER_SIZE, soldierSize, battleField, projectAlly, ALLY_RIGHT, mercenaryArt, UI;
+System.register("chunks:///_virtual/BattlePlacementUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './BattleFormation.ts', './AllyPlacement.ts', './Mercenaries.ts', './UITheme.ts', './DroneFleet.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _createClass, cclegacy, Node, UITransform, Vec3, isValid, Graphics, partyBattlefieldLayout, allyPosition, SOLDIER_SIZE, soldierSize, battleField, projectAlly, ALLY_RIGHT, mercenaryArt, UI, droneSupportReserve;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -510,6 +510,8 @@ System.register("chunks:///_virtual/BattlePlacementUI.ts", ['./rollupPluginModLo
       mercenaryArt = module.mercenaryArt;
     }, function (module) {
       UI = module.UI;
+    }, function (module) {
+      droneSupportReserve = module.droneSupportReserve;
     }],
     execute: function () {
       cclegacy._RF.push({}, "b3932xfBVpJe5qU/dEMOMwA", "BattlePlacementUI", undefined);
@@ -630,8 +632,9 @@ System.register("chunks:///_virtual/BattlePlacementUI.ts", ['./rollupPluginModLo
           });
         };
         _proto.field = function field() {
-          var a = this.a;
-          return battleField(a.folded, a.heightExtra, a.safeBottom, a.safeTop, a.game.equippedDrones().length > 1 ? 120 : 0);
+          var a = this.a,
+            camera = partyBattlefieldLayout(a.folded, a.heightExtra, a.safeBottom, a.safeTop);
+          return battleField(a.folded, a.heightExtra, a.safeBottom, a.safeTop, droneSupportReserve(a.game.s, camera.scale));
         };
         _proto.projectAll = function projectAll() {
           for (var _iterator = _createForOfIteratorHelperLoose(this.actors), _step; !(_step = _iterator()).done;) {
@@ -650,20 +653,22 @@ System.register("chunks:///_virtual/BattlePlacementUI.ts", ['./rollupPluginModLo
         _proto.project = function project(actor, draft) {
           var a = this.a,
             field = this.field(),
-            reserved = a.game.equippedDrones().length > 1 ? 120 : 0,
-            camera = partyBattlefieldLayout(a.folded, a.heightExtra, a.safeBottom, a.safeTop, reserved),
-            base = partyBattlefieldLayout(a.folded, a.heightExtra, a.safeBottom, a.safeTop),
+            camera = partyBattlefieldLayout(a.folded, a.heightExtra, a.safeBottom, a.safeTop),
+            reserved = droneSupportReserve(a.game.s, camera.scale),
             saved = draft || a.game.s.extra.battlePositions[actor.hero < 0 ? 'captain' : String(actor.hero)];
           var fallback = allyPosition(actor.index, a.game.activeMercenaries().length),
-            desired = saved ? {
-              x: saved.x * 480 - 240,
-              y: field.bottom + saved.y * (field.top - field.bottom)
-            } : {
-              x: fallback.x * base.scale,
-              y: camera.y + fallback.y * camera.scale
-            };
+            rank = actor.index === 0 ? 0 : actor.index <= 2 ? 1 : 2,
+            span = Math.min(160 * camera.scale, Math.max(0, field.top - field.bottom - 65 * camera.scale)),
+            start = field.bottom + Math.max(0, (field.top - field.bottom - 65 * camera.scale - span) / 2);
+          var desired = saved ? {
+            x: saved.x * 480 - 240,
+            y: field.bottom + saved.y * (field.top - field.bottom)
+          } : {
+            x: fallback.x * camera.scale,
+            y: reserved ? start + (rank + .3) / 2.3 * span : camera.y + fallback.y * camera.scale
+          };
           var result = projectAlly(actor.hero < 0 ? -1 : mercenaryArt(actor.hero), desired, camera.scale, camera.y, field),
-            p = reserved ? actor.node.parent.getComponent(UITransform).convertToNodeSpaceAR(a.root.getComponent(UITransform).convertToWorldSpaceAR(new Vec3(result.x, result.y, 0))) : new Vec3(result.x / camera.scale, (result.y - camera.y) / camera.scale, 0);
+            p = new Vec3(result.x / camera.scale, (result.y - camera.y) / camera.scale, 0);
           actor.node.setPosition(p);
           var body = actor.hero < 0 ? actor.node : actor.node.getChildByName('body');
           if (actor.hero < 0) {
@@ -1549,7 +1554,7 @@ System.register("chunks:///_virtual/BrandSplashUI.ts", ['cc', './BrandSplash.ts'
 });
 
 System.register("chunks:///_virtual/CheatUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Mercenaries.ts', './PrototypeCheats.ts', './FeedbackUI.ts', './TutorialUI.ts', './UITheme.ts'], function (exports) {
-  var _createClass, _asyncToGenerator, _regeneratorRuntime, cclegacy, sys, MERCENARY_COUNT, prototypeCheat, freshPrototype, FeedbackUI, TutorialUI, UI;
+  var _createClass, _asyncToGenerator, _regeneratorRuntime, cclegacy, sys, UITransform, Mask, ScrollView, MERCENARY_COUNT, prototypeCheat, freshPrototype, FeedbackUI, TutorialUI, UI;
   return {
     setters: [function (module) {
       _createClass = module.createClass;
@@ -1558,6 +1563,9 @@ System.register("chunks:///_virtual/CheatUI.ts", ['./rollupPluginModLoBabelHelpe
     }, function (module) {
       cclegacy = module.cclegacy;
       sys = module.sys;
+      UITransform = module.UITransform;
+      Mask = module.Mask;
+      ScrollView = module.ScrollView;
     }, function (module) {
       MERCENARY_COUNT = module.MERCENARY_COUNT;
     }, function (module) {
@@ -1593,40 +1601,52 @@ System.register("chunks:///_virtual/CheatUI.ts", ['./rollupPluginModLoBabelHelpe
         _proto.open = function open() {
           var _this = this;
           var a = this.a,
-            p = a.open(a.tr('cheat.title'), 650);
-          a.label(p, a.tr('cheat.description'), 0, 211, 365, 82, 16, UI.muted);
+            p = a.open(a.tr('cheat.title'), 760, true, 'teal', false),
+            h = p.getComponent(UITransform).height;
+          p.name = 'cheat-panel';
+          var view = a.nodeAt(p, 'cheat-scroll', 0, -25, 400, h - 126);
+          view.addComponent(Mask);
+          var scroll = view.addComponent(ScrollView);
+          scroll.horizontal = false;
+          scroll.vertical = true;
+          var body = a.nodeAt(view, 'cheat-content', 0, (h - 126) / 2, 400, 710);
+          body.getComponent(UITransform).setAnchorPoint(.5, 1);
+          scroll.content = body;
+          var fonts = a.nodeAt(body, 'font-selector', 0, -65, 380, 118);
+          a.fonts.render(fonts);
+          a.label(body, a.tr('cheat.description'), 0, -163, 365, 58, 16, UI.muted);
           [1, 30, 200, 400].forEach(function (stage, i) {
-            return a.button(p, a.tr('cheat.stage', {
+            return a.button(body, a.tr('cheat.stage', {
               stage: stage
-            }), -144 + i * 96, 125, 90, 50, function () {
+            }), -144 + i * 96, -222, 90, 50, function () {
               return void _this.change(prototypeCheat(a.game.s, 'stage', stage));
             }, false, {
               fontSize: 15
             });
           });
-          a.button(p, a.tr('cheat.funds'), 0, 54, 366, 48, function () {
+          a.button(body, a.tr('cheat.funds'), 0, -285, 366, 48, function () {
             return void _this.change(prototypeCheat(a.game.s, 'funds'));
           }, false, {
             icon: 'symbol:coin'
           });
-          a.button(p, a.tr('cheat.squad'), 0, -8, 366, 48, function () {
+          a.button(body, a.tr('cheat.squad'), 0, -347, 366, 48, function () {
             return void _this.change(prototypeCheat(a.game.s, 'squad'));
           }, false, {
             icon: 'adventurer'
           });
-          a.button(p, a.tr('tutorial.replay'), 0, -70, 366, 48, function () {
+          a.button(body, a.tr('tutorial.replay'), 0, -409, 366, 48, function () {
             return void _this.change(prototypeCheat(a.game.s, 'tutorial'));
           }, false, {
             icon: 'symbol:play'
           });
-          a.button(p, a.tr('cheat.reset'), 0, -145, 366, 54, function () {
+          a.button(body, a.tr('cheat.reset'), 0, -482, 366, 54, function () {
             return a.confirm(a.tr('cheat.reset'), a.tr('cheat.resetBody'), function () {
               return void _this.reset();
             });
           }, true, {
             style: 'danger'
           });
-          a.button(p, a.tr('cheat.restore'), 0, -214, 366, 45, function () {
+          a.button(body, a.tr('cheat.restore'), 0, -553, 366, 45, function () {
             return a.confirm(a.tr('cheat.restore'), a.tr('cheat.restoreBody'), function () {
               var state = _this.backup();
               if (state) void _this.change(state);
@@ -1637,7 +1657,7 @@ System.register("chunks:///_virtual/CheatUI.ts", ['./rollupPluginModLoBabelHelpe
               return _this.backup() ? null : a.tr('cheat.noBackup');
             }
           });
-          a.button(p, a.tr('merc.gallery'), 0, -277, 365, 42, function () {
+          a.button(body, a.tr('merc.gallery'), 0, -621, 365, 42, function () {
             return _this.roster();
           }, false);
         };
@@ -2631,13 +2651,13 @@ System.register("chunks:///_virtual/DroneFeedbackUI.ts", ['./rollupPluginModLoBa
             prior.destroy();
           }
           var width = multi ? 66 : 136,
-            height = multi ? 34 : 26,
-            n = a.nodeAt(a.root, 'drone-support-pop-' + cue.id, drone.position.x, drone.position.y + 35, width, height);
+            height = multi ? 28 : 26,
+            n = a.nodeAt(a.root, 'drone-support-pop-' + cue.id, drone.position.x, drone.position.y + (multi ? 21 : 35), width, height);
           this.shown.set(cue.id, n);
           if (multi) n.addComponent(Mask);
           var tone = ['#ffe187', '#ff9288', '#9cebdd'][cue.effect],
             percent = Number(cue.percent.toFixed(1));
-          var text = a.tr(multi ? 'drone.fleet.proc.' + cue.effect : 'drone.fleet.procWide.' + cue.effect, {
+          var text = a.tr(multi ? (count > 1 ? 'drone.fleet.proc.' : 'drone.fleet.procSingle.') + cue.effect : 'drone.fleet.procWide.' + cue.effect, {
             percent: percent,
             count: count
           });
@@ -2663,7 +2683,7 @@ System.register("chunks:///_virtual/DroneFeedbackUI.ts", ['./rollupPluginModLoBa
             scale: new Vec3(1, 1, 1)
           }).start();
           tween(n).by(.62, {
-            position: new Vec3(0, multi ? 3 : 8, 0)
+            position: new Vec3(0, multi ? 1 : 8, 0)
           }).call(close).start();
           tween(opacity).delay(.36).to(.26, {
             opacity: 0
@@ -2715,6 +2735,7 @@ System.register("chunks:///_virtual/DroneFleet.ts", ['cc'], function (exports) {
       exports({
         droneMultiplier: droneMultiplier,
         droneSlots: droneSlots,
+        droneSupportReserve: droneSupportReserve,
         equippedDrones: equippedDrones
       });
       cclegacy._RF.push({}, "8523diWEURHmp/NbMYECdPY", "DroneFleet", undefined);
@@ -2735,13 +2756,16 @@ System.register("chunks:///_virtual/DroneFleet.ts", ['cc'], function (exports) {
           return id % 3 === effect ? value * (1 + level * .025 * (active.includes(id) ? 1 : Math.min(1, level / 100))) : value;
         }, 1);
       }
+      function droneSupportReserve(state, scale) {
+        return equippedDrones(state).length > 1 ? 106 - (1 - scale) * 56 : 0;
+      }
       cclegacy._RF.pop();
     }
   };
 });
 
 System.register("chunks:///_virtual/DroneFleetUI.ts", ['cc', './Config.ts', './DroneFleet.ts', './BattleFormation.ts', './UITheme.ts'], function (exports) {
-  var cclegacy, Label, ScrollView, Vec2, isValid, UITransform, Sprite, PETS, droneMultiplier, partyBattlefieldLayout, UI;
+  var cclegacy, Label, ScrollView, Vec2, isValid, Sprite, UITransform, PETS, droneMultiplier, partyBattlefieldLayout, UI;
   return {
     setters: [function (module) {
       cclegacy = module.cclegacy;
@@ -2749,8 +2773,8 @@ System.register("chunks:///_virtual/DroneFleetUI.ts", ['cc', './Config.ts', './D
       ScrollView = module.ScrollView;
       Vec2 = module.Vec2;
       isValid = module.isValid;
-      UITransform = module.UITransform;
       Sprite = module.Sprite;
+      UITransform = module.UITransform;
     }, function (module) {
       PETS = module.PETS;
     }, function (module) {
@@ -2844,34 +2868,34 @@ System.register("chunks:///_virtual/DroneFleetUI.ts", ['cc', './Config.ts', './D
             a.rect(n, 0, height / 2 - 2, w - 18, 3, target === slot ? UI.gold : filled ? tones[id % 3] : UI.muted);
             a.label(n, a.tr('drone.fleet.slot', {
               slot: slot + 1
-            }), -21, height / 2 - 16, w - 40, 22, 14, UI.text);
+            }), -21, height / 2 - 16, w - 56, 20, 14, UI.text).color = a.color(UI.text);
             a.touchAction(n, function () {
               return _this3.choose(slot);
             });
             if (filled) {
-              a.ui.paint(a.nodeAt(n, 'drone-slot-art', -w / 4, 7, 46, 46), 'drones/' + id);
+              a.ui.paint(a.nodeAt(n, 'drone-slot-art', -w / 4, 0, 46, 46), 'drones/' + id);
               a.label(n, a.tr('action.level', {
                 level: a.game.s.pets[id]
-              }), w / 4, 16, w / 2 - 10, 22, 14, tones[id % 3]);
-              a.button(n, a.tr('action.details'), w / 4, -6, w / 2 - 10, 26, function () {
+              }), w / 4, 8, w / 2 - 10, 18, 14, tones[id % 3]).color = a.color(tones[id % 3]);
+              a.button(n, a.tr('action.details'), w / 4, -15, w / 2 - 10, 24, function () {
                 return _this3.detail(id);
               }, false, {
                 category: 'details',
                 fontSize: 12
               }).name = 'drone-slot-detail-' + slot;
-              a.label(n, a.tr('pet.' + id), 0, -height / 2 + 19, w - 10, 30, 14, UI.text).node.name = 'drone-slot-name';
-              var remove = a.button(n, '×', w / 2 - 18, height / 2 - 16, 34, 30, function () {
+              var title = a.label(n, a.tr('pet.' + id), 0, -height / 2 + 13, w - 10, 18, 14, UI.text);
+              title.node.name = 'drone-slot-name';
+              title.color = a.color(UI.text);
+              var remove = a.nodeAt(n, 'drone-slot-remove-' + slot, w / 2 - 18, height / 2 - 16, 44, 36),
+                face = a.nodeAt(remove, 'remove-face', 0, 0, 26, 24);
+              a.ui.surface(face, UI.danger, 'cut');
+              a.label(face, '×', 0, 0, 24, 22, 17, UI.text).color = a.color(UI.text);
+              a.touchAction(remove, function () {
                 return _this3.remove(slot);
-              }, false, {
-                category: 'danger',
-                fontSize: 17,
-                hint: a.tr('drone.fleet.remove')
-              });
-              remove.name = 'drone-slot-remove-' + slot;
-              remove.getComponent(UITransform).setContentSize(44, 40);
+              }, a.tr('drone.fleet.remove'));
             } else {
-              a.label(n, '+', 0, 7, w - 12, 34, 26, UI.muted);
-              a.label(n, a.tr('drone.fleet.empty'), 0, -height / 2 + 19, w - 10, 30, 14, UI.muted);
+              a.label(n, '+', 0, 0, w - 12, 34, 26, UI.muted).color = a.color(UI.muted);
+              a.label(n, a.tr('drone.fleet.empty'), 0, -height / 2 + 13, w - 10, 18, 14, UI.muted).color = a.color(UI.muted);
             }
           };
           for (var slot = 0; slot < 3; slot++) {
@@ -2971,11 +2995,11 @@ System.register("chunks:///_virtual/DroneFleetUI.ts", ['cc', './Config.ts', './D
               }) : null;
             }
           }).name = 'drone-fleet-hatch';
-          this.slots(p, 60, 450, 88);
+          this.slots(p, 54, 450, 104);
           a.label(p, a.tr(target >= 0 ? 'drone.fleet.chooseForSlot' : 'drone.fleet.chooseReplacement', {
             slot: target + 1
-          }), 0, 0, 440, 26, 14, UI.gold);
-          a.scroll(p, 0, -81, 458, 128, this.rows());
+          }), 0, -14, 440, 24, 14, UI.gold);
+          a.scroll(p, 0, -87, 458, 110, this.rows());
         };
         _proto.manage = function manage() {
           var _a$modal2,
@@ -3050,11 +3074,11 @@ System.register("chunks:///_virtual/DroneFleetUI.ts", ['cc', './Config.ts', './D
           a.metric(p, 'symbol:up', String(level), -125, 66, 114, a.tr('action.level', {
             level: level
           }));
-          a.metric(p, 'lightning', '×' + active, 0, 66, 126, a.tr('pet.activeEffect', {
+          a.metric(p, id % 3 === 0 ? 'symbol:coin' : 'symbol:damage', '×' + active, 0, 66, 126, a.tr('pet.activeEffect', {
             effect: effect,
             value: active
           }));
-          a.metric(p, 'heart', '×' + passive, 125, 66, 114, a.tr('pet.passiveEffect', {
+          a.metric(p, 'interface:drone', '×' + passive, 125, 66, 114, a.tr('pet.passiveEffect', {
             effect: effect,
             value: passive
           }));
@@ -3079,6 +3103,9 @@ System.register("chunks:///_virtual/DroneFleetUI.ts", ['cc', './Config.ts', './D
               }
             }).name = 'drone-detail-slot-' + index;
           });
+          a.label(p, a.tr('drone.fleet.trainingTarget', {
+            name: a.tr('pet.' + g.petRewardTarget())
+          }), 0, -174, 380, 28, 14, UI.muted);
           a.button(p, a.tr(slot >= 0 ? 'drone.fleet.remove' : 'drone.fleet.manage'), -96, -216, 180, 42, function () {
             return slot >= 0 ? _this7.remove(slot) : _this7.manage();
           }, false, {
@@ -3122,7 +3149,7 @@ System.register("chunks:///_virtual/DroneFleetUI.ts", ['cc', './Config.ts', './D
             if (!n) {
               n = a.nodeAt(a.root, name, 0, 0, 64, 64);
               n.setSiblingIndex(a.battleCast.getSiblingIndex() + 1);
-              a.label(n, '', 0, -43, multi ? 70 : 136, multi ? 34 : 22, 13, UI.text).node.name = 'drone-name';
+              a.label(n, '', 0, -43, multi ? 64 : 136, multi ? 34 : 22, 13, UI.text).node.name = 'drone-name';
               a.touchAction(n, function () {
                 var current = a.game.droneSlots()[slot];
                 if (current >= 0) _this8.detail(current);
@@ -3133,14 +3160,14 @@ System.register("chunks:///_virtual/DroneFleetUI.ts", ['cc', './Config.ts', './D
             if (((_n$getComponent = n.getComponent(Sprite)) == null ? void 0 : _n$getComponent.spriteFrame) !== a.ui.frames.get('drones/' + id)) a.ui.paint(n, 'drones/' + id);
             var caption = n.getChildByName('drone-name'),
               c = caption.getComponent(Label);
-            caption.getComponent(UITransform).setContentSize(multi ? 70 : 136, multi ? 34 : 22);
+            caption.getComponent(UITransform).setContentSize(multi ? 64 : 136, multi ? 34 : 22);
             c.string = multi ? a.tr('drone.fleet.battleName', {
               kind: a.tr('drone.fleet.kind.' + id % 3),
               mark: Math.floor(id / 3) + 1
             }) : a.tr('pet.' + id);
             var column = multi ? ids.indexOf(id) : 0,
               x = multi ? [-160, -92, -24][column] : -20 * base,
-              y = a.designH / 2 - a.safeTop - (multi ? 248 : 198) + (a.game.s.extra.effects ? Math.sin(a.age * 2.6 + slot * .7) * 4 : 0);
+              y = a.designH / 2 - a.safeTop - (multi ? 232 : 198) + (a.game.s.extra.effects ? Math.sin(a.age * 2.6 + slot * .7) * 4 : 0);
             n.setPosition(x, y, 0);
             var hit = a.root.getChildByName('drone-name-hit-' + slot);
             if (!hit) {
@@ -3153,7 +3180,7 @@ System.register("chunks:///_virtual/DroneFleetUI.ts", ['cc', './Config.ts', './D
             }
             hit.active = true;
             hit.setPosition(a.root.getComponent(UITransform).convertToNodeSpaceAR(caption.worldPosition));
-            hit.getComponent(UITransform).setContentSize((multi ? 70 : 136) * base, (multi ? 34 : 24) * base);
+            hit.getComponent(UITransform).setContentSize((multi ? 64 : 136) * base, (multi ? 34 : 24) * base);
           };
           for (var slot = 0; slot < 3; slot++) {
             if (_loop3(slot)) continue;
@@ -3938,8 +3965,6 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
             content = a.nodeAt(view, 'consent-content', 0, viewportH / 2, 388, bodyH);
           content.getComponent(UITransform).setAnchorPoint(.5, 1);
           var label = a.label(content, body, 0, -14, 362, bodyH - 20, 20, UI.text, Label.HorizontalAlign.LEFT);
-          label.useSystemFont = true;
-          label.fontFamily = 'sans-serif';
           label.isBold = false;
           label.lineHeight = 29;
           label.verticalAlign = Label.VerticalAlign.TOP;
@@ -42361,6 +42386,81 @@ System.register("chunks:///_virtual/FirebaseConfig.ts", ['cc'], function (export
   };
 });
 
+System.register("chunks:///_virtual/FontUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './UIFontCatalog.ts', './UITheme.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, cclegacy, Label, UI_FONTS, UI;
+  return {
+    setters: [function (module) {
+      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+      Label = module.Label;
+    }, function (module) {
+      UI_FONTS = module.UI_FONTS;
+    }, function (module) {
+      UI = module.UI;
+    }],
+    execute: function () {
+      cclegacy._RF.push({}, "ad6f2sUcKZByrOEuLWMvNt8", "FontUI", undefined);
+
+      /** Device-only appearance controls; switching never writes account progress. */
+      var FontUI = exports('FontUI', /*#__PURE__*/function () {
+        function FontUI(a) {
+          this.a = a;
+        }
+        var _proto = FontUI.prototype;
+        _proto.render = function render(parent) {
+          var _this = this;
+          var a = this.a,
+            ko = a.game.s.locale === 'ko',
+            current = UI_FONTS.find(function (f) {
+              return f.id === a.ui.fontId;
+            });
+          a.label(parent, ko ? '전체 화면 폰트' : 'Font for every screen', 0, 44, 368, 28, 19, UI.text).node.name = 'font-selector-title';
+          UI_FONTS.forEach(function (font, i) {
+            var selected = a.ui.fontId === font.id;
+            a.button(parent, ko ? font.ko : font.en, -124 + i * 124, 0, 116, 44, function () {
+              return _this.select(font.id, parent);
+            }, selected, {
+              category: 'settings',
+              style: selected ? 'selected' : 'secondary',
+              fontSize: 14,
+              unavailable: function unavailable() {
+                return a.ui.fonts.has(font.id) ? null : _this.unavailable();
+              }
+            }).name = 'font-select-' + font.id;
+            if (selected) a.rect(parent, -124 + i * 124, -18, 92, 3, UI.gold).name = 'font-selected-' + font.id;
+          });
+          a.label(parent, (ko ? current.ko : current.en) + ' · 가나다 ABC 0123456789', 0, -41, 366, 30, 16, UI.muted).node.name = 'font-sample';
+        };
+        _proto.unavailable = function unavailable() {
+          return this.a.game.s.locale === 'ko' ? '진묘체 원본과 게임·웹 내장 사용권이 필요합니다.' : 'JinMyo requires its original font and game/web embedding rights.';
+        };
+        _proto.select = function select(id, controls) {
+          var a = this.a,
+            error = a.ui.selectFont(id);
+          if (error) {
+            a.toast(error === 'storage' ? a.tr('error.storage') : this.unavailable(), 'blocked');
+            return false;
+          }
+          a.hideToast();
+          for (var _iterator = _createForOfIteratorHelperLoose(a.root.getComponentsInChildren(Label)), _step; !(_step = _iterator()).done;) {
+            var label = _step.value;
+            a.ui.applyFont(label);
+            label.updateRenderData(true);
+          }
+          if (controls) {
+            a.clear(controls);
+            this.render(controls);
+          }
+          return true;
+        };
+        return FontUI;
+      }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
 System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Squad.ts', './SquadName.ts', './DroneEffects.ts', './DroneFleet.ts', './AllyPlacement.ts', './Mercenaries.ts', './Balance.ts', './BattleFormation.ts', './Amount.ts', './Expansion.ts', './Config.ts', './MercenaryUnlock.ts', './EntryPolicy.ts'], function (exports) {
   var _extends, _createForOfIteratorHelperLoose, _objectWithoutPropertiesLoose, _createClass, cclegacy, SQUAD_LIMIT, equipmentKey, validEquipmentKey, formationMultiplier, squadBonuses, collectionBonuses, squadNameError, activeDroneEffects, DRONE_SLOTS, droneSlots, equippedDrones, validBattlePosition, attackSeconds, attackWindup, BALANCE_VERSION, PREVIOUS_BALANCE_VERSION, troopWaves, TROOP_BALANCE, troopHP, gemstoneBonus, routedBonus, troopGold, ARTIFACT_DISCOVERY_COSTS, waveSize, previousBossWaveSize, enemyHPShare, ZERO, amount, mul, add, sub, newExpansion, Expansion, HEROES, CONFIG, SPELLS, SKILLS, mercenaryUnlocked, migrateTutorial, tutorialComplete;
   return {
@@ -44171,8 +44271,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
   };
 });
 
-System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './ScrollPositionUI.ts', './DroneFleetUI.ts', './BossEntranceUI.ts', './SkillCatalog.ts', './SkillUI.ts', './ExplorationUI.ts', './SkillTrainingUI.ts', './EquipmentUI.ts', './EquipmentDetailUI.ts', './Enemies.ts', './env', './EnemyArtBounds.ts', './RewardClaimUI.ts', './SquadUI.ts', './MercenaryUnlock.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './DroneFeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, ScrollPositionUI, DroneFleetUI, BossEntranceUI, tacticIcon, tacticHelp, tacticManager, tacticDetail, explorationEntry, explorationBoard, skillTree, skillDetail, equipmentDropButton, equipmentListRow, updateEquipmentDropButton, equipmentDetail, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, RewardClaimUI, SquadUI, mercenaryUnlocked, mercenaryLock, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, DroneFeedbackUI, Game, display, ZERO, ratio, add, fmt, SKILLS, SPELLS, HEROES, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, GooglePlayBilling, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
+System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './FontUI.ts', './ScrollPositionUI.ts', './DroneFleetUI.ts', './BossEntranceUI.ts', './SkillCatalog.ts', './SkillUI.ts', './ExplorationUI.ts', './SkillTrainingUI.ts', './EquipmentUI.ts', './EquipmentDetailUI.ts', './Enemies.ts', './env', './EnemyArtBounds.ts', './RewardClaimUI.ts', './SquadUI.ts', './MercenaryUnlock.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './DroneFeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
+  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, FontUI, ScrollPositionUI, DroneFleetUI, BossEntranceUI, tacticIcon, tacticHelp, tacticManager, tacticDetail, explorationEntry, explorationBoard, skillTree, skillDetail, equipmentDropButton, equipmentListRow, updateEquipmentDropButton, equipmentDetail, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, RewardClaimUI, SquadUI, mercenaryUnlocked, mercenaryLock, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, DroneFeedbackUI, Game, display, ZERO, ratio, add, fmt, SKILLS, SPELLS, HEROES, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, GooglePlayBilling, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
@@ -44213,6 +44313,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       sys = module.sys;
       Component = module.Component;
       profiler = module.profiler;
+    }, function (module) {
+      FontUI = module.FontUI;
     }, function (module) {
       ScrollPositionUI = module.ScrollPositionUI;
     }, function (module) {
@@ -44467,6 +44569,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return (_this$operations2 = _this.operations) == null ? void 0 : _this$operations2.report('promise', event.reason);
           };
           _this.cheats = new CheatUI(_assertThisInitialized(_this));
+          _this.fonts = new FontUI(_assertThisInitialized(_this));
           _this.worldKey = -1;
           _this.enemyKinds = new WeakMap();
           _this.enemySlots = new WeakMap();
@@ -44646,14 +44749,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             l = n.addComponent(Label);
           // Font assignment updates Cocos text immediately; constrain it before changing the font.
           l.overflow = Label.Overflow.SHRINK;
-          l.useSystemFont = true;
-          l.fontFamily = 'Arial, sans-serif';
-          l.isBold = true;
-          // Keep the display face for the large title; compact UI needs clear counters and Hangul.
-          if (size >= 36 && this.ui.font) {
-            l.font = this.ui.font;
-            l.useSystemFont = false;
-          }
+          l.isBold = false;
+          this.ui.applyFont(l);
           l.fontSize = Math.max(14, size);
           l.lineHeight = Math.round(Math.max(14, size) * 1.25);
           l.color = this.color(this.ui.textColor(parent, color));
@@ -44749,6 +44846,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           };
           var label = this.label(n, iconOnly ? '' : text === this.tr('action.claim') ? this.tr('action.claimReady') : text, icon && !iconOnly && !stacked ? 17 : 0, stacked ? -13 : 0, w - (icon && !iconOnly && !stacked ? 60 : 20), stacked ? 23 : h - 10, stacked ? 14 : options.fontSize || 18, ink);
           label.node.name = 'button-label';
+          label.enableWrapText = stacked || /\s/.test(label.string.trim());
           var edge = this.nodeAt(n, 'button-outline', 0, 0, w, h).addComponent(Graphics);
           var marker = this.nodeAt(n, 'button-category', 0, 0, w, h).addComponent(Graphics);
           var outlineState = function outlineState(blocked, completed) {
@@ -44789,7 +44887,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             if (last === signature) return;
             last = signature;
             paint(blocked, completed);
-            if (!iconOnly) label.string = next;
+            if (!iconOnly) {
+              label.string = next;
+              label.enableWrapText = stacked || /\s/.test(next.trim());
+            }
             var color = completed ? C.text : blocked ? '#c2c5cc' : ink;
             label.color = _this2.color(color);
             outlineState(blocked, completed);
@@ -45415,10 +45516,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               layer.setScale(scale, scale, 1);
             }
           }
-          var support = partyBattlefieldLayout(this.folded, this.heightExtra, this.safeBottom, this.safeTop, this.game.equippedDrones().length > 1 ? 120 : 0);
-          var allyScale = support.scale / scale;
-          this.allies.setPosition(-128 * (1 - allyScale), (support.y - y) / scale, 0);
-          this.allies.setScale(allyScale, allyScale, 1);
+          this.allies.setPosition(0, 0, 0);
+          this.allies.setScale(1, 1, 1);
           (_this$combatMotion = this.combatMotion) == null || _this$combatMotion.projectCaptain(this.actor, 1);
           this.placement.projectAll();
           // Fit hostile ranks in the whole available field without moving the party.
@@ -51264,18 +51363,6 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './SkillText.ts', './Discha
         'drone.proc.2': 'Squad +{percent}%',
         'drone.procCount': ' · ×{count}'
       });
-      Object.assign(translations.ko, {
-        'drone.proc.0': '코인 +{percent}%',
-        'drone.proc.1': '대장 피해 +{percent}%',
-        'drone.proc.2': '용병 피해 +{percent}%',
-        'drone.procCount': ' · {count}회'
-      });
-      Object.assign(translations.en, {
-        'drone.proc.0': 'Coins +{percent}%',
-        'drone.proc.1': 'Captain +{percent}%',
-        'drone.proc.2': 'Squad +{percent}%',
-        'drone.procCount': ' · ×{count}'
-      });
       applySkillText(translations);
       Object.assign(translations.ko, {
         'bossIntro.alert': '보스 등장!',
@@ -51381,6 +51468,19 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './SkillText.ts', './Discha
         'error.captainLevel': 'Your first mercenary unlocks at Captain level 10.',
         'tutorial.captainUnlock': 'Use + to train your Captain to Lv.{level}.\nCurrent Lv.{current} · Unlock Rhea!',
         'tutorial.fundsCaptain': 'Shoot enemies for coins, then upgrade.\nCaptain Lv.{current} / {level} · Unlock Rhea'
+      });
+      Object.assign(translations.ko, {
+        'drone.fleet.procSingle.0': '코인 +{percent}%',
+        'drone.fleet.procSingle.1': '대장 +{percent}%',
+        'drone.fleet.procSingle.2': '용병 +{percent}%'
+      });
+      Object.assign(translations.en, {
+        'drone.fleet.procSingle.0': 'Coin +{percent}%',
+        'drone.fleet.procSingle.1': 'Cmdr +{percent}%',
+        'drone.fleet.procSingle.2': 'Squad +{percent}%',
+        'drone.fleet.proc.0': 'Coin +{percent}%\n×{count}',
+        'drone.fleet.proc.1': 'Cmdr +{percent}%\n×{count}',
+        'drone.fleet.proc.2': 'Squad +{percent}%\n×{count}'
       });
       cclegacy._RF.pop();
     }
@@ -51954,9 +52054,9 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossEntranceUI.ts', './BossTimerUI.ts', './BrandSplashUI.ts', './CheatUI.ts', './CombatMotion.ts', './DischargeIcon.ts', './DroneFeedbackUI.ts', './DroneFleetUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentDetailUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MercenaryDetailUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardArtUI.ts', './RewardClaimUI.ts', './RewardContentsUI.ts', './RewardGlowUI.ts', './ScrollPositionUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillIconArt.ts', './SkillTrainingUI.ts', './SkillUI.ts', './SpeechIllustrationUI.ts', './SquadUI.ts', './TacticDetailUI.ts', './TitleUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './BossEntrance.ts', './BrandSplash.ts', './Config.ts', './Dialogue.ts', './DischargeText.ts', './DroneEffects.ts', './DroneFleet.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MercenaryUnlock.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './SkillCatalog.ts', './SkillText.ts', './SpeechArtBounds.ts', './Squad.ts', './SquadName.ts', './TitleArtBounds.ts', './TitleCast.ts', './firebase-sdk.js'], function () {
+System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossEntranceUI.ts', './BossTimerUI.ts', './BrandSplashUI.ts', './CheatUI.ts', './CombatMotion.ts', './DischargeIcon.ts', './DroneFeedbackUI.ts', './DroneFleetUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentDetailUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './FontUI.ts', './GameApp.ts', './LiveOpsUI.ts', './MercenaryDetailUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardArtUI.ts', './RewardClaimUI.ts', './RewardContentsUI.ts', './RewardGlowUI.ts', './ScrollPositionUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillIconArt.ts', './SkillTrainingUI.ts', './SkillUI.ts', './SpeechIllustrationUI.ts', './SquadUI.ts', './TacticDetailUI.ts', './TitleUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './BossEntrance.ts', './BrandSplash.ts', './Config.ts', './Dialogue.ts', './DischargeText.ts', './DroneEffects.ts', './DroneFleet.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MercenaryUnlock.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './SkillCatalog.ts', './SkillText.ts', './SpeechArtBounds.ts', './Squad.ts', './SquadName.ts', './TitleArtBounds.ts', './TitleCast.ts', './UIFontCatalog.ts', './firebase-sdk.js'], function () {
   return {
-    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     execute: function () {}
   };
 });
@@ -60905,16 +61005,59 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
   };
 });
 
-System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SkillIconArt.ts', './DischargeIcon.ts', './Enemies.ts', './EnemyArtBounds.ts', './Mercenaries.ts', './AreaTransition.ts', './MotionBounds.ts', './ShopTheme.ts', './EnemyHitFeedback.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, Color, resources, Texture2D, SpriteFrame, Graphics, UITransform, Node, Mask, Sprite, Vec3, Font, drawSkillIcon, drawDischargeIcon, ENEMY_TYPES, BOSS_TYPES, ENEMY_ALPHA_BOUNDS, MERCENARY_COUNT, AREA_TRANSITION_ART, MOTION_FRAMES, SHOP_ICONS, enemyHitOffset;
+System.register("chunks:///_virtual/UIFontCatalog.ts", ['cc'], function (exports) {
+  var cclegacy;
   return {
     setters: [function (module) {
+      cclegacy = module.cclegacy;
+    }],
+    execute: function () {
+      exports('uiFontId', uiFontId);
+      cclegacy._RF.push({}, "48b58p6fINLyKmg/0v0Yejc", "UIFontCatalog", undefined);
+      var UI_FONT_KEY = exports('UI_FONT_KEY', 'outrun-military-ui-font-v1');
+      var UI_FONTS = exports('UI_FONTS', [{
+        id: 'rix',
+        resource: 'ui/fonts/RixYeoljeongdo-Regular',
+        ko: 'Rix 열정도',
+        en: 'Rix',
+        bundled: true
+      }, {
+        id: 'bitbit',
+        resource: 'ui/fonts/DNFBitBitv2',
+        ko: '비트비트 v2',
+        en: 'BitBit v2',
+        bundled: true
+      },
+      // Enable only after the original font and game/web embedding rights are supplied.
+      {
+        id: 'jinmyo',
+        resource: 'ui/fonts/TiumJinMyo',
+        ko: '진묘체',
+        en: 'JinMyo',
+        bundled: false
+      }]);
+      function uiFontId(value) {
+        return UI_FONTS.some(function (f) {
+          return f.id === value;
+        }) ? value : 'rix';
+      }
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SkillIconArt.ts', './DischargeIcon.ts', './Enemies.ts', './EnemyArtBounds.ts', './Mercenaries.ts', './AreaTransition.ts', './MotionBounds.ts', './ShopTheme.ts', './UIFontCatalog.ts', './EnemyHitFeedback.ts'], function (exports) {
+  var _createClass, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, Color, sys, resources, Texture2D, SpriteFrame, Graphics, UITransform, Node, Mask, Sprite, Vec3, Font, drawSkillIcon, drawDischargeIcon, ENEMY_TYPES, BOSS_TYPES, ENEMY_ALPHA_BOUNDS, MERCENARY_COUNT, AREA_TRANSITION_ART, MOTION_FRAMES, SHOP_ICONS, UI_FONT_KEY, uiFontId, UI_FONTS, enemyHitOffset;
+  return {
+    setters: [function (module) {
+      _createClass = module.createClass;
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
       _asyncToGenerator = module.asyncToGenerator;
       _regeneratorRuntime = module.regeneratorRuntime;
     }, function (module) {
       cclegacy = module.cclegacy;
       Color = module.Color;
+      sys = module.sys;
       resources = module.resources;
       Texture2D = module.Texture2D;
       SpriteFrame = module.SpriteFrame;
@@ -60942,6 +61085,10 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
       MOTION_FRAMES = module.MOTION_FRAMES;
     }, function (module) {
       SHOP_ICONS = module.SHOP_ICONS;
+    }, function (module) {
+      UI_FONT_KEY = module.UI_FONT_KEY;
+      uiFontId = module.uiFontId;
+      UI_FONTS = module.UI_FONTS;
     }, function (module) {
       enemyHitOffset = module.enemyHitOffset;
     }],
@@ -61139,12 +61286,30 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
       var UITheme = exports('UITheme', /*#__PURE__*/function () {
         function UITheme() {
           this.contours = new WeakMap();
-          this.font = null;
+          this.fonts = new Map();
+          this.fontId = 'rix';
           this.frames = new Map();
           this.frameContent = new WeakMap();
           this.missing = [];
+          try {
+            this.fontId = uiFontId(sys.localStorage.getItem(UI_FONT_KEY));
+          } catch (_unused) {}
         }
         var _proto = UITheme.prototype;
+        _proto.selectFont = function selectFont(id) {
+          if (!this.fonts.has(id)) return 'missing';
+          try {
+            sys.localStorage.setItem(UI_FONT_KEY, id);
+          } catch (_unused2) {
+            return 'storage';
+          }
+          this.fontId = id;
+          return null;
+        };
+        _proto.applyFont = function applyFont(label) {
+          label.font = this.font;
+          label.useSystemFont = !this.font;
+        };
         _proto.load = /*#__PURE__*/function () {
           var _load = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
             var _this = this;
@@ -61153,12 +61318,16 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
               while (1) switch (_context.prev = _context.next) {
                 case 0:
                   _context.next = 2;
-                  return Promise.all([new Promise(function (resolve) {
-                    return resources.load('ui/fonts/RixYeoljeongdo-Regular', Font, function (error, font) {
-                      if (error) _this.missing.push('RixYeoljeongdo-Regular');else _this.font = font;
-                      resolve();
+                  return Promise.all([].concat(UI_FONTS.filter(function (f) {
+                    return f.bundled;
+                  }).map(function (f) {
+                    return new Promise(function (resolve) {
+                      return resources.load(f.resource, Font, function (error, font) {
+                        if (error) _this.missing.push(f.id);else _this.fonts.set(f.id, font);
+                        resolve();
+                      });
                     });
-                  })].concat(['panel', 'teal', 'orange', 'neutral'].map(function (key) {
+                  }), ['panel', 'teal', 'orange', 'neutral'].map(function (key) {
                     return _this.loadFrame("skins/" + key, 2);
                   }), UI_ICONS.map(function (key) {
                     return _this.loadFrame("icons/" + key);
@@ -61178,6 +61347,7 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
                     return _this.loadFrame("popup/" + key, 2);
                   }), [this.loadFrame('branding', 0, true, 'branding')]));
                 case 2:
+                  if (!this.fonts.has(this.fontId)) this.fontId = 'rix';
                   militaryActors = {
                     guardian: 'riflewoman',
                     rowen: 'sniper',
@@ -61196,7 +61366,7 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
                     'shade-wolf': 'drone',
                     fairy: 'drone'
                   };
-                  _context.next = 5;
+                  _context.next = 6;
                   return Promise.all([].concat(Object.entries(militaryActors).map(function (_ref) {
                     var key = _ref[0],
                       source = _ref[1];
@@ -61240,13 +61410,13 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
                   }), UI_FACES.map(function (key, i) {
                     return _this.loadFrame('faces/' + key, 0, false, i < 4 ? 'military/faces/' + [0, 1, 2, 0][i] : 'military/icons/' + i % UI_ICONS.length);
                   })));
-                case 5:
-                  _context.next = 7;
+                case 6:
+                  _context.next = 8;
                   return Promise.all(['ember-fox', 'stone-hawk', 'shade-wolf', 'fairy'].map(function (key) {
                     return _this.loadFrame('actors/' + key, 0, false, 'military/icons/4');
                   }));
-                case 7:
-                  _context.next = 9;
+                case 8:
+                  _context.next = 10;
                   return Promise.all([this.loadFrame('icons/coin', 0, false, 'military/currency/coin'), this.loadFrame('faces/gems', 0, false, 'military/currency/diamond'), this.loadFrame('equipment/rifle', 0, false, 'military/icons/1'), this.loadFrame('equipment/vest', 0, false, 'military/icons/3'), this.loadFrame('equipment/radio', 0, false, 'military/icons/10')].concat(MILITARY_UI_ART.map(function (key) {
                     return _this.loadFrame('interface/' + key, 0, false, 'military/interface/' + key);
                   }), SHOP_ICONS.map(function (key) {
@@ -61262,9 +61432,9 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
                   }, function (_, i) {
                     return _this.loadFrame('drones/' + i, 0, false, 'military/drones/' + i);
                   })));
-                case 9:
-                  if (this.missing.length) console.warn('[UIArt] Missing assets:', this.missing.join(', '));
                 case 10:
+                  if (this.missing.length) console.warn('[UIArt] Missing assets:', this.missing.join(', '));
+                case 11:
                 case "end":
                   return _context.stop();
               }
@@ -61762,6 +61932,12 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
         _proto.resize = function resize(node, w, h) {
           node.getComponent(UITransform).setContentSize(w, h);
         };
+        _createClass(UITheme, [{
+          key: "font",
+          get: function get() {
+            return this.fonts.get(this.fontId) || this.fonts.get('rix') || null;
+          }
+        }]);
         return UITheme;
       }());
       cclegacy._RF.pop();
