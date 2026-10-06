@@ -1,5 +1,18 @@
 [
   {
+    "buildVersion": "0.1.18",
+    "tag": "preview-0.1.18",
+    "sourceCommit": "b9af30bb4b1af949fc8f74d3a148d86d0467e696",
+    "version": "0.1.18",
+    "policyVersion": "0.1.0",
+    "publishedAt": "2026-10-06T13:47:11.560Z",
+    "previousCommit": "cc16e14261bd6bbc1d8692be43bb57c4fbf2c7f7",
+    "notes": [
+      "드론 보급 보상 수령 후 창이 남던 문제를 수정했습니다. 기본·2배 수령, 취소·상단 닫기·ESC가 보상 창을 종료하고 목록을 갱신합니다. 비동기 처리 중 닫아도 중복 보상이나 반복 복귀를 만들지 않습니다.",
+      "알 조립을 드론 보급으로 바꾸고 받을 드론의 실제 이름과 기본 Lv.+1·2배 Lv.+2, 미보유 획득·직접 편성·다음 보급까지 4시간을 한영으로 안내합니다. 기존 획득·레벨·광고 검증·저장 규칙은 유지합니다."
+    ]
+  },
+  {
     "buildVersion": "0.1.17",
     "tag": "preview-0.1.17",
     "sourceCommit": "9a8dec5bb077e77d607698a42e37df7f0c7d95ae",
