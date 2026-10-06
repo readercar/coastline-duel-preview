@@ -1036,8 +1036,8 @@ System.register("chunks:///_virtual/BossEntrance.ts", ['./rollupPluginModLoBabel
   };
 });
 
-System.register("chunks:///_virtual/BossEntranceUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './BossEntrance.ts', './EntryPolicy.ts', './Dialogue.ts', './Enemies.ts', './Mercenaries.ts', './UITheme.ts'], function (exports) {
-  var _createClass, cclegacy, UITransform, Vec3, isValid, Sprite, tween, UIOpacity, Node, bossEntrancePending, bossEntranceSteps, bossEntranceCursor, BOSS_ENTRANCE, tutorialComplete, DialogueDeck, enemyType, mercenaryArt, UI;
+System.register("chunks:///_virtual/BossEntranceUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SpeechIllustrationUI.ts', './BossEntrance.ts', './EntryPolicy.ts', './Dialogue.ts', './Enemies.ts', './UITheme.ts'], function (exports) {
+  var _createClass, cclegacy, UITransform, Vec3, isValid, Sprite, tween, UIOpacity, Node, speechIllustration, bossEntrancePending, bossEntranceSteps, bossEntranceCursor, BOSS_ENTRANCE, tutorialComplete, DialogueDeck, enemyType, UI;
   return {
     setters: [function (module) {
       _createClass = module.createClass;
@@ -1051,6 +1051,8 @@ System.register("chunks:///_virtual/BossEntranceUI.ts", ['./rollupPluginModLoBab
       UIOpacity = module.UIOpacity;
       Node = module.Node;
     }, function (module) {
+      speechIllustration = module.speechIllustration;
+    }, function (module) {
       bossEntrancePending = module.bossEntrancePending;
       bossEntranceSteps = module.bossEntranceSteps;
       bossEntranceCursor = module.bossEntranceCursor;
@@ -1061,8 +1063,6 @@ System.register("chunks:///_virtual/BossEntranceUI.ts", ['./rollupPluginModLoBab
       DialogueDeck = module.DialogueDeck;
     }, function (module) {
       enemyType = module.enemyType;
-    }, function (module) {
-      mercenaryArt = module.mercenaryArt;
     }, function (module) {
       UI = module.UI;
     }],
@@ -1220,8 +1220,7 @@ System.register("chunks:///_virtual/BossEntranceUI.ts", ['./rollupPluginModLoBab
               a.ui.surface(card, i === this.cursor ? '#365a59' : '#253a40', 'cut');
               card.addComponent(UIOpacity).opacity = i === this.cursor ? 255 : 205;
               a.ui.surface(a.nodeAt(card, 'voice-stripe', left ? -181 : 181, 0, 6, pitch - 28), i === this.cursor ? UI.gold : UI.mint, 'cut');
-              var face = a.nodeAt(card, 'boss-response-portrait', left ? -143 : 143, 0, 65, 76);
-              a.ui.icon(face, speaker.id < 0 ? 'face:guardian' : 'face:merc-' + mercenaryArt(speaker.id));
+              speechIllustration(a, card, 'boss-response-portrait', speaker.id, left ? -137 : 137, 0, 92, pitch - 18);
               a.label(card, a.tr(speaker.id < 0 ? 'master.title' : 'hero.' + speaker.id), left ? 37 : -37, (pitch - 10) / 2 - 20, 232, 25, 18, UI.gold).node.name = 'boss-response-speaker';
               a.label(card, a.tr(this.lines[i]), left ? 37 : -37, -13, 232, pitch - 47, 18, UI.text).node.name = 'boss-response-line';
               if (i === this.cursor && a.game.s.extra.effects) {
@@ -2402,6 +2401,108 @@ System.register("chunks:///_virtual/Dialogue.ts", ['./rollupPluginModLoBabelHelp
         };
         return DialogueDirector;
       }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/DischargeIcon.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc'], function (exports) {
+  var _createForOfIteratorHelperLoose, cclegacy, UITransform, Graphics, Color;
+  return {
+    setters: [function (module) {
+      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+      UITransform = module.UITransform;
+      Graphics = module.Graphics;
+      Color = module.Color;
+    }],
+    execute: function () {
+      exports('drawDischargeIcon', drawDischargeIcon);
+      cclegacy._RF.push({}, "a88b8vooTJH8INgz1UCQotl", "DischargeIcon", undefined);
+
+      /** Pixel discharge papers, a service star, and an outward arrow. */
+      function drawDischargeIcon(node, ink) {
+        var t = node.getComponent(UITransform),
+          u = Math.min(t.width, t.height) / 24,
+          g = node.addComponent(Graphics);
+        var color = new Color();
+        Color.fromHEX(color, ink);
+        g.fillColor = color;
+        var rect = function rect(x, y, w, h) {
+          g.rect((x - 12) * u, (12 - y - h) * u, w * u, h * u);
+          g.fill();
+        };
+        // Cut-corner document outline, with space for the exit arrow on its right.
+        rect(3, 2, 9, 2);
+        rect(1, 4, 2, 17);
+        rect(3, 21, 11, 2);
+        rect(14, 6, 2, 4);
+        rect(14, 18, 2, 3);
+        rect(12, 4, 2, 2);
+        rect(5, 6, 5, 1);
+        rect(5, 8, 7, 1);
+        // The completed service star is kept distinct from an upgrade arrow.
+        for (var _iterator = _createForOfIteratorHelperLoose(['00100', '01110', '11111', '01110', '11011'].entries()), _step; !(_step = _iterator()).done;) {
+          var _step$value = _step.value,
+            y = _step$value[0],
+            row = _step$value[1];
+          for (var x = 0; x < row.length; x++) if (row[x] === '1') rect(5 + x, 12 + y, 1, 1);
+        }
+        rect(5, 19, 6, 1);
+        rect(12, 12, 8, 3);
+        rect(19, 9, 2, 9);
+        rect(21, 11, 2, 5);
+        rect(23, 13, 1, 1);
+        node.dischargeIcon = true;
+        return true;
+      }
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/DischargeText.ts", ['cc'], function (exports) {
+  var cclegacy;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+    }],
+    execute: function () {
+      exports('applyDischargeText', applyDischargeText);
+      cclegacy._RF.push({}, "be015JYXOJJJIRokGQcuteA", "DischargeText", undefined);
+      /** Prestige presentation only. Saved prestige/redeploy IDs and all rules stay unchanged. */
+      function applyDischargeText(t) {
+        var _loop = function _loop() {
+          var locale = _arr[_i];
+          for (var _i2 = 0, _Object$keys = Object.keys(t[locale]); _i2 < _Object$keys.length; _i2++) {
+            var key = _Object$keys[_i2];
+            if (/^(consent\.|ops\.privacy|ops\.terms)/.test(key)) continue;
+            t[locale][key] = t[locale][key].split(/(\{[^}]+\})/g).map(function (part) {
+              if (part.startsWith('{')) return part;
+              if (locale === 'ko') return part.replace(/재배치는/g, '전역은').replace(/재배치가/g, '전역이').replace(/재배치를/g, '전역을').replace(/재배치로/g, '전역으로').replace(/재배치와/g, '전역과').replace(/재배치|환생/g, '전역');
+              return part.replace(/\bRedeployments?\b/g, 'Discharge').replace(/\bredeployments?\b/g, 'discharge').replace(/\bRedeploys\b/g, 'Discharges').replace(/\bredeploys\b/g, 'discharges').replace(/\bRedeploy\b/g, 'Discharge').replace(/\bredeploy\b/g, 'discharge').replace(/\bRebirths\b/g, 'Discharges').replace(/\brebirths\b/g, 'discharges').replace(/\bRebirth\b/g, 'Discharge').replace(/\brebirth\b/g, 'discharge').replace(/\bPrestige\b/g, 'Discharge').replace(/\bprestige\b/g, 'discharge');
+            }).join('');
+          }
+        };
+        for (var _i = 0, _arr = ['ko', 'en']; _i < _arr.length; _i++) {
+          _loop();
+        }
+        Object.assign(t.ko, {
+          'master.prestige': '전역',
+          'prestige.title': '전역',
+          'prestige.locked': '현재 구역 60에서 전역 해금',
+          'prestige.done': '전역 완료. 새 작전을 시작합니다.',
+          'ui.help.discharge': '전역증 · 출구 화살표\n현재 전투 성장을 새로 시작하고 작전 포인트를 받습니다.\n현재 구역 60부터 가능하며 실행 전 초기화·유지 항목을 확인하세요.'
+        });
+        Object.assign(t.en, {
+          'master.prestige': 'Discharge',
+          'prestige.title': 'Discharge',
+          'prestige.locked': 'Discharge unlocks at current sector 60',
+          'prestige.done': 'Discharge complete. A new operation begins.',
+          'ui.help.discharge': 'Discharge papers · Exit arrow\nRestart current combat growth and receive Intel Points.\nAvailable at current sector 60. Review the reset and retained progress before confirming.'
+        });
+      }
       cclegacy._RF.pop();
     }
   };
@@ -7703,7 +7804,7 @@ System.register("chunks:///_virtual/FeatureLessons.ts", ['cc'], function (export
         id: 'redeploy',
         title: 'prestige.title',
         stage: 60,
-        icon: 'rebirth'
+        icon: 'symbol:discharge'
       }, {
         id: 'tactics',
         title: 'spell.title',
@@ -8198,8 +8299,8 @@ System.register("chunks:///_virtual/Feedback.ts", ['./rollupPluginModLoBabelHelp
   };
 });
 
-System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './EquipmentUI.ts', './Feedback.ts', './UITheme.ts', './Mercenaries.ts', './Config.ts', './Amount.ts', './Dialogue.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _extends, _createClass, cclegacy, BlockInputEvents, Node, isValid, UITransform, Sprite, tween, Vec3, Label, Graphics, Mask, UIOpacity, equipmentReward, feedbackSnapshot, feedbackDiff, GrowthFeedbackQueue, UI, mercenaryArt, attackSeconds, PETS, ARTIFACTS, CARDS, HEROES, display, DIALOGUE_CONTEXTS, DialogueDeck, DialogueDirector;
+System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SpeechIllustrationUI.ts', './EquipmentUI.ts', './RewardArtUI.ts', './Feedback.ts', './UITheme.ts', './Mercenaries.ts', './Config.ts', './Amount.ts', './Dialogue.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _extends, _createClass, cclegacy, BlockInputEvents, Node, isValid, UITransform, tween, Vec3, Label, Graphics, Mask, UIOpacity, speechIllustration, equipmentReward, rewardBackground, feedbackSnapshot, feedbackDiff, GrowthFeedbackQueue, UI, attackSeconds, mercenaryArt, PETS, ARTIFACTS, CARDS, HEROES, display, DIALOGUE_CONTEXTS, DialogueDeck, DialogueDirector;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -8211,7 +8312,6 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
       Node = module.Node;
       isValid = module.isValid;
       UITransform = module.UITransform;
-      Sprite = module.Sprite;
       tween = module.tween;
       Vec3 = module.Vec3;
       Label = module.Label;
@@ -8219,7 +8319,11 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
       Mask = module.Mask;
       UIOpacity = module.UIOpacity;
     }, function (module) {
+      speechIllustration = module.speechIllustration;
+    }, function (module) {
       equipmentReward = module.equipmentReward;
+    }, function (module) {
+      rewardBackground = module.rewardBackground;
     }, function (module) {
       feedbackSnapshot = module.feedbackSnapshot;
       feedbackDiff = module.feedbackDiff;
@@ -8227,8 +8331,8 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
     }, function (module) {
       UI = module.UI;
     }, function (module) {
-      mercenaryArt = module.mercenaryArt;
       attackSeconds = module.attackSeconds;
+      mercenaryArt = module.mercenaryArt;
     }, function (module) {
       PETS = module.PETS;
       ARTIFACTS = module.ARTIFACTS;
@@ -8258,6 +8362,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           this.chatter = [];
           this.chatterClock = 0;
           this.chatterRun = null;
+          this.chatterHeight = 82;
           this.deckReaction = null;
           this.recruits = [];
           this.recruitRun = null;
@@ -8307,8 +8412,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
         };
         _proto.squadReaction = function squadReaction(speaker, deployed) {
           var _a$modal,
-            _this2 = this,
-            _illustration$getComp;
+            _this2 = this;
           var a = this.a,
             panel = (_a$modal = a.modal) == null ? void 0 : _a$modal.getChildByName('modal-panel');
           if (!panel) return;
@@ -8357,13 +8461,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           a.ui.surface(n, UI.bg, 'cut');
           n.addComponent(BlockInputEvents);
           a.ui.surface(a.nodeAt(n, 'reaction-art-background', -97, -15, 172, 250), UI.raised, 'cut');
-          var illustration = a.nodeAt(n, 'reaction-illustration', -97, -15, 166, 238);
-          a.ui.paint(illustration, 'cutin/' + mercenaryArt(speaker));
-          var size = (_illustration$getComp = illustration.getComponent(Sprite)) == null || (_illustration$getComp = _illustration$getComp.spriteFrame) == null ? void 0 : _illustration$getComp.originalSize;
-          if (size && size.width > 0 && size.height > 0) {
-            var scale = Math.min(166 / size.width, 238 / size.height);
-            a.ui.resize(illustration, size.width * scale, size.height * scale);
-          }
+          speechIllustration(a, n, 'reaction-illustration', speaker, -97, -15, 166, 238, true);
           a.label(n, a.tr('hero.' + speaker), 87, 109, 178, 48, 22, UI.text).node.name = 'reaction-speaker';
           a.label(n, a.tr(deployed ? 'squad.deploy' : 'squad.remove'), 87, 72, 178, 26, 16, deployed ? UI.mint : UI.gold).node.name = 'reaction-action';
           var bubble = this.comic(n, 87, -30, 178, 154);
@@ -8431,11 +8529,12 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
             }
           }
           // Keep each lane and expiry when the menu, language or screen ratio redraws.
-          var pitch = Math.min(134, Math.max(94, (top - bottom - 82) / Math.max(1, capacity - 1)));
+          this.chatterHeight = Math.min(90, (top - compactBottom - 10 * (capacity - 1)) / capacity);
+          var pitch = Math.min(134, Math.max(this.chatterHeight + 10, (top - bottom - this.chatterHeight) / Math.max(1, capacity - 1)));
           for (var _iterator5 = _createForOfIteratorHelperLoose(this.chatter), _step5; !(_step5 = _iterator5()).done;) {
             var _entry = _step5.value;
             if (!_entry.node || !isValid(_entry.node, true) || _entry.node.parent !== a.root) this.showChatter(_entry);
-            _entry.node.setPosition(122 + [0, -8, 2][_entry.slot], top - 41 - _entry.slot * pitch, 0);
+            _entry.node.setPosition(116 + [0, -8, 2][_entry.slot], top - this.chatterHeight / 2 - _entry.slot * pitch, 0);
             _entry.node.getChildByName('dialogue-speaker').getComponent(Label).string = a.tr(_entry.cue.speaker < 0 ? 'master.title' : 'hero.' + _entry.cue.speaker);
             _entry.node.getChildByName('dialogue-line').getComponent(Label).string = a.tr(_entry.line);
           }
@@ -8444,13 +8543,13 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           var _this3 = this;
           var a = this.a,
             cue = entry.cue,
-            n = a.nodeAt(a.root, 'squad-dialogue', 0, 0, 200, 82);
+            h = this.chatterHeight,
+            n = a.nodeAt(a.root, 'squad-dialogue', 0, 0, 210, h);
           entry.node = n;
-          this.comic(n, 0, 0, 200, 82);
-          var portrait = a.nodeAt(n, 'dialogue-portrait', -77, 21, 28, 30);
-          a.ui.icon(portrait, cue.speaker < 0 ? 'face:guardian' : 'face:merc-' + mercenaryArt(cue.speaker));
-          a.label(n, a.tr(cue.speaker < 0 ? 'master.title' : 'hero.' + cue.speaker), 15, 23, 142, 22, 15, UI.ink).node.name = 'dialogue-speaker';
-          a.label(n, a.tr(entry.line), 0, -14, 174, 44, 15, UI.ink).node.name = 'dialogue-line';
+          this.comic(n, 0, 0, 210, h);
+          speechIllustration(a, n, 'dialogue-portrait', cue.speaker, -70, 0, 64, h - 4);
+          a.label(n, a.tr(cue.speaker < 0 ? 'master.title' : 'hero.' + cue.speaker), 34, h / 2 - 16, 132, 22, 15, UI.ink).node.name = 'dialogue-speaker';
+          a.label(n, a.tr(entry.line), 34, -10, 132, h - 36, 15, UI.ink).node.name = 'dialogue-line';
           this.dismissOnTap(n, function () {
             if (entry.node !== n) return;
             _this3.removeChatter(entry);
@@ -8632,13 +8731,17 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
               tint: UI.gold
             };
           });
-          var h = Math.min(620, Math.max(340, 198 + rows.reduce(function (sum, row) {
+          var h = Math.min(680, Math.max(500, 240 + rows.reduce(function (sum, row) {
               return sum + (row.height || 77);
             }, 0)), a.designH - 100),
             panel = a.nodeAt(layer, 'modal-panel', 0, 0, 414, h);
           a.ui.surface(panel, UI.bg, 'panel');
+          rewardBackground(a, panel, 32);
+          a.rect(panel, 0, h / 2 - 47, 384, 62, UI.bg, undefined, 220);
           a.label(panel, a.tr('feedback.received'), 0, h / 2 - 47, 370, 55, 30, UI.gold);
-          a.scroll(panel, 0, 6, 382, h - 190, rows);
+          var listTop = h * .08 - 12,
+            listBottom = -h / 2 + 87;
+          a.scroll(panel, 0, (listTop + listBottom) / 2, 382, listTop - listBottom, rows);
           a.button(panel, a.tr('action.confirm'), 0, -h / 2 + 49, 320, 50, function () {
             a.hideTooltip();
             layer.removeFromParent();
@@ -8709,8 +8812,9 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           a.label(panel, a.tr(recruited ? 'merc.joinedName' : 'merc.ready', {
             name: a.tr('hero.' + id)
           }), 0, h / 2 - 67, 380, 34, 21, UI.text);
-          var illustration = a.nodeAt(panel, 'mercenary-illustration', 0, 30, 320, h - 236);
-          a.ui.paint(illustration, 'cutin/' + mercenaryArt(id));
+          var artTop = h / 2 - 98,
+            artBottom = -h / 2 + (preview ? 232 : 184);
+          var illustration = speechIllustration(a, panel, 'mercenary-illustration', id, 0, (artTop + artBottom) / 2, 376, artTop - artBottom, true).image;
           if (preview) {
             var playing = false,
               clock = 0;
@@ -8835,20 +8939,17 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
             return;
           }
           // Stay just below the top HUD, near the center but biased toward the enemy side.
-          var n = a.nodeAt(a.root, 'growth-feedback', 66, a.designH / 2 - 257 - a.safeTop, 280, 106);
+          var n = a.nodeAt(a.root, 'growth-feedback', 42, a.designH / 2 - 277 - a.safeTop, 340, 140);
           this.banner = n;
           this.dismissBanner(n);
-          a.ui.surface(a.nodeAt(n, 'growth-header', 0, 0, 280, 106), UI.bg, 'slant');
+          a.ui.surface(a.nodeAt(n, 'growth-header', 0, 0, 340, 140), UI.bg, 'slant');
           var first = diff.growth[0],
             soldier = first != null && first.key.startsWith('hero.') ? Number(first.key.slice(5)) : -1;
-          var portrait = a.nodeAt(n, 'portrait-plate', -110, 8, 42, 52);
-          a.ui.surface(portrait, UI.gold, 'cut');
-          var profile = a.nodeAt(n, 'growth-portrait', -110, 8, 40, 48);
-          a.ui.icon(profile, soldier >= 0 ? 'face:merc-' + mercenaryArt(soldier) : 'face:guardian');
+          var profile = speechIllustration(a, n, 'growth-portrait', soldier, -109, 0, 112, 134).clip;
           a.label(n, first ? a.tr('merc.level', {
             before: first.args.before,
             after: first.args.after
-          }) : a.tr('feedback.power'), 26, 32, 206, 22, 16, UI.gold);
+          }) : a.tr('feedback.power'), 61, 46, 212, 26, 16, UI.gold);
           var stats = diff.tap || diff.dps;
           var before = stats ? a.format(stats[0]) : '',
             after = stats ? a.format(stats[1]) : '';
@@ -8858,7 +8959,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
             before: before,
             after: after
           }) : a.tr('feedback.improved');
-          a.label(n, changed, 26, 10, 206, 20, 12, UI.text);
+          a.label(n, changed, 61, 21, 212, 22, 14, UI.text);
           var context = soldier >= 0 && Number(first == null || (_first$args = first.args) == null ? void 0 : _first$args.before) === 0 ? 'recruit' : 'growth';
           // Rebuilding the same visible cue keeps its original line and expiry.
           var line = this.growthLines.get(diff);
@@ -8866,11 +8967,11 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
             line = this.dialogue.next(soldier, context);
             this.growthLines.set(diff, line);
           }
-          a.label(n, a.tr(line), 26, -24, 206, 40, 15, UI.text).node.name = 'growth-dialogue';
+          a.label(n, a.tr(line), 61, -23, 212, 62, 17, UI.text).node.name = 'growth-dialogue';
           if (!this.announcedGrowth.has(diff)) {
             this.announcedGrowth.add(diff);
             if (a.game.s.extra.effects) {
-              this.particles(profile, 'growth', 40, 48);
+              this.particles(profile, 'growth', 112, 134);
               n.setScale(.88, .88, 1);
               tween(n).to(.18, {
                 scale: new Vec3(1, 1, 1)
@@ -8887,23 +8988,22 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
               return item.id === e.id;
             });
           if (!item) return;
-          var n = a.nodeAt(a.root, 'equipment-feedback', 45, a.designH / 2 - 260 - a.safeTop, 330, 132);
+          var n = a.nodeAt(a.root, 'equipment-feedback', 40, a.designH / 2 - 285 - a.safeTop, 360, 150);
           this.banner = n;
           this.dismissBanner(n);
-          a.ui.surface(a.nodeAt(n, 'equipment-header', 0, 0, 330, 132), UI.bg, 'slant');
-          var profile = a.nodeAt(n, 'equipment-speaker', -136, 11, 40, 48);
-          a.ui.face(profile, 'guardian');
-          a.ui.icon(a.nodeAt(n, 'equipment-icon', 142, 42, 26, 26), ['equipment:rifle', 'equipment:helmet', 'equipment:vest', 'equipment:radio', 'equipment:rank'][e.slot]);
+          a.ui.surface(a.nodeAt(n, 'equipment-header', 0, 0, 360, 150), UI.bg, 'slant');
+          var profile = speechIllustration(a, n, 'equipment-speaker', -1, -125, 0, 100, 144).clip;
+          a.ui.icon(a.nodeAt(n, 'equipment-icon', 154, 53, 26, 26), ['equipment:rifle', 'equipment:helmet', 'equipment:vest', 'equipment:radio', 'equipment:rank'][e.slot]);
           a.label(n, a.tr(e.changed ? 'equipment.speechEquipped' : 'equipment.speechInfo', {
             name: a.itemName(item)
-          }), 9, 43, 230, 25, 16, UI.gold).node.name = 'equipment-speech-title';
-          a.label(n, a.tr('equipment.dialogue.' + e.slot), 20, 10, 246, 40, 16, UI.text).node.name = 'equipment-dialogue';
+          }), 31, 53, 190, 28, 16, UI.gold).node.name = 'equipment-speech-title';
+          a.label(n, a.tr('equipment.dialogue.' + e.slot), 50, 13, 234, 54, 17, UI.text).node.name = 'equipment-dialogue';
           var gain = (e.power / e.previousPower - 1) * 100;
           a.label(n, a.tr('equipment.speechEffect', {
             power: e.power.toFixed(2)
           }) + (e.changed ? '\n' + a.tr('equipment.speechChange', {
             gain: (gain >= 0 ? '+' : '') + gain.toFixed(1)
-          }) : ''), 20, -39, 246, 40, 13, UI.muted).node.name = 'equipment-speech-effect';
+          }) : ''), 50, -48, 234, 46, 14, UI.muted).node.name = 'equipment-speech-effect';
           if (e.changed && a.game.s.extra.effects) {
             this.particles(profile, 'growth', 40, 48);
             n.setScale(.94, .94, 1);
@@ -45683,6 +45783,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var n = this.nodeAt(parent, 'item-art', x, y, 44, 44);
           this.ui.surface(n, this.ui.inPopup(parent) ? C.panel : C.paper, 'cut');
           var icon = this.nodeAt(n, 'glyph', 0, 0, 34, 34);
+          if (art === 'symbol:discharge') {
+            this.ui.icon(icon, art, this.ui.inPopup(parent) ? C.text : C.ink);
+            return;
+          }
           if (art != null && art.startsWith('face:') ? this.ui.face(icon, art.slice(5)) : this.ui.icon(icon, art || ['sword', 'heart', 'scroll', 'chest', 'egg', 'trophy', 'rebirth', 'lightning'][id % 8])) return;
           var g = icon.addComponent(Graphics);
           g.fillColor = this.color(color);
@@ -45755,15 +45859,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               this.polygon(this.panel, -6, 62, 468, 26, [[-.5, -.5], [.48, -.5], [.5, .5], [-.5, .5]], C.paperMuted);
               this.label(this.panel, this.tr('master.prestige'), -103, 62, 242, 24, 15, C.ink, Label.HorizontalAlign.LEFT);
               this.ui.surface(this.nodeAt(this.panel, 'prestige-card', 0, 13, 464, 78), C.paper, 'cut');
-              this.glyph(this.panel, -201, 13, 1, C.blue, 'rebirth');
+              this.glyph(this.panel, -201, 13, 1, C.blue, 'symbol:discharge');
               this.metric(this.panel, 'flag', '60', -106, 13, 110, this.tr('prestige.locked'));
               this.metric(this.panel, 'scroll', this.format(g.prestigeReward()), 11, 13, 116, this.tr('prestige.desc'));
-              this.button(this.panel, r.stage >= 60 ? this.tr('intel.redeployButton', {
-                reward: this.format(g.prestigeReward())
-              }) : this.tr('intel.redeployLocked'), 164, 13, 135, 60, function () {
+              this.button(this.panel, this.tr('prestige.title'), 159, 13, 145, 60, function () {
                 return _this24.prestige();
               }, r.stage >= 60, {
-                fontSize: 17,
+                icon: 'symbol:discharge',
+                fontSize: 15,
                 hint: this.tr('prestige.title'),
                 unavailable: function unavailable() {
                   return _this24.game.s.run.stage < 60 ? _this24.tr('prestige.locked') : null;
@@ -46292,6 +46395,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               _this29.drawPanel();
               _this29.toast(_this29.tr('prestige.done'));
             } else _this29.flushNotice();
+          }, {
+            icon: 'symbol:discharge'
           });
         };
         _proto.equipItem = function equipItem(id) {
@@ -46558,6 +46663,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                 return _this34.rewardReason(_this34.tr("daily." + i), _this34.game.dailyProgress(i), _this34.game.dailyGoal(i), _this34.game.s.claims.includes("daily." + i));
               },
               icon: i,
+              art: i === 3 ? 'symbol:discharge' : undefined,
               tint: C.mint,
               action: _this34.tr('action.claim'),
               click: function click() {
@@ -47597,6 +47703,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                 return _this57.rewardReason(_this57.tr("achievement." + i), _this57.game.achievementProgress(i), _this57.game.achievementGoal(i));
               },
               icon: i,
+              art: i === 3 ? 'symbol:discharge' : undefined,
               tint: C.gold,
               action: _this57.tr('action.claim'),
               click: function click() {
@@ -48055,13 +48162,15 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
   };
 });
 
-System.register("chunks:///_virtual/I18n.ts", ['cc', './SkillText.ts', './Enemies.ts', './FeatureLessons.ts', './Squad.ts', './Mercenaries.ts', './Dialogue.ts', './MilitaryTheme.ts'], function (exports) {
-  var cclegacy, applySkillText, applyEnemyText, applyLessonText, applySquadText, applyMercenaryText, applyDialogueText, applyMilitaryTheme;
+System.register("chunks:///_virtual/I18n.ts", ['cc', './SkillText.ts', './DischargeText.ts', './Enemies.ts', './FeatureLessons.ts', './Squad.ts', './Mercenaries.ts', './Dialogue.ts', './MilitaryTheme.ts'], function (exports) {
+  var cclegacy, applySkillText, applyDischargeText, applyEnemyText, applyLessonText, applySquadText, applyMercenaryText, applyDialogueText, applyMilitaryTheme;
   return {
     setters: [function (module) {
       cclegacy = module.cclegacy;
     }, function (module) {
       applySkillText = module.applySkillText;
+    }, function (module) {
+      applyDischargeText = module.applyDischargeText;
     }, function (module) {
       applyEnemyText = module.applyEnemyText;
     }, function (module) {
@@ -50571,6 +50680,7 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './SkillText.ts', './Enemie
         'bossIntro.next': 'Tap for next step',
         'bossIntro.fight': 'Tap to begin battle'
       });
+      applyDischargeText(translations);
       cclegacy._RF.pop();
     }
   };
@@ -51143,9 +51253,9 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossEntranceUI.ts', './BossTimerUI.ts', './BrandSplashUI.ts', './CheatUI.ts', './CombatMotion.ts', './DroneFeedbackUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MercenaryDetailUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardClaimUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillIconArt.ts', './SkillTrainingUI.ts', './SkillUI.ts', './SquadUI.ts', './TitleUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './BossEntrance.ts', './BrandSplash.ts', './Config.ts', './Dialogue.ts', './DroneEffects.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './SkillCatalog.ts', './SkillText.ts', './Squad.ts', './SquadName.ts', './TitleArtBounds.ts', './TitleCast.ts', './firebase-sdk.js'], function () {
+System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossEntranceUI.ts', './BossTimerUI.ts', './BrandSplashUI.ts', './CheatUI.ts', './CombatMotion.ts', './DischargeIcon.ts', './DroneFeedbackUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MercenaryDetailUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardArtUI.ts', './RewardClaimUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillIconArt.ts', './SkillTrainingUI.ts', './SkillUI.ts', './SpeechIllustrationUI.ts', './SquadUI.ts', './TacticDetailUI.ts', './TitleUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './BossEntrance.ts', './BrandSplash.ts', './Config.ts', './Dialogue.ts', './DischargeText.ts', './DroneEffects.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './SkillCatalog.ts', './SkillText.ts', './SpeechArtBounds.ts', './Squad.ts', './SquadName.ts', './TitleArtBounds.ts', './TitleCast.ts', './firebase-sdk.js'], function () {
   return {
-    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     execute: function () {}
   };
 });
@@ -54988,6 +55098,61 @@ System.register("chunks:///_virtual/ReferenceRules.ts", ['cc'], function (export
   };
 });
 
+System.register("chunks:///_virtual/RewardArtUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc'], function (exports) {
+  var _createForOfIteratorHelperLoose, cclegacy, UITransform, Graphics;
+  return {
+    setters: [function (module) {
+      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+      UITransform = module.UITransform;
+      Graphics = module.Graphics;
+    }],
+    execute: function () {
+      exports('rewardBackground', rewardBackground);
+      cclegacy._RF.push({}, "393a932i8lIV6BX8DfEcu4w", "RewardArtUI", undefined);
+      /** The approved character scene is only used on reward panels, behind flat controls. */
+      function rewardBackground(a, panel, headerOffset) {
+        if (headerOffset === void 0) {
+          headerOffset = 0;
+        }
+        if (!a.ui.artSurface(panel, 'reward-celebration', undefined, false)) return;
+        var clip = panel.getChildByName('ui-art'),
+          image = clip.getChildByName('downloaded-pixel-surface');
+        clip.name = 'reward-character-background';
+        image.name = 'reward-character-scene';
+        var _contentSize = panel.getComponent(UITransform).contentSize,
+          width = _contentSize.width,
+          height = _contentSize.height,
+          frame = a.ui.frames.get('interface/reward-celebration');
+        // Fit the original ratio; anchor the quiet title band at the top of the panel.
+        var scale = Math.min(width / frame.width, height / frame.height);
+        a.ui.resize(image, frame.width * scale, frame.height * scale);
+        image.setPosition(0, height / 2 - frame.height * scale / 2 - headerOffset);
+        var points = a.ui.contours.get(panel);
+        if (!points) return;
+        var edge = a.nodeAt(panel, 'reward-art-border', 0, 0, width, height).addComponent(Graphics);
+        edge.lineWidth = 1.5;
+        edge.strokeColor = a.color('#a6a782');
+        var contour = points.map(function (_ref) {
+          var x = _ref[0],
+            y = _ref[1];
+          return [x * (width - 2) / width, y * (height - 2) / height];
+        });
+        edge.moveTo(contour[0][0], contour[0][1]);
+        for (var _iterator = _createForOfIteratorHelperLoose(contour.slice(1)), _step; !(_step = _iterator()).done;) {
+          var point = _step.value;
+          edge.lineTo(point[0], point[1]);
+        }
+        edge.close();
+        edge.stroke();
+        edge.node.setSiblingIndex(2);
+      }
+      cclegacy._RF.pop();
+    }
+  };
+});
+
 System.register("chunks:///_virtual/RewardClaims.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Game.ts', './Amount.ts', './Config.ts'], function (exports) {
   var _extends, _createForOfIteratorHelperLoose, cclegacy, Game, sub, ZERO, add, CONFIG;
   return {
@@ -55126,8 +55291,8 @@ System.register("chunks:///_virtual/RewardClaims.ts", ['./rollupPluginModLoBabel
   };
 });
 
-System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './RewardClaims.ts', './Amount.ts', './UITheme.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, rewardDelta, rewardAvailable, previewReward, REWARD_CURRENCIES, REWARD_COLLECTIONS, display, mul, UI;
+System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './RewardArtUI.ts', './RewardClaims.ts', './Amount.ts', './UITheme.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, UITransform, rewardBackground, rewardDelta, rewardAvailable, previewReward, REWARD_CURRENCIES, REWARD_COLLECTIONS, display, mul, UI;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -55135,6 +55300,9 @@ System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabe
       _regeneratorRuntime = module.regeneratorRuntime;
     }, function (module) {
       cclegacy = module.cclegacy;
+      UITransform = module.UITransform;
+    }, function (module) {
+      rewardBackground = module.rewardBackground;
     }, function (module) {
       rewardDelta = module.rewardDelta;
       rewardAvailable = module.rewardAvailable;
@@ -55279,18 +55447,24 @@ System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabe
             name: o.title
           }), 680, true, 'teal', false, leave);
           p.name = 'reward-claim-panel';
-          a.label(p, a.tr(o.received ? 'reward.receivedInfo' : 'reward.chooseInfo'), 0, 206, 374, 52, 18, UI.text);
+          rewardBackground(a, p);
+          var h = p.getComponent(UITransform).height,
+            bottom = -h / 2,
+            cardHeight = Math.max(120, Math.min(180, h - 474)),
+            cardBottom = bottom + 225,
+            cardTop = cardBottom + cardHeight;
+          a.label(p, a.tr(o.received ? 'reward.receivedInfo' : 'reward.chooseInfo'), 0, cardTop + 20, 374, 34, 16, UI.text).node.name = 'reward-choice-instruction';
           var summaries = [];
           for (var _iterator4 = _createForOfIteratorHelperLoose([1, 2].entries()), _step4; !(_step4 = _iterator4()).done;) {
             var _step4$value = _step4.value,
               index = _step4$value[0],
               _multiplier = _step4$value[1];
-            var box = a.nodeAt(p, 'reward-option-' + _multiplier, index ? 98 : -98, 69, 184, 190);
+            var box = a.nodeAt(p, 'reward-option-' + _multiplier, index ? 98 : -98, cardBottom + cardHeight / 2, 184, cardHeight);
             a.ui.surface(box, '#252b24', 'cut');
-            a.label(box, a.tr(_multiplier === 1 ? 'reward.base' : 'reward.double'), 0, 70, 174, 30, 19, _multiplier === 1 ? UI.gold : '#8be8ff');
-            summaries.push(a.label(box, '', 0, -7, 170, 121, 16, UI.text));
+            a.label(box, a.tr(_multiplier === 1 ? 'reward.base' : 'reward.double'), 0, cardHeight / 2 - 22, 174, 28, 18, _multiplier === 1 ? UI.gold : '#8be8ff');
+            summaries.push(a.label(box, '', 0, -15, 170, cardHeight - 56, 16, UI.text));
           }
-          a.label(p, a.tr(a.payments.model.previewAds ? 'reward.previewInfo' : 'reward.adInfo'), 0, -70, 374, 65, 16, UI.muted);
+          a.label(p, a.tr(a.payments.model.previewAds ? 'reward.previewInfo' : 'reward.adInfo'), 0, bottom + 196, 374, 32, 14, UI.muted);
           var credit = a.payments.model.availableDouble(o.key) || null;
           var reason = function reason(fresh) {
             if (fresh === void 0) {
@@ -55460,13 +55634,13 @@ System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabe
               return _ref.apply(this, arguments);
             };
           }();
-          a.button(p, a.tr(o.received ? 'reward.continueBase' : 'reward.claimBase'), 0, -145, 374, 50, function () {
+          a.button(p, a.tr(o.received ? 'reward.continueBase' : 'reward.claimBase'), 0, bottom + 150, 374, 44, function () {
             return void receive(1);
           }, true, {
             category: 'confirm',
             unavailable: reason
           }).name = 'reward-claim-base';
-          a.button(p, a.tr(a.payments.model.previewAds ? 'reward.claimPreviewDouble' : 'reward.claimAdDouble'), 0, -208, 374, 60, function () {
+          a.button(p, a.tr(a.payments.model.previewAds ? 'reward.claimPreviewDouble' : 'reward.claimAdDouble'), 0, bottom + 91, 374, 52, function () {
             return void receive(2);
           }, true, {
             category: 'shop',
@@ -55475,7 +55649,7 @@ System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabe
               return a.tr(!a.payments.model.previewAds && credit ? 'reward.verifiedDouble' : a.payments.model.previewAds ? 'reward.claimPreviewDouble' : 'reward.claimAdDouble');
             }
           }).name = 'reward-claim-double';
-          a.button(p, a.tr('action.cancel'), 0, -274, 374, 44, leave, false, {
+          a.button(p, a.tr('action.cancel'), 0, bottom + 37, 374, 38, leave, false, {
             category: 'back'
           }).name = 'reward-claim-cancel';
           var refresh = function refresh() {
@@ -56772,12 +56946,14 @@ System.register("chunks:///_virtual/SkillTrainingUI.ts", ['cc', './Config.ts', '
   };
 });
 
-System.register("chunks:///_virtual/SkillUI.ts", ['cc', './Config.ts', './SkillCatalog.ts', './UITheme.ts'], function (exports) {
-  var cclegacy, Label, SPELLS, SKILLS, tacticEffect, tacticIcon, talentFactor, talentIcon, talentStat, UI;
+System.register("chunks:///_virtual/SkillUI.ts", ['cc', './TacticDetailUI.ts', './Config.ts', './SkillCatalog.ts', './UITheme.ts'], function (exports) {
+  var cclegacy, Label, tacticPresentation, SPELLS, SKILLS, tacticEffect, tacticIcon, talentFactor, talentIcon, talentStat, UI;
   return {
     setters: [function (module) {
       cclegacy = module.cclegacy;
       Label = module.Label;
+    }, function (module) {
+      tacticPresentation = module.tacticPresentation;
     }, function (module) {
       SPELLS = module.SPELLS;
       SKILLS = module.SKILLS;
@@ -56888,49 +57064,20 @@ System.register("chunks:///_virtual/SkillUI.ts", ['cc', './Config.ts', './SkillC
             return a.spells(slot);
           });
         p.name = 'tactic-detail-panel';
-        var tile = a.nodeAt(p, 'tactic-portrait', -126, 182, 82, 82);
-        a.ui.surface(tile, UI.panel, 'cut');
-        a.ui.icon(a.nodeAt(tile, 'tactic-art', 0, 0, 72, 72), tacticIcon(id));
-        a.iconHelp(tile, function () {
+        tacticPresentation(a, p, id, slot, function () {
+          return tacticDescription(a, id);
+        }, function () {
           return tacticHelp(a, id);
         });
-        a.label(p, a.tr('spell.' + id), 49, 206, 228, 28, 21, UI.text, Label.HorizontalAlign.LEFT);
-        a.label(p, tacticDescription(a, id), 49, 158, 228, 70, 16, UI.gold, Label.HorizontalAlign.LEFT).node.name = 'tactic-effect';
-        a.metric(p, 'symbol:up', 'Lv.' + r.spellLevels[id], -95, 91, 178, a.tr('tactic.levelHelp', {
-          level: r.spellLevels[id],
-          max: c.cap
-        }));
-        a.metric(p, 'symbol:canteen', String(g.spellMana(id)), 95, 91, 178, a.tr('spell.energyCost', {
-          cost: g.spellMana(id)
-        }));
-        a.metric(p, id === 0 ? 'symbol:damage' : 'symbol:clock', id === 0 ? a.tr('tactic.once') : c.duration + 's', -95, 43, 178, id === 0 ? a.tr('tactic.instant') : a.tr('tactic.durationHelp', {
-          seconds: c.duration
-        }));
-        a.metric(p, 'symbol:clock', c.cooldown + 's', 95, 43, 178, a.tr('tactic.cooldownHelp', {
-          seconds: c.cooldown
-        }));
-        a.label(p, id === 0 ? a.tr('tactic.instant') : tacticEffect(g, id).stacked ? a.tr('spell.multicast') : a.tr('tactic.fixedEffect'), 0, -17, 374, 60, 15, UI.muted);
-        var status = a.label(p, '', 0, -74, 374, 28, 15, UI.mint);
-        status.node.name = 'tactic-state';
-        a.modalRefresh = function () {
-          status.string = r.master < c.unlock ? a.tr('action.needLevel', {
-            level: c.unlock
-          }) : id !== 0 && r.spells[id] > 0 ? a.tr('tactic.active', {
-            seconds: Math.ceil(r.spells[id]),
-            stacks: r.stacks[id]
-          }) : r.cooldowns[id] > 0 ? a.tr('action.waitSeconds', {
-            seconds: Math.ceil(r.cooldowns[id])
-          }) : a.tr('tactic.ready');
-        };
-        a.modalRefresh();
-        a.button(p, a.tr(r.spellLevels[id] >= c.cap ? 'action.maxReached' : 'action.upgrade') + (r.spellLevels[id] >= c.cap ? '' : ' · ' + a.format(g.spellUpgradeCost(id))), 0, -139, 374, 48, function () {
+        var tile = p.getChildByName('tactic-portrait');
+        a.button(p, a.tr(r.spellLevels[id] >= c.cap ? 'action.maxReached' : 'action.upgrade') + (r.spellLevels[id] >= c.cap ? '' : ' · ' + a.format(g.spellUpgradeCost(id))), 0, -174, 374, 52, function () {
           if (g.upgradeSpell(id)) {
             a.drawPanel();
             a.spellDetail(id, slot);
           } else a.flushNotice();
         }, true, {
           category: 'upgrade',
-          icon: tacticIcon(id),
+          icon: 'symbol:plus',
           iconSize: 28,
           unavailable: function unavailable() {
             return r.spellLevels[id] >= c.cap ? a.tr('action.maxReached') : r.master < c.unlock ? a.tr('action.needLevel', {
@@ -56941,7 +57088,7 @@ System.register("chunks:///_virtual/SkillUI.ts", ['cc', './Config.ts', './SkillC
         var assigned = g.s.spellSlots.indexOf(id);
         a.button(p, a.tr(assigned === slot ? 'action.selected' : assigned >= 0 ? 'tactic.assigned' : 'action.select', {
           slot: assigned + 1
-        }), 0, -202, 374, 48, function () {
+        }), 0, -237, 374, 52, function () {
           if (assigned >= 0) {
             a.tooltip(tile, tacticHelp(a, id));
             return;
@@ -56960,15 +57107,16 @@ System.register("chunks:///_virtual/SkillUI.ts", ['cc', './Config.ts', './SkillC
           });
         }, true, {
           category: 'deck',
-          icon: tacticIcon(id),
-          iconSize: 28,
+          style: assigned >= 0 ? 'selected' : 'primary',
+          icon: assigned >= 0 ? 'symbol:check' : 'symbol:next',
+          iconSize: 26,
           unavailable: function unavailable() {
             return r.master < c.unlock ? a.tr('action.needLevel', {
               level: c.unlock
             }) : null;
           }
         }).name = 'tactic-select';
-        a.button(p, a.tr('action.back'), 0, -270, 374, 42, function () {
+        a.button(p, a.tr('action.back'), 0, -296, 374, 42, function () {
           return a.spells(slot);
         }, false, {
           category: 'back'
@@ -57040,6 +57188,75 @@ System.register("chunks:///_virtual/SkillUI.ts", ['cc', './Config.ts', './SkillC
         a.button(p, a.tr('action.back'), 0, -200, 374, 44, function () {
           return a.skills(false);
         }).name = 'skill-back';
+      }
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/SpeechArtBounds.ts", ['cc'], function (exports) {
+  var cclegacy;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+    }],
+    execute: function () {
+      cclegacy._RF.push({}, "c889ebLcMpBYZ/JmSp9HojS", "SpeechArtBounds", undefined);
+      // Alpha bounds of approved profile PNGs; source pixels remain unchanged.
+      var SPEECH_PROFILE_BOUNDS = exports('SPEECH_PROFILE_BOUNDS', [[7, 12, 125, 128], [3, 14, 125, 128], [3, 13, 125, 128], [3, 2, 125, 128], [3, 6, 125, 128], [3, 8, 125, 128], [3, 2, 125, 128], [3, 4, 125, 128], [3, 6, 125, 128], [3, 2, 125, 128], [3, 8, 125, 128], [3, 8, 125, 128], [3, 4, 125, 128], [3, 5, 125, 128], [3, 3, 107, 128], [3, 0, 125, 128], [13, 0, 125, 128], [3, 1, 125, 128], [3, 4, 125, 128], [3, 2, 125, 128], [3, 0, 125, 128], [3, 4, 125, 128], [3, 0, 125, 128], [3, 0, 125, 128], [3, 9, 125, 128], [5, 36, 125, 128], [3, 6, 125, 128], [3, 12, 125, 128], [3, 0, 119, 128], [3, 0, 125, 128]]);
+      var SPEECH_CAPTAIN_BOUNDS = exports('SPEECH_CAPTAIN_BOUNDS', [16, 24, 128, 108]);
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/SpeechIllustrationUI.ts", ['cc', './Mercenaries.ts', './TitleArtBounds.ts', './SpeechArtBounds.ts'], function (exports) {
+  var cclegacy, Mask, mercenaryArt, TITLE_CUTIN_BOUNDS, SPEECH_CAPTAIN_BOUNDS, SPEECH_PROFILE_BOUNDS;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+      Mask = module.Mask;
+    }, function (module) {
+      mercenaryArt = module.mercenaryArt;
+    }, function (module) {
+      TITLE_CUTIN_BOUNDS = module.TITLE_CUTIN_BOUNDS;
+    }, function (module) {
+      SPEECH_CAPTAIN_BOUNDS = module.SPEECH_CAPTAIN_BOUNDS;
+      SPEECH_PROFILE_BOUNDS = module.SPEECH_PROFILE_BOUNDS;
+    }],
+    execute: function () {
+      exports('speechIllustration', speechIllustration);
+      cclegacy._RF.push({}, "073d3K2p71OdL7BZwhJJsHC", "SpeechIllustrationUI", undefined);
+      /** Fill only the reserved illustration column. Keep the face/top visible and clip excess art. */
+      function speechIllustration(a, parent, name, speaker, x, y, w, h, cutin) {
+        if (cutin === void 0) {
+          cutin = false;
+        }
+        var id = speaker >= 0 ? mercenaryArt(speaker) : -1,
+          key = id < 0 ? 'faces/guardian' : cutin ? 'cutin/' + id : 'faces/merc-' + id;
+        var bounds = id < 0 ? SPEECH_CAPTAIN_BOUNDS : cutin ? TITLE_CUTIN_BOUNDS[id] : SPEECH_PROFILE_BOUNDS[id],
+          frame = a.ui.frames.get(key);
+        var clip = a.nodeAt(parent, name + '-clip', x, y, w, h),
+          mask = clip.addComponent(Mask);
+        mask.type = Mask.Type.GRAPHICS_STENCIL;
+        var g = mask.subComp;
+        g.clear();
+        g.rect(-w / 2, -h / 2, w, h);
+        g.fill();
+        var scale = Math.max(w / (bounds[2] - bounds[0]), h / (bounds[3] - bounds[1]));
+        var image = a.nodeAt(clip, name, (frame.width / 2 - (bounds[0] + bounds[2]) / 2) * scale, h / 2 - (frame.height / 2 - bounds[1]) * scale, frame.width * scale, frame.height * scale);
+        a.ui.paint(image, key);
+        clip.speechArt = {
+          key: key,
+          bounds: Array.from(bounds),
+          scale: scale,
+          width: w,
+          height: h
+        };
+        return {
+          clip: clip,
+          image: image
+        };
       }
       cclegacy._RF.pop();
     }
@@ -58078,6 +58295,138 @@ System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpe
         }]);
         return SquadUI;
       }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/TacticDetailUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Config.ts', './SkillCatalog.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, cclegacy, Label, SPELLS, tacticIcon, tacticEffect, TACTIC_COLORS;
+  return {
+    setters: [function (module) {
+      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+      Label = module.Label;
+    }, function (module) {
+      SPELLS = module.SPELLS;
+    }, function (module) {
+      tacticIcon = module.tacticIcon;
+      tacticEffect = module.tacticEffect;
+      TACTIC_COLORS = module.TACTIC_COLORS;
+    }],
+    execute: function () {
+      exports('tacticPresentation', tacticPresentation);
+      cclegacy._RF.push({}, "72a97lvGDdKhb+nn/lUSCWd", "TacticDetailUI", undefined);
+      var WORDS = {
+        ko: {
+          level: '레벨',
+          energy: '전술 에너지',
+          duration: '지속 시간',
+          cooldown: '재사용 대기'
+        },
+        en: {
+          level: 'LEVEL',
+          energy: 'ENERGY',
+          duration: 'DURATION',
+          cooldown: 'COOLDOWN'
+        }
+      };
+      function wash(a, tone) {
+        var c = a.color(tone);
+        return '#' + [c.r, c.g, c.b].map(function (v) {
+          return Math.round(v * .24 + 255 * .76).toString(16).padStart(2, '0');
+        }).join('');
+      }
+      function badge(a, p, kind, icon, value, x, y, hint, tone) {
+        var n = a.nodeAt(p, 'tactic-stat-' + kind, x, y, 178, 54);
+        a.ui.surface(n, wash(a, tone), 'cut', 255, true);
+        a.ui.icon(a.nodeAt(n, 'metric-icon', -65, 0, 24, 24), icon, '#26332b');
+        var label = a.label(n, WORDS[a.game.s.locale][kind], 17, 14, 128, 18, 12, '#4c5960');
+        label.fontSize = 11;
+        label.lineHeight = 14;
+        var number = a.label(n, value, 17, -9, 128, 29, 23, '#17241e');
+        number.enableWrapText = false;
+        number.node.name = 'tactic-stat-value';
+        a.touchAction(n, function () {
+          return a.tooltip(n, hint);
+        });
+        return n;
+      }
+      /** Display only: every effect, energy cost and timer comes from the implemented tactic. */
+      function tacticPresentation(a, p, id, slot, description, help) {
+        var g = a.game,
+          r = g.s.run,
+          c = SPELLS[id],
+          tone = TACTIC_COLORS[id],
+          assigned = g.s.spellSlots.indexOf(id);
+        var card = a.nodeAt(p, 'tactic-summary-card', 0, 171, 374, 152);
+        a.ui.surface(card, wash(a, tone), 'cut', 255, true);
+        a.rect(card, -178, 0, 4, 132, tone);
+        var tile = a.nodeAt(p, 'tactic-portrait', -132, 174, 86, 86);
+        a.ui.surface(tile, '#20292d', 'cut');
+        a.ui.icon(a.nodeAt(tile, 'tactic-art', 0, 0, 76, 76), tacticIcon(id));
+        a.iconHelp(tile, help);
+        a.label(p, a.tr('spell.' + id), 49, 204, 232, 32, 22, '#17241e', Label.HorizontalAlign.LEFT).node.name = 'tactic-name';
+        var effect = a.label(p, description(), 49, 150, 232, 65, 16, '#324c3e', Label.HorizontalAlign.LEFT);
+        effect.node.name = 'tactic-effect';
+        var tag = a.nodeAt(p, 'tactic-assignment', -132, 113, 96, 23);
+        a.ui.surface(tag, assigned >= 0 ? '#31594e' : '#4c5960', 'cut');
+        a.ui.icon(a.nodeAt(tag, 'assignment-icon', -33, 0, 14, 14), assigned >= 0 ? 'symbol:check' : 'symbol:next', '#eff5ee');
+        a.label(tag, assigned >= 0 ? 'SLOT ' + (assigned + 1) : '—', 9, 0, 70, 20, 12, '#eff5ee');
+        badge(a, p, 'level', 'symbol:up', 'LV ' + r.spellLevels[id] + ' / ' + c.cap, -95, 59, a.tr('tactic.levelHelp', {
+          level: r.spellLevels[id],
+          max: c.cap
+        }), '#94cf76');
+        badge(a, p, 'energy', 'symbol:canteen', String(g.spellMana(id)), 95, 59, a.tr('spell.energyCost', {
+          cost: g.spellMana(id)
+        }), '#79cbed');
+        badge(a, p, 'duration', id === 0 ? 'symbol:damage' : 'symbol:clock', id === 0 ? a.tr('tactic.once') : c.duration + 's', -95, -3, id === 0 ? a.tr('tactic.instant') : a.tr('tactic.durationHelp', {
+          seconds: c.duration
+        }), tone);
+        badge(a, p, 'cooldown', 'symbol:clock', c.cooldown + 's', 95, -3, a.tr('tactic.cooldownHelp', {
+          seconds: c.cooldown
+        }), '#c395ee');
+        var state = a.nodeAt(p, 'tactic-status-card', 0, -64, 374, 40);
+        a.ui.surface(state, '#26382e', 'cut');
+        var stateIcon = a.nodeAt(state, 'state-icon', -159, 0, 20, 20);
+        var status = a.label(state, '', 16, 0, 322, 34, 15, '#f4f5ef');
+        status.node.name = 'tactic-state';
+        var previous = '';
+        a.modalRefresh = function () {
+          var live = g.s.run,
+            locked = live.master < c.unlock,
+            active = id !== 0 && live.spells[id] > 0,
+            cooldown = live.cooldowns[id] > 0;
+          var text = locked ? a.tr('action.needLevel', {
+            level: c.unlock
+          }) : active ? a.tr('tactic.active', {
+            seconds: Math.ceil(live.spells[id]),
+            stacks: live.stacks[id]
+          }) : cooldown ? a.tr('action.waitSeconds', {
+            seconds: Math.ceil(live.cooldowns[id])
+          }) : a.tr('tactic.ready');
+          status.string = text;
+          effect.string = description();
+          var key = locked ? 'lock' : active ? 'symbol:play' : cooldown ? 'symbol:clock' : 'symbol:check';
+          if (previous === key) return;
+          previous = key;
+          for (var _iterator = _createForOfIteratorHelperLoose(stateIcon.children), _step; !(_step = _iterator()).done;) {
+            var child = _step.value;
+            child.removeFromParent();
+            child.destroy();
+          }
+          var glyph = a.nodeAt(stateIcon, 'state-glyph', 0, 0, 20, 20);
+          a.ui.icon(glyph, key, locked ? '#d0d2d1' : active ? tone : cooldown ? '#d8bff0' : '#a7d78c');
+        };
+        a.modalRefresh();
+        var note = a.nodeAt(p, 'tactic-effect-note', 0, -112, 374, 43);
+        a.ui.surface(note, '#252d28', 'cut');
+        var ko = a.game.s.locale === 'ko',
+          explanation = id === 0 ? a.tr('tactic.instant') : tacticEffect(g, id).stacked ? ko ? '대장 Lv.500부터 활성 전술을\n최대 3중첩까지 추가 발동할 수 있습니다.' : 'At captain Lv.500, active tactics\ncan be cast again up to 3 stacks.' : ko ? '현재 효과는 고정입니다.\n레벨·중첩으로 추가 증가하지 않습니다.' : 'This effect is fixed.\nLevels and stacks do not increase it.';
+        var text = a.label(note, explanation, 0, 0, 350, 39, 14, '#d0d7cc');
+        text.lineHeight = 18;
+      }
       cclegacy._RF.pop();
     }
   };
@@ -59618,8 +59967,8 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
   };
 });
 
-System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SkillIconArt.ts', './Enemies.ts', './EnemyArtBounds.ts', './Mercenaries.ts', './AreaTransition.ts', './MotionBounds.ts', './ShopTheme.ts', './EnemyHitFeedback.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, Color, resources, Texture2D, SpriteFrame, Graphics, UITransform, Node, Mask, Sprite, Vec3, Font, drawSkillIcon, ENEMY_TYPES, BOSS_TYPES, ENEMY_ALPHA_BOUNDS, MERCENARY_COUNT, AREA_TRANSITION_ART, MOTION_FRAMES, SHOP_ICONS, enemyHitOffset;
+System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SkillIconArt.ts', './DischargeIcon.ts', './Enemies.ts', './EnemyArtBounds.ts', './Mercenaries.ts', './AreaTransition.ts', './MotionBounds.ts', './ShopTheme.ts', './EnemyHitFeedback.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, Color, resources, Texture2D, SpriteFrame, Graphics, UITransform, Node, Mask, Sprite, Vec3, Font, drawSkillIcon, drawDischargeIcon, ENEMY_TYPES, BOSS_TYPES, ENEMY_ALPHA_BOUNDS, MERCENARY_COUNT, AREA_TRANSITION_ART, MOTION_FRAMES, SHOP_ICONS, enemyHitOffset;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -59640,6 +59989,8 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
       Font = module.Font;
     }, function (module) {
       drawSkillIcon = module.drawSkillIcon;
+    }, function (module) {
+      drawDischargeIcon = module.drawDischargeIcon;
     }, function (module) {
       ENEMY_TYPES = module.ENEMY_TYPES;
       BOSS_TYPES = module.BOSS_TYPES;
@@ -59721,6 +60072,7 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
         danger: ['action.sell', 'action.reset', 'action.revert', 'extra.delete', 'cheat.reset', 'artifact.salvage', 'equipment.bulk', 'online.leave', 'online.kick', 'ops.block', 'ops.report']
       });
       var ICON_HELP_KEYS = exports('ICON_HELP_KEYS', {
+        'symbol:discharge': 'ui.help.discharge',
         'symbol:up': 'ui.help.level',
         'symbol:plus': 'ui.help.upgrade',
         'symbol:damage': 'ui.help.damage',
@@ -59963,7 +60315,7 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
                     return _this.loadFrame('shop/' + key, 0, false, 'military/shop/' + key);
                   }), AREA_TRANSITION_ART.map(function (key) {
                     return _this.loadFrame('transition/' + key, 0, false, 'military/transition/' + key);
-                  }), [this.loadFrame('title/assembly-ground', 0, false, 'military/title/assembly-ground')], Array.from({
+                  }), [this.loadFrame('title/assembly-ground', 0, false, 'military/title/assembly-ground'), this.loadFrame('interface/reward-celebration', 0, false, 'military/rewards/celebration')], Array.from({
                     length: 18
                   }, function (_, i) {
                     return _this.loadFrame('icons/talent-' + i, 0, false, 'military/talents/' + i);
@@ -60373,6 +60725,7 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
           if (color === void 0) {
             color = UI.text;
           }
+          if (key === 'symbol:discharge') return drawDischargeIcon(node, color);
           if (key.startsWith('talent:') && this.frames.has('icons/talent-' + key.slice(7))) {
             node.skillIconKey = key;
             return this.paint(node, 'icons/talent-' + key.slice(7));
