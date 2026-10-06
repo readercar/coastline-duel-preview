@@ -1802,6 +1802,14 @@ System.register("chunks:///_virtual/Dialogue.ts", ['./rollupPluginModLoBabelHelp
         _proto2.recordAttack = function recordAttack(speaker) {
           this.attackers.add(speaker);
           this.lastAttack = this.time;
+        }
+        // A manual close consumes the current chatter; new battle events still speak normally.
+        ;
+
+        _proto2.dismiss = function dismiss() {
+          this.wasSpeaking = false;
+          this.attackers.clear();
+          this.lastAttack = this.time;
         };
         _proto2.step = function step(state, dt) {
           var _this = this;
@@ -7409,6 +7417,11 @@ System.register("chunks:///_virtual/Feedback.ts", ['./rollupPluginModLoBabelHelp
           if (this.run !== run) this.clear(run);
           this.pending = diff;
         };
+        _proto.dismiss = function dismiss(run, cue) {
+          if (this.run !== run || !cue || this.active !== cue) return false;
+          this.active = null;
+          return true;
+        };
         _proto.step = function step(run, now, blocked) {
           if (blocked === void 0) {
             blocked = false;
@@ -7445,7 +7458,7 @@ System.register("chunks:///_virtual/Feedback.ts", ['./rollupPluginModLoBabelHelp
 });
 
 System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './EquipmentUI.ts', './Feedback.ts', './UITheme.ts', './Mercenaries.ts', './Config.ts', './Amount.ts', './Dialogue.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _extends, _createClass, cclegacy, isValid, UITransform, BlockInputEvents, Sprite, Node, tween, Vec3, Graphics, Mask, UIOpacity, equipmentReward, feedbackSnapshot, feedbackDiff, GrowthFeedbackQueue, UI, mercenaryArt, attackSeconds, PETS, ARTIFACTS, CARDS, HEROES, display, DIALOGUE_CONTEXTS, DialogueDeck, DialogueDirector;
+  var _createForOfIteratorHelperLoose, _extends, _createClass, cclegacy, BlockInputEvents, Node, isValid, UITransform, Sprite, tween, Vec3, Graphics, Mask, UIOpacity, equipmentReward, feedbackSnapshot, feedbackDiff, GrowthFeedbackQueue, UI, mercenaryArt, attackSeconds, PETS, ARTIFACTS, CARDS, HEROES, display, DIALOGUE_CONTEXTS, DialogueDeck, DialogueDirector;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -7453,11 +7466,11 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
       _createClass = module.createClass;
     }, function (module) {
       cclegacy = module.cclegacy;
+      BlockInputEvents = module.BlockInputEvents;
+      Node = module.Node;
       isValid = module.isValid;
       UITransform = module.UITransform;
-      BlockInputEvents = module.BlockInputEvents;
       Sprite = module.Sprite;
-      Node = module.Node;
       tween = module.tween;
       Vec3 = module.Vec3;
       Graphics = module.Graphics;
@@ -7508,6 +7521,22 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           this.a = a;
         }
         var _proto = FeedbackUI.prototype;
+        _proto.dismissOnTap = function dismissOnTap(node, close) {
+          if (!node.getComponent(BlockInputEvents)) node.addComponent(BlockInputEvents);
+          node.on(Node.EventType.TOUCH_END, function (event) {
+            event.propagationStopped = true;
+            close();
+          });
+        };
+        _proto.dismissBanner = function dismissBanner(node) {
+          var _this = this;
+          this.dismissOnTap(node, function () {
+            if (_this.banner !== node) return;
+            _this.growthQueue.dismiss(_this.a.game.s.run, _this.displayedGrowth);
+            _this.clearBanner();
+            _this.displayedGrowth = null;
+          });
+        };
         _proto.combatHits = function combatHits(hits) {
           for (var _iterator = _createForOfIteratorHelperLoose(hits), _step; !(_step = _iterator()).done;) {
             var _hit$hero;
@@ -7525,7 +7554,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
         _proto.squadReaction = function squadReaction(speaker, deployed) {
           var _a$modal,
             _illustration$getComp,
-            _this = this;
+            _this2 = this;
           var a = this.a,
             panel = (_a$modal = a.modal) == null ? void 0 : _a$modal.getChildByName('modal-panel');
           if (!panel) return;
@@ -7557,12 +7586,12 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           a.label(n, a.tr(deployed ? 'squad.deploy' : 'squad.remove'), 87, 72, 178, 26, 16, deployed ? UI.mint : UI.gold).node.name = 'reaction-action';
           var bubble = this.comic(n, 87, -30, 178, 154);
           a.label(bubble, a.tr(this.dialogue.next(speaker, deployed ? 'deploy' : 'withdraw')), 0, 0, 146, 128, 17, UI.ink).node.name = 'reaction-line';
-          n.on(Node.EventType.TOUCH_END, function () {
+          this.dismissOnTap(n, function () {
             if (isValid(n, true)) {
               n.removeFromParent();
               n.destroy();
             }
-            if (_this.deckReaction === n) _this.deckReaction = null;
+            if (_this2.deckReaction === n) _this2.deckReaction = null;
           });
           if (a.game.s.extra.effects) {
             n.setScale(.96, .96, 1);
@@ -7575,11 +7604,11 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
               n.removeFromParent();
               n.destroy();
             }
-            if (_this.deckReaction === n) _this.deckReaction = null;
+            if (_this2.deckReaction === n) _this2.deckReaction = null;
           }, 2);
         };
         _proto.chatterTick = function chatterTick(dt) {
-          var _this2 = this;
+          var _this3 = this;
           var a = this.a,
             blocked = !a.entry.playing || a.zoneTransition.active || a.placement.dragging || !!a.modal || this.showing || !!(a.toastNode && isValid(a.toastNode, true)) || !!(a.tooltipNode && isValid(a.tooltipNode, true)) || !!(this.banner && isValid(this.banner, true)) || this.growthQueue.waiting || a.tutorial.active || a.tutorial.firstBoss || a.liveOps.blocked || !a.operations.ready || a.operations.busy || a.operations.conflict || a.remoteBusy || this.asyncPending > 0;
           if (blocked) this.clearChatter();
@@ -7603,6 +7632,11 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           name.node.name = 'dialogue-speaker';
           var line = a.label(n, a.tr(this.dialogue.next(cue.speaker, cue.context)), 0, -14, 188, 44, 15, UI.ink);
           line.node.name = 'dialogue-line';
+          this.dismissOnTap(n, function () {
+            if (_this3.chatter !== n) return;
+            _this3.director.dismiss();
+            _this3.clearChatter();
+          });
           if (a.game.s.extra.effects) {
             n.setScale(.96, .96, 1);
             tween(n).to(.12, {
@@ -7614,7 +7648,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
               n.removeFromParent();
               n.destroy();
             }
-            if (_this2.chatter === n) _this2.chatter = null;
+            if (_this3.chatter === n) _this3.chatter = null;
           }, 3.5);
         };
         _proto.areaTransition = function areaTransition() {
@@ -7636,7 +7670,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           }]);
         };
         _proto.finish = function finish(before, includeGold) {
-          var _this3 = this;
+          var _this4 = this;
           if (includeGold === void 0) {
             includeGold = true;
           }
@@ -7655,7 +7689,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           });
           if (rewards.length) {
             var toast = this.a.root.children.find(function (n) {
-              return n === _this3.a.toastNode;
+              return n === _this4.a.toastNode;
             });
             if (toast) {
               toast.destroy();
@@ -7679,12 +7713,12 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           if (rewards.length) {
             this.queue.push(rewards);
             this.a.scheduleOnce(function () {
-              return _this3.showNext();
+              return _this4.showNext();
             }, 0);
           }
         };
         _proto.tick = function tick() {
-          var _this4 = this;
+          var _this5 = this;
           this.tickGrowth();
           if (this.a.remoteBusy || this.asyncPending || this.a.operations.busy) return;
           var equipment = this.a.game.s.equipment;
@@ -7692,7 +7726,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
             return e.id;
           }));else {
             var found = equipment.filter(function (e) {
-              return !_this4.knownItems.has(e.id);
+              return !_this5.knownItems.has(e.id);
             });
             this.knownItems = new Set(equipment.map(function (e) {
               return e.id;
@@ -7743,7 +7777,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           return this.a.tr(e.key, args);
         };
         _proto.showNext = function showNext() {
-          var _this5 = this;
+          var _this6 = this;
           var a = this.a;
           if (this.overlay && isValid(this.overlay, true) || !this.queue.length || a.liveOps.blocked) return;
           var entries = this.queue.shift(),
@@ -7772,7 +7806,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
               };
             }
             return {
-              title: _this5.name(e),
+              title: _this6.name(e),
               metrics: [{
                 icon: e.icon,
                 value: '+' + (e.log ? a.format(e.value) : display(e.value))
@@ -7793,8 +7827,8 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
             a.hideTooltip();
             layer.removeFromParent();
             layer.destroy();
-            _this5.overlay = null;
-            _this5.showNext();
+            _this6.overlay = null;
+            _this6.showNext();
           }, true, {
             tone: UI.gold
           });
@@ -7806,7 +7840,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
               easing: 'backOut'
             }).start();
             var visit = function visit(n) {
-              if (n.name === 'item-art') _this5.particles(n, 'reward', 54, 54);else n.children.forEach(visit);
+              if (n.name === 'item-art') _this6.particles(n, 'reward', 54, 54);else n.children.forEach(visit);
             };
             visit(panel);
           }
@@ -7836,7 +7870,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           if (h && (a.game.s.tutorial.step >= 7 || h.id === 0 && a.game.s.tutorial.step >= 3)) this.showMercenary(h.id);
         };
         _proto.showMercenary = function showMercenary(id, preview, recruited) {
-          var _this6 = this;
+          var _this7 = this;
           if (preview === void 0) {
             preview = false;
           }
@@ -7888,23 +7922,8 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
               style: 'quiet'
             });
           }
-          var bubble = this.comic(panel, 0, -h / 2 + 139, 366, 68),
-            line = a.label(bubble, a.tr(this.dialogue.next(id, 'recruit')), 0, 1, 330, 62, 20, UI.ink);
-          line.node.name = 'mercenary-dialogue';
-          if (preview) {
-            var cursor = 1;
-            a.button(panel, a.tr('dialogue.next'), 88, -h / 2 + 205, 164, 34, function () {
-              line.string = a.tr(_this6.dialogue.next(id, DIALOGUE_CONTEXTS[cursor++ % DIALOGUE_CONTEXTS.length]));
-            }, false, {
-              fontSize: 13,
-              style: 'quiet'
-            });
-          }
-          a.label(panel, a.tr('merc.cadence', {
-            weapon: a.tr('merc.weapon.' + id),
-            seconds: attackSeconds(id)
-          }), 0, -h / 2 + 80, 380, 36, 15, UI.muted);
-          a.button(panel, a.tr('action.confirm'), 0, -h / 2 + 35, 290, 44, function () {
+          var dismiss = function dismiss() {
+            if (_this7.overlay !== layer || !isValid(layer, true)) return;
             if (!preview && !a.game.s.extra.mercenarySeen.includes(id)) {
               a.game.s.extra.mercenarySeen.push(id);
               a.game.revision++;
@@ -7915,8 +7934,26 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
             }
             layer.removeFromParent();
             layer.destroy();
-            _this6.overlay = null;
-          }, true, {
+            _this7.overlay = null;
+          };
+          var bubble = this.comic(panel, 0, -h / 2 + 139, 366, 68),
+            line = a.label(bubble, a.tr(this.dialogue.next(id, 'recruit')), 0, 1, 330, 62, 20, UI.ink);
+          line.node.name = 'mercenary-dialogue';
+          this.dismissOnTap(bubble, dismiss);
+          if (preview) {
+            var cursor = 1;
+            a.button(panel, a.tr('dialogue.next'), 88, -h / 2 + 205, 164, 34, function () {
+              line.string = a.tr(_this7.dialogue.next(id, DIALOGUE_CONTEXTS[cursor++ % DIALOGUE_CONTEXTS.length]));
+            }, false, {
+              fontSize: 13,
+              style: 'quiet'
+            });
+          }
+          a.label(panel, a.tr('merc.cadence', {
+            weapon: a.tr('merc.weapon.' + id),
+            seconds: attackSeconds(id)
+          }), 0, -h / 2 + 80, 380, 36, 15, UI.muted);
+          a.button(panel, a.tr('action.confirm'), 0, -h / 2 + 35, 290, 44, dismiss, true, {
             tone: UI.gold
           });
           if (a.game.s.extra.effects) {
@@ -7984,6 +8021,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           // Stay just below the top HUD, near the center but biased toward the enemy side.
           var n = a.nodeAt(a.root, 'growth-feedback', 66, a.designH / 2 - 257 - a.safeTop, 280, 106);
           this.banner = n;
+          this.dismissBanner(n);
           a.ui.surface(a.nodeAt(n, 'growth-header', 0, 0, 280, 106), UI.bg, 'slant');
           var first = diff.growth[0],
             soldier = first != null && first.key.startsWith('hero.') ? Number(first.key.slice(5)) : -1;
@@ -8035,6 +8073,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           if (!item) return;
           var n = a.nodeAt(a.root, 'equipment-feedback', 45, a.designH / 2 - 260 - a.safeTop, 330, 132);
           this.banner = n;
+          this.dismissBanner(n);
           a.ui.surface(a.nodeAt(n, 'equipment-header', 0, 0, 330, 132), UI.bg, 'slant');
           var profile = a.nodeAt(n, 'equipment-speaker', -136, 11, 40, 48);
           a.ui.face(profile, 'guardian');
@@ -8143,10 +8182,10 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           }, longest + .1);
         };
         _proto.chime = function chime() {
-          var _this7 = this;
+          var _this8 = this;
           [660, 880, 1100].forEach(function (hz, i) {
-            return _this7.a.scheduleOnce(function () {
-              return _this7.a.sound(hz);
+            return _this8.a.scheduleOnce(function () {
+              return _this8.a.sound(hz);
             }, i * .09);
           });
         };
