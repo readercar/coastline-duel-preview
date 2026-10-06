@@ -699,7 +699,9 @@ System.register("chunks:///_virtual/BattlePlacementUI.ts", ['./rollupPluginModLo
             g.lineTo(ALLY_RIGHT, y + 9);
           }
           g.stroke();
-          a.label(guide, a.tr('battle.dragGuide'), -123, guide.getComponent(UITransform).height / 2 - 25, 200, 42, 15, UI.gold).node.name = 'drag-hint';
+          var hint = a.rect(guide, 99, guide.getComponent(UITransform).height / 2 - 27, 240, 44, '#172025', undefined, 220);
+          hint.name = 'drag-hint';
+          a.label(hint, a.tr('battle.dragGuide'), 0, 0, 230, 40, 15, UI.gold);
           a.nodeAt(guide, 'drag-selected-frame', 0, 0, 100, 100).addComponent(Graphics);
           this.mark();
         };
@@ -802,6 +804,8 @@ System.register("chunks:///_virtual/BattleTransitionUI.ts", ['./rollupPluginModL
           a.placement.cancel();
           a.stopAutoFire();
           a.clearPendingShots();
+          a.hideTooltip();
+          a.feedback.areaTransition();
           this.make();
           this.paint();
           return true;
@@ -827,11 +831,14 @@ System.register("chunks:///_virtual/BattleTransitionUI.ts", ['./rollupPluginModL
         };
         _proto.make = function make() {
           var a = this.a,
-            field = battleField(a.folded, a.heightExtra, a.safeBottom, a.safeTop),
-            h = field.top - field.bottom;
+            field = battleField(a.folded, a.heightExtra, a.safeBottom, a.safeTop);
+          field.top = 424 + a.heightExtra - a.safeTop;
+          var h = field.top - field.bottom;
           var layer = this.layer = a.nodeAt(a.root, 'area-transition', 0, (field.top + field.bottom) / 2, 480, h);
           layer.addComponent(Mask);
           layer.addComponent(BlockInputEvents);
+          var hud = a.root.getChildByName('hud');
+          if (hud) hud.setSiblingIndex(a.root.children.length - 1);
           var w = 740,
             slab = this.slab = a.nodeAt(layer, 'area-wipe-image', 0, 0, w, h);
           a.ui.polygon(slab, [[-w / 2, -h / 2], [w / 2 - 70, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]], '#172025');
@@ -839,9 +846,11 @@ System.register("chunks:///_virtual/BattleTransitionUI.ts", ['./rollupPluginModL
           for (var i = 0; i < 7; i++) a.polygon(slab, -205 + i * 76, -h / 2 + 17, 44, 14, [[-.5, -.5], [.16, -.5], [.5, .5], [-.16, .5]], '#556343');
           for (var _i = 0; _i < 8; _i++) a.rect(slab, -290 + _i * 74, h / 2 - 21, 36, 3, '#738056');
           a.ui.icon(a.nodeAt(slab, 'area-flag', 0, 65, 42, 42), 'symbol:flag', UI.gold);
-          this.title = a.label(slab, a.tr('battle.entering'), 0, 13, 440, 54, 27, UI.text);
+          a.rect(layer, 0, 13, 440, 60, '#172025', undefined, 230);
+          a.rect(layer, 0, -42, 220, 40, '#172025', undefined, 230);
+          this.title = a.label(layer, a.tr('battle.entering'), 0, 13, 440, 54, 27, UI.text);
           this.title.node.name = 'area-transition-title';
-          this.number = a.label(slab, a.tr('battle.areaMove', {
+          this.number = a.label(layer, a.tr('battle.areaMove', {
             stage: this.to
           }), 0, -42, 420, 40, 23, UI.gold);
           this.number.node.name = 'area-transition-number';
@@ -2171,9 +2180,10 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
           a.ui.actor(a.nodeAt(a.root, 'title-spirit', -145, -H / 2 + a.safeBottom + 370, 82, 82), 'ember-fox');
           a.polygon(a.root, 0, -H / 2 + a.safeBottom + 95, 480, 190, [[-.5, -.5], [.5, -.5], [.5, .28], [.12, .5], [-.5, .34]], UI.bg, 242);
           a.ui.paint(a.nodeAt(a.root, 'company-ci', 0, -H / 2 + a.safeBottom + 60, 165, 82.5), 'branding');
+          var preview = globalThis.TAPWAR_PREVIEW_BUILD;
           a.label(a.root, a.tr('entry.version', {
-            version: a.liveOps.version
-          }), 0, -H / 2 + a.safeBottom + 23, 440, 22, 12, UI.text);
+            version: a.liveOps.version + (typeof preview === 'string' ? ' · ' + preview : '')
+          }), 0, -H / 2 + a.safeBottom + 23, 440, 22, 12, UI.text).node.name = 'preview-build-version';
           var langs = a.nodeAt(a.root, 'entry-language', 0, H / 2 - 37 - a.safeTop, 220, 34);
           ['ko', 'en'].forEach(function (l, i) {
             return a.button(langs, a.tr('locale.' + l), i ? 65 : -65, 0, 120, 32, function () {
@@ -6750,6 +6760,10 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
             }
             if (_this2.chatter === n) _this2.chatter = null;
           }, 3.5);
+        };
+        _proto.areaTransition = function areaTransition() {
+          this.clearChatter();
+          this.tickGrowth();
         };
         _proto.snapshot = function snapshot() {
           if (!this.knownItems) this.knownItems = new Set(this.a.game.s.equipment.map(function (e) {
@@ -40721,17 +40735,22 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
         };
         _proto.setBattlePosition = function setBattlePosition(hero, x, y, key) {
           var _this7 = this;
-          return this.transaction(key, function () {
-            _this7.require(hero === -1 || Number.isInteger(hero) && _this7.activeMercenaries().includes(hero), 'error.invalid');
-            _this7.require(validBattlePosition({
-              x: x,
-              y: y
-            }), 'error.invalid');
-            _this7.s.extra.battlePositions[hero < 0 ? 'captain' : String(hero)] = {
-              x: x,
-              y: y
-            };
-          });
+          if (!(hero === -1 || Number.isInteger(hero) && this.s.extra.mercenaryDeck.includes(hero) && this.s.run.heroes[hero] > 0) || !validBattlePosition({
+            x: x,
+            y: y
+          })) {
+            this.notice = 'error.invalid';
+            return false;
+          }
+          var running = this.combatRun === this.s.run,
+            ok = this.transaction(key, function () {
+              _this7.s.extra.battlePositions[hero < 0 ? 'captain' : String(hero)] = {
+                x: x,
+                y: y
+              };
+            });
+          if (!ok && running) this.combatRun = this.s.run;
+          return ok;
         };
         _proto.squadMultiplier = function squadMultiplier(stat, boss) {
           if (boss === void 0) {
