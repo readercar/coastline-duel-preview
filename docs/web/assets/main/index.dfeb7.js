@@ -47100,8 +47100,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           });
         };
         _proto.open = function open(title, height, closable, surface, guided, back, scrollIdentity) {
-          var _popupStyle,
-            _this$tutorial3,
+          var _this$tutorial3,
             _this24 = this;
           if (height === void 0) {
             height = 600;
@@ -47129,7 +47128,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           box.scrollIdentity = 'modal:' + scrollIdentity;
           if (surface === 'blocked') this.ui.surface(box, BLOCKED_NOTICE.background, 'panel', 255, true);else this.ui.paint(box, surface === 'slate' ? 'popup/slate' : 'popup/panel', true);
           popupIllustration(this, box, scrollIdentity, surface === 'blocked');
-          var panelAccent = ((_popupStyle = box.popupStyle) == null ? void 0 : _popupStyle.accent) || (surface === 'blocked' ? BLOCKED_NOTICE.border : this.game.s.extra.cosmetics[1] > 0 ? [C.line, C.gold, C.blue, C.violet, C.mint, C.ember][this.game.s.extra.cosmetics[1]] : this.tabTone);
+          var panelAccent = surface === 'blocked' ? BLOCKED_NOTICE.border : this.game.s.extra.cosmetics[1] > 0 ? [C.line, C.gold, C.blue, C.violet, C.mint, C.ember][this.game.s.extra.cosmetics[1]] : this.tabTone;
           var heading = this.polygon(box, -40, height / 2 - 38, 336, 60, [[-.5, -.5], [.43, -.5], [.5, .5], [-.5, .5]], surface === 'blocked' ? BLOCKED_NOTICE.heading : C.paper);
           this.polygon(box, -199, height / 2 - 38, 34, 60, [[-.5, -.5], [.15, -.5], [.5, .5], [-.5, .5]], panelAccent);
           this.rect(box, 0, height / 2 - 70, 388, 1, surface === 'blocked' ? BLOCKED_NOTICE.border : C.line);
@@ -47294,6 +47293,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               iconOnly: false,
               fontSize: 15
             });
+          });
+          if (operations && this.game.offlineClaimable()) this.button(p, this.tr('offline.title'), 0, -144, 380, 54, function () {
+            return _this27.offline();
+          }, true, {
+            icon: 'chest',
+            rewardReady: function rewardReady() {
+              return _this27.game.offlineClaimable();
+            }
           });
           if (operations) this.button(p, this.tr('extra.hub'), 0, -304, 380, 44, function () {
             return _this27.extensions.hub();
@@ -47553,7 +47560,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         };
         _proto.offline = function offline() {
           var _this34 = this;
-          var p = this.open(this.tr('offline.title'), 380);
+          if (!this.game.offlineClaimable()) return;
+          this.liveOps.offlineShown();
+          var p = this.open(this.tr('offline.title'), 380, true, 'teal', false);
           this.shopUI.identity(p, 'free', this.tr('offline.reward', {
             gold: this.format(this.game.s.offline)
           }), 54, 98, 22);
@@ -47566,7 +47575,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             });
           }, true, {
             unavailable: function unavailable() {
-              return _this34.game.s.offline <= ZERO ? _this34.tr('action.alreadyClaimed') : null;
+              return _this34.game.offlineClaimable() ? null : _this34.tr('reward.empty');
             }
           });
         };
@@ -51774,6 +51783,9 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
           this.a = a;
         }
         var _proto = LiveOpsUI.prototype;
+        _proto.offlineShown = function offlineShown() {
+          this.offlinePromptKey = this.offlineKey;
+        };
         _proto.initialize = /*#__PURE__*/function () {
           var _initialize = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
             return _regeneratorRuntime().wrap(function _callee$(_context) {
@@ -51912,7 +51924,7 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
               return;
             }
             var _a2 = this.a,
-              key = _a2.operations.identity + ':' + _a2.game.s.created + ':' + _a2.game.s.offline;
+              key = this.offlineKey;
             if (!_a2.tutorial.active && !_a2.operations.busy && !_a2.remoteBusy && !_a2.feedback.asyncPending && _a2.game.offlineClaimable() && this.offlinePromptKey !== key) {
               this.offlinePromptKey = key;
               _a2.offline();
@@ -52202,6 +52214,12 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
           key: "platform",
           get: function get() {
             return sys.isNative ? sys.os === sys.OS.ANDROID ? 'android' : sys.os === sys.OS.IOS ? 'ios' : 'web' : 'web';
+          }
+        }, {
+          key: "offlineKey",
+          get: function get() {
+            var a = this.a;
+            return a.operations.identity + ':' + a.game.s.created + ':' + a.game.s.offline;
           }
         }, {
           key: "version",
