@@ -3567,22 +3567,32 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
   };
 });
 
-System.register("chunks:///_virtual/EquipmentUI.ts", ['cc', './UITheme.ts'], function (exports) {
-  var cclegacy, Label, UI, BUTTON_TONES;
+System.register("chunks:///_virtual/EquipmentUI.ts", ['cc', './Amount.ts', './UITheme.ts'], function (exports) {
+  var cclegacy, Label, UITransform, Graphics, display, UI, BUTTON_TONES;
   return {
     setters: [function (module) {
       cclegacy = module.cclegacy;
       Label = module.Label;
+      UITransform = module.UITransform;
+      Graphics = module.Graphics;
+    }, function (module) {
+      display = module.display;
     }, function (module) {
       UI = module.UI;
       BUTTON_TONES = module.BUTTON_TONES;
     }],
     execute: function () {
       exports({
+        equipmentDropButton: equipmentDropButton,
         equipmentHelp: equipmentHelp,
         equipmentIdentity: equipmentIdentity,
+        equipmentInsignia: equipmentInsignia,
+        equipmentLevel: equipmentLevel,
+        equipmentListRow: equipmentListRow,
         equipmentReward: equipmentReward,
-        equipmentStats: equipmentStats
+        equipmentStats: equipmentStats,
+        equipmentSurface: equipmentSurface,
+        updateEquipmentDropButton: updateEquipmentDropButton
       });
       cclegacy._RF.push({}, "22a8cd4B85EbIZipGHumqIc", "EquipmentUI", undefined);
       var EQUIPMENT_ICONS = exports('EQUIPMENT_ICONS', ['equipment:rifle', 'equipment:helmet', 'equipment:vest', 'equipment:radio', 'equipment:rank']);
@@ -3616,17 +3626,19 @@ System.register("chunks:///_virtual/EquipmentUI.ts", ['cc', './UITheme.ts'], fun
         });
         var labelX = compact ? 40 : 42,
           width = compact ? 226 : 222;
-        a.label(parent, a.tr('slot.' + item.slot), labelX, y + 17, width, 30, compact ? 21 : 24, UI.text, Label.HorizontalAlign.LEFT).node.name = 'equipment-name';
+        a.label(parent, a.tr('slot.' + item.slot), labelX, y + 17, width, 30, compact ? 21 : 24, compact ? '#192526' : UI.text, Label.HorizontalAlign.LEFT).node.name = 'equipment-name';
         a.label(parent, item.set >= 0 ? a.tr('extra.set', {
           id: item.set + 1
-        }) : a.tr('equipment.noSet'), labelX, y - 15, width, 26, 15, UI.gold, Label.HorizontalAlign.LEFT).node.name = 'equipment-set-name';
+        }) : a.tr('equipment.noSet'), labelX, y - 15, width, 26, 15, compact ? EQUIPMENT_STYLE[item.slot].dark : UI.gold, Label.HorizontalAlign.LEFT).node.name = 'equipment-set-name';
       }
       function equipmentStats(a, parent, item, y, width) {
         if (width === void 0) {
           width = 176;
         }
         var x = (width + 12) / 2;
-        var metrics = [['symbol:star', a.tr('rarity.' + item.rarity), -x, y, 'rarity'], ['symbol:up', 'Lv.' + item.level, x, y, 'level'], ['symbol:damage', '×' + item.power.toFixed(2), -x, y - 44, 'damage'], ['symbol:coin', '×' + item.power.toFixed(2), x, y - 44, 'coin']];
+        equipmentInsignia(a, parent, item, -x, y, width, 36);
+        equipmentLevel(a, parent, item, x, y, width, 36);
+        var metrics = [['symbol:damage', '×' + item.power.toFixed(2), -x, y - 44, 'damage'], ['symbol:coin', '×' + item.power.toFixed(2), x, y - 44, 'coin']];
         for (var _i = 0, _metrics = metrics; _i < _metrics.length; _i++) {
           var _metrics$_i = _metrics[_i],
             icon = _metrics$_i[0],
@@ -3641,9 +3653,192 @@ System.register("chunks:///_virtual/EquipmentUI.ts", ['cc', './UITheme.ts'], fun
         if (count === void 0) {
           count = 1;
         }
+        equipmentSurface(a, card, item);
         equipmentIdentity(a, card, item, 43, true);
         equipmentStats(a, card, item, -12, 166);
         if (count > 1) a.label(card, '×' + count, 142, 65, 54, 24, 16, UI.gold).node.name = 'equipment-count';
+      }
+
+      /** Part color is independent of rarity and equipped/completed action colors. */
+      var EQUIPMENT_STYLE = exports('EQUIPMENT_STYLE', [{
+        accent: '#ef8792',
+        paper: '#f2dfe2',
+        dark: '#6b303a'
+      }, {
+        accent: '#79cbed',
+        paper: '#deedf5',
+        dark: '#285d75'
+      }, {
+        accent: '#94cf76',
+        paper: '#e3efda',
+        dark: '#3b5e2d'
+      }, {
+        accent: '#c395ee',
+        paper: '#ece1f5',
+        dark: '#5b3a78'
+      }, {
+        accent: '#ffd83d',
+        paper: '#f4edce',
+        dark: '#75601e'
+      }]);
+      function equipmentSurface(a, card, item) {
+        var style = EQUIPMENT_STYLE[item.slot],
+          size = card.getComponent(UITransform).contentSize;
+        a.ui.surface(card, style.paper, 'cut', 255, true);
+        card.name = 'equipment-card-' + item.id;
+        card.equipmentId = item.id;
+        card.equipmentSlot = item.slot;
+        a.rect(card, -size.width / 2 + 8, 0, 4, size.height - 20, style.accent).name = 'equipment-part-stripe';
+      }
+      function equipmentInsignia(a, parent, item, x, y, w, h) {
+        if (w === void 0) {
+          w = 140;
+        }
+        if (h === void 0) {
+          h = 34;
+        }
+        var n = a.nodeAt(parent, 'equipment-stat-rarity', x, y, w, h),
+          style = EQUIPMENT_STYLE[item.slot];
+        a.ui.surface(n, '#20292d', 'cut');
+        var icon = a.nodeAt(n, 'metric-icon', -w / 2 + 22, 0, 28, 26),
+          g = icon.addComponent(Graphics),
+          tier = item.rarity + 1;
+        g.fillColor = a.color(['#bcc8ca', '#9ad080', '#81d6f4', '#cdacfa', '#ffe27a'][item.rarity]);
+        var count = Math.min(3, tier),
+          step = 6,
+          base = (count - 1) * step / 2;
+        for (var i = 0; i < count; i++) {
+          var yy = base - i * step;
+          g.moveTo(-11, yy - 2);
+          g.lineTo(0, yy + 4);
+          g.lineTo(11, yy - 2);
+          g.lineTo(11, yy - 5);
+          g.lineTo(0, yy + 1);
+          g.lineTo(-11, yy - 5);
+          g.close();
+          g.fill();
+        }
+        if (tier >= 4) a.ui.icon(a.nodeAt(icon, 'rarity-star', 0, 10, 10, 10), 'symbol:star', tier === 5 ? '#ffe27a' : '#cdacfa');
+        if (tier === 5) for (var _i2 = 0, _arr = [-11, 11]; _i2 < _arr.length; _i2++) {
+          var xx = _arr[_i2];
+          a.rect(icon, xx, 10, 3, 3, '#ffe27a');
+        }
+        a.label(n, a.tr('rarity.' + item.rarity), 16, 0, w - 47, h - 4, 14, '#f5f5ee');
+        a.touchAction(n, function () {
+          return a.tooltip(n, equipmentHelp(a, item, 'rarity'));
+        });
+        return n;
+      }
+      function equipmentLevel(a, parent, item, x, y, w, h) {
+        if (w === void 0) {
+          w = 84;
+        }
+        if (h === void 0) {
+          h = 38;
+        }
+        var n = a.nodeAt(parent, 'equipment-stat-level', x, y, w, h),
+          style = EQUIPMENT_STYLE[item.slot];
+        a.ui.surface(n, '#20292d', 'cut');
+        var icon = a.nodeAt(n, 'metric-icon', -w / 2 + 15, 6, 14, 14);
+        a.ui.icon(icon, 'symbol:up', style.accent);
+        var cap = a.label(n, 'LV', -w / 2 + 15, -9, 20, 14, 12, style.accent);
+        cap.fontSize = 10;
+        cap.lineHeight = 12;
+        var number = a.label(n, item.level >= 10000 ? display(item.level) : String(item.level), 12, 0, w - 36, h - 2, 24, '#f5f5ee');
+        number.enableWrapText = false;
+        number.node.name = 'equipment-level-number';
+        a.touchAction(n, function () {
+          return a.tooltip(n, equipmentHelp(a, item, 'level'));
+        });
+        return n;
+      }
+
+      /** The same visual record serves the drop inbox and the inventory; actions stay separate. */
+      function equipmentListRow(a, item, kind, action) {
+        return {
+          title: '',
+          height: 126,
+          render: function render(card) {
+            equipmentSurface(a, card, item);
+            var _ref = card.getComponent(UITransform),
+              w = _ref.width,
+              style = EQUIPMENT_STYLE[item.slot],
+              left = -w / 2;
+            var portrait = a.nodeAt(card, 'equipment-portrait', left + 45, 6, 60, 60);
+            a.ui.surface(portrait, style.accent, 'cut');
+            a.ui.icon(a.nodeAt(portrait, 'equipment-art', 0, 0, 52, 52), EQUIPMENT_ICONS[item.slot]);
+            a.iconHelp(portrait, function () {
+              return a.tr('equipment.help.part', {
+                name: a.tr('slot.' + item.slot)
+              });
+            });
+            var titleW = w - 188,
+              name = a.label(card, a.tr('slot.' + item.slot), left + 83 + titleW / 2, 40, titleW - 22, 28, 19, '#192526', Label.HorizontalAlign.LEFT);
+            name.node.name = 'equipment-name';
+            a.touchAction(name.node, kind === 'inventory' ? function () {
+              return a.item(item);
+            } : action);
+            a.ui.icon(a.nodeAt(name.node, 'equipment-details-arrow', titleW / 2 - 10, 0, 14, 14), 'symbol:next', style.dark);
+            equipmentInsignia(a, card, item, left + 83 + Math.min(140, titleW) / 2, 9, Math.min(140, titleW), 30);
+            equipmentLevel(a, card, item, w / 2 - 50, 35, 82, 34);
+            var current = a.game.s.equipment.find(function (e) {
+                return e.id === a.game.s.equipped[item.slot];
+              }),
+              gain = (item.power / ((current == null ? void 0 : current.power) || 1) - 1) * 100;
+            var power = a.nodeAt(card, 'equipment-power', left + 84 + 56, -27, 112, 26);
+            a.ui.icon(a.nodeAt(power, 'metric-icon', -43, 0, 20, 20), 'symbol:damage', style.dark);
+            a.label(power, '×' + item.power.toFixed(2), 13, 0, 78, 26, 16, '#192526');
+            a.touchAction(power, function () {
+              return a.tooltip(power, equipmentHelp(a, item, 'damage'));
+            });
+            var change = a.label(card, (gain >= 0 ? '+' : '') + gain.toFixed(1) + '%', left + 234, -27, 81, 26, 14, gain >= 0 ? '#355e2b' : '#8d3341');
+            change.node.name = 'equipment-gain';
+            a.touchAction(change.node, function () {
+              return a.tooltip(change.node, equipmentHelp(a, item, 'damage'));
+            });
+            var set = a.label(card, item.set >= 0 ? a.tr('extra.set', {
+              id: item.set + 1
+            }) : a.tr('equipment.noSet'), left + 83 + (w - 185) / 2, -48, w - 185, 18, 12, '#4c5960', Label.HorizontalAlign.LEFT);
+            set.fontSize = 11;
+            set.lineHeight = 14;
+            var equipped = a.game.s.equipped[item.slot] === item.id;
+            var button = a.button(card, a.tr(kind === 'drops' ? 'action.details' : equipped ? 'action.equipped' : 'action.equip'), w / 2 - 50, -14, 82, 44, action, kind === 'inventory', {
+              category: kind === 'drops' ? 'details' : 'confirm',
+              completed: kind === 'inventory' && equipped,
+              unavailable: function unavailable() {
+                return null;
+              },
+              fontSize: 15
+            });
+            button.name = 'equipment-action-' + item.id;
+            // Readable part/rank/level targets have their own touch regions and never equip.
+          }
+        };
+      }
+
+      function equipmentDropButton(a, parent) {
+        var n = a.button(parent, '', 162, 306, 120, 42, function () {
+          return a.extensions.equipmentDrops();
+        }, true, {
+          category: 'confirm',
+          tone: UI.gold
+        });
+        n.name = 'hud-equipment-drops';
+        var empty = n.getChildByName('button-label');
+        if (empty) {
+          empty.removeFromParent();
+          empty.destroy();
+        }
+        a.ui.icon(a.nodeAt(n, 'equipment-pile-icon', -32, 0, 30, 30), 'symbol:bag', UI.ink);
+        var badge = a.nodeAt(n, 'equipment-pile-badge', 18, 0, 50, 30);
+        a.ui.surface(badge, '#20292d', 'cut', 255, false, false);
+        a.label(badge, '', 0, 0, 43, 26, 22, '#f5f5ee').node.name = 'equipment-pile-count';
+        return n;
+      }
+      function updateEquipmentDropButton(a, n) {
+        var count = a.game.s.extra.unseenEquipment.length;
+        n.active = count > 0;
+        n.getChildByName('equipment-pile-badge').getChildByName('equipment-pile-count').getComponent(Label).string = String(count);
       }
       cclegacy._RF.pop();
     }
@@ -4210,8 +4405,8 @@ System.register("chunks:///_virtual/Expansion.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SkillCatalog.ts', './MercenaryDetailUI.ts', './SkillUI.ts', './RewardClaims.ts', './EntryPolicy.ts', './LiveOps.ts', './Balance.ts', './UITheme.ts', './Expansion.ts', './Amount.ts', './I18n.ts'], function (exports) {
-  var _extends, _asyncToGenerator, _regeneratorRuntime, _createClass, _createForOfIteratorHelperLoose, cclegacy, sys, isValid, ScrollView, Vec2, UITransform, tween, Vec3, talentIcon, MercenaryDetailUI, talentHelp, rewardDelta, featureUnlocked, mailExpiry, GROWTH_STATS, gemstoneSlots, gemstoneBonus, UI, Expansion, display, t;
+System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './EquipmentUI.ts', './SkillCatalog.ts', './MercenaryDetailUI.ts', './SkillUI.ts', './RewardClaims.ts', './EntryPolicy.ts', './LiveOps.ts', './Balance.ts', './UITheme.ts', './Expansion.ts', './Amount.ts', './I18n.ts'], function (exports) {
+  var _extends, _asyncToGenerator, _regeneratorRuntime, _createClass, _createForOfIteratorHelperLoose, cclegacy, sys, isValid, ScrollView, Vec2, UITransform, tween, Vec3, equipmentListRow, talentIcon, MercenaryDetailUI, talentHelp, rewardDelta, featureUnlocked, mailExpiry, GROWTH_STATS, gemstoneSlots, gemstoneBonus, UI, Expansion, display, t;
   return {
     setters: [function (module) {
       _extends = module.extends;
@@ -4228,6 +4423,8 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
       UITransform = module.UITransform;
       tween = module.tween;
       Vec3 = module.Vec3;
+    }, function (module) {
+      equipmentListRow = module.equipmentListRow;
     }, function (module) {
       talentIcon = module.talentIcon;
     }, function (module) {
@@ -4366,25 +4563,18 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             return _this2.x.unseenEquipment.includes(e.id);
           });
           this.list('complete.drops', items.map(function (item) {
-            return {
-              title: _this2.a.itemName(item),
-              sub: _this2.tr('action.level', {
-                level: item.level
-              }),
-              action: _this2.tr('action.details'),
-              click: function click() {
-                var done = function done() {
-                  _this2.x.unseenEquipment = _this2.x.unseenEquipment.filter(function (id) {
-                    return id !== item.id;
-                  });
-                  _this2.g.persist();
-                  _this2.a.item(item);
-                };
-                if (_this2.g.s.claims.includes('reward-choice:' + item.id)) done();else _this2.a.rewards.received(_this2.a.itemName(item), 'equipment:' + item.id, {
-                  equipment: [_extends({}, item)]
-                }, done);
-              }
-            };
+            return equipmentListRow(_this2.a, item, 'drops', function () {
+              var done = function done() {
+                _this2.x.unseenEquipment = _this2.x.unseenEquipment.filter(function (id) {
+                  return id !== item.id;
+                });
+                _this2.g.persist();
+                _this2.a.item(item);
+              };
+              if (_this2.g.s.claims.includes('reward-choice:' + item.id)) done();else _this2.a.rewards.received(_this2.a.itemName(item), 'equipment:' + item.id, {
+                equipment: [_extends({}, item)]
+              }, done);
+            });
           }));
         };
         _proto.tournaments = function tournaments() {
@@ -42911,7 +43101,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
 });
 
 System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './BossEntranceUI.ts', './SkillCatalog.ts', './SkillUI.ts', './ExplorationUI.ts', './SkillTrainingUI.ts', './EquipmentUI.ts', './Enemies.ts', './env', './EnemyArtBounds.ts', './RewardClaimUI.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './DroneFeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, Sprite, ScrollView, BlockInputEvents, resources, Texture2D, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, BossEntranceUI, tacticIcon, tacticHelp, tacticManager, tacticDetail, explorationEntry, explorationBoard, skillTree, skillDetail, equipmentIdentity, equipmentStats, equipmentHelp, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, RewardClaimUI, SquadUI, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, DroneFeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, GooglePlayBilling, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
+  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, Sprite, ScrollView, BlockInputEvents, resources, Texture2D, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, BossEntranceUI, tacticIcon, tacticHelp, tacticManager, tacticDetail, explorationEntry, explorationBoard, skillTree, skillDetail, equipmentDropButton, equipmentListRow, equipmentIdentity, equipmentStats, equipmentHelp, updateEquipmentDropButton, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, RewardClaimUI, SquadUI, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, DroneFeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, GooglePlayBilling, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
@@ -42967,9 +43157,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       skillTree = module.skillTree;
       skillDetail = module.skillDetail;
     }, function (module) {
+      equipmentDropButton = module.equipmentDropButton;
+      equipmentListRow = module.equipmentListRow;
       equipmentIdentity = module.equipmentIdentity;
       equipmentStats = module.equipmentStats;
       equipmentHelp = module.equipmentHelp;
+      updateEquipmentDropButton = module.updateEquipmentDropButton;
     }, function (module) {
       enemyType = module.enemyType;
     }, function (module) {
@@ -43973,12 +44166,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }
           });
           this.fairy.name = 'hud-claim';
-          this.equipmentPile = this.button(hud, '', 162, 306, 120, 34, function () {
-            return _this8.extensions.equipmentDrops();
-          }, true, {
-            tone: C.gold
-          });
-          this.equipmentPile.name = 'hud-equipment-drops';
+          this.equipmentPile = equipmentDropButton(this, hud);
           var edge = this.folded ? -337 : -39;
           this.polygon(lower, 0, edge, 480, 32, [[-.5, .15], [.2, .15], [.24, .5], [.5, .5], [.5, -.5], [-.5, -.5]], C.bg);
           var foldButton = this.button(lower, this.tr(this.folded ? 'layout.expand' : 'layout.collapse'), 171, edge, 128, 30, function () {
@@ -45548,30 +45736,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               return b.power - a.power;
             });
             this.scroll(this.panel, 0, -46, 458, 204, items.map(function (e) {
-              return {
-                title: '★'.repeat(e.rarity + 1) + '  +' + e.level,
-                metrics: [{
-                  icon: 'symbol:damage',
-                  value: '×' + e.power.toFixed(2),
-                  hint: _this24.tr('equipment.power', {
-                    power: e.power.toFixed(2)
-                  })
-                }],
-                actionHint: _this24.itemName(e),
-                unavailable: function unavailable() {
-                  return null;
-                },
-                detail: function detail() {
-                  return _this24.item(e);
-                },
-                action: s.equipped.includes(e.id) ? _this24.tr('action.equipped') : _this24.tr('action.equip'),
-                icon: e.slot,
-                art: ['equipment:rifle', 'equipment:helmet', 'equipment:vest', 'equipment:radio', 'equipment:rank'][e.slot],
-                tint: e.rarity > 1 ? C.gold : C.blue,
-                click: function click() {
-                  _this24.equipItem(e.id);
-                }
-              };
+              return equipmentListRow(_this24, e, 'inventory', function () {
+                return _this24.equipItem(e.id);
+              });
             }));
             if (!items.length) this.label(this.panel, this.tr('equipment.empty'), 0, -22, 410, 60, 16, C.muted);
           } else if (this.tab === 3) {
@@ -47335,10 +47502,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var _this61 = this;
           var g = this.game,
             r = g.s.run;
-          this.equipmentPile.active = g.s.extra.unseenEquipment.length > 0;
-          this.equipmentPile.getComponentInChildren(Label).string = this.tr('complete.pile', {
-            count: g.s.extra.unseenEquipment.length
-          });
+          updateEquipmentDropButton(this, this.equipmentPile);
           this.fairy.active = this.fairyClaimReady();
           this.stageLabel.string = String(this.zoneTransition.displayedStage || r.stage);
           this.stageNeighbors.forEach(function (l, i) {
