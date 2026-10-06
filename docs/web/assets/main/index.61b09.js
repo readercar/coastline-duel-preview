@@ -2994,6 +2994,89 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
   };
 });
 
+System.register("chunks:///_virtual/EquipmentUI.ts", ['cc', './UITheme.ts'], function (exports) {
+  var cclegacy, Label, UI, BUTTON_TONES;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+      Label = module.Label;
+    }, function (module) {
+      UI = module.UI;
+      BUTTON_TONES = module.BUTTON_TONES;
+    }],
+    execute: function () {
+      exports({
+        equipmentHelp: equipmentHelp,
+        equipmentIdentity: equipmentIdentity,
+        equipmentReward: equipmentReward,
+        equipmentStats: equipmentStats
+      });
+      cclegacy._RF.push({}, "22a8cd4B85EbIZipGHumqIc", "EquipmentUI", undefined);
+      var EQUIPMENT_ICONS = exports('EQUIPMENT_ICONS', ['equipment:rifle', 'equipment:helmet', 'equipment:vest', 'equipment:radio', 'equipment:rank']);
+      var TONES = [BUTTON_TONES.battle, BUTTON_TONES.shop, BUTTON_TONES.upgrade, BUTTON_TONES.ascend, BUTTON_TONES.confirm];
+      function equipmentHelp(a, item, kind) {
+        var current = a.game.s.equipment.find(function (e) {
+            return e.id === a.game.s.equipped[item.slot];
+          }),
+          gain = (item.power / ((current == null ? void 0 : current.power) || 1) - 1) * 100;
+        return a.tr('equipment.help.' + kind, {
+          rarity: a.tr('rarity.' + item.rarity),
+          stars: item.rarity + 1,
+          level: item.level,
+          power: item.power.toFixed(2),
+          gain: (gain >= 0 ? '+' : '') + gain.toFixed(1)
+        });
+      }
+      function equipmentIdentity(a, parent, item, y, compact) {
+        if (compact === void 0) {
+          compact = false;
+        }
+        var size = compact ? 64 : 84,
+          x = compact ? -140 : -131,
+          art = a.nodeAt(parent, 'equipment-portrait', x, y, size, size);
+        a.ui.surface(art, TONES[item.slot], 'cut');
+        a.ui.icon(a.nodeAt(art, 'equipment-art', 0, 0, size - 10, size - 10), EQUIPMENT_ICONS[item.slot]);
+        a.iconHelp(art, function () {
+          return a.tr('equipment.help.part', {
+            name: a.tr('slot.' + item.slot)
+          });
+        });
+        var labelX = compact ? 40 : 42,
+          width = compact ? 226 : 222;
+        a.label(parent, a.tr('slot.' + item.slot), labelX, y + 17, width, 30, compact ? 21 : 24, UI.text, Label.HorizontalAlign.LEFT).node.name = 'equipment-name';
+        a.label(parent, item.set >= 0 ? a.tr('extra.set', {
+          id: item.set + 1
+        }) : a.tr('equipment.noSet'), labelX, y - 15, width, 26, 15, UI.gold, Label.HorizontalAlign.LEFT).node.name = 'equipment-set-name';
+      }
+      function equipmentStats(a, parent, item, y, width) {
+        if (width === void 0) {
+          width = 176;
+        }
+        var x = (width + 12) / 2;
+        var metrics = [['symbol:star', a.tr('rarity.' + item.rarity), -x, y, 'rarity'], ['symbol:up', 'Lv.' + item.level, x, y, 'level'], ['symbol:damage', '×' + item.power.toFixed(2), -x, y - 44, 'damage'], ['symbol:coin', '×' + item.power.toFixed(2), x, y - 44, 'coin']];
+        for (var _i = 0, _metrics = metrics; _i < _metrics.length; _i++) {
+          var _metrics$_i = _metrics[_i],
+            icon = _metrics$_i[0],
+            value = _metrics$_i[1],
+            _x = _metrics$_i[2],
+            yy = _metrics$_i[3],
+            kind = _metrics$_i[4];
+          a.metric(parent, icon, value, _x, yy, width, equipmentHelp(a, item, kind)).name = 'equipment-stat-' + kind;
+        }
+      }
+      function equipmentReward(a, card, item, count) {
+        if (count === void 0) {
+          count = 1;
+        }
+        equipmentIdentity(a, card, item, 43, true);
+        equipmentStats(a, card, item, -12, 166);
+        if (count > 1) a.label(card, '×' + count, 142, 65, 54, 24, 16, UI.gold).node.name = 'equipment-count';
+      }
+      cclegacy._RF.pop();
+    }
+  };
+});
+
 System.register("chunks:///_virtual/Expansion.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Mercenaries.ts', './LiveOps.ts', './ReferenceRules.ts', './Balance.ts', './Monetization.ts', './Amount.ts'], function (exports) {
   var _createForOfIteratorHelperLoose, _createClass, cclegacy, MERCENARY_COUNT, MAIL_LIFETIME, mailExpiry, CRYSTAL_THRESHOLDS, gemstoneRarity, newCommerce, ZERO, amount, sub, add, mul;
   return {
@@ -6719,9 +6802,12 @@ System.register("chunks:///_virtual/Feedback.ts", ['./rollupPluginModLoBabelHelp
             icon: ['equipment:rifle', 'equipment:helmet', 'equipment:vest', 'equipment:radio', 'equipment:rank'][e.slot],
             value: 1,
             args: {
+              id: e.id,
               slot: e.slot,
               rarity: e.rarity,
-              level: e.level
+              level: e.level,
+              power: e.power,
+              set: e.set
             }
           };
         }
@@ -6895,8 +6981,8 @@ System.register("chunks:///_virtual/Feedback.ts", ['./rollupPluginModLoBabelHelp
   };
 });
 
-System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Feedback.ts', './UITheme.ts', './Mercenaries.ts', './Config.ts', './Amount.ts', './Dialogue.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _extends, _createClass, cclegacy, isValid, UITransform, BlockInputEvents, Sprite, Node, tween, Vec3, Graphics, Mask, UIOpacity, feedbackSnapshot, feedbackDiff, GrowthFeedbackQueue, UI, mercenaryArt, attackSeconds, PETS, ARTIFACTS, CARDS, HEROES, display, DIALOGUE_CONTEXTS, DialogueDeck, DialogueDirector;
+System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './EquipmentUI.ts', './Feedback.ts', './UITheme.ts', './Mercenaries.ts', './Config.ts', './Amount.ts', './Dialogue.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _extends, _createClass, cclegacy, isValid, UITransform, BlockInputEvents, Sprite, Node, tween, Vec3, Graphics, Mask, UIOpacity, equipmentReward, feedbackSnapshot, feedbackDiff, GrowthFeedbackQueue, UI, mercenaryArt, attackSeconds, PETS, ARTIFACTS, CARDS, HEROES, display, DIALOGUE_CONTEXTS, DialogueDeck, DialogueDirector;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -6914,6 +7000,8 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
       Graphics = module.Graphics;
       Mask = module.Mask;
       UIOpacity = module.UIOpacity;
+    }, function (module) {
+      equipmentReward = module.equipmentReward;
     }, function (module) {
       feedbackSnapshot = module.feedbackSnapshot;
       feedbackDiff = module.feedbackDiff;
@@ -7152,9 +7240,12 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
                 icon: ['equipment:rifle', 'equipment:helmet', 'equipment:vest', 'equipment:radio', 'equipment:rank'][e.slot],
                 value: 1,
                 args: {
+                  id: e.id,
                   slot: e.slot,
                   rarity: e.rarity,
-                  level: e.level
+                  level: e.level,
+                  power: e.power,
+                  set: e.set
                 }
               };
             }));
@@ -7197,11 +7288,26 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           this.overlay = layer;
           layer.addComponent(BlockInputEvents);
           a.rect(layer, 0, 0, 480, a.designH, '#000000', undefined, 128);
-          var h = Math.min(620, Math.max(320, 220 + entries.length * 77), a.designH - 100),
-            panel = a.nodeAt(layer, 'modal-panel', 0, 0, 414, h);
-          a.ui.surface(panel, UI.bg, 'panel');
-          a.label(panel, a.tr('feedback.received'), 0, h / 2 - 47, 370, 55, 30, UI.gold);
-          a.scroll(panel, 0, 6, 382, h - 190, entries.map(function (e) {
+          var rows = entries.map(function (e) {
+            if (e.key === 'equipment.item' && e.args && Number(e.args.power) > 0) {
+              var _e$args$set;
+              var item = {
+                id: Number(e.args.id),
+                slot: Number(e.args.slot),
+                rarity: Number(e.args.rarity),
+                level: Number(e.args.level),
+                power: Number(e.args.power),
+                set: Number((_e$args$set = e.args.set) != null ? _e$args$set : -1),
+                locked: false
+              };
+              return {
+                title: '',
+                height: 184,
+                render: function render(card) {
+                  return equipmentReward(a, card, item, e.value);
+                }
+              };
+            }
             return {
               title: _this5.name(e),
               metrics: [{
@@ -7212,8 +7318,16 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
               art: e.icon,
               tint: UI.gold
             };
-          }));
+          });
+          var h = Math.min(620, Math.max(340, 198 + rows.reduce(function (sum, row) {
+              return sum + (row.height || 77);
+            }, 0)), a.designH - 100),
+            panel = a.nodeAt(layer, 'modal-panel', 0, 0, 414, h);
+          a.ui.surface(panel, UI.bg, 'panel');
+          a.label(panel, a.tr('feedback.received'), 0, h / 2 - 47, 370, 55, 30, UI.gold);
+          a.scroll(panel, 0, 6, 382, h - 190, rows);
           a.button(panel, a.tr('action.confirm'), 0, -h / 2 + 49, 320, 50, function () {
+            a.hideTooltip();
             layer.removeFromParent();
             layer.destroy();
             _this5.overlay = null;
@@ -41831,8 +41945,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
   };
 });
 
-System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts', './env', './EnemyArtBounds.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, SquadUI, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
+System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './EquipmentUI.ts', './Enemies.ts', './env', './EnemyArtBounds.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
+  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, equipmentIdentity, equipmentStats, equipmentHelp, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, SquadUI, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
@@ -41873,6 +41987,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       sys = module.sys;
       Component = module.Component;
       profiler = module.profiler;
+    }, function (module) {
+      equipmentIdentity = module.equipmentIdentity;
+      equipmentStats = module.equipmentStats;
+      equipmentHelp = module.equipmentHelp;
     }, function (module) {
       enemyType = module.enemyType;
     }, function (module) {
@@ -42655,8 +42773,15 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           if (!isValid(anchor, true) || !this.root) return;
           this.hideTooltip();
           this.hideToast();
-          var layer = ((_this$modal = this.modal) == null ? void 0 : _this$modal.getChildByName('modal-panel')) || this.root,
-            transform = layer.getComponent(UITransform),
+          var layer = ((_this$modal = this.modal) == null ? void 0 : _this$modal.getChildByName('modal-panel')) || this.root;
+          for (var p = anchor.parent; p && p !== this.root; p = p.parent) {
+            var _p$parent;
+            if (p.name === 'modal-panel' || p.parent === this.modal || ((_p$parent = p.parent) == null ? void 0 : _p$parent.name) === 'reward-overlay') {
+              layer = p;
+              break;
+            }
+          }
+          var transform = layer.getComponent(UITransform),
             a = anchor.getComponent(UITransform);
           var point = transform.convertToNodeSpaceAR(a.convertToWorldSpaceAR(new Vec3())),
             w = Math.min(380, transform.width - 28),
@@ -44038,18 +44163,22 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               });
               refresh();
             }
-            if (r.locked) {
+            if (r.render) {
+              r.render(card);
+              return;
+            }
+            if (r.locked && !r.mercenary) {
               _this23.lockIcon(card, -w / 2 + 35, 0);
             }
-            if (r.tint && !r.locked) _this23.polygon(card, -w / 2 + 33, 0, 48, 48, [[0, -.5], [.5, 0], [0, .5], [-.5, 0]], r.tint, 90);
-            if (r.icon !== undefined && !r.locked) {
+            if (r.tint && !r.locked && !r.mercenary) _this23.polygon(card, -w / 2 + 33, 0, 48, 48, [[0, -.5], [.5, 0], [0, .5], [-.5, 0]], r.tint, 90);
+            if (r.mercenary) _this23.squadUI.profile(card, r.mercenary.id, -w / 2 + 43, 0, 72, r.mercenary.assigned, !!r.locked);else if (r.icon !== undefined && !r.locked) {
               if (shopStyle) {
                 var art = _this23.nodeAt(card, 'item-art', -w / 2 + 39, 0, 56, 56);
                 _this23.ui.surface(art, shopStyle.accent, 'cut');
                 _this23.ui.icon(_this23.nodeAt(art, 'glyph', 0, 0, 50, 50), r.art);
               } else _this23.glyph(card, -w / 2 + 35, 0, r.icon, r.tint || C.gold, r.art);
             }
-            if (r.badge) {
+            if (r.badge && !r.mercenary) {
               var badge = _this23.nodeAt(card, 'role-badge', -w / 2 + 65, 0, 22, 22);
               _this23.ui.surface(badge, r.badge.tone, 'cut');
               _this23.ui.icon(_this23.nodeAt(badge, 'role-icon', 0, 0, 16, 16), r.badge.icon, contrastInk(r.badge.tone));
@@ -44059,7 +44188,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }
             var hasIcon = r.icon !== undefined,
               hasAction = !!r.action;
-            var left = -w / 2 + (hasIcon ? shopStyle ? 78 : r.badge ? 82 : 66 : 16),
+            var left = -w / 2 + (hasIcon ? r.mercenary ? 90 : shopStyle ? 78 : r.badge ? 82 : 66 : 16),
               right = w / 2 - (hasAction ? 106 : 16),
               width = right - left;
             var rowInk = shopStyle && !_this23.ui.inPopup(card) ? C.ink : C.text,
@@ -44276,13 +44405,18 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                 count: this.mode === -1 ? this.tr('action.max') : this.mode
               })
             });
-            this.scroll(this.panel, 0, -24, 458, 244, HEROES.filter(function (h) {
+            this.scroll(this.panel, 0, -24, 458, 244, this.squadUI.orderHeroes(HEROES.filter(function (h) {
               var _HEROES$find;
               return s.maxStage >= h.unlock || h.id === ((_HEROES$find = HEROES.find(function (h) {
                 return s.maxStage < h.unlock;
               })) == null ? void 0 : _HEROES$find.id);
-            }).map(function (h) {
+            })).map(function (h) {
               return {
+                height: 82,
+                mercenary: {
+                  id: h.id,
+                  assigned: s.extra.mercenaryDeck.includes(h.id)
+                },
                 tutorialId: 'tutorial-recruit-' + h.id,
                 actionCategory: 'upgrade',
                 locked: s.maxStage < h.unlock,
@@ -44777,27 +44911,25 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               return x.id === _this30.game.s.equipped[e.slot];
             }),
             equipped = (current == null ? void 0 : current.id) === e.id,
-            p = this.open(this.tr("slot." + e.slot), 480, true, 'slate');
-          this.polygon(p, 0, 102, 116, 104, [[0, -.5], [.5, 0], [0, .5], [-.5, 0]], C.violet, 60);
-          this.ui.icon(this.nodeAt(p, 'equipment-art', 0, 103, 92, 92), ['equipment:rifle', 'equipment:helmet', 'equipment:vest', 'equipment:radio', 'equipment:rank'][e.slot]);
-          this.label(p, '★'.repeat(e.rarity + 1) + '  +' + e.level, 0, 46, 330, 30, 22, C.gold);
-          this.metric(p, 'symbol:damage', '×' + ((current == null ? void 0 : current.power) || 1).toFixed(2), -110, -10, 162, this.tr('equipment.compare', {
-            current: ((current == null ? void 0 : current.power) || 1).toFixed(2),
-            next: e.power.toFixed(2)
-          }));
-          var arrow = this.nodeAt(p, 'compare-arrow', 0, -10, 28, 28);
+            p = this.open(this.tr("slot." + e.slot), 620, true, 'slate');
+          equipmentIdentity(this, p, e, 181);
+          equipmentStats(this, p, e, 95);
+          this.label(p, this.tr('equipment.current'), -104, -13, 174, 24, 15, C.muted);
+          this.label(p, this.tr('equipment.selected'), 104, -13, 174, 24, 15, C.muted);
+          this.metric(p, 'symbol:damage', '×' + ((current == null ? void 0 : current.power) || 1).toFixed(2), -104, -46, 164, this.tr('equipment.help.current', {
+            power: ((current == null ? void 0 : current.power) || 1).toFixed(2)
+          })).name = 'equipment-current-power';
+          var arrow = this.nodeAt(p, 'compare-arrow', 0, -46, 28, 28);
           this.ui.icon(arrow, 'symbol:next');
           this.iconHelp(arrow, function () {
             return _this30.tr('ui.help.compare', {
               gain: (e.power / ((current == null ? void 0 : current.power) || 1) * 100 - 100).toFixed(1)
             });
           });
-          this.metric(p, 'symbol:damage', '×' + e.power.toFixed(2), 110, -10, 162, this.tr('equipment.power', {
-            power: e.power.toFixed(2)
-          }));
+          this.metric(p, 'symbol:damage', '×' + e.power.toFixed(2), 104, -46, 164, equipmentHelp(this, e, 'damage')).name = 'equipment-selected-power';
           var gain = (e.power / ((current == null ? void 0 : current.power) || 1) - 1) * 100;
-          this.label(p, (gain >= 0 ? '+' : '') + gain.toFixed(1) + '%', 0, -47, 230, 26, 20, gain >= 0 ? C.mint : C.danger);
-          this.button(p, this.tr(equipped ? 'action.equipped' : 'action.equip'), -128, -103, 112, 58, function () {
+          this.metric(p, gain >= 0 ? 'symbol:up' : 'symbol:down', (gain >= 0 ? '+' : '') + gain.toFixed(1) + '%', 0, -90, 188, equipmentHelp(this, e, 'damage')).name = 'equipment-gain';
+          this.button(p, this.tr(equipped ? 'action.equipped' : 'action.equip'), -128, -159, 112, 58, function () {
             return _this30.equipItem(e.id);
           }, true, {
             category: 'confirm',
@@ -44806,13 +44938,13 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               return null;
             }
           }).name = 'equipment-equip';
-          this.button(p, this.tr('action.lock'), 0, -103, 112, 58, function () {
+          this.button(p, this.tr('action.lock'), 0, -159, 112, 58, function () {
             _this30.game.lock(e.id);
             _this30.item(e);
           }, false, {
             style: e.locked ? 'selected' : 'secondary'
           });
-          this.button(p, this.tr('action.sell'), 128, -103, 112, 58, function () {
+          this.button(p, this.tr('action.sell'), 128, -159, 112, 58, function () {
             if (e.locked || equipped) {
               _this30.toast(_this30.tr('equipment.protected'), 'blocked');
               return;
@@ -44829,7 +44961,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             style: e.locked || equipped ? 'disabled' : 'danger',
             hint: this.tr('action.sell') + ' · ' + (e.rarity + 1)
           });
-          this.button(p, this.tr(this.squadUI.itemRegistered(e) ? 'registry.registered' : 'registry.register'), -98, -186, 174, 44, function () {
+          this.button(p, this.tr(this.squadUI.itemRegistered(e) ? 'registry.registered' : 'registry.register'), -98, -246, 174, 44, function () {
             return _this30.squadUI.registerItem(e, function () {
               return _this30.item(e);
             });
@@ -44845,7 +44977,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               return _this30.squadUI.itemRegistered(e) ? _this30.tr('registry.registered') : null;
             }
           });
-          var guide = this.button(p, this.tr('ui.iconHelp'), 98, -186, 174, 44, function () {
+          var guide = this.button(p, this.tr('ui.iconHelp'), 98, -246, 174, 44, function () {
             return _this30.tooltip(guide, _this30.tr('ui.equipmentHelp'));
           }, false, {
             icon: 'symbol:info',
@@ -48802,7 +48934,7 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureL
         'ui.help.heroDPS': '자동 공격 초당 피해 {damage}\n무기 공격 간격에 맞춰 1회 타격 피해로 환산됩니다.\n이 용병을 전투 덱에 배치해야 자동 공격합니다.',
         'ui.help.heroGuide': '↑ 레벨: 코인 강화\n↻ 승천: 레벨 1000부터 / 레벨 초기화\n번개: 스킬 강화 / 단계마다 피해 ×1.5\n검: 영구 무기 획득 수\n문서: 영구 훈련 교범 획득 수\n타격 파열: 자동 공격 초당 피해\n각 수치 아이콘을 누르면 상세 효과를 볼 수 있습니다.',
         'ui.help.compare': '장비 비교 · 오른쪽 화살표\n왼쪽은 현재 장비, 오른쪽은 선택한 장비입니다.\n장착 시 피해 변화: {gain}%',
-        'ui.equipmentHelp': '타격 파열: 피해 배율\n오른쪽 화살표: 현재 장비 → 선택 장비\n초록/빨강 수치: 장착 시 피해 변화\n자물쇠: 판매 보호\n각 수치 아이콘을 누르면 뜻과 효과를 볼 수 있습니다.'
+        'ui.equipmentHelp': '별: 장비 등급 · 위 화살표: 장비 레벨\n타격 파열: 장착 시 피해 배율\n코인: 장착 시 코인 획득 배율\n오른쪽 화살표: 현재 장비와 선택 장비 비교\n자물쇠: 판매 보호'
       });
       Object.assign(translations.en, {
         'ui.help.value': 'Current display: {value}',
@@ -48834,7 +48966,7 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureL
         'ui.help.heroDPS': 'Auto attack damage per second: {damage}\nConverted to damage per hit using the weapon’s attack interval.\nDeploy this soldier in the battle deck to enable auto attacks.',
         'ui.help.heroGuide': 'Up arrow: level / coin upgrades\nCircular arrow: ascension / level 1000 / level reset\nLightning: skill tier / ×1.5 damage per tier\nSword: permanent weapon count\nDocument: permanent training manual count\nImpact bursts: auto attack damage per second\nTap each stat icon to read its detailed effect.',
         'ui.help.compare': 'Equipment comparison · Right arrow\nLeft: equipped gear. Right: selected gear.\nDamage change on equip: {gain}%',
-        'ui.equipmentHelp': 'Impact bursts: damage multiplier\nRight arrow: equipped → selected gear\nGreen/red value: damage change on equip\nLock: sale protection\nTap each stat icon to see its meaning and effect.'
+        'ui.equipmentHelp': 'Star: rarity · Up arrow: gear level\nImpact bursts: equipped damage multiplier\nCoin: equipped coin multiplier\nRight arrow: equipped and selected comparison\nLock: sale protection'
       });
       Object.assign(translations.ko, {
         'ui.help.cards': '전술 카드\n레이드 덱에 편성하거나 강화하는 카드입니다.',
@@ -49490,9 +49622,9 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './CheatUI.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './ExpansionUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SquadUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './Dialogue.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './Squad.ts', './SquadName.ts', './firebase-sdk.js'], function () {
+System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './CheatUI.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SquadUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './Dialogue.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './Squad.ts', './SquadName.ts', './firebase-sdk.js'], function () {
   return {
-    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     execute: function () {}
   };
 });
@@ -49686,6 +49818,28 @@ System.register("chunks:///_virtual/MilitaryTheme.ts", ['./rollupPluginModLoBabe
           'equipment.craftChosenHint': 'Craft one selected set piece.',
           'equipment.craftPieceInfo': '{name}\n{state}',
           'equipment.craftTargetState': 'Craft target'
+        });
+        Object.assign(t.ko, {
+          'equipment.noSet': '일반 장비',
+          'equipment.current': '현재 장착',
+          'equipment.selected': '선택 장비',
+          'equipment.help.part': '{name}\n장착하면 표시된 배율을 적용합니다.\n획득만으로 장착되지는 않습니다.',
+          'equipment.help.rarity': '장비 등급 · 별\n{rarity} · {stars}단계\n획득 시 장비 배율을 정하는 등급입니다.',
+          'equipment.help.level': '장비 레벨 · 위 화살표\n현재 Lv.{level}\n획득 시 정해지는 장비 수준입니다.\n실제 장착 효과는 아래 배율에 표시됩니다.',
+          'equipment.help.damage': '피해 배율 · 타격 파열\n장착 시 탭·용병·전술 피해 ×{power}\n현재 장착 대비 변화: {gain}%',
+          'equipment.help.coin': '코인 배율 · 코인\n장착 시 코인 획득 ×{power}\n현재 장착 대비 변화: {gain}%',
+          'equipment.help.current': '현재 장착한 부위의 배율\n피해와 코인 획득 ×{power}'
+        });
+        Object.assign(t.en, {
+          'equipment.noSet': 'Standard gear',
+          'equipment.current': 'Equipped',
+          'equipment.selected': 'Selected',
+          'equipment.help.part': '{name}\nEquip to apply the displayed multipliers.\nAcquiring gear does not equip it.',
+          'equipment.help.rarity': 'Rarity · Star\n{rarity} · Tier {stars}\nDetermines the multiplier when gear drops.',
+          'equipment.help.level': 'Gear level · Up arrow\nCurrent Lv.{level}\nThe level is set when gear drops.\nEquipped effects use the multipliers below.',
+          'equipment.help.damage': 'Damage multiplier · Impact bursts\nTap, squad and tactic damage ×{power} when equipped\nChange from equipped gear: {gain}%',
+          'equipment.help.coin': 'Coin multiplier · Coin\nCoins earned ×{power} when equipped\nChange from equipped gear: {gain}%',
+          'equipment.help.current': 'Multiplier of currently equipped gear\nDamage and coins earned ×{power}'
         });
         for (var _i3 = 0; _i3 < 12; _i3++) {
           t.ko['pet.' + _i3] = ['정찰', '공격', '보급'][_i3 % 3] + ' 드론 Mk.' + (Math.floor(_i3 / 3) + 1);
@@ -53379,6 +53533,7 @@ System.register("chunks:///_virtual/Squad.ts", ['./rollupPluginModLoBabelHelpers
       function applySquadText(t) {
         Object.assign(t.ko, {
           'feedback.statPercent': '피해 +{percent}%',
+          'squad.profileDeployed': '편성됨',
           'squad.deck': '용병 전투 덱',
           'squad.count': '용병 덱 {count}/{limit}',
           'squad.summary': '배치 {active}명 · 선택 {selected}/{limit} · 자동 피해 {damage}',
@@ -53458,6 +53613,7 @@ System.register("chunks:///_virtual/Squad.ts", ['./rollupPluginModLoBabelHelpers
           'registry.noneReady': '등록할 새 획득 기록이 없습니다.'
         });
         Object.assign(t.en, {
+          'squad.profileDeployed': 'IN DECK',
           'feedback.statPercent': 'Damage +{percent}%',
           'squad.deck': 'Mercenary Battle Deck',
           'squad.count': 'Squad {count}/{limit}',
@@ -53581,7 +53737,7 @@ System.register("chunks:///_virtual/SquadName.ts", ['cc'], function (exports) {
 });
 
 System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './UITheme.ts', './Config.ts', './Squad.ts'], function (exports) {
-  var _extends, _createClass, cclegacy, isValid, ScrollView, Vec2, SQUAD_ROLE_STYLE, UI, HEROES, squadRole, SQUAD_LIMIT, SQUAD_TEAMS, SQUAD_ROLES, EQUIPMENT_COLLECTIONS, equipmentKey;
+  var _extends, _createClass, cclegacy, isValid, ScrollView, Vec2, Mask, UIOpacity, Graphics, SQUAD_ROLE_STYLE, UI, BUTTON_TONES, HEROES, squadRole, SQUAD_LIMIT, SQUAD_TEAMS, SQUAD_ROLES, EQUIPMENT_COLLECTIONS, equipmentKey;
   return {
     setters: [function (module) {
       _extends = module.extends;
@@ -53591,9 +53747,13 @@ System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpe
       isValid = module.isValid;
       ScrollView = module.ScrollView;
       Vec2 = module.Vec2;
+      Mask = module.Mask;
+      UIOpacity = module.UIOpacity;
+      Graphics = module.Graphics;
     }, function (module) {
       SQUAD_ROLE_STYLE = module.SQUAD_ROLE_STYLE;
       UI = module.UI;
+      BUTTON_TONES = module.BUTTON_TONES;
     }, function (module) {
       HEROES = module.HEROES;
     }, function (module) {
@@ -53606,6 +53766,8 @@ System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpe
     }],
     execute: function () {
       cclegacy._RF.push({}, "77be0e5WIdPJZi5KGU/oO/b", "SquadUI", undefined);
+      // Approved profile alpha bounds; art/military/profile-layout-bounds.json records the source hashes.
+      var PROFILE_BOUNDS = [[0.054688, 0.09375, 0.976562, 1.0], [0.023438, 0.109375, 0.976562, 1.0], [0.023438, 0.101562, 0.976562, 1.0], [0.023438, 0.015625, 0.976562, 1.0], [0.023438, 0.046875, 0.976562, 1.0], [0.023438, 0.0625, 0.976562, 1.0], [0.023438, 0.015625, 0.976562, 1.0], [0.023438, 0.03125, 0.976562, 1.0], [0.023438, 0.046875, 0.976562, 1.0], [0.023438, 0.015625, 0.976562, 1.0], [0.023438, 0.0625, 0.976562, 1.0], [0.023438, 0.0625, 0.976562, 1.0], [0.023438, 0.03125, 0.976562, 1.0], [0.023438, 0.039062, 0.976562, 1.0], [0.023438, 0.023438, 0.835938, 1.0], [0.023438, 0.0, 0.976562, 1.0], [0.101562, 0.0, 0.976562, 1.0], [0.023438, 0.007812, 0.976562, 1.0], [0.023438, 0.03125, 0.976562, 1.0], [0.023438, 0.015625, 0.976562, 1.0], [0.023438, 0.0, 0.976562, 1.0], [0.023438, 0.03125, 0.976562, 1.0], [0.023438, 0.0, 0.976562, 1.0], [0.023438, 0.0, 0.976562, 1.0], [0.023438, 0.070312, 0.976562, 1.0], [0.039062, 0.28125, 0.976562, 1.0], [0.023438, 0.046875, 0.976562, 1.0], [0.023438, 0.09375, 0.976562, 1.0], [0.023438, 0.0, 0.929688, 1.0], [0.023438, 0.0, 0.976562, 1.0]];
       var SquadUI = exports('SquadUI', /*#__PURE__*/function () {
         function SquadUI(a) {
           this.history = [];
@@ -53689,6 +53851,11 @@ System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpe
         _proto.heroRow = function heroRow(id) {
           var _this3 = this;
           return {
+            height: 82,
+            mercenary: {
+              id: id,
+              assigned: this.g.s.extra.mercenaryDeck.includes(id)
+            },
             title: this.tr('hero.' + id),
             sub: this.tr('squad.heroStatus', {
               level: this.g.s.run.heroes[id],
@@ -53703,6 +53870,75 @@ System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpe
               return _this3.mercenary(id);
             }
           };
+        };
+        _proto.orderHeroes = function orderHeroes(heroes) {
+          var deck = this.g.s.extra.mercenaryDeck,
+            rank = function rank(id) {
+              var slot = deck.indexOf(id);
+              return slot < 0 ? SQUAD_LIMIT + id : slot;
+            };
+          return heroes.slice().sort(function (l, r) {
+            return rank(l.id) - rank(r.id);
+          });
+        };
+        _proto.profile = function profile(parent, id, x, y, size, assigned, locked) {
+          if (locked === void 0) {
+            locked = false;
+          }
+          var a = this.a,
+            style = SQUAD_ROLE_STYLE[squadRole(id)],
+            frame = a.nodeAt(parent, 'item-art', x, y, size, size);
+          frame.name = 'item-art';
+          a.ui.surface(frame, style.background, 'cut');
+          var clip = a.nodeAt(frame, 'mercenary-profile-clip', 0, 0, size, size),
+            mask = clip.addComponent(Mask);
+          mask.type = Mask.Type.GRAPHICS_STENCIL;
+          var g = mask.subComp,
+            points = a.ui.contours.get(frame).map(function (_ref) {
+              var x = _ref[0],
+                y = _ref[1];
+              return [x * (size - 4) / size, y * (size - 4) / size];
+            });
+          g.fillColor = a.color(UI.text);
+          g.moveTo(points[0][0], points[0][1]);
+          points.slice(1).forEach(function (p) {
+            return g.lineTo(p[0], p[1]);
+          });
+          g.close();
+          g.fill();
+          var art = a.ui.frames.get('faces/merc-' + id),
+            b = PROFILE_BOUNDS[id] || [0, 0, 1, 1];
+          if (art) {
+            var scale = Math.max((size - 4) / (art.width * (b[2] - b[0])), (size - 4) / (art.height * (b[3] - b[1]))),
+              image = a.nodeAt(clip, 'mercenary-profile-art', (.5 - (b[0] + b[2]) / 2) * art.width * scale, size / 2 - 2 + (b[1] - .5) * art.height * scale, art.width * scale, art.height * scale);
+            a.ui.face(image, 'merc-' + id);
+            if (locked) image.addComponent(UIOpacity).opacity = 130;
+          }
+          var edge = a.nodeAt(frame, 'mercenary-profile-border', 0, 0, size, size).addComponent(Graphics),
+            outline = a.ui.contours.get(frame);
+          edge.strokeColor = a.color(assigned ? BUTTON_TONES.deck : style.color);
+          edge.lineWidth = 2;
+          edge.moveTo(outline[0][0], outline[0][1]);
+          outline.slice(1).forEach(function (p) {
+            return edge.lineTo(p[0], p[1]);
+          });
+          edge.close();
+          edge.stroke();
+          var badge = a.nodeAt(frame, 'role-badge', size / 2 - 12, size / 2 - 12, 22, 22);
+          a.ui.surface(badge, style.color, 'cut');
+          a.ui.icon(a.nodeAt(badge, 'role-icon', 0, 0, 16, 16), style.icon, UI.ink);
+          var hint = this.tr('squad.role.' + squadRole(id)) + '\n' + this.tr('squad.roleDesc.' + squadRole(id));
+          a.touchAction(badge, function () {
+            return a.tooltip(badge, hint);
+          }, hint);
+          if (assigned) {
+            var tag = a.nodeAt(frame, 'mercenary-deployed-tag', 0, -size / 2 + 12, size - 6, 18);
+            a.ui.surface(tag, BUTTON_TONES.deck, 'cut');
+            a.ui.icon(a.nodeAt(tag, 'deployed-check', -size / 2 + 12, 0, 11, 11), 'symbol:check', UI.ink);
+            a.label(tag, this.tr('squad.profileDeployed'), 7, 0, size - 28, 18, 14, UI.ink);
+          }
+          if (locked) a.lockIcon(frame, -size / 2 + 12, size / 2 - 12);
+          return frame;
         };
         _proto.members = function members(ids, active) {
           var _this4 = this;
@@ -53776,18 +54012,11 @@ System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpe
           }), 0, 280, 394, 40, 16);
           var _loop = function _loop() {
             var id = ids[slot],
-              cell = a.nodeAt(p, 'squad-slot-' + slot, -150 + slot % 4 * 100, 204, 92, 76);
+              cell = a.nodeAt(p, 'squad-slot-' + slot, -150 + slot % 4 * 100, 204, 92, 96);
             a.ui.surface(cell, id === undefined ? UI.panel : SQUAD_ROLE_STYLE[squadRole(id)].background, 'cut');
             if (id === undefined) a.label(cell, _this7.tr('squad.empty'), 0, 0, 82, 55, 15);else {
-              a.ui.face(a.nodeAt(cell, 'portrait', -7, 12, 36, 38), 'merc-' + id);
-              var style = SQUAD_ROLE_STYLE[squadRole(id)],
-                badge = a.nodeAt(cell, 'role-badge', 29, 20, 22, 22);
-              a.ui.surface(badge, style.color, 'cut');
-              a.ui.icon(a.nodeAt(badge, 'role-icon', 0, 0, 16, 16), style.icon, UI.ink);
-              a.touchAction(badge, function () {
-                return a.tooltip(badge, _this7.tr('squad.role.' + squadRole(id)) + '\n' + _this7.tr('squad.roleDesc.' + squadRole(id)));
-              }, _this7.tr('squad.roleDesc.' + squadRole(id)));
-              a.label(cell, _this7.tr('hero.' + id), 0, -17, 84, 25, 14);
+              _this7.profile(cell, id, 0, 10, 72, true);
+              a.label(cell, _this7.tr('hero.' + id), 0, -36, 84, 22, 14);
               a.touchAction(cell, function () {
                 return _this7.toggle(id);
               }, _this7.tr('squad.remove'));
@@ -53796,9 +54025,9 @@ System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpe
           for (var slot = 0; slot < SQUAD_LIMIT; slot++) {
             _loop();
           }
-          var rows = HEROES.filter(function (h) {
+          var rows = this.orderHeroes(HEROES.filter(function (h) {
             return g.s.extra.mercenaryOwned.includes(h.id);
-          }).map(function (h) {
+          })).map(function (h) {
             return _extends({}, _this7.heroRow(h.id), {
               action: _this7.tr(ids.includes(h.id) ? 'squad.remove' : 'squad.deploy'),
               unavailable: function unavailable() {
@@ -53868,7 +54097,7 @@ System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpe
           }, false, {
             fontSize: 14
           });
-          a.scroll(p, 0, -63, 402, 412, HEROES.map(function (h) {
+          a.scroll(p, 0, -63, 402, 412, this.orderHeroes(HEROES).map(function (h) {
             return _this8.heroRow(h.id);
           }));
           a.label(p, this.tr('squad.collectionGuide'), 0, -303, 390, 58, 14);
@@ -54467,8 +54696,9 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             return table[k] === title;
           }) || '';
           if (this.active || !this.popupTitle || /^(squad|registry|cheat|tutorial|entry|consent|ops\.|error|unlock)/.test(this.popupTitle)) return false;
-          this.a.label(heading, title, 0, 12, 280, 24, 19, UI.ink);
-          this.popupHint = this.a.label(heading, this.a.tr('guide.inspect'), 0, -15, 288, 23, 13, '#222222');
+          this.popupTitleLabel = this.a.label(heading, title, 0, 0, 280, 44, 23, UI.ink);
+          this.popupHint = this.a.label(heading, '', 0, -15, 288, 23, 13, '#222222');
+          this.popupHint.node.active = false;
           return true;
         };
         _proto.popupClosed = function popupClosed() {
@@ -54543,7 +54773,13 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           this.popupTarget = (candidate == null ? void 0 : candidate.node) || null;
           this.popupHint.string = candidate ? this.a.tr('guide.action', {
             action: candidate.caption
-          }) : this.a.tr('guide.inspect');
+          }) : '';
+          this.popupHint.node.active = !!candidate;
+          if (this.popupTitleLabel && isValid(this.popupTitleLabel.node, true)) {
+            this.popupTitleLabel.node.setPosition(0, candidate ? 12 : 0);
+            this.popupTitleLabel.fontSize = candidate ? 19 : 23;
+            this.popupTitleLabel.node.getComponent(UITransform).height = candidate ? 24 : 44;
+          }
           if (candidate) {
             var size = candidate.node.getComponent(UITransform).contentSize;
             this.focus(candidate.node, 0, 0, size.width + 6, size.height + 6, false);
@@ -54564,6 +54800,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           this.popupTitle = '';
           this.popupCandidates = [];
           this.popupHint = null;
+          this.popupTitleLabel = null;
           this.popupTarget = null;
           this.buttons = new WeakMap();
           this.currentAction = void 0;
@@ -56068,6 +56305,7 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
             back: ['0000100', '0001100', '0011000', '0110000', '0011000', '0001100', '0000100'],
             info: ['0001100', '0001100', '0000000', '0011100', '0001100', '0001100', '0011110'],
             hand: ['0010100', '0010110', '1010110', '1111110', '0111110', '0111110', '0011100'],
+            star: ['0001000', '0011100', '1111111', '0111110', '0111110', '1101011', '1000001'],
             hammer: ['0111110', '0111110', '0001100', '0011000', '0110000', '1100000', '1000000'],
             eye: ['0000000', '0011100', '0110110', '1101011', '0110110', '0011100', '0000000'],
             bag: ['0011100', '0010100', '0111110', '1111111', '1101011', '1111111', '0111110'],
