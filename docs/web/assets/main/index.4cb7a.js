@@ -6534,6 +6534,7 @@ System.register("chunks:///_virtual/Feedback.ts", ['./rollupPluginModLoBabelHelp
       });
       cclegacy._RF.push({}, "da5da2Nc7ZOh6ckKJeeHZV+", "Feedback", undefined);
       function feedbackSnapshot(g) {
+        g.syncMercenaries();
         var s = g.s,
           rewards = {},
           levels = {};
@@ -6652,6 +6653,7 @@ System.register("chunks:///_virtual/Feedback.ts", ['./rollupPluginModLoBabelHelp
         return {
           rewards: rewards,
           levels: levels,
+          mercenaries: [].concat(s.extra.mercenaryOwned),
           tap: g.tapDamage(),
           dps: g.dps()
         };
@@ -6689,9 +6691,16 @@ System.register("chunks:///_virtual/Feedback.ts", ['./rollupPluginModLoBabelHelp
             value: _e.value - old
           }));
         }
+        var recruits = after.mercenaries.filter(function (id) {
+          return !before.mercenaries.includes(id) && growth.some(function (e) {
+            var _e$args;
+            return e.key === 'hero.' + id && ((_e$args = e.args) == null ? void 0 : _e$args.before) === 0;
+          });
+        });
         return {
           rewards: rewards,
           growth: growth,
+          recruits: recruits,
           tap: after.tap > before.tap + 1e-9 ? [before.tap, after.tap] : null,
           dps: after.dps > before.dps + 1e-9 ? [before.dps, after.dps] : null
         };
@@ -6802,6 +6811,8 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           this.director = new DialogueDirector();
           this.chatter = null;
           this.deckReaction = null;
+          this.recruits = [];
+          this.recruitRun = null;
           this.asyncPending = 0;
           this.a = a;
         }
@@ -6942,7 +6953,20 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
               this.a.toastNode = null;
             }
           }
-          if (diff.growth.length || diff.tap || diff.dps) this.growth(diff);
+          if (diff.recruits.length) {
+            var _this$recruits;
+            this.recruitRun = this.a.game.s.run;
+            (_this$recruits = this.recruits).push.apply(_this$recruits, diff.recruits);
+            this.showRecruit();
+          }
+          var growth = diff.growth.filter(function (e) {
+            return !diff.recruits.some(function (id) {
+              return e.key === 'hero.' + id;
+            });
+          });
+          if (growth.length || !diff.recruits.length && (diff.tap || diff.dps)) this.growth(_extends({}, diff, {
+            growth: growth
+          }));
           if (rewards.length) {
             this.queue.push(rewards);
             this.a.scheduleOnce(function () {
@@ -6978,8 +7002,22 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
             }));
           }
           if (this.overlay && !isValid(this.overlay, true)) this.overlay = null;
+          this.showRecruit();
           if (!this.overlay && this.queue.length && !this.a.remoteBusy && !this.a.operations.busy) this.showNext();
           this.unlockMercenary();
+        };
+        _proto.showRecruit = function showRecruit() {
+          var a = this.a;
+          if (this.recruitRun !== a.game.s.run) {
+            this.recruits = [];
+            this.recruitRun = a.game.s.run;
+          }
+          if (!this.recruits.length || !a.entry.playing || this.showing || a.modal || a.zoneTransition.active || a.liveOps.blocked || !a.operations.ready || a.operations.busy || a.operations.conflict || a.remoteBusy || this.asyncPending) return;
+          var id = this.recruits.shift();
+          a.hideTooltip();
+          a.hideToast();
+          this.clearBanner();
+          this.showMercenary(id, false, true);
         };
         _proto.name = function name(e) {
           var args = _extends({}, e.args);
@@ -7062,10 +7100,13 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           });
           if (h && (a.game.s.tutorial.step >= 7 || h.id === 0 && a.game.s.tutorial.step >= 3)) this.showMercenary(h.id);
         };
-        _proto.showMercenary = function showMercenary(id, preview) {
+        _proto.showMercenary = function showMercenary(id, preview, recruited) {
           var _this6 = this;
           if (preview === void 0) {
             preview = false;
+          }
+          if (recruited === void 0) {
+            recruited = false;
           }
           var a = this.a;
           if (this.showing) return;
@@ -7079,8 +7120,8 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           a.ui.surface(panel, UI.bg, 'panel');
           var backdrop = a.nodeAt(panel, 'cutin-backdrop', 0, 0, 420, h);
           a.ui.polygon(backdrop, [[-204, h / 2 - 72], [183, h / 2 - 48], [204, -h / 2 + 120], [-178, -h / 2 + 80]], UI.raised);
-          a.label(panel, a.tr(preview ? 'merc.gallery' : 'merc.unlocked'), 0, h / 2 - 30, 380, 40, 26, UI.gold);
-          a.label(panel, a.tr('merc.ready', {
+          a.label(panel, a.tr(preview ? 'merc.gallery' : recruited ? 'merc.joined' : 'merc.unlocked'), 0, h / 2 - 30, 380, 40, 26, UI.gold).node.name = 'mercenary-cutin-title';
+          a.label(panel, a.tr(recruited ? 'merc.joinedName' : 'merc.ready', {
             name: a.tr('hero.' + id)
           }), 0, h / 2 - 67, 380, 34, 21, UI.text);
           var illustration = a.nodeAt(panel, 'mercenary-illustration', 0, 30, 320, h - 236);
@@ -40816,21 +40857,42 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           var base = hero < 0 ? 4 : HEROES[hero].cost;
           return (this.s.extra.commerce.discountUntil > this.now() ? -1 : 0) + amount(base) + level * Math.log10(growth) + Math.log10((Math.pow(growth, count) - 1) / (growth - 1));
         };
+        _proto.purchaseQuote = function purchaseQuote(hero, requested) {
+          var recruit = hero >= 0 && this.s.run.heroes[hero] === 0;
+          var count = recruit ? 1 : requested;
+          if (count === -1) {
+            var low = 0,
+              high = 1000;
+            while (low < high) {
+              var next = Math.ceil((low + high) / 2);
+              if (this.upgradeCost(hero, next) <= this.s.run.gold + 1e-10) low = next;else high = next - 1;
+            }
+            count = low;
+          }
+          // When MAX cannot afford a level, show the next level's cost and reason.
+          return {
+            count: count,
+            cost: this.upgradeCost(hero, count || 1),
+            recruit: recruit
+          };
+        };
         _proto.buy = function buy(hero, requested) {
+          if (!Number.isInteger(hero) || hero < -1 || hero >= HEROES.length || !Number.isInteger(requested) || requested !== -1 && requested <= 0) {
+            this.notice = 'error.invalid';
+            return false;
+          }
           if (hero >= 0 && this.s.maxStage < HEROES[hero].unlock) {
             this.notice = 'error.locked';
             return false;
           }
-          var count = requested;
-          if (count === -1) {
-            count = 0;
-            while (count < 1000 && this.upgradeCost(hero, count + 1) <= this.s.run.gold + 1e-10) count++;
-          }
-          if (count <= 0 || this.upgradeCost(hero, count) > this.s.run.gold + 1e-10) {
+          var _this$purchaseQuote = this.purchaseQuote(hero, requested),
+            count = _this$purchaseQuote.count,
+            cost = _this$purchaseQuote.cost;
+          if (count <= 0 || cost > this.s.run.gold + 1e-10) {
             this.notice = 'error.currency';
             return false;
           }
-          this.s.run.gold = sub(this.s.run.gold, this.upgradeCost(hero, count));
+          this.s.run.gold = sub(this.s.run.gold, cost);
           if (hero < 0) this.s.run.master += count;else this.s.run.heroes[hero] += count;
           this.syncMercenaries();
           this.revision++;
@@ -42255,7 +42317,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           if (hero >= 0 && this.game.s.maxStage < HEROES[hero].unlock) return this.tr('hero.locked', {
             stage: HEROES[hero].unlock
           });
-          return this.costReason('gold', this.game.upgradeCost(hero, this.mode === -1 ? 1 : this.mode));
+          return this.costReason('gold', this.game.purchaseQuote(hero, this.mode).cost);
+        };
+        _proto.levelButtonLabel = function levelButtonLabel(hero) {
+          var quote = this.game.purchaseQuote(hero, this.mode);
+          return this.tr(quote.recruit ? 'action.recruitCost' : 'action.upgradeCost', {
+            count: quote.count || 1,
+            cost: this.format(quote.cost)
+          });
         };
         _proto.touchAction = function touchAction(n, action, hint) {
           var _this4 = this;
@@ -43873,14 +43942,15 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             this.metric(this.panel, 'symbol:damage', this.format(g.tapDamage()), -6, 102, 112, this.tr('layout.tapDamage', {
               value: this.format(g.tapDamage())
             }));
-            var captainUpgrade = this.button(this.panel, this.format(g.upgradeCost(-1, this.mode === -1 ? 1 : this.mode)), 164, 112, 135, 60, function () {
+            var captainUpgrade = this.button(this.panel, this.levelButtonLabel(-1), 164, 112, 135, 60, function () {
               g.buy(-1, _this24.mode);
               _this24.drawPanel();
               _this24.flushNotice();
             }, true, {
               category: 'upgrade',
-              icon: 'symbol:plus',
-              iconOnly: false,
+              label: function label() {
+                return _this24.levelButtonLabel(-1);
+              },
               hint: this.tr('layout.upgrade'),
               unavailable: function unavailable() {
                 return _this24.levelReason(-1);
@@ -43978,6 +44048,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                 unavailable: function unavailable() {
                   return _this24.levelReason(h.id);
                 },
+                actionLabel: function actionLabel() {
+                  return s.maxStage < h.unlock ? _this24.tr('action.locked') : _this24.levelButtonLabel(h.id);
+                },
                 title: _this24.tr(h.name),
                 sub: s.maxStage < h.unlock ? _this24.tr('hero.locked', {
                   stage: h.unlock
@@ -44016,9 +44089,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                   }
                 },
                 tint: [C.ember, C.mint, C.blue, C.violet][h.id % 4],
-                action: s.maxStage < h.unlock ? _this24.tr('action.locked') : r.heroes[h.id] === 0 ? _this24.tr('action.recruitCost', {
-                  cost: _this24.format(g.upgradeCost(h.id, 1))
-                }) : _this24.format(g.upgradeCost(h.id, _this24.mode === -1 ? 1 : _this24.mode)),
+                action: s.maxStage < h.unlock ? _this24.tr('action.locked') : _this24.levelButtonLabel(h.id),
                 click: function click() {
                   if (s.maxStage < h.unlock) {
                     _this24.info(_this24.tr('unlock.title'), _this24.tr('hero.locked', {
@@ -48090,6 +48161,9 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureL
       });
       Object.assign(translations.ko, {
         'action.recruitCost': '고용\n{cost}',
+        'action.upgradeCost': '+{count}레벨\n{cost}',
+        'merc.joined': '용병 고용 완료',
+        'merc.joinedName': '{name}, 분대에 합류!',
         'cheat.short': '치트',
         'cheat.title': '프로토타입 치트 패널',
         'cheat.description': '전투와 성장 테스트용입니다.\n변경 사항은 현재 계정에 저장됩니다.',
@@ -48114,6 +48188,9 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureL
       });
       Object.assign(translations.en, {
         'action.recruitCost': 'Recruit\n{cost}',
+        'action.upgradeCost': '+{count} Lv.\n{cost}',
+        'merc.joined': 'Mercenary Recruited',
+        'merc.joinedName': '{name} joins the squad!',
         'cheat.short': 'Cheat',
         'cheat.title': 'Prototype Cheat Panel',
         'cheat.description': 'Test combat and progression.\nChanges are saved to the current account.',
