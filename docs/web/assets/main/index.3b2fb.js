@@ -765,7 +765,12 @@ System.register("chunks:///_virtual/BattleTransitionUI.ts", ['./rollupPluginModL
     }],
     execute: function () {
       cclegacy._RF.push({}, "420acWFB79Ku6m9OH8VUAc7", "BattleTransitionUI", undefined);
-      /** One continuous left-to-right cover, reveal at full coverage, then exit. */
+      var AREA_TRANSITION_DELAY = exports('AREA_TRANSITION_DELAY', .5);
+      var AREA_TRANSITION_SECONDS = exports('AREA_TRANSITION_SECONDS', .85);
+      var COVER = .21,
+        EXIT = .64,
+        ARRIVAL = .475;
+      /** Keep the cleared battlefield for 0.5s, then cover and reveal in 0.85s. */
       var BattleTransitionUI = exports('BattleTransitionUI', /*#__PURE__*/function () {
         function BattleTransitionUI(a) {
           this.displayedStage = 0;
@@ -789,15 +794,19 @@ System.register("chunks:///_virtual/BattleTransitionUI.ts", ['./rollupPluginModL
           if (!this.seen) this.seen = this.displayedStage = this.a.game.s.run.stage;
           if (this.active) {
             this.destroy();
-            this.make();
+            if (!this.blocked()) this.make();
             this.paint();
           }
+        };
+        _proto.blocked = function blocked() {
+          var a = this.a;
+          return !!a.modal || a.feedback.showing || a.tutorial.active || !a.operations.ready || a.operations.busy || a.operations.conflict || a.remoteBusy;
         };
         _proto.observe = function observe() {
           var a = this.a,
             stage = a.game.s.run.stage;
           if (!this.seen) this.seen = this.displayedStage = stage;
-          if (this.active || stage === this.seen || a.modal || a.feedback.showing || a.tutorial.active || !a.operations.ready || a.operations.busy || a.operations.conflict || a.remoteBusy) return this.active;
+          if (this.active || stage === this.seen) return this.active;
           this.to = stage;
           this.elapsed = 0;
           this.swapped = false;
@@ -806,24 +815,25 @@ System.register("chunks:///_virtual/BattleTransitionUI.ts", ['./rollupPluginModL
           a.clearPendingShots();
           a.hideTooltip();
           a.feedback.areaTransition();
-          this.make();
+          if (!this.blocked()) this.make();
           this.paint();
           return true;
         };
         _proto.tick = function tick(dt) {
-          if (!this.active) return;
+          if (!this.active || this.blocked()) return;
+          if (!this.layer) this.make();
           this.elapsed += dt;
           var effects = this.a.game.s.extra.effects,
-            cover = effects ? .42 : 0,
-            total = effects ? 1.7 : .7;
-          if (!this.swapped && this.elapsed >= cover) {
+            time = this.elapsed - AREA_TRANSITION_DELAY,
+            total = effects ? AREA_TRANSITION_SECONDS : .35;
+          if (!this.swapped && time >= (effects ? COVER : 0)) {
             this.swapped = true;
             this.seen = this.displayedStage = this.to;
             this.a.revealArea();
             this.pulse();
           }
           this.paint();
-          if (this.elapsed >= total) {
+          if (time >= total) {
             this.destroy();
             this.to = 0;
             this.a.updateHUD();
@@ -840,27 +850,44 @@ System.register("chunks:///_virtual/BattleTransitionUI.ts", ['./rollupPluginModL
           var hud = a.root.getChildByName('hud');
           if (hud) hud.setSiblingIndex(a.root.children.length - 1);
           var w = 740,
-            slab = this.slab = a.nodeAt(layer, 'area-wipe-image', 0, 0, w, h);
-          a.ui.polygon(slab, [[-w / 2, -h / 2], [w / 2 - 70, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]], '#172025');
+            slab = this.slab = a.nodeAt(layer, 'area-wipe-image', 0, 0, w, h),
+            mask = slab.addComponent(Mask);
+          mask.type = Mask.Type.GRAPHICS_STENCIL;
+          var graphics = mask.subComp,
+            outline = [[-w / 2, -h / 2], [w / 2 - 70, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]];
+          graphics.clear();
+          graphics.fillColor = a.color('#ffffff');
+          graphics.moveTo(outline[0][0], outline[0][1]);
+          outline.slice(1).forEach(function (p) {
+            return graphics.lineTo(p[0], p[1]);
+          });
+          graphics.close();
+          graphics.fill();
+          var source = a.ui.frames.get('transition/zone-entry'),
+            ratio = source.texture.width / source.texture.height,
+            artWidth = Math.max(w, h * ratio),
+            artHeight = artWidth / ratio;
+          a.ui.paint(a.nodeAt(slab, 'area-convoy-art', 0, 0, artWidth, artHeight), 'transition/zone-entry');
+          a.rect(slab, 0, 0, w, h, '#071014', undefined, 32);
           a.polygon(slab, w / 2 - 70, 0, 36, h, [[-.5, -.5], [.2, -.5], [.5, .5], [-.2, .5]], UI.gold);
           for (var i = 0; i < 7; i++) a.polygon(slab, -205 + i * 76, -h / 2 + 17, 44, 14, [[-.5, -.5], [.16, -.5], [.5, .5], [-.16, .5]], '#556343');
           for (var _i = 0; _i < 8; _i++) a.rect(slab, -290 + _i * 74, h / 2 - 21, 36, 3, '#738056');
-          a.ui.icon(a.nodeAt(slab, 'area-flag', 0, 65, 42, 42), 'symbol:flag', UI.gold);
-          a.rect(layer, 0, 13, 440, 60, '#172025', undefined, 230);
-          a.rect(layer, 0, -42, 220, 40, '#172025', undefined, 230);
-          this.title = a.label(layer, a.tr('battle.entering'), 0, 13, 440, 54, 27, UI.text);
+          a.rect(slab, -74, 13, 268, 60, '#172025', undefined, 220);
+          a.rect(slab, -74, -42, 216, 40, '#172025', undefined, 220);
+          this.title = a.label(slab, a.tr('battle.entering'), -74, 13, 252, 54, a.game.s.locale === 'ko' ? 23 : 20, UI.text);
           this.title.node.name = 'area-transition-title';
-          this.number = a.label(layer, a.tr('battle.areaMove', {
+          this.number = a.label(slab, a.tr('battle.areaMove', {
             stage: this.to
-          }), 0, -42, 420, 40, 23, UI.gold);
+          }), -74, -42, 210, 40, 27, UI.gold);
           this.number.node.name = 'area-transition-number';
         };
         _proto.paint = function paint() {
           if (!this.slab) return;
           var effects = this.a.game.s.extra.effects,
-            t = this.elapsed;
-          this.slab.setPosition(effects ? t < .42 ? -740 + 740 * (1 - Math.pow(1 - t / .42, 3)) : t <= 1.28 ? 0 : 740 * Math.pow((t - 1.28) / .42, 3) : 0, 0);
-          if (this.title) this.title.string = this.a.tr(t >= .95 || !effects ? 'battle.entered' : 'battle.entering');
+            t = Math.max(0, this.elapsed - AREA_TRANSITION_DELAY);
+          this.slab.active = this.elapsed >= AREA_TRANSITION_DELAY;
+          this.slab.setPosition(effects ? t < COVER ? -740 + 740 * (1 - Math.pow(1 - t / COVER, 3)) : t <= EXIT ? 0 : 740 * Math.pow((t - EXIT) / COVER, 3) : 0, 0);
+          if (this.title) this.title.string = this.a.tr(t >= ARRIVAL || !effects ? 'battle.entered' : 'battle.entering');
         };
         _proto.pulse = function pulse() {
           var a = this.a,
@@ -891,6 +918,80 @@ System.register("chunks:///_virtual/BattleTransitionUI.ts", ['./rollupPluginModL
           }
         }]);
         return BattleTransitionUI;
+      }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/BossTimerUI.ts", ['cc', './Config.ts', './UITheme.ts'], function (exports) {
+  var cclegacy, UITransform, isValid, CONFIG, UI;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+      UITransform = module.UITransform;
+      isValid = module.isValid;
+    }, function (module) {
+      CONFIG = module.CONFIG;
+    }, function (module) {
+      UI = module.UI;
+    }],
+    execute: function () {
+      cclegacy._RF.push({}, "d014b+tdVtEYKas4twvmkMm", "BossTimerUI", undefined);
+      /** Read the real boss clock; never run a second presentation timer. */
+      var BossTimerUI = exports('BossTimerUI', /*#__PURE__*/function () {
+        function BossTimerUI(a) {
+          this.plate = null;
+          this.value = null;
+          this.fill = null;
+          this.urgent = null;
+          this.a = a;
+        }
+        var _proto = BossTimerUI.prototype;
+        _proto.draw = function draw(hud) {
+          var a = this.a,
+            n = this.plate = a.nodeAt(hud, 'boss-time-limit', -196, 350, 76, 48);
+          this.urgent = null;
+          a.label(n, a.tr('battle.bossTimeTitle'), 0, 15, 70, 16, a.game.s.locale === 'ko' ? 12 : 11, UI.text).node.name = 'boss-time-title';
+          this.value = a.label(n, '', 0, -3, 72, 28, 21, UI.gold);
+          this.value.node.name = 'boss-time-value';
+          a.rect(n, 0, -19, 64, 3, '#101710');
+          this.fill = a.nodeAt(n, 'boss-time-fill', -32, -19, 64, 3);
+          this.fill.getComponent(UITransform).setAnchorPoint(0, .5);
+          a.rect(this.fill, 32, 0, 64, 3, UI.gold);
+          a.iconHelp(n, function () {
+            return a.tr('battle.bossTimeHelp', {
+              seconds: CONFIG.bossSeconds
+            });
+          });
+          this.tick();
+        };
+        _proto.tick = function tick() {
+          var a = this.a,
+            n = this.plate;
+          if (!n || !isValid(n, true) || !this.value || !this.fill) return;
+          var r = a.game.s.run;
+          n.active = r.boss && !a.zoneTransition.active;
+          a.progressLabel.node.active = !r.boss && !a.zoneTransition.active;
+          if (!n.active) {
+            n.setScale(1, 1, 1);
+            return;
+          }
+          var seconds = Math.max(0, r.bossLeft),
+            urgent = seconds <= 5;
+          if (this.urgent !== urgent) {
+            this.urgent = urgent;
+            a.ui.surface(n, urgent ? '#a52639' : '#172025', 'cut', 255, true);
+            this.value.color = a.color(urgent ? UI.text : UI.gold);
+          }
+          this.value.string = a.tr('battle.bossTime', {
+            seconds: seconds.toFixed(1)
+          });
+          this.fill.setScale(Math.max(0, Math.min(1, seconds / CONFIG.bossSeconds)), 1, 1);
+          var scale = urgent && a.game.s.extra.effects ? 1 + Math.sin(a.age * 12) * .025 : 1;
+          n.setScale(scale, scale, 1);
+        };
+        return BossTimerUI;
       }());
       cclegacy._RF.pop();
     }
@@ -6761,7 +6862,7 @@ System.register("chunks:///_virtual/Feedback.ts", ['./rollupPluginModLoBabelHelp
 });
 
 System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Feedback.ts', './UITheme.ts', './Mercenaries.ts', './Config.ts', './Amount.ts', './Dialogue.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _extends, _createClass, cclegacy, isValid, UITransform, tween, Vec3, BlockInputEvents, Graphics, Mask, UIOpacity, feedbackSnapshot, feedbackDiff, GrowthFeedbackQueue, UI, mercenaryArt, attackSeconds, PETS, ARTIFACTS, CARDS, HEROES, display, DIALOGUE_CONTEXTS, DialogueDeck, DialogueDirector;
+  var _createForOfIteratorHelperLoose, _extends, _createClass, cclegacy, isValid, UITransform, BlockInputEvents, Sprite, Node, tween, Vec3, Graphics, Mask, UIOpacity, feedbackSnapshot, feedbackDiff, GrowthFeedbackQueue, UI, mercenaryArt, attackSeconds, PETS, ARTIFACTS, CARDS, HEROES, display, DIALOGUE_CONTEXTS, DialogueDeck, DialogueDirector;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -6771,9 +6872,11 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
       cclegacy = module.cclegacy;
       isValid = module.isValid;
       UITransform = module.UITransform;
+      BlockInputEvents = module.BlockInputEvents;
+      Sprite = module.Sprite;
+      Node = module.Node;
       tween = module.tween;
       Vec3 = module.Vec3;
-      BlockInputEvents = module.BlockInputEvents;
       Graphics = module.Graphics;
       Mask = module.Mask;
       UIOpacity = module.UIOpacity;
@@ -6836,6 +6939,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
         };
         _proto.squadReaction = function squadReaction(speaker, deployed) {
           var _a$modal,
+            _illustration$getComp,
             _this = this;
           var a = this.a,
             panel = (_a$modal = a.modal) == null ? void 0 : _a$modal.getChildByName('modal-panel');
@@ -6850,14 +6954,31 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
             this.deckReaction.destroy();
           }
           this.clearChatter();
-          // Use the title area so the list, deployment controls and close button stay usable.
+          // The existing popup supplies the 50% dim. Keep its title, close and bottom actions exposed.
           var h = panel.getComponent(UITransform).height,
-            n = a.nodeAt(panel, 'squad-reaction', -40, h / 2 - 38, 320, 60);
+            n = a.nodeAt(panel, 'squad-reaction', 0, h / 2 - 240, 380, 300);
           this.deckReaction = n;
-          this.comic(n, 0, 0, 320, 60);
-          a.ui.icon(a.nodeAt(n, 'reaction-portrait', -132, 0, 32, 40), 'face:merc-' + mercenaryArt(speaker));
-          a.label(n, a.tr('hero.' + speaker), 20, 17, 234, 22, 14, UI.ink).node.name = 'reaction-speaker';
-          a.label(n, a.tr(this.dialogue.next(speaker, deployed ? 'deploy' : 'withdraw')), 20, -12, 234, 34, 14, UI.ink).node.name = 'reaction-line';
+          a.ui.surface(n, UI.bg, 'cut');
+          n.addComponent(BlockInputEvents);
+          a.ui.surface(a.nodeAt(n, 'reaction-art-background', -97, -15, 172, 250), UI.raised, 'cut');
+          var illustration = a.nodeAt(n, 'reaction-illustration', -97, -15, 166, 238);
+          a.ui.paint(illustration, 'cutin/' + mercenaryArt(speaker));
+          var size = (_illustration$getComp = illustration.getComponent(Sprite)) == null || (_illustration$getComp = _illustration$getComp.spriteFrame) == null ? void 0 : _illustration$getComp.originalSize;
+          if (size && size.width > 0 && size.height > 0) {
+            var scale = Math.min(166 / size.width, 238 / size.height);
+            a.ui.resize(illustration, size.width * scale, size.height * scale);
+          }
+          a.label(n, a.tr('hero.' + speaker), 87, 109, 178, 48, 22, UI.text).node.name = 'reaction-speaker';
+          a.label(n, a.tr(deployed ? 'squad.deploy' : 'squad.remove'), 87, 72, 178, 26, 16, deployed ? UI.mint : UI.gold).node.name = 'reaction-action';
+          var bubble = this.comic(n, 87, -30, 178, 154);
+          a.label(bubble, a.tr(this.dialogue.next(speaker, deployed ? 'deploy' : 'withdraw')), 0, 0, 146, 128, 17, UI.ink).node.name = 'reaction-line';
+          n.on(Node.EventType.TOUCH_END, function () {
+            if (isValid(n, true)) {
+              n.removeFromParent();
+              n.destroy();
+            }
+            if (_this.deckReaction === n) _this.deckReaction = null;
+          });
           if (a.game.s.extra.effects) {
             n.setScale(.96, .96, 1);
             tween(n).to(.1, {
@@ -41621,8 +41742,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
   };
 });
 
-System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts', './env', './EnemyArtBounds.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, SquadUI, BattlePlacementUI, BattleTransitionUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
+System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts', './env', './EnemyArtBounds.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
+  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, SquadUI, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
@@ -41676,6 +41797,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       BattlePlacementUI = module.BattlePlacementUI;
     }, function (module) {
       BattleTransitionUI = module.BattleTransitionUI;
+    }, function (module) {
+      BossTimerUI = module.BossTimerUI;
     }, function (module) {
       ShopUI = module.ShopUI;
     }, function (module) {
@@ -41834,6 +41957,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           _this.rewardGlow = new RewardGlowUI(_assertThisInitialized(_this));
           _this.placement = new BattlePlacementUI(_assertThisInitialized(_this));
           _this.zoneTransition = new BattleTransitionUI(_assertThisInitialized(_this));
+          _this.bossTimer = new BossTimerUI(_assertThisInitialized(_this));
           _this.game = void 0;
           _this.root = void 0;
           _this.panel = void 0;
@@ -41885,6 +42009,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           _this.damageLayer = void 0;
           _this.damageTime = 0;
           _this.damageNumbers = [];
+          _this.damageBuckets = new Map();
           return _this;
         }
         var _proto = GameApp.prototype;
@@ -42491,6 +42616,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         };
         _proto.draw = function draw() {
           var _this8 = this;
+          this.damageBuckets.clear();
           this.enemyFeedback.clear();
           this.placement.reset();
           this.hideTooltip();
@@ -42587,6 +42713,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             label.outlineWidth = 2;
             label.outlineColor = this.color('#101710');
           }
+          this.bossTimer.draw(hud);
           var coins = this.nodeAt(hud, 'coin-counter-plate', -116, 398, 212, 38);
           this.ui.surface(coins, C.panel);
           this.goldLabel = this.label(coins, '', 16, 0, 160, 30, 21, UI.brightGold, Label.HorizontalAlign.RIGHT);
@@ -42984,8 +43111,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var _this12 = this;
           if (this.game.s.totalKills === this.seenKills) return;
           this.seenKills = this.game.s.totalKills;
-          if (this.zoneTransition.observe()) return;
-          this.enemyTransition = .65;
+          this.enemyTransition = this.zoneTransition.observe() ? 0 : .65;
           for (var _i3 = 0, _arr3 = [].concat(this.particles.children); _i3 < _arr3.length; _i3++) {
             var missile = _arr3[_i3];
             if (missile.name === 'ally-projectile') {
@@ -43091,6 +43217,20 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             if (isValid(n, true)) n.destroy();
           }, .34);
         };
+        _proto.flushDamageNumbers = function flushDamageNumbers(force) {
+          if (force === void 0) {
+            force = false;
+          }
+          for (var _iterator6 = _createForOfIteratorHelperLoose(this.damageBuckets), _step6; !(_step6 = _iterator6()).done;) {
+            var _step6$value = _step6.value,
+              key = _step6$value[0],
+              bucket = _step6$value[1];
+            if (force || this.damageTime >= bucket.until) {
+              this.damageBuckets["delete"](key);
+              this.damageFloat(bucket.target, bucket.damage, bucket.hero, bucket.hit, true);
+            }
+          }
+        };
         _proto.shotTarget = function shotTarget(id) {
           var _this$hitCells$get;
           if (id === void 0) {
@@ -43120,34 +43260,31 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var unit = this.enemy.getChildByName('hostile-' + id);
           if (unit) this.enemyFeedback.hit(unit, hit);
         };
-        _proto.damageFloat = function damageFloat(target, damage, hero, hit) {
+        _proto.damageFloat = function damageFloat(target, damage, hero, hit, batched) {
           var _this16 = this;
           if (hero === void 0) {
             hero = -1;
           }
+          if (batched === void 0) {
+            batched = false;
+          }
           if (damage === ZERO || !this.damageLayer || !isValid(this.damageLayer, true)) return;
+          // Accumulate continuous ticks before displaying them. Visible labels are immutable.
+          if (hit != null && hit.continuous && !batched) {
+            var key = [hit.wave, hit.target, hit.critical, hit.special].join(':'),
+              bucket = this.damageBuckets.get(key);
+            if (bucket) bucket.damage = add(bucket.damage, damage);else this.damageBuckets.set(key, {
+              target: target.clone(),
+              damage: damage,
+              hero: hero,
+              hit: hit,
+              until: this.damageTime + .12
+            });
+            return;
+          }
           this.damageNumbers = this.damageNumbers.filter(function (n) {
             return isValid(n.node, true) && n.node.parent === _this16.damageLayer;
           });
-          // Continuous tactics tick every frame. Sum a short interval for the same enemy, never across waves.
-          var merged = (hit == null ? void 0 : hit.continuous) && this.damageNumbers.find(function (n) {
-            var _n$hit;
-            return ((_n$hit = n.hit) == null ? void 0 : _n$hit.continuous) && n.hit.wave === hit.wave && n.hit.target === hit.target && n.hit.critical === hit.critical && n.hit.special === hit.special && _this16.damageTime - n.born < .18;
-          });
-          if (merged) {
-            merged.damage = add(merged.damage, damage);
-            merged.node.getComponent(Label).string = this.format(merged.damage);
-            return;
-          }
-          var removeOldest = function removeOldest() {
-            var old = _this16.damageNumbers.shift();
-            if (old) {
-              _this16.stopTweens(old.node);
-              old.node.removeFromParent();
-              old.node.destroy();
-            }
-          };
-          while (this.damageNumbers.length >= 22) removeOldest();
           var kind = hit != null && hit.critical ? hit.special ? 'specialCritical' : 'critical' : hit != null && hit.special ? 'special' : 'normal';
           var tone = {
             normal: '#ffffff',
@@ -43157,29 +43294,35 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }[kind];
           var text = this.format(damage),
             font = hit != null && hit.critical ? 27 : hit != null && hit.special ? 23 : hero < 0 ? 22 : 20,
-            width = kind === 'normal' ? Math.max(36, Math.min(106, text.length * font * .65 + 14)) : 120;
+            width = kind === 'normal' ? Math.max(36, Math.min(106, text.length * font * .65 + 14)) : 120,
+            height = kind === 'normal' ? 34 : 58;
           var scale = this.damageLayer.scale,
             origin = this.damageLayer.position;
           var top = (290 + this.heightExtra - this.safeTop - origin.y) / scale.y - 55;
           var bottom = ((this.folded ? -337 : -39) - this.heightExtra + this.safeBottom - origin.y) / scale.y + 24;
           var candidates = [];
-          for (var row = 0; row < 6; row++) for (var _i4 = 0, _arr4 = [0, -1, 1]; _i4 < _arr4.length; _i4++) {
-            var col = _arr4[_i4];
-            var x = Math.max((18 - origin.x) / scale.x + width / 2, Math.min((230 - origin.x) / scale.x - width / 2, target.x + col * 32 + (Math.random() - .5) * 8));
-            var y = Math.max(bottom, Math.min(top, target.y + 22 + row * 34 + Math.random() * 5));
-            candidates.push(new Vec3(x, y, 0));
+          for (var _i4 = 0, _arr4 = [0, -14, 14, -28, 28]; _i4 < _arr4.length; _i4++) {
+            var offset = _arr4[_i4];
+            for (var _i5 = 0, _arr5 = [0, -1, 1]; _i5 < _arr5.length; _i5++) {
+              var col = _arr5[_i5];
+              var x = Math.max((18 - origin.x) / scale.x + width / 2, Math.min((230 - origin.x) / scale.x - width / 2, target.x + (col * 44 + (Math.random() - .5) * 6) / scale.x));
+              var y = Math.max(bottom, Math.min(top, target.y + (12 + offset + Math.random() * 3) / scale.y));
+              candidates.push(new Vec3(x, y, 0));
+            }
           }
-          var clear = function clear(point) {
-            return _this16.damageNumbers.every(function (n) {
-              return Math.abs(n.node.position.x - point.x) > (n.width + width) / 2 + 16 || Math.abs(n.node.position.y - point.y) > 48;
-            });
+          var overlap = function overlap(point) {
+            return _this16.damageNumbers.reduce(function (sum, n) {
+              var x = (n.width + width) / 2 + 6 / scale.x - Math.abs(n.node.position.x - point.x),
+                y = (n.height + height) / 2 + 4 / scale.y - Math.abs(n.node.position.y - point.y);
+              return sum + (x > 0 && y > 0 ? Math.min(x, y) * (n.node.getComponent(UIOpacity).opacity / 255) : 0);
+            }, 0);
           };
-          var point = candidates.find(clear);
-          while (!point && this.damageNumbers.length) {
-            removeOldest();
-            point = candidates.find(clear);
-          }
-          point = point || candidates[0];
+          // Find room only for the new label; never remove or reposition an existing flight.
+          var point = candidates.find(function (p) {
+            return overlap(p) === 0;
+          }) || candidates.reduce(function (best, p) {
+            return overlap(p) < overlap(best) ? p : best;
+          });
           var n = this.label(this.damageLayer, text, point.x, point.y, width, 34, font).node;
           n.name = 'damage-float';
           var label = n.getComponent(Label);
@@ -43200,6 +43343,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.damageNumbers.push({
             node: n,
             width: width,
+            height: height,
             hit: hit,
             born: this.damageTime,
             damage: damage
@@ -43213,8 +43357,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }).start();
             return;
           }
-          var life = .48 + Math.random() * .24,
-            drift = (Math.random() - .5) * 12;
+          var life = .5 + Math.random() * .1,
+            drift = (Math.random() - .5) * 6 / scale.x,
+            rise = Math.max(0, Math.min((12 + Math.random() * 6) / scale.y, top - point.y));
           n.setScale(.82, .82, 1);
           tween(n).to(.08, {
             scale: new Vec3(1.07, 1.07, 1)
@@ -43222,7 +43367,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             scale: new Vec3(1, 1, 1)
           }).start();
           tween(n).by(life, {
-            position: new Vec3(drift, 30 + Math.random() * 20, 0)
+            position: new Vec3(drift, rise, 0)
           }, {
             easing: 'sineOut'
           }).call(function () {
@@ -43238,9 +43383,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         _proto.showDamageHits = function showDamageHits() {
           var hits = this.game.drainDamageHits();
           this.feedback.combatHits(hits);
-          for (var _iterator6 = _createForOfIteratorHelperLoose(hits), _step6; !(_step6 = _iterator6()).done;) {
+          for (var _iterator7 = _createForOfIteratorHelperLoose(hits), _step7; !(_step7 = _iterator7()).done;) {
             var _hit$hero;
-            var hit = _step6.value;
+            var hit = _step7.value;
             if (hit.damage === ZERO) continue;
             this.hitEnemy(hit.target, hit);
             var target = this.shotTarget(hit.target);
@@ -43251,9 +43396,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         };
         _proto.spawnEnemy = function spawnEnemy() {
           this.enemyFeedback.clear();
+          this.flushDamageNumbers(true);
           this.clear(this.particles);
-          this.clear(this.damageLayer);
-          this.damageNumbers = [];
           Tween.stopAllByTarget(this.enemy);
           this.clear(this.enemy);
           this.enemy.active = true;
@@ -43336,11 +43480,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             var bar = _ref5.bar;
             return isValid(bar, true);
           });
-          for (var _iterator7 = _createForOfIteratorHelperLoose(this.cooldownBars), _step7; !(_step7 = _iterator7()).done;) {
-            var _step7$value = _step7.value,
-              hero = _step7$value.hero,
-              bar = _step7$value.bar,
-              fill = _step7$value.fill;
+          for (var _iterator8 = _createForOfIteratorHelperLoose(this.cooldownBars), _step8; !(_step8 = _iterator8()).done;) {
+            var _step8$value = _step8.value,
+              hero = _step8$value.hero,
+              bar = _step8$value.bar,
+              fill = _step8$value.fill;
             var cooldown = this.game.mercenaryCooldown(hero);
             bar.active = cooldown.duration > .3;
             fill.setScale(cooldown.progress, 1, 1);
@@ -43432,14 +43576,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.ui.paint(flash, 'death/0/1');
           var layer = this.particles;
           var _loop2 = function _loop2() {
-            var _arr5$_i = _arr5[_i5],
-              frame = _arr5$_i[0],
-              delay = _arr5$_i[1];
+            var _arr6$_i = _arr6[_i6],
+              frame = _arr6$_i[0],
+              delay = _arr6$_i[1];
             _this20.scheduleOnce(function () {
               if (isValid(flash, true) && _this20.particles === layer) _this20.ui.paint(flash, 'death/0/' + frame);
             }, delay);
           };
-          for (var _i5 = 0, _arr5 = [[2, .045], [3, .095]]; _i5 < _arr5.length; _i5++) {
+          for (var _i6 = 0, _arr6 = [[2, .045], [3, .095]]; _i6 < _arr6.length; _i6++) {
             _loop2();
           }
           flash.angle = random(-180, 180);
@@ -43546,10 +43690,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             var n = this.nodeAt(this.particles, 'laser-beam', 0, 0, 480, 500),
               g = n.addComponent(Graphics),
               launch = this.allyLaunchPoint(id);
-            for (var _i6 = 0, _arr6 = [[7, '#138aa5'], [3, '#80fff4'], [1, '#ffffff']]; _i6 < _arr6.length; _i6++) {
-              var _arr6$_i = _arr6[_i6],
-                width = _arr6$_i[0],
-                color = _arr6$_i[1];
+            for (var _i7 = 0, _arr7 = [[7, '#138aa5'], [3, '#80fff4'], [1, '#ffffff']]; _i7 < _arr7.length; _i7++) {
+              var _arr7$_i = _arr7[_i7],
+                width = _arr7$_i[0],
+                color = _arr7$_i[1];
               g.lineWidth = width;
               g.strokeColor = this.color(color);
               g.moveTo(launch.x, launch.y);
@@ -43915,8 +44059,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           g.fill();
         };
         _proto.clear = function clear(n) {
-          for (var _i7 = 0, _arr7 = [].concat(n.children); _i7 < _arr7.length; _i7++) {
-            var c = _arr7[_i7];
+          for (var _i8 = 0, _arr8 = [].concat(n.children); _i8 < _arr8.length; _i8++) {
+            var c = _arr8[_i8];
             c.removeFromParent();
             c.destroy();
           }
@@ -46266,6 +46410,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           if (this.game && this.fairy && isValid(this.fairy, true)) this.fairy.active = this.fairyClaimReady();
           this.rewardGlow.tick(dt);
           if (!this.game || !((_this$entry2 = this.entry) != null && _this$entry2.playing)) return;
+          this.bossTimer.tick();
           this.enemyFeedback.tick(dt, this.game.s.extra.effects);
           this.placement.tick();
           if (this.zoneTransition.observe()) {
@@ -46274,6 +46419,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return;
           }
           this.damageTime += dt;
+          this.flushDamageNumbers();
           if (this.showDamageHits()) this.syncEnemyDeath();
           this.syncGroundShadows();
           this.syncDrone();
@@ -46294,8 +46440,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               delay: t.delay - dt
             });
           });
-          for (var _iterator8 = _createForOfIteratorHelperLoose(due), _step8; !(_step8 = _iterator8()).done;) {
-            var shot = _step8.value;
+          for (var _iterator9 = _createForOfIteratorHelperLoose(due), _step9; !(_step9 = _iterator9()).done;) {
+            var shot = _step9.value;
             if (this.enemyTransition || this.zoneTransition.active) break;
             if (!shot.automatic || this.canAutoFire()) this.resolveTap(shot.automatic);
           }
@@ -46313,8 +46459,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           } else {
             this.syncAllies();
             this.game.tick(dt);
-            for (var _iterator9 = _createForOfIteratorHelperLoose(this.game.heroEvents), _step9; !(_step9 = _iterator9()).done;) {
-              var event = _step9.value;
+            for (var _iterator10 = _createForOfIteratorHelperLoose(this.game.heroEvents), _step10; !(_step10 = _iterator10()).done;) {
+              var event = _step10.value;
               if (event.phase === 'attack') this.animateAlly(event.hero, event.windup);else this.strikeAlly(event.hero);
             }
             this.showDamageHits();
@@ -48547,6 +48693,9 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureL
         'battle.entering': '작전지역에 진입중',
         'battle.entered': '작전지역 진입 완료',
         'battle.areaMove': '구역 {stage}',
+        'battle.bossTimeTitle': '보스 제한',
+        'battle.bossTime': '{seconds}초',
+        'battle.bossTimeHelp': '보스와 호위를 {seconds}초 안에 모두 처치하세요.\n시간이 끝나면 같은 구역으로 돌아갑니다. 강화 후 보스 도전으로 재시도하면 제한 시간이 다시 시작됩니다.',
         'battle.dragGuide': '드래그해서 배치\n왼쪽 40% 안에서 이동'
       });
       Object.assign(translations.en, {
@@ -48554,6 +48703,9 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureL
         'battle.entering': 'Entering operation area',
         'battle.entered': 'Operation area entered',
         'battle.areaMove': 'Zone {stage}',
+        'battle.bossTimeTitle': 'BOSS LIMIT',
+        'battle.bossTime': '{seconds}s',
+        'battle.bossTimeHelp': 'Defeat the boss and every escort within {seconds} seconds.\nOn timeout, farm the same zone, upgrade, and retry the boss with a fresh timer.',
         'battle.dragGuide': 'Drag to reposition\nStay within the left 40%'
       });
       Object.assign(translations.ko, {
@@ -49128,9 +49280,9 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './CheatUI.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './ExpansionUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SquadUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './Dialogue.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './Squad.ts', './SquadName.ts', './firebase-sdk.js'], function () {
+System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './CheatUI.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './ExpansionUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SquadUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './Dialogue.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './Squad.ts', './SquadName.ts', './firebase-sdk.js'], function () {
   return {
-    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     execute: function () {}
   };
 });
@@ -55254,7 +55406,7 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
                     return _this.loadFrame('interface/' + key, 0, false, 'military/interface/' + key);
                   }), SHOP_ICONS.map(function (key) {
                     return _this.loadFrame('shop/' + key, 0, false, 'military/shop/' + key);
-                  })));
+                  }), [this.loadFrame('transition/zone-entry', 0, false, 'military/transition/zone-entry')]));
                 case 9:
                   if (this.missing.length) console.warn('[UIArt] Missing assets:', this.missing.join(', '));
                 case 10:
