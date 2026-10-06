@@ -123,6 +123,30 @@ System.register("chunks:///_virtual/Amount.ts", ['cc'], function (exports) {
   };
 });
 
+System.register("chunks:///_virtual/AreaTransition.ts", ['cc'], function (exports) {
+  var cclegacy;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+    }],
+    execute: function () {
+      exports('areaTransitionArt', areaTransitionArt);
+      cclegacy._RF.push({}, "e66f35Cz3VO1pOncvd5+iIF", "AreaTransition", undefined);
+      /** The cleared battlefield remains visible before the 1-second total move. */
+      var AREA_TRANSITION_DELAY = exports('AREA_TRANSITION_DELAY', .5);
+      var AREA_TRANSITION_SECONDS = exports('AREA_TRANSITION_SECONDS', .5);
+      var AREA_TRANSITION_ART = exports('AREA_TRANSITION_ART', ['zone-entry', 'forest', 'snow', 'harbor', 'canyon']);
+
+      /** Consecutive arriving zones cycle through all five illustrations, including after reload. */
+      function areaTransitionArt(stage) {
+        var index = ((Math.trunc(stage) - 2) % AREA_TRANSITION_ART.length + AREA_TRANSITION_ART.length) % AREA_TRANSITION_ART.length;
+        return 'transition/' + AREA_TRANSITION_ART[index];
+      }
+      cclegacy._RF.pop();
+    }
+  };
+});
+
 System.register("chunks:///_virtual/Balance.ts", ['cc'], function (exports) {
   var cclegacy;
   return {
@@ -745,8 +769,8 @@ System.register("chunks:///_virtual/BattlePlacementUI.ts", ['./rollupPluginModLo
   };
 });
 
-System.register("chunks:///_virtual/BattleTransitionUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './AllyPlacement.ts', './UITheme.ts'], function (exports) {
-  var _createClass, cclegacy, Mask, BlockInputEvents, Tween, tween, Vec3, isValid, battleField, UI;
+System.register("chunks:///_virtual/BattleTransitionUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './AllyPlacement.ts', './UITheme.ts', './AreaTransition.ts'], function (exports) {
+  var _createClass, cclegacy, Mask, BlockInputEvents, Tween, tween, Vec3, isValid, battleField, UI, AREA_TRANSITION_DELAY, areaTransitionArt, AREA_TRANSITION_SECONDS;
   return {
     setters: [function (module) {
       _createClass = module.createClass;
@@ -762,15 +786,21 @@ System.register("chunks:///_virtual/BattleTransitionUI.ts", ['./rollupPluginModL
       battleField = module.battleField;
     }, function (module) {
       UI = module.UI;
+    }, function (module) {
+      AREA_TRANSITION_DELAY = module.AREA_TRANSITION_DELAY;
+      areaTransitionArt = module.areaTransitionArt;
+      AREA_TRANSITION_SECONDS = module.AREA_TRANSITION_SECONDS;
+      var _setter = {};
+      _setter.AREA_TRANSITION_DELAY = module.AREA_TRANSITION_DELAY;
+      _setter.AREA_TRANSITION_SECONDS = module.AREA_TRANSITION_SECONDS;
+      exports(_setter);
     }],
     execute: function () {
       cclegacy._RF.push({}, "420acWFB79Ku6m9OH8VUAc7", "BattleTransitionUI", undefined);
-      var AREA_TRANSITION_DELAY = exports('AREA_TRANSITION_DELAY', .5);
-      var AREA_TRANSITION_SECONDS = exports('AREA_TRANSITION_SECONDS', .85);
-      var COVER = .21,
-        EXIT = .64,
-        ARRIVAL = .475;
-      /** Keep the cleared battlefield for 0.5s, then cover and reveal in 0.85s. */
+      var COVER = .12,
+        EXIT = .38,
+        ARRIVAL = .27;
+      /** Keep the cleared battlefield for 0.5s, then cover and reveal in 0.5s. */
       var BattleTransitionUI = exports('BattleTransitionUI', /*#__PURE__*/function () {
         function BattleTransitionUI(a) {
           this.displayedStage = 0;
@@ -863,11 +893,12 @@ System.register("chunks:///_virtual/BattleTransitionUI.ts", ['./rollupPluginModL
           });
           graphics.close();
           graphics.fill();
-          var source = a.ui.frames.get('transition/zone-entry'),
+          var art = areaTransitionArt(this.to),
+            source = a.ui.frames.get(art),
             ratio = source.texture.width / source.texture.height,
             artWidth = Math.max(w, h * ratio),
             artHeight = artWidth / ratio;
-          a.ui.paint(a.nodeAt(slab, 'area-convoy-art', 0, 0, artWidth, artHeight), 'transition/zone-entry');
+          a.ui.paint(a.nodeAt(slab, 'area-convoy-art', 0, 0, artWidth, artHeight), art);
           a.rect(slab, 0, 0, w, h, '#071014', undefined, 32);
           a.polygon(slab, w / 2 - 70, 0, 36, h, [[-.5, -.5], [.2, -.5], [.5, .5], [-.2, .5]], UI.gold);
           for (var i = 0; i < 7; i++) a.polygon(slab, -205 + i * 76, -h / 2 + 17, 44, 14, [[-.5, -.5], [.16, -.5], [.5, .5], [-.16, .5]], '#556343');
@@ -1857,7 +1888,7 @@ System.register("chunks:///_virtual/DroneEffects.ts", ['cc'], function (exports)
     }],
     execute: function () {
       exports('activeDroneEffect', activeDroneEffect);
-      cclegacy._RF.push({}, "8ca4d1tqLdLl7hthHd43OoZ", "DroneEffects", undefined);
+      cclegacy._RF.push({}, "f8e71VZR4lOFrO7isG8X9nc", "DroneEffects", undefined);
       /** Presentation-only cues. They never change the saved drone bonuses or combat rules. */
       function activeDroneEffect(state, effect) {
         var id = state.activePet,
@@ -1888,7 +1919,7 @@ System.register("chunks:///_virtual/DroneFeedbackUI.ts", ['./rollupPluginModLoBa
       Graphics = module.Graphics;
     }],
     execute: function () {
-      cclegacy._RF.push({}, "e865dL1vChNOrrWDfAZR2l/", "DroneFeedbackUI", undefined);
+      cclegacy._RF.push({}, "6af75SQy8JDspx7qaHEF9FU", "DroneFeedbackUI", undefined);
       var DroneFeedbackUI = exports('DroneFeedbackUI', /*#__PURE__*/function () {
         function DroneFeedbackUI(a) {
           this.pending = [];
@@ -7054,7 +7085,7 @@ System.register("chunks:///_virtual/FeatureLessons.ts", ['cc'], function (export
           'learn.rewards.2': ['수령은 무료이며 완료한 보상은 다시 받을 수 없습니다.\n미달성·수령 완료 버튼을 누르면 이유가 표시됩니다.\n우편은 수령 기한과 수령 완료 상태를 확인하세요.', 'Claims are free and cannot be collected twice.\nIncomplete or already claimed buttons explain why.\nCheck expiry and claim status in mail.'],
           'learn.skills.0': ['특성은 포인트로 부대의 영구 능력을 고르는 수련입니다.\n최고 구역 50부터 열립니다.\n보급·정비: 코인 획득\n사격·정밀: 대장 탭 피해\n분대·전술: 용병 자동 피해', 'Talents spend points on lasting squad bonuses.\nThey unlock at best sector 50.\nLogistics/Maintenance: coin gain\nMarksmanship/Precision: captain tap damage\nCommand/Tactics: mercenary auto damage'],
           'learn.skills.1': ['① 18개 아이콘에서 수련을 선택합니다.\n② 상세의 현재·편집 배율을 비교합니다.\n③ +1 수련 또는 −1 반환으로 배분합니다.\n④ 돌아가서 노란 적용을 누릅니다.\n다음 단계는 앞 단계 Lv.3에서 열립니다.', '1. Choose one of the 18 talent icons.\n2. Compare Applied and Draft multipliers.\n3. Use +1 Train or −1 Refund.\n4. Return and press yellow Apply.\nThe next tier requires the previous tier at Lv.3.'],
-          'learn.skills.2': ['수련 비용은 다음 레벨만큼입니다.\nLv.0→1: 1점 · Lv.1→2: 2점\nLv.2→3: 3점 · 총 6점으로 Lv.3\n각 레벨은 해당 효과에 약 ×1.149를 곱합니다.\n포인트는 최고 구역 50단위 이정표 등에서 얻습니다.', 'Training costs the next level in points.\nLv.0→1: 1 · Lv.1→2: 2\nLv.2→3: 3 · Total 6 for Lv.3\nEach level multiplies its effect by about ×1.149.\nPoints come from best-sector milestones every 50 sectors and other progression.'],
+          'learn.skills.2': ['수련 비용은 다음 레벨만큼입니다.\nLv.0→1: 1점 · Lv.1→2: 2점\nLv.2→3: 3점 · 총 6점으로 Lv.3\n각 레벨은 해당 효과에 약 ×1.148를 곱합니다.\n포인트는 최고 구역 50단위 이정표 등에서 얻습니다.', 'Training costs the next level in points.\nLv.0→1: 1 · Lv.1→2: 2\nLv.2→3: 3 · Total 6 for Lv.3\nEach level multiplies its effect by about ×1.148.\nPoints come from best-sector milestones every 50 sectors and other progression.'],
           'learn.skills.3': ['적용 전 배분은 편집 상태입니다.\n되돌리기: 저장된 배분으로 돌아갑니다.\n초기화: 전체 배분을 비우고 편집합니다.\n적용: 포인트와 능력 변경을 저장합니다.\n적용한 특성은 재배치 후에도 유지됩니다.\n화면의 설명 버튼으로 언제든 다시 읽을 수 있어요.', 'Allocations remain a draft until Apply.\nRevert restores the saved allocation.\nReset clears the draft allocation.\nApply saves the points and stat changes.\nApplied talents survive redeployment.\nUse the guide button to read this again anytime.'],
           'learn.part.3': ['적용·저장과 다음 이용', 'Saving and using it again'],
           'learn.exploration.0': ['보급품 탐색은 특별 작전의 4×4 상자 보상판입니다.\n상자는 총 16개이며 각각 한 번 열 수 있습니다.\n전장에서 적 부대를 전멸시키면 작전 토큰 1개를 얻습니다.\n모은 토큰으로 상자를 열어 다이아를 확보하세요.', 'Supply Search is a 4×4 reward board in Special Ops.\nIts 16 crates can each be opened once.\nDefeat an entire enemy wave to earn 1 Ops Token.\nSpend those tokens to open crates for diamonds.'],
@@ -42421,8 +42452,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
   };
 });
 
-System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SkillTrainingUI.ts', './EquipmentUI.ts', './Enemies.ts', './env', './EnemyArtBounds.ts', './RewardClaimUI.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './DroneFeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, Sprite, ScrollView, BlockInputEvents, resources, Texture2D, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, skillTree, skillDetail, equipmentIdentity, equipmentStats, equipmentHelp, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, RewardClaimUI, SquadUI, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, DroneFeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
+System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './ExplorationUI.ts', './SkillTrainingUI.ts', './EquipmentUI.ts', './Enemies.ts', './env', './EnemyArtBounds.ts', './RewardClaimUI.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './DroneFeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
+  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, Sprite, ScrollView, BlockInputEvents, resources, Texture2D, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, explorationEntry, explorationBoard, skillTree, skillDetail, equipmentIdentity, equipmentStats, equipmentHelp, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, RewardClaimUI, SquadUI, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, DroneFeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
@@ -42463,6 +42494,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       sys = module.sys;
       Component = module.Component;
       profiler = module.profiler;
+    }, function (module) {
+      explorationEntry = module.explorationEntry;
+      explorationBoard = module.explorationBoard;
     }, function (module) {
       skillTree = module.skillTree;
       skillDetail = module.skillDetail;
@@ -45986,9 +46020,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             tokens: this.game.s.eventTokens
           }), 0, 246, 380, 35, 22, C.gold);
           this.label(p, this.tr('event.rule'), 0, 158, 380, 116, 17, C.muted);
-          this.button(p, this.tr('event.board'), -99, 57, 182, 50, function () {
-            return _this41.board();
-          });
+          explorationEntry(this, p);
           this.button(p, this.tr('extra.eventModes'), 99, 57, 182, 50, function () {
             return _this41.extensions.eventHub();
           });
@@ -46013,36 +46045,15 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             };
           }));
         };
-        _proto.board = function board(_first) {
+        _proto.board = function board(first) {
           var _this42 = this;
-          var p = this.open(this.tr('event.board'), 610);
-          this.label(p, this.tr('event.balance', {
-            tokens: this.game.s.eventTokens
-          }), 0, 215, 375, 40, 20, C.gold);
-          var _loop8 = function _loop8(i) {
-            var v = _this42.game.s.board[i];
-            _this42.button(p, v ? _this42.tr('event.found', {
-              gems: v * 5
-            }) : _this42.tr('event.tile', {
-              index: i + 1
-            }), -147 + i % 4 * 98, 123 - Math.floor(i / 4) * 85, 88, 70, function () {
-              return _this42.rewards.earned(_this42.tr('event.board'), _this42.id('tile-reward'), function (g) {
-                return g.revealTile(i, _this42.id('tile'));
-              }, function () {
-                return _this42.board();
-              });
-            }, !!v, {
-              unavailable: function unavailable() {
-                return _this42.game.s.board[i] ? _this42.tr('action.alreadyClaimed') : _this42.costReason('eventTokens', 20);
-              }
-            });
-          };
-          for (var i = 0; i < 16; i++) {
-            _loop8(i);
+          if (first === void 0) {
+            first = true;
           }
-          this.button(p, this.tr('action.back'), 0, -244, 365, 43, function () {
-            return _this42.events();
-          });
+          if (first && this.tutorial.explain('exploration', function () {
+            return _this42.board(false);
+          })) return;
+          explorationBoard(this);
         };
         _proto.meta = function meta() {
           var _this43 = this;
@@ -46534,7 +46545,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
           var s = this.game.s,
             p = this.open(this.tr('spell.title'), 715);
-          var _loop9 = function _loop9(j) {
+          var _loop8 = function _loop8(j) {
             _this53.button(p, String(j + 1), -165 + j * 66, 260, 60, 40, function () {
               return _this53.spells(j);
             }, j === slot, {
@@ -46543,7 +46554,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             });
           };
           for (var j = 0; j < 6; j++) {
-            _loop9(j);
+            _loop8(j);
           }
           this.scroll(p, 0, -24, 400, 490, SPELLS.filter(function (c) {
             var _SPELLS$find2;
@@ -47024,7 +47035,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var _this63 = this;
           var magic = color === C.violet;
           this.burst(magic ? 'ring' : 'impact', x, y, magic ? 92 : 66, magic ? .3 : .2);
-          var _loop10 = function _loop10() {
+          var _loop9 = function _loop9() {
             var n = _this63.combatSprite(magic ? 'shard' : 'sparkle', 'hit-particle', x, y, 12 + i % 3 * 3);
             if (!n) return 1; // continue
             var angle = i * Math.PI / 3 + Math.random() * .3,
@@ -47039,7 +47050,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }).start();
           };
           for (var i = 0; i < 6; i++) {
-            if (_loop10()) continue;
+            if (_loop9()) continue;
           }
         };
         _proto.sound = function sound(frequency) {
@@ -49675,6 +49686,7 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureL
         return translations.en['training.short.' + i] = name;
       });
       Object.assign(translations.ko, {
+        'master.skills': '특성',
         'event.board': '보급품 탐색',
         'feedback.eventTokens': '작전 토큰',
         'event.balance': '작전 토큰 {tokens}',
@@ -49689,6 +49701,7 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureL
         'explore.openedHelp': '{index}번 상자 · 탐색 완료\n기본 다이아 {gems}개를 지급했습니다.\n2배 선택 시 총 보상은 기본의 2배입니다.\n다시 확인하는 것은 무료이며 새 보상은 지급하지 않습니다.'
       });
       Object.assign(translations.en, {
+        'master.skills': 'Talents',
         'event.board': 'Supply Search',
         'feedback.eventTokens': 'Ops Tokens',
         'event.balance': 'Ops Tokens {tokens}',
@@ -50292,9 +50305,9 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './CheatUI.ts', './CombatMotion.ts', './DroneFeedbackUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardClaimUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillTrainingUI.ts', './SquadUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './Dialogue.ts', './DroneEffects.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './Squad.ts', './SquadName.ts', './firebase-sdk.js'], function () {
+System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './CheatUI.ts', './CombatMotion.ts', './DroneFeedbackUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardClaimUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillTrainingUI.ts', './SquadUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './Dialogue.ts', './DroneEffects.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './Squad.ts', './SquadName.ts', './firebase-sdk.js'], function () {
   return {
-    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     execute: function () {}
   };
 });
@@ -57227,8 +57240,8 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
   };
 });
 
-System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts', './EnemyArtBounds.ts', './Mercenaries.ts', './MotionBounds.ts', './ShopTheme.ts', './EnemyHitFeedback.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, Color, resources, Texture2D, SpriteFrame, Graphics, UITransform, Node, Mask, Sprite, Vec3, Font, ENEMY_TYPES, BOSS_TYPES, ENEMY_ALPHA_BOUNDS, MERCENARY_COUNT, MOTION_FRAMES, SHOP_ICONS, enemyHitOffset;
+System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts', './EnemyArtBounds.ts', './Mercenaries.ts', './AreaTransition.ts', './MotionBounds.ts', './ShopTheme.ts', './EnemyHitFeedback.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, Color, resources, Texture2D, SpriteFrame, Graphics, UITransform, Node, Mask, Sprite, Vec3, Font, ENEMY_TYPES, BOSS_TYPES, ENEMY_ALPHA_BOUNDS, MERCENARY_COUNT, AREA_TRANSITION_ART, MOTION_FRAMES, SHOP_ICONS, enemyHitOffset;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -57254,6 +57267,8 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
       ENEMY_ALPHA_BOUNDS = module.ENEMY_ALPHA_BOUNDS;
     }, function (module) {
       MERCENARY_COUNT = module.MERCENARY_COUNT;
+    }, function (module) {
+      AREA_TRANSITION_ART = module.AREA_TRANSITION_ART;
     }, function (module) {
       MOTION_FRAMES = module.MOTION_FRAMES;
     }, function (module) {
@@ -57566,7 +57581,9 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
                     return _this.loadFrame('interface/' + key, 0, false, 'military/interface/' + key);
                   }), SHOP_ICONS.map(function (key) {
                     return _this.loadFrame('shop/' + key, 0, false, 'military/shop/' + key);
-                  }), [this.loadFrame('transition/zone-entry', 0, false, 'military/transition/zone-entry')], Array.from({
+                  }), AREA_TRANSITION_ART.map(function (key) {
+                    return _this.loadFrame('transition/' + key, 0, false, 'military/transition/' + key);
+                  }), Array.from({
                     length: 18
                   }, function (_, i) {
                     return _this.loadFrame('icons/talent-' + i, 0, false, 'military/talents/' + i);
