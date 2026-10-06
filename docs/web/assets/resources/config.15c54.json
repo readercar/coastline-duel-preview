@@ -858,6 +858,7 @@
         "d9a1f595-6338-4e02-bae8-35d842b65a1c@6c48a",
         "d9d45a18-048d-4689-a30c-471b33c70121",
         "d9d45a18-048d-4689-a30c-471b33c70121@6c48a",
+        "d9ee7dcc-cb6d-44dd-8a6a-afbb12c9e141",
         "daa8e99f-13d0-4e68-85fa-0fcd8a392425",
         "daa8e99f-13d0-4e68-85fa-0fcd8a392425@6c48a",
         "db4af6ab-cbdb-4579-ac53-4f88275c3a1d",
@@ -983,6 +984,11 @@
         "ffe2cd79-91ed-4d46-b438-d2246edb79e6@6c48a"
     ],
     "paths": {
+        "d9ee7dcc-cb6d-44dd-8a6a-afbb12c9e141": [
+            "effects/tt-softs-reveal",
+            "cc.EffectAsset",
+            1
+        ],
         "d55a5523-85f3-4722-9bf4-8fe9d910d243": [
             "ui/military/enemy-hit",
             "cc.EffectAsset",
@@ -7214,6 +7220,8 @@
             "a2533",
             "d9d45a18-048d-4689-a30c-471b33c70121",
             "a2533",
+            "d9ee7dcc-cb6d-44dd-8a6a-afbb12c9e141",
+            "7dd01",
             "daa8e99f-13d0-4e68-85fa-0fcd8a392425",
             "a2533",
             "db4af6ab-cbdb-4579-ac53-4f88275c3a1d",

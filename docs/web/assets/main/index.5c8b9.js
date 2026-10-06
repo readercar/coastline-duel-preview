@@ -1360,6 +1360,187 @@ System.register("chunks:///_virtual/BossTimerUI.ts", ['cc', './Config.ts', './UI
   };
 });
 
+System.register("chunks:///_virtual/BrandSplash.ts", ['cc'], function (exports) {
+  var cclegacy;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+    }],
+    execute: function () {
+      exports('brandSplashFrame', brandSplashFrame);
+      cclegacy._RF.push({}, "aac26gCZ8NCa7GgH4svDW05", "BrandSplash", undefined);
+      // Same company reveal timing as In My Pocket Slot; presentation only.
+      var BRAND_REVEAL_SECONDS = exports('BRAND_REVEAL_SECONDS', 1);
+      var BRAND_HOLD_SECONDS = exports('BRAND_HOLD_SECONDS', 1.2);
+      var BRAND_FADE_SECONDS = exports('BRAND_FADE_SECONDS', .7);
+      var clamp = function clamp(value) {
+        return Math.max(0, Math.min(1, value));
+      };
+      var smooth = function smooth(value) {
+        return value * value * (3 - 2 * value);
+      };
+      function brandSplashFrame(elapsed, effects) {
+        if (effects === void 0) {
+          effects = true;
+        }
+        if (!effects) return {
+          reveal: 1.1,
+          opacity: 1,
+          done: elapsed >= BRAND_HOLD_SECONDS
+        };
+        var reveal = smooth(clamp(elapsed / BRAND_REVEAL_SECONDS));
+        var fade = smooth(clamp((elapsed - BRAND_REVEAL_SECONDS - BRAND_HOLD_SECONDS) / BRAND_FADE_SECONDS));
+        return {
+          reveal: -.1 + reveal * 1.2,
+          opacity: 1 - fade,
+          done: elapsed >= BRAND_REVEAL_SECONDS + BRAND_HOLD_SECONDS + BRAND_FADE_SECONDS
+        };
+      }
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/BrandSplashUI.ts", ['cc', './BrandSplash.ts'], function (exports) {
+  var cclegacy, view, Node, UIOpacity, Material, Sprite, isValid, sys, resources, EffectAsset, brandSplashFrame;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+      view = module.view;
+      Node = module.Node;
+      UIOpacity = module.UIOpacity;
+      Material = module.Material;
+      Sprite = module.Sprite;
+      isValid = module.isValid;
+      sys = module.sys;
+      resources = module.resources;
+      EffectAsset = module.EffectAsset;
+    }, function (module) {
+      brandSplashFrame = module.brandSplashFrame;
+    }],
+    execute: function () {
+      cclegacy._RF.push({}, "aaa6fQC2oVPZqB0QSEVrdma", "BrandSplashUI", undefined);
+      var BrandSplashUI = exports('BrandSplashUI', /*#__PURE__*/function () {
+        function BrandSplashUI(a, complete) {
+          var _this = this;
+          this.elapsed = 0;
+          this.ready = false;
+          this.effect = null;
+          this.material = null;
+          this.logo = null;
+          this.opacity = null;
+          this.finished = false;
+          this.webSkip = function (event) {
+            var _this$a$entry;
+            if (_this.finished || !_this.a.isValid || ((_this$a$entry = _this.a.entry) == null ? void 0 : _this$a$entry.screen) !== 'brand') return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            _this.finish();
+          };
+          this.a = a;
+          this.complete = complete;
+          if (!sys.isNative && typeof window !== 'undefined') {
+            window.addEventListener('mouseup', this.webSkip, true);
+            window.addEventListener('touchend', this.webSkip, {
+              capture: true,
+              passive: false
+            });
+          }
+          a.node.once(Node.EventType.NODE_DESTROYED, function () {
+            var _this$material;
+            _this.finished = true;
+            _this.detach();
+            (_this$material = _this.material) == null || _this$material.destroy();
+            _this.material = null;
+          });
+          if (!a.game.s.extra.effects) {
+            this.ready = true;
+            return;
+          }
+          resources.load('effects/tt-softs-reveal', EffectAsset, function (error, effect) {
+            var _a$entry;
+            if (!a.isValid || _this.finished) return;
+            _this.effect = error ? null : effect;
+            _this.ready = true;
+            if (((_a$entry = a.entry) == null ? void 0 : _a$entry.screen) === 'brand') a.draw();
+          });
+        }
+        var _proto = BrandSplashUI.prototype;
+        _proto.draw = function draw() {
+          var _this$material2,
+            _this2 = this;
+          (_this$material2 = this.material) == null || _this$material2.destroy();
+          this.material = null;
+          var a = this.a,
+            visible = view.getVisibleSize(),
+            w = Math.max(480, visible.width),
+            h = Math.max(a.designH, visible.height);
+          a.root = a.nodeAt(a.node, 'EmberRoot', 0, 0, w, h);
+          var surface = a.rect(a.root, 0, 0, w, h, '#080b0c');
+          surface.name = 'brand-splash-touch';
+          surface.on(Node.EventType.TOUCH_END, function (event) {
+            event.propagationStopped = true;
+            _this2.finish();
+          });
+          var frame = a.ui.frames.get('branding'),
+            maxW = 338,
+            maxH = Math.min(a.designH * .35, 200),
+            scale = Math.min(maxW / frame.originalSize.width, maxH / frame.originalSize.height);
+          this.logo = a.nodeAt(a.root, 'startup-company-ci', 0, 0, frame.originalSize.width * scale, frame.originalSize.height * scale);
+          a.ui.paint(this.logo, 'branding');
+          this.opacity = this.logo.addComponent(UIOpacity);
+          if (this.effect && a.game.s.extra.effects) {
+            this.material = new Material();
+            this.material.initialize({
+              effectAsset: this.effect,
+              defines: {
+                USE_TEXTURE: true,
+                USE_LOCAL: false
+              }
+            });
+            this.logo.getComponent(Sprite).customMaterial = this.material;
+          }
+          this.apply();
+        };
+        _proto.apply = function apply() {
+          var _this$material3;
+          if (!this.logo || !isValid(this.logo, true)) return;
+          this.logo.active = this.ready;
+          var state = brandSplashFrame(this.elapsed, this.a.game.s.extra.effects);
+          (_this$material3 = this.material) == null || _this$material3.setProperty('reveal', state.reveal);
+          if (this.opacity) this.opacity.opacity = Math.round(255 * state.opacity);
+        };
+        _proto.tick = function tick(dt) {
+          if (this.finished || !this.ready) return;
+          this.elapsed += Math.min(.1, Math.max(0, dt));
+          if (brandSplashFrame(this.elapsed, this.a.game.s.extra.effects).done) {
+            this.finish();
+            return;
+          }
+          this.apply();
+        };
+        _proto.detach = function detach() {
+          if (!sys.isNative && typeof window !== 'undefined') {
+            window.removeEventListener('mouseup', this.webSkip, true);
+            window.removeEventListener('touchend', this.webSkip, true);
+          }
+        };
+        _proto.finish = function finish() {
+          var _this$material4;
+          if (this.finished) return;
+          this.finished = true;
+          this.detach();
+          (_this$material4 = this.material) == null || _this$material4.destroy();
+          this.material = null;
+          this.complete();
+        };
+        return BrandSplashUI;
+      }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
 System.register("chunks:///_virtual/CheatUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Mercenaries.ts', './PrototypeCheats.ts', './FeedbackUI.ts', './TutorialUI.ts', './UITheme.ts'], function (exports) {
   var _createClass, _asyncToGenerator, _regeneratorRuntime, cclegacy, sys, MERCENARY_COUNT, prototypeCheat, freshPrototype, FeedbackUI, TutorialUI, UI;
   return {
@@ -2856,8 +3037,8 @@ System.register("chunks:///_virtual/EntryPolicy.ts", ['cc'], function (exports) 
   };
 });
 
-System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './UITheme.ts', './TitleUI.ts', './EntryPolicy.ts', './FeedbackUI.ts', './TutorialUI.ts', './LiveOps.ts', './SquadName.ts', './TitleCast.ts'], function (exports) {
-  var _createClass, _asyncToGenerator, _regeneratorRuntime, cclegacy, sys, EditBox, UITransform, Mask, Label, ScrollView, UI, TitleUI, CONSENT_KEY, consentReceipt, parseConsent, FeedbackUI, TutorialUI, requiresUpdate, squadNameError, TITLE_CAST_KEY, nextTitleCast;
+System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './UITheme.ts', './TitleUI.ts', './BrandSplashUI.ts', './EntryPolicy.ts', './FeedbackUI.ts', './TutorialUI.ts', './LiveOps.ts', './SquadName.ts', './TitleCast.ts'], function (exports) {
+  var _createClass, _asyncToGenerator, _regeneratorRuntime, cclegacy, sys, EditBox, UITransform, Mask, Label, ScrollView, UI, TitleUI, BrandSplashUI, CONSENT_KEY, consentReceipt, parseConsent, FeedbackUI, TutorialUI, requiresUpdate, squadNameError, TITLE_CAST_KEY, nextTitleCast;
   return {
     setters: [function (module) {
       _createClass = module.createClass;
@@ -2875,6 +3056,8 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
       UI = module.UI;
     }, function (module) {
       TitleUI = module.TitleUI;
+    }, function (module) {
+      BrandSplashUI = module.BrandSplashUI;
     }, function (module) {
       CONSENT_KEY = module.CONSENT_KEY;
       consentReceipt = module.consentReceipt;
@@ -2897,6 +3080,10 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
       var EntryUI = exports('EntryUI', /*#__PURE__*/function () {
         var _proto = EntryUI.prototype;
         _proto.requestStart = function requestStart() {
+          if (this.screen === 'brand') {
+            this.brand.finish();
+            return;
+          }
           if (this.busy || this.starting || this.screen !== 'title') return;
           if (!this.a.game.s.extra.effects) {
             this.begin();
@@ -2908,6 +3095,10 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
         };
         _proto.tick = function tick(dt) {
           var _this$title;
+          if (this.screen === 'brand') {
+            this.brand.tick(dt);
+            return;
+          }
           if (this.playing) return;
           if (this.starting) {
             this.startElapsed += Math.max(0, dt);
@@ -2919,7 +3110,8 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
           (_this$title = this.title) == null || _this$title.tick(dt, this.starting ? this.startElapsed / .32 : 0);
         };
         function EntryUI(a) {
-          this.screen = 'title';
+          var _this = this;
+          this.screen = 'brand';
           this.document = 'terms';
           this.read = {
             terms: false,
@@ -2930,6 +3122,7 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
           this.status = 'entry.loadAuth';
           this.error = '';
           this.reviewing = false;
+          this.brand = void 0;
           this.nameDraft = '';
           this.starting = false;
           this.startElapsed = 0;
@@ -2939,8 +3132,17 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
           this.titleCastLoaded = false;
           this.titleLineup = null;
           this.a = a;
+          this.brand = new BrandSplashUI(a, function () {
+            if (_this.screen !== 'brand') return;
+            _this.screen = 'title';
+            a.draw();
+          });
         }
         _proto.back = function back() {
+          if (this.screen === 'brand') {
+            this.brand.finish();
+            return;
+          }
           if (this.starting) {
             this.starting = false;
             this.startElapsed = 0;
@@ -2987,9 +3189,14 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
           } else void this.login('guest', false, true);
         };
         _proto.draw = function draw() {
-          var _this = this;
+          var _this2 = this;
           var a = this.a,
             H = a.designH;
+          if (this.screen === 'brand') {
+            this.title = null;
+            this.brand.draw();
+            return;
+          }
           if (!this.titleCastLoaded) {
             try {
               this.titleCastState = sys.localStorage.getItem(TITLE_CAST_KEY);
@@ -3008,7 +3215,7 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
           a.root = a.nodeAt(a.node, 'EmberRoot', 0, 0, 480, H);
           a.rect(a.root, 0, 0, 480, H, UI.bg);
           this.title = new TitleUI(a, this.screen === 'title', function () {
-            return _this.requestStart();
+            return _this2.requestStart();
           }, this.titleLineup);
           if (this.screen === 'title') return;
           if (this.screen === 'document') {
@@ -3021,13 +3228,13 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
             a.label(p, a.tr('entry.consentIntro'), 0, 159, 372, 90, 18);
             ['terms', 'privacy'].forEach(function (kind, i) {
               var n = a.button(p, a.tr('entry.required', {
-                mark: _this.read[kind] ? '✓' : '□',
+                mark: _this2.read[kind] ? '✓' : '□',
                 title: a.tr('consent.' + kind + '.title')
               }), 0, 54 - i * 102, 370, 60, function () {
-                _this.document = kind;
-                _this.screen = 'document';
+                _this2.document = kind;
+                _this2.screen = 'document';
                 a.draw();
-              }, _this.read[kind]);
+              }, _this2.read[kind]);
               n.name = 'consent-' + kind;
               a.label(p, a.tr('consent.' + kind + '.summary'), 0, 10 - i * 102, 365, 32, 13, UI.muted);
             });
@@ -3036,14 +3243,14 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
               if (!ready) return;
               try {
                 sys.localStorage.setItem(CONSENT_KEY, JSON.stringify(consentReceipt()));
-                _this.afterConsent();
+                _this2.afterConsent();
               } catch (_unused3) {
                 a.toast(a.tr('error.storage'), 'blocked');
               }
             }, ready, {
               style: ready ? 'primary' : 'disabled',
               unavailable: function unavailable() {
-                return _this.read.terms && _this.read.privacy ? null : a.tr('entry.readBoth');
+                return _this2.read.terms && _this2.read.privacy ? null : a.tr('entry.readBoth');
               }
             });
             a.label(p, a.tr('entry.readHint'), 0, -247, 370, 48, 13, UI.muted);
@@ -3051,18 +3258,18 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
             a.ui.icon(a.nodeAt(p, 'push-art', 0, 111, 52, 52), 'mail');
             a.label(p, a.tr('entry.pushBody'), 0, 16, 370, 148, 18);
             a.button(p, a.tr('ops.pushDecline'), -96, -143, 178, 54, function () {
-              return void _this.choosePush(false);
+              return void _this2.choosePush(false);
             });
             a.button(p, a.tr('ops.pushAllow'), 96, -143, 178, 54, function () {
-              return void _this.choosePush(true);
+              return void _this2.choosePush(true);
             }, true);
           } else if (this.screen === 'login') {
             a.label(p, a.tr('entry.loginBody'), 0, 113, 367, 88, 18);
             a.button(p, a.tr('entry.google'), 0, 17, 370, 58, function () {
-              return void _this.login('google');
+              return void _this2.login('google');
             }, true);
             a.button(p, a.tr('entry.guest'), 0, -61, 370, 58, function () {
-              return void _this.login('guest');
+              return void _this2.login('guest');
             });
             a.label(p, a.tr('entry.guestWarning'), 0, -161, 368, 97, 14, UI.muted);
           } else if (this.screen === 'name') {
@@ -3075,27 +3282,27 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
             a.label(p, a.tr('entry.nameRules'), 0, -38, 370, 87, 15, UI.muted);
             var feedback = a.label(p, '', 0, -115, 370, 53, 15, UI.muted);
             var refresh = function refresh() {
-              _this.nameDraft = field.string;
-              var key = _this.error || squadNameError(_this.nameDraft);
-              feedback.string = a.tr(_this.busy ? 'entry.nameSaving' : key || 'entry.nameAvailable');
+              _this2.nameDraft = field.string;
+              var key = _this2.error || squadNameError(_this2.nameDraft);
+              feedback.string = a.tr(_this2.busy ? 'entry.nameSaving' : key || 'entry.nameAvailable');
               feedback.color = a.color(key ? UI.danger : UI.mint);
               a.refreshButtons();
             };
             field.node.on(EditBox.EventType.TEXT_CHANGED, function () {
-              _this.error = '';
+              _this2.error = '';
               refresh();
             });
             if (this.error) a.button(p, a.tr('entry.nameReload'), 0, -157, 370, 32, function () {
-              return void _this.login('guest', false, true);
+              return void _this2.login('guest', false, true);
             }, false, {
               style: 'quiet',
               fontSize: 14
             });
             a.button(p, a.tr('entry.nameConfirm'), 0, -215, 370, 55, function () {
-              return void _this.submitName();
+              return void _this2.submitName();
             }, true, {
               unavailable: function unavailable() {
-                return _this.busy ? a.tr('entry.nameSaving') : squadNameError(_this.nameDraft) ? a.tr(squadNameError(_this.nameDraft)) : null;
+                return _this2.busy ? a.tr('entry.nameSaving') : squadNameError(_this2.nameDraft) ? a.tr(squadNameError(_this2.nameDraft)) : null;
               }
             }).name = 'squad-name-confirm';
             refresh();
@@ -3109,13 +3316,13 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
           } else if (this.screen === 'error') {
             a.label(p, a.tr(this.error), 0, 33, 368, 154, 18);
             a.button(p, a.tr('entry.backLogin'), 0, -123, 370, 54, function () {
-              _this.screen = 'login';
+              _this2.screen = 'login';
               a.draw();
             }, true);
           }
         };
         _proto.documentPanel = function documentPanel() {
-          var _this2 = this;
+          var _this3 = this;
           var a = this.a,
             p = a.open(a.tr('consent.' + this.document + '.title'), Math.min(a.designH - 70, 840), false),
             h = p.getComponent(UITransform).height;
@@ -3143,12 +3350,12 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
           var end = this.reviewing;
           var action = a.button(p, a.tr(this.reviewing ? 'action.close' : 'entry.readToEnd'), 0, -h / 2 + 51, 370, 54, function () {
             if (!end) return;
-            if (_this2.reviewing) {
-              _this2.back();
+            if (_this3.reviewing) {
+              _this3.back();
               return;
             }
-            _this2.read[_this2.document] = true;
-            _this2.screen = 'consent';
+            _this3.read[_this3.document] = true;
+            _this3.screen = 'consent';
             a.draw();
           }, false, {
             style: this.reviewing ? 'secondary' : 'disabled',
@@ -3159,7 +3366,7 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
           action.name = 'consent-document-agree';
           var caption = action.getComponentInChildren(Label);
           var check = function check() {
-            if (_this2.reviewing) return;
+            if (_this3.reviewing) return;
             if (sv.getMaxScrollOffset().y <= 1 || sv.getScrollOffset().y >= sv.getMaxScrollOffset().y - 18) {
               end = true;
               caption.string = a.tr('entry.documentAgree');
@@ -3176,7 +3383,7 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
             check();
           }, 0);
           a.button(p, a.tr('action.back'), 161, h / 2 - 37, 60, 38, function () {
-            return _this2.back();
+            return _this3.back();
           }, false, {
             style: 'quiet',
             fontSize: 12
@@ -3381,16 +3588,16 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
           if (this.a.isValid) this.a.draw();
         };
         _proto.frame = function frame() {
-          var _this3 = this;
+          var _this4 = this;
           return new Promise(function (resolve) {
-            return _this3.a.scheduleOnce(function () {
+            return _this4.a.scheduleOnce(function () {
               return resolve();
             }, .1);
           });
         };
         _proto.login = /*#__PURE__*/function () {
           var _login = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(method, allowSwitch, resume) {
-            var _this4 = this;
+            var _this5 = this;
             var session, policy, key;
             return _regeneratorRuntime().wrap(function _callee5$(_context5) {
               while (1) switch (_context5.prev = _context5.next) {
@@ -3525,8 +3732,8 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
                   this.screen = 'login';
                   this.a.draw();
                   this.a.confirm(this.a.tr('entry.switchTitle'), this.a.tr('entry.switchBody'), function () {
-                    _this4.a.close();
-                    void _this4.login('google', true);
+                    _this5.a.close();
+                    void _this5.login('google', true);
                   });
                   return _context5.abrupt("return");
                 case 76:
@@ -50936,9 +51143,9 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossEntranceUI.ts', './BossTimerUI.ts', './CheatUI.ts', './CombatMotion.ts', './DroneFeedbackUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MercenaryDetailUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardClaimUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillIconArt.ts', './SkillTrainingUI.ts', './SkillUI.ts', './SquadUI.ts', './TitleUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './BossEntrance.ts', './Config.ts', './Dialogue.ts', './DroneEffects.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './SkillCatalog.ts', './SkillText.ts', './Squad.ts', './SquadName.ts', './TitleArtBounds.ts', './TitleCast.ts', './firebase-sdk.js'], function () {
+System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossEntranceUI.ts', './BossTimerUI.ts', './BrandSplashUI.ts', './CheatUI.ts', './CombatMotion.ts', './DroneFeedbackUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MercenaryDetailUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardClaimUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillIconArt.ts', './SkillTrainingUI.ts', './SkillUI.ts', './SquadUI.ts', './TitleUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './BossEntrance.ts', './BrandSplash.ts', './Config.ts', './Dialogue.ts', './DroneEffects.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './SkillCatalog.ts', './SkillText.ts', './Squad.ts', './SquadName.ts', './TitleArtBounds.ts', './TitleCast.ts', './firebase-sdk.js'], function () {
   return {
-    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     execute: function () {}
   };
 });

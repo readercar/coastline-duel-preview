@@ -1,5 +1,18 @@
 [
   {
+    "buildVersion": "0.1.5",
+    "tag": "preview-0.1.5",
+    "sourceCommit": "ca91d4575d1b1571b1bb607e6f3bb5105e345958",
+    "version": "0.1.5",
+    "policyVersion": "0.1.0",
+    "publishedAt": "2026-10-06T12:00:13.454Z",
+    "previousCommit": "7686ee25eff37526ddb57eca9da64d17060ad4f2",
+    "notes": [
+      "앱 실행 직후 원본 TT Softs CI를 먼저 보여 주고 타이틀로 이동하도록 수정했습니다. 다른 앱의 1초 등장·1.2초 유지·0.7초 사라짐을 적용했습니다.",
+      "CI 화면은 전체 화면 탭과 키보드로 건너뛰며 같은 입력을 게임 시작에 전달하지 않습니다. 넓은 화면의 양옆 여백·화면 크기 변경·효과 끄기·기존 로그인 및 동의 흐름을 검수했습니다."
+    ]
+  },
+  {
     "buildVersion": "0.1.4",
     "tag": "preview-0.1.4",
     "sourceCommit": "b85abd2c527c5da3bab527af6899aa3636507864",
