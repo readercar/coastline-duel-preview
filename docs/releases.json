@@ -1,5 +1,17 @@
 [
   {
+    "buildVersion": "2026.10.07.1",
+    "tag": "preview-2026.10.07.1",
+    "sourceCommit": "bfd9968b8a47460681a9d9d50e9e3b3413d1415d",
+    "version": "0.1.0",
+    "policyVersion": "0.1.0",
+    "publishedAt": "2026-10-06T15:10:10.046Z",
+    "previousCommit": "1ae0f2c771f70eeb27f5eddc0dbbb1fe76a41f18",
+    "notes": [
+      "캐릭터 카드의 일러스트를 캐릭터별 실제 인물·무기 범위에 맞춰 배치했습니다. 상단 성향·레벨과 하단 이름·상태 영역 사이에 여백을 두고 원본 비율을 유지해 크기와 위치를 함께 맞춥니다. 카드·능력치·강화·편성 버튼과 저장·전투·비용 규칙은 유지합니다."
+    ]
+  },
+  {
     "buildVersion": "2026.10.06.26",
     "tag": "preview-2026.10.06.26",
     "sourceCommit": "7d27b56532066721f329680f1a3a925634fedd50",

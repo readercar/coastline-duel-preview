@@ -52390,8 +52390,20 @@ System.register("chunks:///_virtual/MercenaryDetailUI.ts", ['./rollupPluginModLo
           var frame = a.ui.frames.get('cutin/' + artId),
             bounds = ART_BOUNDS[artId];
           if (frame) {
-            var _scale = Math.min((cardH - 102) / (bounds[3] - bounds[1]), (cardW - 28) / (bounds[2] - bounds[0]));
-            a.ui.paint(a.nodeAt(clip, 'mercenary-detail-illustration', (frame.width / 2 - (bounds[0] + bounds[2]) / 2) * _scale, cardH / 2 - 12 - (frame.height / 2 - bounds[1]) * _scale, frame.width * _scale, frame.height * _scale), 'cutin/' + artId);
+            // Fit each actual pose, including its weapon, between the header and identity.
+            var artTop = cardH / 2 - 58,
+              artBottom = -cardH / 2 + 100,
+              artW = cardW - 40;
+            var _scale = Math.min((artTop - artBottom) / (bounds[3] - bounds[1]), artW / (bounds[2] - bounds[0]));
+            var image = a.nodeAt(clip, 'mercenary-detail-illustration', (frame.width / 2 - (bounds[0] + bounds[2]) / 2) * _scale, (artTop + artBottom) / 2 - (frame.height / 2 - (bounds[1] + bounds[3]) / 2) * _scale, frame.width * _scale, frame.height * _scale);
+            a.ui.paint(image, 'cutin/' + artId);
+            image.cardArt = {
+              bounds: Array.from(bounds),
+              scale: _scale,
+              top: artTop,
+              bottom: artBottom,
+              width: artW
+            };
           }
           var badge = a.nodeAt(scene, 'role-badge', -cardW / 2 + 24, cardH / 2 - 27, 34, 34);
           a.ui.surface(badge, style.color, 'cut');
