@@ -1439,7 +1439,6 @@ System.register("chunks:///_virtual/BrandSplashUI.ts", ['cc', './BrandSplash.ts'
         function BrandSplashUI(a, complete) {
           var _this = this;
           this.elapsed = 0;
-          this.ready = false;
           this.effect = null;
           this.material = null;
           this.logo = null;
@@ -1468,15 +1467,13 @@ System.register("chunks:///_virtual/BrandSplashUI.ts", ['cc', './BrandSplash.ts'
             (_this$material = _this.material) == null || _this$material.destroy();
             _this.material = null;
           });
-          if (!a.game.s.extra.effects) {
-            this.ready = true;
-            return;
-          }
+          if (!a.game.s.extra.effects) return;
           resources.load('effects/tt-softs-reveal', EffectAsset, function (error, effect) {
             var _a$entry;
-            if (!a.isValid || _this.finished) return;
+            // The shader is optional. A delayed or missing callback must never stop startup,
+            // and a late shader must not restart the original CI's reveal.
+            if (!a.isValid || _this.finished || _this.elapsed > .1) return;
             _this.effect = error ? null : effect;
-            _this.ready = true;
             if (((_a$entry = a.entry) == null ? void 0 : _a$entry.screen) === 'brand') a.draw();
           });
         }
@@ -1497,36 +1494,59 @@ System.register("chunks:///_virtual/BrandSplashUI.ts", ['cc', './BrandSplash.ts'
             event.propagationStopped = true;
             _this2.finish();
           });
-          var frame = a.ui.frames.get('branding'),
-            maxW = 338,
+          var frame = a.ui.frames.get('branding');
+          if (!frame) {
+            this.logo = null;
+            this.opacity = null;
+            return;
+          }
+          var maxW = 338,
             maxH = Math.min(a.designH * .35, 200),
             scale = Math.min(maxW / frame.originalSize.width, maxH / frame.originalSize.height);
           this.logo = a.nodeAt(a.root, 'startup-company-ci', 0, 0, frame.originalSize.width * scale, frame.originalSize.height * scale);
           a.ui.paint(this.logo, 'branding');
           this.opacity = this.logo.addComponent(UIOpacity);
           if (this.effect && a.game.s.extra.effects) {
-            this.material = new Material();
-            this.material.initialize({
-              effectAsset: this.effect,
-              defines: {
-                USE_TEXTURE: true,
-                USE_LOCAL: false
-              }
-            });
-            this.logo.getComponent(Sprite).customMaterial = this.material;
+            try {
+              this.material = new Material();
+              this.material.initialize({
+                effectAsset: this.effect,
+                defines: {
+                  USE_TEXTURE: true,
+                  USE_LOCAL: false
+                }
+              });
+              this.logo.getComponent(Sprite).customMaterial = this.material;
+            } catch (_unused) {
+              this.fallback();
+            }
           }
           this.apply();
         };
-        _proto.apply = function apply() {
+        _proto.fallback = function fallback() {
           var _this$material3;
+          if (this.logo && isValid(this.logo, true)) {
+            var sprite = this.logo.getComponent(Sprite);
+            if (sprite) sprite.customMaterial = null;
+          }
+          (_this$material3 = this.material) == null || _this$material3.destroy();
+          this.material = null;
+          this.effect = null;
+        };
+        _proto.apply = function apply() {
           if (!this.logo || !isValid(this.logo, true)) return;
-          this.logo.active = this.ready;
+          this.logo.active = true;
           var state = brandSplashFrame(this.elapsed, this.a.game.s.extra.effects);
-          (_this$material3 = this.material) == null || _this$material3.setProperty('reveal', state.reveal);
+          try {
+            var _this$material4;
+            (_this$material4 = this.material) == null || _this$material4.setProperty('reveal', state.reveal);
+          } catch (_unused2) {
+            this.fallback();
+          }
           if (this.opacity) this.opacity.opacity = Math.round(255 * state.opacity);
         };
         _proto.tick = function tick(dt) {
-          if (this.finished || !this.ready) return;
+          if (this.finished) return;
           this.elapsed += Math.min(.1, Math.max(0, dt));
           if (brandSplashFrame(this.elapsed, this.a.game.s.extra.effects).done) {
             this.finish();
@@ -1541,11 +1561,11 @@ System.register("chunks:///_virtual/BrandSplashUI.ts", ['cc', './BrandSplash.ts'
           }
         };
         _proto.finish = function finish() {
-          var _this$material4;
+          var _this$material5;
           if (this.finished) return;
           this.finished = true;
           this.detach();
-          (_this$material4 = this.material) == null || _this$material4.destroy();
+          (_this$material5 = this.material) == null || _this$material5.destroy();
           this.material = null;
           this.complete();
         };
@@ -9177,15 +9197,15 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           this.clearChatter();
           var detail = panel.getChildByName('mercenary-detail-scene');
           if (detail) {
-            // The fixed left column already displays this character's full cut-in. Put
-            // the reaction on that art, leaving the right-hand actions and close exposed.
-            var _h = detail.getComponent(UITransform).height,
-              _n = a.nodeAt(detail, 'squad-reaction', 0, -_h / 2 + 178, 192, 140);
+            // Keep the reaction inside the card art, above its identity and fixed actions.
+            var size = detail.getComponent(UITransform),
+              w = Math.min(340, size.width - 24),
+              _n = a.nodeAt(detail, 'squad-reaction', 0, -size.height / 2 + 138, w, 94);
             this.deckReaction = _n;
             _n.addComponent(BlockInputEvents);
-            var _bubble = this.comic(_n, 0, 0, 192, 140);
-            a.label(_bubble, a.tr(deployed ? 'squad.deploy' : 'squad.remove'), 0, 47, 160, 24, 16, UI.ink).node.name = 'reaction-action';
-            a.label(_bubble, a.tr(this.dialogue.next(speaker, deployed ? 'deploy' : 'withdraw')), 0, -5, 158, 74, 18, UI.ink).node.name = 'reaction-line';
+            var _bubble = this.comic(_n, 0, 0, w, 94);
+            a.label(_bubble, a.tr(deployed ? 'squad.deploy' : 'squad.remove'), 0, 26, w - 28, 24, 16, UI.ink).node.name = 'reaction-action';
+            a.label(_bubble, a.tr(this.dialogue.next(speaker, deployed ? 'deploy' : 'withdraw')), 0, -12, w - 30, 54, 18, UI.ink).node.name = 'reaction-line';
             this.dismissOnTap(_n, function () {
               if (_this2.deckReaction === _n) _this2.deckReaction = null;
               if (isValid(_n, true)) {
@@ -52246,7 +52266,7 @@ System.register("chunks:///_virtual/Mercenaries.ts", ['cc'], function (exports) 
 });
 
 System.register("chunks:///_virtual/MercenaryDetailUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './UITheme.ts', './Expansion.ts', './MercenaryUnlock.ts', './Mercenaries.ts', './SkillCatalog.ts', './Squad.ts'], function (exports) {
-  var _extends, cclegacy, UITransform, Mask, ScrollView, Vec2, Label, UI, BUTTON_TONES, SQUAD_ROLE_STYLE, Expansion, mercenaryUnlocked, attackSeconds, mercenaryArt, heroSkillIcon, SQUAD_TEAMS, squadRole, SQUAD_LIMIT;
+  var _extends, cclegacy, UITransform, Mask, Label, Graphics, ScrollView, Vec2, UI, BUTTON_TONES, SQUAD_ROLE_STYLE, Expansion, mercenaryUnlocked, mercenaryArt, attackSeconds, heroSkillIcon, SQUAD_LIMIT, squadRole, SQUAD_TEAMS;
   return {
     setters: [function (module) {
       _extends = module.extends;
@@ -52254,9 +52274,10 @@ System.register("chunks:///_virtual/MercenaryDetailUI.ts", ['./rollupPluginModLo
       cclegacy = module.cclegacy;
       UITransform = module.UITransform;
       Mask = module.Mask;
+      Label = module.Label;
+      Graphics = module.Graphics;
       ScrollView = module.ScrollView;
       Vec2 = module.Vec2;
-      Label = module.Label;
     }, function (module) {
       UI = module.UI;
       BUTTON_TONES = module.BUTTON_TONES;
@@ -52266,14 +52287,14 @@ System.register("chunks:///_virtual/MercenaryDetailUI.ts", ['./rollupPluginModLo
     }, function (module) {
       mercenaryUnlocked = module.mercenaryUnlocked;
     }, function (module) {
-      attackSeconds = module.attackSeconds;
       mercenaryArt = module.mercenaryArt;
+      attackSeconds = module.attackSeconds;
     }, function (module) {
       heroSkillIcon = module.heroSkillIcon;
     }, function (module) {
-      SQUAD_TEAMS = module.SQUAD_TEAMS;
-      squadRole = module.squadRole;
       SQUAD_LIMIT = module.SQUAD_LIMIT;
+      squadRole = module.squadRole;
+      SQUAD_TEAMS = module.SQUAD_TEAMS;
     }],
     execute: function () {
       cclegacy._RF.push({}, "c06e4+yRydGo6SR5/eVnW1u", "MercenaryDetailUI", undefined);
@@ -52316,8 +52337,13 @@ System.register("chunks:///_virtual/MercenaryDetailUI.ts", ['./rollupPluginModLo
           bonus: 'Combined damage ×{value}'
         }
       };
+      var SECTIONS = ['combat', 'growth', 'gear', 'squad'];
+      var SECTION_LABELS = {
+        ko: ['능력', '성장', '장비', '분대'],
+        en: ['Stats', 'Growth', 'Gear', 'Squad']
+      };
 
-      /** One detail layout for the main squad, deployment deck and codex. */
+      /** One portrait card for the main squad, deployment deck and codex. */
       var MercenaryDetailUI = exports('MercenaryDetailUI', /*#__PURE__*/function () {
         function MercenaryDetailUI(a) {
           this.a = a;
@@ -52337,12 +52363,13 @@ System.register("chunks:///_virtual/MercenaryDetailUI.ts", ['./rollupPluginModLo
             top = height / 2 - 84,
             bottom = -height / 2 + 18,
             bodyH = top - bottom,
-            leftW = 208,
-            rightW = 184,
-            rightX = 108;
-          var scene = a.nodeAt(p, 'mercenary-detail-scene', -96, (top + bottom) / 2, leftW, bodyH);
+            rightW = 396;
+          var cardH = Math.min(354, Math.max(290, bodyH * .55)),
+            cardW = 396;
+          var scene = a.nodeAt(p, 'mercenary-detail-scene', 0, top - cardH / 2, cardW, cardH);
           a.ui.surface(scene, style.background, 'cut');
-          var clip = a.nodeAt(scene, 'mercenary-detail-art-clip', 0, 0, leftW - 4, bodyH - 4),
+          scene.heroId = id;
+          var clip = a.nodeAt(scene, 'mercenary-detail-art-clip', 0, 0, cardW, cardH),
             mask = clip.addComponent(Mask);
           mask.type = Mask.Type.GRAPHICS_STENCIL;
           var stencil = mask.subComp,
@@ -52356,56 +52383,91 @@ System.register("chunks:///_virtual/MercenaryDetailUI.ts", ['./rollupPluginModLo
           stencil.fill();
           var background = a.ui.frames.get('battlefield/' + id % 4);
           if (background) {
-            var scale = Math.max(leftW / background.width, bodyH / background.height);
+            var scale = Math.max(cardW / background.width, cardH / background.height);
             a.ui.paint(a.nodeAt(clip, 'mercenary-detail-background', 0, 0, background.width * scale, background.height * scale), 'battlefield/' + id % 4);
           }
-          a.rect(clip, 0, 0, leftW, bodyH, style.background, undefined, 90);
+          a.rect(clip, 0, 0, cardW, cardH, style.background, undefined, 70);
           var frame = a.ui.frames.get('cutin/' + artId),
             bounds = ART_BOUNDS[artId];
           if (frame) {
-            var _scale = Math.min((bodyH - 110) / (bounds[3] - bounds[1]), leftW * 2.1 / (bounds[2] - bounds[0])),
-              w = frame.width * _scale,
-              h = frame.height * _scale;
-            a.ui.paint(a.nodeAt(clip, 'mercenary-detail-illustration', (frame.width / 2 - (bounds[0] + bounds[2]) / 2) * _scale, bodyH / 2 - 16 - (frame.height / 2 - bounds[1]) * _scale, w, h), 'cutin/' + artId);
+            var _scale = Math.min((cardH - 102) / (bounds[3] - bounds[1]), (cardW - 28) / (bounds[2] - bounds[0]));
+            a.ui.paint(a.nodeAt(clip, 'mercenary-detail-illustration', (frame.width / 2 - (bounds[0] + bounds[2]) / 2) * _scale, cardH / 2 - 12 - (frame.height / 2 - bounds[1]) * _scale, frame.width * _scale, frame.height * _scale), 'cutin/' + artId);
           }
-          var identity = a.nodeAt(scene, 'mercenary-detail-identity', 0, -bodyH / 2 + 54, leftW - 8, 100);
-          a.ui.surface(identity, UI.bg, 'cut', 230);
-          var badge = a.nodeAt(identity, 'role-badge', -78, 28, 28, 28);
+          var badge = a.nodeAt(scene, 'role-badge', -cardW / 2 + 24, cardH / 2 - 27, 34, 34);
           a.ui.surface(badge, style.color, 'cut');
-          a.ui.icon(a.nodeAt(badge, 'role-icon', 0, 0, 22, 22), style.icon, UI.ink);
+          a.ui.icon(a.nodeAt(badge, 'role-icon', 0, 0, 25, 25), style.icon, UI.ink);
           a.touchAction(badge, function () {
             return a.tooltip(badge, a.tr('squad.role.' + role) + '\n' + a.tr('squad.roleDesc.' + role));
           });
-          a.label(identity, a.tr('squad.role.' + role), 18, 28, 148, 26, 17, style.color);
-          a.label(identity, a.tr('merc.weapon.' + id), 0, -3, 186, 38, 17, UI.text).node.name = 'mercenary-detail-weapon';
+          var rolePlate = a.nodeAt(scene, 'mercenary-card-role', -82, cardH / 2 - 27, 166, 34);
+          a.ui.surface(rolePlate, UI.bg, 'cut', 220);
+          a.label(rolePlate, a.tr('squad.role.' + role), 0, 0, 150, 26, 17, style.color);
+          var level = a.nodeAt(scene, 'mercenary-card-level', 145, cardH / 2 - 27, 92, 34);
+          a.ui.surface(level, style.color, 'cut');
+          a.label(level, 'Lv.' + s.run.heroes[id], 0, 0, 84, 28, 20, UI.ink);
+          a.touchAction(level, function () {
+            return a.tooltip(level, a.tr('ui.help.heroLevel', {
+              level: s.run.heroes[id]
+            }));
+          });
+          var identity = a.nodeAt(scene, 'mercenary-detail-identity', 0, -cardH / 2 + 44, cardW - 8, 84);
+          a.ui.surface(identity, UI.bg, 'cut', 242);
+          a.label(identity, a.tr('hero.' + id), -43, 18, 280, 34, 27, UI.text, Label.HorizontalAlign.LEFT).node.name = 'mercenary-card-name';
           var deployed = x.mercenaryDeck.includes(id),
-            owned = x.mercenaryOwned.includes(id);
-          a.label(identity, a.tr(deployed ? 'squad.deployed' : owned ? 'squad.reserve' : 'squad.missing'), 0, -34, 184, 24, 16, deployed ? BUTTON_TONES.deck : UI.muted).node.name = 'mercenary-detail-status';
-          var viewH = bodyH - 28,
-            view = a.nodeAt(p, 'scroll', rightX, (top + bottom) / 2 + 14, rightW, viewH),
+            owned = x.mercenaryOwned.includes(id),
+            status = a.nodeAt(identity, 'mercenary-card-status', 143, 18, 92, 28);
+          a.ui.surface(status, deployed ? BUTTON_TONES.deck : owned ? style.color : UI.panel, 'cut');
+          if (deployed) a.ui.icon(a.nodeAt(status, 'deployed-check', -34, 0, 16, 16), 'symbol:check', UI.ink);
+          a.label(status, a.tr(deployed ? 'squad.profileDeployed' : owned ? 'squad.reserve' : 'squad.missing'), deployed ? 7 : 0, 0, deployed ? 64 : 84, 25, 14, owned ? UI.ink : UI.text).node.name = 'mercenary-detail-status';
+          a.label(identity, a.tr('merc.weapon.' + id), -45, -17, 276, 30, 17, UI.muted, Label.HorizontalAlign.LEFT).node.name = 'mercenary-detail-weapon';
+          var power = a.nodeAt(identity, 'mercenary-card-dps', 141, -18, 96, 32);
+          a.ui.icon(a.nodeAt(power, 'metric-icon', -32, 0, 22, 22), 'symbol:damage', style.color);
+          a.label(power, a.format(g.heroDamage(id)), 13, 0, 66, 28, 21, UI.text);
+          a.touchAction(power, function () {
+            return a.tooltip(power, a.tr('ui.help.heroDPS', {
+              damage: a.format(g.heroDamage(id))
+            }));
+          });
+          var edge = a.nodeAt(scene, 'mercenary-card-border', 0, 0, cardW, cardH).addComponent(Graphics);
+          edge.lineWidth = 3;
+          edge.strokeColor = a.color(style.color);
+          edge.moveTo(points[0][0], points[0][1]);
+          points.slice(1).forEach(function (v) {
+            return edge.lineTo(v[0], v[1]);
+          });
+          edge.close();
+          edge.stroke();
+          a.rect(scene, 0, -cardH / 2 + 3, cardW - 30, 3, deployed ? BUTTON_TONES.deck : style.color).name = 'mercenary-card-accent';
+          var memory = MercenaryDetailUI.sections.get(a);
+          if (!memory) {
+            memory = new Map();
+            MercenaryDetailUI.sections.set(a, memory);
+          }
+          var selected = memory.get(id) || 'combat';
+          var tabY = top - cardH - 26,
+            tabs = a.nodeAt(p, 'mercenary-card-tabs', 0, tabY, 396, 44),
+            markers = [];
+          var viewTop = tabY - 26,
+            viewBottom = bottom + 76,
+            viewH = viewTop - viewBottom,
+            view = a.nodeAt(p, 'scroll', 0, (viewTop + viewBottom) / 2, rightW, viewH),
             scroll = view.addComponent(ScrollView);
           view.addComponent(Mask);
           scroll.horizontal = false;
           scroll.vertical = true;
           scroll.inertia = true;
           scroll.cancelInnerEvents = true;
-          a.label(p, words.scroll, rightX, bottom + 12, rightW, 24, 14, UI.muted).node.name = 'mercenary-detail-scroll-hint';
+          a.label(p, words.scroll, 0, bottom + 62, rightW, 18, 14, UI.muted).node.name = 'mercenary-detail-scroll-hint';
           var content = a.nodeAt(view, 'mercenary-detail-categories', 0, viewH / 2, rightW, 1);
           content.getComponent(UITransform).setAnchorPoint(.5, 1);
           scroll.content = content;
           var y = 0;
-          var title = function title(key, tone) {
-            var n = a.nodeAt(content, 'mercenary-category-' + key, 0, -y - 14, rightW, 28);
-            a.rect(n, -rightW / 2 + 2, 0, 3, 20, tone);
-            a.label(n, words[key], 4, 0, rightW - 16, 24, 15, tone, Label.HorizontalAlign.LEFT);
-            y += 34;
-          };
           var stat = function stat(key, icon, value, hint) {
             var n = a.nodeAt(content, 'mercenary-stat-' + key, 0, -y - 23, rightW, 46);
             a.ui.surface(n, UI.panel, 'cut');
             a.ui.icon(a.nodeAt(n, 'metric-icon', -rightW / 2 + 19, 0, 24, 24), icon);
-            a.label(n, words[key], 18, 10, rightW - 48, 20, 14, UI.muted, Label.HorizontalAlign.LEFT);
-            a.label(n, value, 18, -10, rightW - 48, 24, 18, UI.text, Label.HorizontalAlign.LEFT);
+            a.label(n, words[key], -73, 0, 156, 28, 15, UI.muted, Label.HorizontalAlign.LEFT);
+            a.label(n, value, 103, 0, 168, 28, 19, UI.text, Label.HorizontalAlign.RIGHT);
             a.touchAction(n, function () {
               return a.tooltip(n, hint);
             }, hint);
@@ -52432,131 +52494,162 @@ System.register("chunks:///_virtual/MercenaryDetailUI.ts", ['./rollupPluginModLo
               });
             });
           };
-          title('combat', BUTTON_TONES.battle);
-          stat('level', 'symbol:up', String(s.run.heroes[id]), a.tr('ui.help.heroLevel', {
-            level: s.run.heroes[id]
-          }));
-          stat('dps', 'symbol:damage', a.format(g.heroDamage(id)), a.tr('ui.help.heroDPS', {
-            damage: a.format(g.heroDamage(id))
-          }));
-          stat('cadence', 'symbol:clock', words.seconds.replace('{value}', String(attackSeconds(id))), a.tr('merc.cadence', {
-            weapon: a.tr('merc.weapon.' + id),
-            seconds: attackSeconds(id)
-          }));
-          button('mercenary-detail-upgrade', a.levelButtonLabel(id), function () {
+          var drawSection = function drawSection(section) {
+            selected = section;
+            memory.set(id, section);
+            a.hideTooltip();
+            content.children.slice().forEach(function (n) {
+              n.removeFromParent();
+              n.destroy();
+            });
+            y = 0;
+            markers.forEach(function (n, i) {
+              return n.active = SECTIONS[i] === section;
+            });
+            if (section === 'combat') {
+              stat('level', 'symbol:up', String(s.run.heroes[id]), a.tr('ui.help.heroLevel', {
+                level: s.run.heroes[id]
+              }));
+              stat('dps', 'symbol:damage', a.format(g.heroDamage(id)), a.tr('ui.help.heroDPS', {
+                damage: a.format(g.heroDamage(id))
+              }));
+              stat('cadence', 'symbol:clock', words.seconds.replace('{value}', String(attackSeconds(id))), a.tr('merc.cadence', {
+                weapon: a.tr('merc.weapon.' + id),
+                seconds: attackSeconds(id)
+              }));
+            } else if (section === 'growth') {
+              var tier = x.heroSkills[id],
+                target = [10, 25, 50, 100, 200, 400, 800][tier];
+              stat('skill', heroSkillIcon(id), tier + '/7 · ×' + Math.pow(1.5, tier).toFixed(2), a.tr('training.help', {
+                weapon: a.tr('merc.weapon.' + id),
+                count: tier,
+                factor: Math.pow(1.5, tier).toFixed(2),
+                next: target ? a.tr('action.level', {
+                  level: target
+                }) : a.tr('action.maxReached')
+              }));
+              button('mercenary-detail-training', words.train, function () {
+                return change(function () {
+                  return new Expansion(g).heroSkill(id, a.id('hero-skill'));
+                });
+              }, {
+                category: 'upgrade',
+                icon: heroSkillIcon(id),
+                unavailable: function unavailable() {
+                  var next = [10, 25, 50, 100, 200, 400, 800][g.s.extra.heroSkills[id]];
+                  return !next ? a.tr('action.maxReached') : a.progressReason(a.tr('action.heroLevel'), g.s.run.heroes[id], next) || a.costReason('gold', g.upgradeCost(id, 5));
+                }
+              });
+              stat('ascend', 'rebirth', String(x.ascensions[id]), a.tr('ui.help.heroAscend', {
+                count: x.ascensions[id]
+              }));
+              button('mercenary-detail-ascend', a.tr('extra.ascend'), function () {
+                return a.confirm(a.tr('extra.ascend'), a.tr('extra.ascendInfo'), function () {
+                  return change(function () {
+                    return new Expansion(g).ascend(id, a.id('ascend'));
+                  });
+                });
+              }, {
+                category: 'ascend',
+                icon: 'rebirth',
+                unavailable: function unavailable() {
+                  return a.progressReason(a.tr('action.heroLevel'), g.s.run.heroes[id], 1000);
+                }
+              });
+            } else if (section === 'gear') {
+              var boost = (1 + s.weapons[id] + s.scrolls[id] * .5).toFixed(2);
+              stat('weapon', 'sword', String(s.weapons[id]), a.tr('ui.help.heroWeapon', {
+                count: s.weapons[id],
+                boost: boost
+              }));
+              stat('manual', 'scroll', String(s.scrolls[id]), a.tr('ui.help.heroManual', {
+                count: s.scrolls[id],
+                boost: boost
+              }));
+              a.label(content, words.bonus.replace('{value}', boost), 0, -y - 16, rightW, 32, 14, UI.muted);
+              y += 40;
+            } else {
+              button('mercenary-detail-preview', a.tr('merc.preview'), function () {
+                return a.feedback.showMercenary(id, true);
+              }, {
+                category: 'details',
+                icon: 'symbol:eye',
+                unavailable: function unavailable() {
+                  return g.s.extra.mercenaryOwned.includes(id) ? null : a.tr('squad.needRecruit');
+                }
+              });
+              var teams = SQUAD_TEAMS.filter(function (v) {
+                return v.members.includes(id);
+              });
+              teams.forEach(function (v) {
+                return button('mercenary-detail-team-' + v.id, a.tr('squad.team.' + v.id), function () {
+                  return team ? team(v.id) : a.squadUI.synergies();
+                }, {
+                  category: 'synergy',
+                  icon: 'symbol:info',
+                  fontSize: 14,
+                  hint: a.tr('squad.members', {
+                    names: v.members.map(function (n) {
+                      return a.tr('hero.' + n);
+                    }).join(', ')
+                  })
+                });
+              });
+            }
+            content.getComponent(UITransform).setContentSize(rightW, Math.max(viewH, y + 8));
+            scroll.scrollToOffset(new Vec2(), 0);
+          };
+          var tabCategories = ['battle', 'upgrade', 'codex', 'deck'],
+            tabIcons = ['symbol:damage', 'symbol:up', 'sword', 'adventurer'];
+          SECTIONS.forEach(function (section, i) {
+            var n = a.button(tabs, SECTION_LABELS[s.locale][i], (i - 1.5) * 101, 0, 93, 42, function () {
+              return drawSection(section);
+            }, false, {
+              category: tabCategories[i],
+              icon: tabIcons[i],
+              fontSize: 14
+            });
+            n.name = 'mercenary-card-tab-' + section;
+            var mark = a.rect(n, 0, -17, 69, 3, UI.ink);
+            mark.name = 'mercenary-card-tab-selected';
+            markers.push(mark);
+          });
+          drawSection(selected);
+          a.button(p, a.levelButtonLabel(id), -102, bottom + 24, 192, 46, function () {
             return change(function () {
               return g.transaction(a.id('hero-detail-buy'), function () {
                 return g.require(g.buy(id, a.mode), g.notice || 'error.currency');
               });
             });
-          }, {
+          }, true, {
             category: 'upgrade',
             icon: 'symbol:plus',
+            fontSize: 15,
             unavailable: function unavailable() {
               return a.levelReason(id);
             },
             label: function label() {
               return a.levelButtonLabel(id);
             }
-          });
-          y += 8;
-          title('growth', BUTTON_TONES.upgrade);
-          var tier = x.heroSkills[id],
-            target = [10, 25, 50, 100, 200, 400, 800][tier];
-          stat('skill', heroSkillIcon(id), tier + '/7 · ×' + Math.pow(1.5, tier).toFixed(2), a.tr('training.help', {
-            weapon: a.tr('merc.weapon.' + id),
-            count: tier,
-            factor: Math.pow(1.5, tier).toFixed(2),
-            next: target ? a.tr('action.level', {
-              level: target
-            }) : a.tr('action.maxReached')
-          }));
-          button('mercenary-detail-training', words.train, function () {
-            return change(function () {
-              return new Expansion(g).heroSkill(id, a.id('hero-skill'));
-            });
-          }, {
-            category: 'upgrade',
-            icon: heroSkillIcon(id),
-            unavailable: function unavailable() {
-              var next = [10, 25, 50, 100, 200, 400, 800][g.s.extra.heroSkills[id]];
-              return !next ? a.tr('action.maxReached') : a.progressReason(a.tr('action.heroLevel'), g.s.run.heroes[id], next) || a.costReason('gold', g.upgradeCost(id, 5));
-            }
-          });
-          stat('ascend', 'rebirth', String(x.ascensions[id]), a.tr('ui.help.heroAscend', {
-            count: x.ascensions[id]
-          }));
-          button('mercenary-detail-ascend', a.tr('extra.ascend'), function () {
-            return a.confirm(a.tr('extra.ascend'), a.tr('extra.ascendInfo'), function () {
-              return change(function () {
-                return new Expansion(g).ascend(id, a.id('ascend'));
-              });
-            });
-          }, {
-            category: 'ascend',
-            icon: 'rebirth',
-            unavailable: function unavailable() {
-              return a.progressReason(a.tr('action.heroLevel'), g.s.run.heroes[id], 1000);
-            }
-          });
-          y += 8;
-          title('gear', BUTTON_TONES.codex);
-          var boost = (1 + s.weapons[id] + s.scrolls[id] * .5).toFixed(2);
-          stat('weapon', 'sword', String(s.weapons[id]), a.tr('ui.help.heroWeapon', {
-            count: s.weapons[id],
-            boost: boost
-          }));
-          stat('manual', 'scroll', String(s.scrolls[id]), a.tr('ui.help.heroManual', {
-            count: s.scrolls[id],
-            boost: boost
-          }));
-          a.label(content, words.bonus.replace('{value}', boost), 0, -y - 16, rightW, 32, 14, UI.muted);
-          y += 40;
-          title('squad', BUTTON_TONES.deck);
-          button('mercenary-detail-deploy', a.tr(deployed ? 'squad.remove' : 'squad.deploy'), function () {
+          }).name = 'mercenary-detail-upgrade';
+          a.button(p, a.tr(deployed ? 'squad.remove' : 'squad.deploy'), 102, bottom + 24, 192, 46, function () {
             return a.squadUI.toggle(id, refresh);
-          }, {
+          }, true, {
             category: 'deck',
             icon: 'adventurer',
+            fontSize: 15,
             unavailable: function unavailable() {
               return !g.s.extra.mercenaryOwned.includes(id) ? a.tr('squad.needRecruit') : !g.s.extra.mercenaryDeck.includes(id) && g.s.extra.mercenaryDeck.length >= SQUAD_LIMIT ? a.tr('squad.full', {
                 limit: SQUAD_LIMIT
               }) : null;
             }
-          });
-          button('mercenary-detail-preview', a.tr('merc.preview'), function () {
-            return a.feedback.showMercenary(id, true);
-          }, {
-            category: 'details',
-            icon: 'symbol:eye',
-            unavailable: function unavailable() {
-              return g.s.extra.mercenaryOwned.includes(id) ? null : a.tr('squad.needRecruit');
-            }
-          });
-          var teams = SQUAD_TEAMS.filter(function (v) {
-            return v.members.includes(id);
-          });
-          teams.forEach(function (v) {
-            return button('mercenary-detail-team-' + v.id, a.tr('squad.team.' + v.id), function () {
-              return team ? team(v.id) : a.squadUI.synergies();
-            }, {
-              category: 'synergy',
-              icon: 'symbol:info',
-              fontSize: 14,
-              hint: a.tr('squad.members', {
-                names: v.members.map(function (n) {
-                  return a.tr('hero.' + n);
-                }).join(', ')
-              })
-            });
-          });
-          content.getComponent(UITransform).setContentSize(rightW, y + 8);
-          scroll.scrollToOffset(new Vec2(), 0);
+          }).name = 'mercenary-detail-deploy';
           // Browsing a locked character still shows their approved illustration and real zero stats.
-          if (!mercenaryUnlocked(s, id)) a.lockIcon(scene, -leftW / 2 + 18, bodyH / 2 - 20);
+          if (!mercenaryUnlocked(s, id)) a.lockIcon(scene, 79, cardH / 2 - 27);
         };
         return MercenaryDetailUI;
       }());
+      MercenaryDetailUI.sections = new WeakMap();
       cclegacy._RF.pop();
     }
   };

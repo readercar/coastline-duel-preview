@@ -1,5 +1,18 @@
 [
   {
+    "buildVersion": "0.1.20",
+    "tag": "preview-0.1.20",
+    "sourceCommit": "2867f73f091a7d6a07aca4d0e7f84f4fcc5aec39",
+    "version": "0.1.20",
+    "policyVersion": "0.1.0",
+    "publishedAt": "2026-10-06T14:31:35.033Z",
+    "previousCommit": "3ea9fb599479405c8f93705cb9813878ae68ca11",
+    "notes": [
+      "모든 게임에 TT Softs 회사 시작 인트로를 넣는 공통 지침을 기록했습니다. 원본 CI와 인마이포켓의 드러내기·유지·사라지기 연출을 재사용합니다.",
+      "회사 인트로의 선택 효과 로딩 응답이 없거나 늦게 도착해도 다음 화면으로 진행합니다. GPU 효과 실패는 원본 CI 표시로 복구하고, 넘기기 입력은 한 번만 처리합니다."
+    ]
+  },
+  {
     "buildVersion": "0.1.19",
     "tag": "preview-0.1.19",
     "sourceCommit": "a79f477df9be4215ed22e766a4802ca1394b86cc",
