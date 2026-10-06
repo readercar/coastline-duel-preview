@@ -4403,7 +4403,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           this.list('extra.perks', [{
             title: this.tr('money.ad.mega_boost'),
             sub: this.tr('money.adReward.mega_boost'),
-            action: this.tr('money.watch'),
+            action: this.tr(this.a.payments.model.previewAds ? 'money.previewShort' : 'money.watch'),
             click: function click() {
               return _this18.a.payments.ads('boost');
             }
@@ -40251,6 +40251,14 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           var _s$tutorial,
             _this = this;
           if (!Number.isSafeInteger(s.extra.commerce.autoFireUntil) || s.extra.commerce.autoFireUntil < 0 || typeof s.extra.commerce.autoFireEnabled !== 'boolean') throw Error('autoFire');
+          var previewAds = s.extra.commerce.previewAds;
+          if (!previewAds || typeof previewAds !== 'object' || Array.isArray(previewAds) || Object.entries(previewAds).some(function (_ref) {
+            var id = _ref[0],
+              use = _ref[1];
+            return !/^((fairy_(diamond|mana|gold|discount|skills|gold_spree|damage_spree|equipment))|mega_boost|shop_chest|auto_fire)$/.test(id) || !use || [use.cycle, use.used, use.lastAt].some(function (n) {
+              return !Number.isSafeInteger(n) || n < 0;
+            });
+          })) throw Error('previewAds');
           if (!s || s.version !== 1 || !s.run || !['ko', 'en'].includes(s.locale)) throw Error('schema');
           if (s.run.bossEscortVersion !== undefined && s.run.bossEscortVersion !== 1) throw Error('bossEscortVersion');
           if (!Number.isInteger(s.activePet) || s.activePet < -1 || s.activePet >= 12 || s.activePet >= 0 && s.pets[s.activePet] <= 0) throw Error('activePet');
@@ -40337,9 +40345,9 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           if (!validIds(s.extra.mercenaryOwned, HEROES.length) || !validIds(s.extra.mercenaryDeck, SQUAD_LIMIT) || s.extra.mercenaryDeck.some(function (id) {
             return !s.extra.mercenaryOwned.includes(id);
           })) throw Error('mercenaryDeck');
-          if (!s.extra.battlePositions || typeof s.extra.battlePositions !== 'object' || Array.isArray(s.extra.battlePositions) || Object.keys(s.extra.battlePositions).length > HEROES.length + 1 || Object.entries(s.extra.battlePositions).some(function (_ref) {
-            var key = _ref[0],
-              p = _ref[1];
+          if (!s.extra.battlePositions || typeof s.extra.battlePositions !== 'object' || Array.isArray(s.extra.battlePositions) || Object.keys(s.extra.battlePositions).length > HEROES.length + 1 || Object.entries(s.extra.battlePositions).some(function (_ref2) {
+            var key = _ref2[0],
+              p = _ref2[1];
             return !(key === 'captain' || /^(0|[1-9]\d?)$/.test(key) && Number(key) < HEROES.length) || !validBattlePosition(p);
           })) throw Error('battlePositions');
           for (var _i6 = 0, _arr2 = [s.extra.equipmentObtained, s.extra.equipmentRegistry]; _i6 < _arr2.length; _i6++) {
@@ -40613,9 +40621,9 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           for (var _iterator2 = _createForOfIteratorHelperLoose(scheduled.sort(function (a, b) {
               return a.time - b.time || (a.phase === b.phase ? 0 : a.phase === 'attack' ? -1 : 1) || a.hero - b.hero;
             })), _step2; !(_step2 = _iterator2()).done;) {
-            var _ref2 = _step2.value;
-            var time = _ref2.time,
-              event = _objectWithoutPropertiesLoose(_ref2, _excluded);
+            var _ref3 = _step2.value;
+            var time = _ref3.time,
+              event = _objectWithoutPropertiesLoose(_ref3, _excluded);
             this.heroEvents.push(event);
             if (event.phase === 'hit') {
               hits[event.hero]++;
@@ -41548,8 +41556,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
   };
 });
 
-System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts', './EnemyArtBounds.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, enemyType, ENEMY_HIT_POINTS, SquadUI, BattlePlacementUI, BattleTransitionUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme;
+System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts', './env', './EnemyArtBounds.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
+  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, SquadUI, BattlePlacementUI, BattleTransitionUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
@@ -41592,6 +41600,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       profiler = module.profiler;
     }, function (module) {
       enemyType = module.enemyType;
+    }, function (module) {
+      EDITOR = module.EDITOR;
+      DEBUG = module.DEBUG;
     }, function (module) {
       ENEMY_HIT_POINTS = module.ENEMY_HIT_POINTS;
     }, function (module) {
@@ -41658,6 +41669,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
     }, function (module) {
       AUTO_FIRE_INTERVAL = module.AUTO_FIRE_INTERVAL;
       Monetization = module.Monetization;
+      rewardedAdMode = module.rewardedAdMode;
     }, function (module) {
       MonetizationUI = module.MonetizationUI;
     }, function (module) {
@@ -41870,8 +41882,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                   this.game = new Game(sys.localStorage);
                   this.extensions = new ExpansionUI(this);
                   this.onlineService = new Online(sys.localStorage);
-                  this.payments = new MonetizationUI(this, new Monetization(this.game, sys.isNative && sys.os === sys.OS.ANDROID ? new FirebaseCommerce(sys.localStorage) : this.onlineService));
-                  if (sys.isNative && sys.os === sys.OS.ANDROID) this.payments.model.ads = new AdMobRewarded(this.payments.model.online);
+                  this.payments = new MonetizationUI(this, new Monetization(this.game, sys.isNative && sys.os === sys.OS.ANDROID ? new FirebaseCommerce(sys.localStorage) : this.onlineService, rewardedAdMode(sys.isNative, DEBUG, EDITOR)));
+                  if (!this.payments.model.previewAds && sys.isNative && sys.os === sys.OS.ANDROID) this.payments.model.ads = new AdMobRewarded(this.payments.model.online);
                   this.operations = new OperationsClient(this);
                   this.liveOps = new LiveOpsUI(this);
                   this.entry = new EntryUI(this);
@@ -48438,6 +48450,22 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureL
         'battle.areaMove': 'Zone {stage}',
         'battle.dragGuide': 'Drag to reposition\nStay within the left 40%'
       });
+      Object.assign(translations.ko, {
+        'money.previewClaim': '광고 없이 받기',
+        'money.previewShort': '바로 받기',
+        'money.previewInfo': '웹·테스트 빌드에서는 광고 없이 바로 보상을 받습니다.\n보상량·대기 시간·수령 한도는 동일합니다.',
+        'money.previewCompleted': '광고 없이 보상을 지급했습니다.',
+        'battle.autoPreview': '오토\n무료 · 15분',
+        'battle.autoPreviewInfo': '웹·테스트 빌드에서는 광고 없이 대장의 오토 사격을 15분 동안 사용할 수 있어요.\n\n오토 버튼으로 켜고 끌 수 있어요. 남은 시간은 앱을 닫거나 오토를 꺼도 흐릅니다.\n\n팝업·튜토리얼 중에는 사격을 잠시 멈춥니다.'
+      });
+      Object.assign(translations.en, {
+        'money.previewClaim': 'Claim without Ad',
+        'money.previewShort': 'Claim',
+        'money.previewInfo': 'Web and test builds grant this reward immediately without an ad.\nReward amounts, cooldowns, and claim limits stay the same.',
+        'money.previewCompleted': 'Reward granted without an ad.',
+        'battle.autoPreview': 'AUTO\nFree · 15 min',
+        'battle.autoPreviewInfo': 'Web and test builds give the captain 15 minutes of Auto Fire without an ad.\n\nTap AUTO to turn it on or off. Time continues while AUTO is off or the app is closed.\n\nFiring pauses during popups and tutorials.'
+      });
       cclegacy._RF.pop();
     }
   };
@@ -49280,9 +49308,11 @@ System.register("chunks:///_virtual/MilitaryTheme.ts", ['./rollupPluginModLoBabe
 });
 
 System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Amount.ts', './Config.ts'], function (exports) {
-  var _asyncToGenerator, _regeneratorRuntime, _createForOfIteratorHelperLoose, cclegacy, mul, add, CONFIG, SPELLS;
+  var _extends, _createClass, _asyncToGenerator, _regeneratorRuntime, _createForOfIteratorHelperLoose, cclegacy, mul, add, CONFIG, SPELLS;
   return {
     setters: [function (module) {
+      _extends = module.extends;
+      _createClass = module.createClass;
       _asyncToGenerator = module.asyncToGenerator;
       _regeneratorRuntime = module.regeneratorRuntime;
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -49296,6 +49326,7 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
       SPELLS = module.SPELLS;
     }],
     execute: function () {
+      exports('rewardedAdGrant', rewardedAdGrant);
       cclegacy._RF.push({}, "07624f1KdVPB78MbN40UGTI", "Monetization", undefined);
 
       /** Prices observed on the Korean iOS listing, 2026-10-02. Never use these as a store charge quote. */
@@ -49407,6 +49438,13 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
         period: 86400000,
         cooldown: AUTO_FIRE_SECONDS * 1000
       }]);
+      /** Build constants decide this; a saved setting or URL cannot enable it in a native release. */
+      var rewardedAdMode = exports('rewardedAdMode', function rewardedAdMode(_native, debug, editor) {
+        if (editor === void 0) {
+          editor = false;
+        }
+        return !_native || debug || editor ? 'preview' : 'live';
+      });
       var newCommerce = exports('newCommerce', function newCommerce() {
         return {
           vipPoints: 0,
@@ -49418,21 +49456,85 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
           autoFireUntil: 0,
           autoFireEnabled: false,
           fairyAds: true,
+          previewAds: {},
           pending: []
         };
       });
 
       /** A native StoreKit/Play Billing adapter must return actual store metadata and opaque receipts. */
 
+      /** The same reward contents are used after server verification and in preview builds. */
+      function rewardedAdGrant(id, placement, now) {
+        return _extends({
+          id: id,
+          kind: 'ad',
+          placement: placement,
+          gems: placement === 'fairy_diamond' ? 10 : 0,
+          vipPoints: 0,
+          passUntil: 0
+        }, placement === 'fairy_gold_spree' ? {
+          goldSpreeUntil: now + 300000
+        } : {}, placement === 'fairy_damage_spree' ? {
+          damageSpreeUntil: now + 300000
+        } : {}, placement === 'mega_boost' ? {
+          boostUntil: now + 14400000
+        } : {}, placement === 'fairy_discount' ? {
+          discountUntil: now + 60000
+        } : {}, placement === 'auto_fire' ? {
+          autoFireUntil: now + AUTO_FIRE_SECONDS * 1000
+        } : {});
+      }
       var Monetization = exports('Monetization', /*#__PURE__*/function () {
-        function Monetization(g, online) {
+        function Monetization(g, online, adMode) {
+          if (adMode === void 0) {
+            adMode = 'live';
+          }
           this.billing = null;
           this.ads = null;
           this.busy = false;
           this.g = g;
           this.online = online;
+          this.adMode = adMode;
         }
         var _proto = Monetization.prototype;
+        _proto.previewStatus = function previewStatus(placement) {
+          var rule = AD_PLACEMENTS.find(function (p) {
+            return p.id === placement;
+          });
+          var cycle = Math.floor(this.g.now() / rule.period) * rule.period,
+            uses = this.g.s.extra.commerce.previewAds,
+            use = uses[placement];
+          var fairyUses = AD_PLACEMENTS.filter(function (p) {
+            return p.group === 'fairy';
+          }).flatMap(function (p) {
+            return uses[p.id] ? [uses[p.id].lastAt] : [];
+          });
+          return _extends({}, rule, {
+            used: (use == null ? void 0 : use.cycle) === cycle ? use.used : 0,
+            cycle: cycle,
+            readyAt: Math.max(use ? use.lastAt + rule.cooldown : 0, rule.group === 'fairy' && fairyUses.length ? Math.max.apply(Math, fairyUses) + 120000 : 0),
+            skip: true
+          });
+        };
+        _proto.watchPreview = function watchPreview(placement) {
+          var _this = this;
+          var status = this.previewStatus(placement),
+            g = this.g;
+          if (status.group === 'fairy' && !g.s.extra.commerce.fairyAds) throw Error('money.disabled');
+          if (status.limit && status.used >= status.limit) throw Error('money.limit');
+          if (status.readyAt > g.now()) throw Error('error.timer');
+          var now = g.now(),
+            id = "preview-ad:" + placement + ":" + now;
+          if (!g.transaction('commerce:' + id, function () {
+            _this.applyReward(rewardedAdGrant(id, placement, now));
+            g.s.extra.commerce.previewAds[placement] = {
+              cycle: status.cycle,
+              used: status.used + 1,
+              lastAt: now
+            };
+          })) throw Error(g.notice || 'error.claimed');
+          return 'completed';
+        };
         _proto.autoFireRemaining = function autoFireRemaining() {
           return Math.max(0, Math.ceil((this.g.s.extra.commerce.autoFireUntil - this.g.now()) / 1000));
         };
@@ -49440,90 +49542,94 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
           return this.g.s.extra.commerce.autoFireEnabled && this.autoFireRemaining() > 0;
         };
         _proto.toggleAutoFire = function toggleAutoFire(key) {
-          var _this = this;
+          var _this2 = this;
           return this.g.transaction(key, function () {
-            _this.g.require(_this.autoFireRemaining() > 0, 'battle.autoExpired');
-            _this.g.s.extra.commerce.autoFireEnabled = !_this.g.s.extra.commerce.autoFireEnabled;
+            _this2.g.require(_this2.autoFireRemaining() > 0, 'battle.autoExpired');
+            _this2.g.s.extra.commerce.autoFireEnabled = !_this2.g.s.extra.commerce.autoFireEnabled;
           });
         };
         _proto.tier = function tier() {
-          var _this2 = this;
+          var _this3 = this;
           return this.g.s.extra.commerce.passUntil > this.g.now() ? 5 : VIP_THRESHOLDS.filter(function (p) {
-            return _this2.g.s.extra.commerce.vipPoints >= p;
+            return _this3.g.s.extra.commerce.vipPoints >= p;
           }).length;
         };
         _proto.apply = function apply(grant) {
-          var _this3 = this;
+          var _this4 = this;
           return this.g.transaction('commerce:' + grant.id, function () {
-            _this3.g.require(!_this3.g.s.claims.includes('commerce:' + grant.id), 'error.claimed');
-            _this3.g.require(Number.isInteger(grant.gems) && grant.gems >= 0 && Number.isInteger(grant.vipPoints) && grant.vipPoints >= 0, 'error.invalid');
-            var x = _this3.g.s.extra.commerce;
-            if (grant.kind === 'ad') {
-              _this3.g.require(AD_PLACEMENTS.some(function (p) {
-                return p.id === grant.placement;
-              }), 'error.invalid');
-              switch (grant.placement) {
-                case 'auto_fire':
-                  _this3.g.require(Number.isSafeInteger(grant.autoFireUntil) && grant.autoFireUntil >= 0, 'error.invalid');
-                  x.autoFireUntil = Math.max(x.autoFireUntil, grant.autoFireUntil);
-                  x.autoFireEnabled = x.autoFireUntil > _this3.g.now();
-                  break;
-                case 'fairy_diamond':
-                  _this3.g.s.eventTokens += 15;
-                  _this3.g.s.extra.eventEarned += 15;
-                  break;
-                case 'fairy_mana':
-                  _this3.g.s.run.mana = Math.min(CONFIG.manaMax, _this3.g.s.run.mana + CONFIG.manaMax * .25);
-                  break;
-                case 'fairy_gold_spree':
-                  x.goldSpreeUntil = Math.max(x.goldSpreeUntil || 0, grant.goldSpreeUntil || 0);
-                  break;
-                case 'fairy_damage_spree':
-                  x.damageSpreeUntil = Math.max(x.damageSpreeUntil || 0, grant.damageSpreeUntil || 0);
-                  break;
-                case 'fairy_equipment':
-                  {
-                    _this3.g.require(_this3.g.s.maxStage < 5000, 'error.locked');
-                    _this3.g.require(_this3.g.s.equipment.length < CONFIG.inventoryCap, 'error.full');
-                    var item = _this3.g.drop(undefined, 1),
-                      equipped = _this3.g.s.equipment.find(function (e) {
-                        return e.id === _this3.g.s.equipped[item.slot];
-                      });
-                    if (equipped) {
-                      item.power = Math.max(item.power, equipped.power * 1.01);
-                      item.level = Math.max(item.level, equipped.level + 1);
-                    }
-                    break;
-                  }
-                case 'fairy_gold':
-                  _this3.g.s.run.gold = add(_this3.g.s.run.gold, mul(_this3.g.goldReward(false), CONFIG.adSupplyWaves));
-                  break;
-                case 'fairy_discount':
-                  x.discountUntil = Math.max(x.discountUntil, grant.discountUntil || 0);
-                  break;
-                case 'fairy_skills':
-                  _this3.g.s.spellSlots.forEach(function (i) {
-                    if (_this3.g.s.run.master >= SPELLS[i].unlock) {
-                      _this3.g.s.run.spells[i] = Math.max(_this3.g.s.run.spells[i], SPELLS[i].duration);
-                      _this3.g.s.run.stacks[i] = Math.max(1, _this3.g.s.run.stacks[i]);
-                      if (i === 0) _this3.g.damage(mul(_this3.g.tapDamage(), 100 * _this3.g.s.run.spellLevels[i]));
-                    }
-                  });
-                  break;
-                case 'mega_boost':
-                  x.boostUntil = Math.max(x.boostUntil, grant.boostUntil || 0);
-                  break;
-                case 'shop_chest':
-                  _this3.g.require(_this3.g.s.equipment.length < CONFIG.inventoryCap, 'error.full');
-                  _this3.g.drop();
-                  break;
-              }
-            }
-            _this3.g.s.gems += grant.gems;
-            x.vipPoints += grant.vipPoints;
-            x.passUntil = Math.max(x.passUntil, grant.passUntil);
-            _this3.g.s.claims.push('commerce:' + grant.id);
+            return _this4.applyReward(grant);
           });
+        };
+        _proto.applyReward = function applyReward(grant) {
+          var _this5 = this;
+          this.g.require(!this.g.s.claims.includes('commerce:' + grant.id), 'error.claimed');
+          this.g.require(Number.isInteger(grant.gems) && grant.gems >= 0 && Number.isInteger(grant.vipPoints) && grant.vipPoints >= 0, 'error.invalid');
+          var x = this.g.s.extra.commerce;
+          if (grant.kind === 'ad') {
+            this.g.require(AD_PLACEMENTS.some(function (p) {
+              return p.id === grant.placement;
+            }), 'error.invalid');
+            switch (grant.placement) {
+              case 'auto_fire':
+                this.g.require(Number.isSafeInteger(grant.autoFireUntil) && grant.autoFireUntil >= 0, 'error.invalid');
+                x.autoFireUntil = Math.max(x.autoFireUntil, grant.autoFireUntil);
+                x.autoFireEnabled = x.autoFireUntil > this.g.now();
+                break;
+              case 'fairy_diamond':
+                this.g.s.eventTokens += 15;
+                this.g.s.extra.eventEarned += 15;
+                break;
+              case 'fairy_mana':
+                this.g.s.run.mana = Math.min(CONFIG.manaMax, this.g.s.run.mana + CONFIG.manaMax * .25);
+                break;
+              case 'fairy_gold_spree':
+                x.goldSpreeUntil = Math.max(x.goldSpreeUntil || 0, grant.goldSpreeUntil || 0);
+                break;
+              case 'fairy_damage_spree':
+                x.damageSpreeUntil = Math.max(x.damageSpreeUntil || 0, grant.damageSpreeUntil || 0);
+                break;
+              case 'fairy_equipment':
+                {
+                  this.g.require(this.g.s.maxStage < 5000, 'error.locked');
+                  this.g.require(this.g.s.equipment.length < CONFIG.inventoryCap, 'error.full');
+                  var item = this.g.drop(undefined, 1),
+                    equipped = this.g.s.equipment.find(function (e) {
+                      return e.id === _this5.g.s.equipped[item.slot];
+                    });
+                  if (equipped) {
+                    item.power = Math.max(item.power, equipped.power * 1.01);
+                    item.level = Math.max(item.level, equipped.level + 1);
+                  }
+                  break;
+                }
+              case 'fairy_gold':
+                this.g.s.run.gold = add(this.g.s.run.gold, mul(this.g.goldReward(false), CONFIG.adSupplyWaves));
+                break;
+              case 'fairy_discount':
+                x.discountUntil = Math.max(x.discountUntil, grant.discountUntil || 0);
+                break;
+              case 'fairy_skills':
+                this.g.s.spellSlots.forEach(function (i) {
+                  if (_this5.g.s.run.master >= SPELLS[i].unlock) {
+                    _this5.g.s.run.spells[i] = Math.max(_this5.g.s.run.spells[i], SPELLS[i].duration);
+                    _this5.g.s.run.stacks[i] = Math.max(1, _this5.g.s.run.stacks[i]);
+                    if (i === 0) _this5.g.damage(mul(_this5.g.tapDamage(), 100 * _this5.g.s.run.spellLevels[i]));
+                  }
+                });
+                break;
+              case 'mega_boost':
+                x.boostUntil = Math.max(x.boostUntil, grant.boostUntil || 0);
+                break;
+              case 'shop_chest':
+                this.g.require(this.g.s.equipment.length < CONFIG.inventoryCap, 'error.full');
+                this.g.drop();
+                break;
+            }
+          }
+          this.g.s.gems += grant.gems;
+          x.vipPoints += grant.vipPoints;
+          x.passUntil = Math.max(x.passUntil, grant.passUntil);
+          this.g.s.claims.push('commerce:' + grant.id);
         };
         _proto.deliver = /*#__PURE__*/function () {
           var _deliver = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
@@ -49608,7 +49714,7 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
         }();
         _proto.retryPending = /*#__PURE__*/function () {
           var _retryPending = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
-            var _this4 = this;
+            var _this6 = this;
             var _loop, _iterator2, _step2;
             return _regeneratorRuntime().wrap(function _callee3$(_context4) {
               while (1) switch (_context4.prev = _context4.next) {
@@ -49620,12 +49726,12 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
                         case 0:
                           entry = _step2.value;
                           _context3.next = 3;
-                          return _this4.online.command(entry.path, entry.data);
+                          return _this6.online.command(entry.path, entry.data);
                         case 3:
-                          _this4.g.s.extra.commerce.pending = _this4.g.s.extra.commerce.pending.filter(function (p) {
+                          _this6.g.s.extra.commerce.pending = _this6.g.s.extra.commerce.pending.filter(function (p) {
                             return p !== entry;
                           });
-                          _this4.g.persist();
+                          _this6.g.persist();
                         case 5:
                         case "end":
                           return _context3.stop();
@@ -49734,73 +49840,87 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
                   }
                   throw Error('money.busy');
                 case 2:
-                  if (!(placement === 'fairy_diamond' && this.g.s.run.stage >= this.g.s.maxStage * .99)) {
+                  if (AD_PLACEMENTS.some(function (p) {
+                    return p.id === placement;
+                  })) {
                     _context6.next = 4;
                     break;
                   }
-                  throw Error('money.diamondStage');
+                  throw Error('error.invalid');
                 case 4:
-                  if (!(placement === 'fairy_equipment' && this.g.s.maxStage >= 5000)) {
+                  if (!(placement === 'fairy_diamond' && this.g.s.run.stage >= this.g.s.maxStage * .99)) {
                     _context6.next = 6;
                     break;
                   }
-                  throw Error('error.locked');
+                  throw Error('money.diamondStage');
                 case 6:
+                  if (!(placement === 'fairy_equipment' && this.g.s.maxStage >= 5000)) {
+                    _context6.next = 8;
+                    break;
+                  }
+                  throw Error('error.locked');
+                case 8:
                   this.busy = true;
-                  _context6.prev = 7;
-                  _context6.next = 10;
+                  _context6.prev = 9;
+                  if (!this.previewAds) {
+                    _context6.next = 12;
+                    break;
+                  }
+                  return _context6.abrupt("return", this.watchPreview(placement));
+                case 12:
+                  _context6.next = 14;
                   return this.online.command('/commerce/ad/start', {
                     placement: placement
                   });
-                case 10:
+                case 14:
                   _ticket = _context6.sent;
                   if (!_ticket.skip) {
-                    _context6.next = 15;
+                    _context6.next = 19;
                     break;
                   }
-                  _context6.next = 14;
+                  _context6.next = 18;
                   return this.deliver();
-                case 14:
+                case 18:
                   return _context6.abrupt("return", 'completed');
-                case 15:
+                case 19:
                   if (this.ads) {
-                    _context6.next = 17;
+                    _context6.next = 21;
                     break;
                   }
                   throw Error('money.adsUnavailable');
-                case 17:
-                  _context6.next = 19;
+                case 21:
+                  _context6.next = 23;
                   return this.ads.show(placement, _ticket.id);
-                case 19:
+                case 23:
                   result = _context6.sent;
                   if (!(result.status !== 'completed')) {
-                    _context6.next = 22;
+                    _context6.next = 26;
                     break;
                   }
                   return _context6.abrupt("return", result.status);
-                case 22:
+                case 26:
                   if (result.proof) {
-                    _context6.next = 24;
+                    _context6.next = 28;
                     break;
                   }
                   throw Error('money.verification');
-                case 24:
-                  _context6.next = 26;
+                case 28:
+                  _context6.next = 30;
                   return this.submit('/commerce/ad/complete', {
                     ticket: _ticket.id,
                     proof: result.proof
                   });
-                case 26:
-                  return _context6.abrupt("return", 'completed');
-                case 27:
-                  _context6.prev = 27;
-                  this.busy = false;
-                  return _context6.finish(27);
                 case 30:
+                  return _context6.abrupt("return", 'completed');
+                case 31:
+                  _context6.prev = 31;
+                  this.busy = false;
+                  return _context6.finish(31);
+                case 34:
                 case "end":
                   return _context6.stop();
               }
-            }, _callee5, this, [[7,, 27, 30]]);
+            }, _callee5, this, [[9,, 31, 34]]);
           }));
           function watch(_x4) {
             return _watch.apply(this, arguments);
@@ -49864,6 +49984,12 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
           }
           return restore;
         }();
+        _createClass(Monetization, [{
+          key: "previewAds",
+          get: function get() {
+            return this.adMode === 'preview';
+          }
+        }]);
         return Monetization;
       }());
       cclegacy._RF.pop();
@@ -49905,7 +50031,7 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
         _proto.autoFireLabel = function autoFireLabel() {
           var seconds = this.model.autoFireRemaining(),
             time = Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0');
-          return this.tr(seconds ? 'battle.autoTime' : 'battle.autoAd', {
+          return this.tr(seconds ? 'battle.autoTime' : this.model.previewAds ? 'battle.autoPreview' : 'battle.autoAd', {
             state: this.tr(this.model.autoFireActive() ? 'battle.autoOn' : 'battle.autoOff'),
             time: time
           });
@@ -49913,7 +50039,7 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
         _proto.autoFireReason = function autoFireReason() {
           if (this.model.busy || this.a.feedback.asyncPending) return this.tr('money.busy');
           if (this.model.autoFireRemaining()) return null;
-          if (!this.model.ads) return this.tr('money.adsUnavailable');
+          if (!this.model.previewAds && !this.model.ads) return this.tr('money.adsUnavailable');
           return this.adReason('auto_fire');
         };
         _proto.autoFire = function autoFire() {
@@ -49927,9 +50053,9 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
           }
           var p = this.a.open(this.tr('battle.autoTitle'), 460, true, 'teal', false);
           p.name = 'auto-fire-panel';
-          this.a.label(p, this.tr('battle.autoInfo'), 0, 43, 370, 190, 19);
-          this.a.button(p, this.tr('money.watch'), 0, -112, 370, 54, function () {
-            void _this.run( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
+          this.a.label(p, this.tr(this.model.previewAds ? 'battle.autoPreviewInfo' : 'battle.autoInfo'), 0, 43, 370, 190, 19);
+          this.a.button(p, this.tr(this.model.previewAds ? 'money.previewClaim' : 'money.watch'), 0, -112, 370, 54, function () {
+            void _this.runAd( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
               var result;
               return _regeneratorRuntime().wrap(function _callee$(_context) {
                 while (1) switch (_context.prev = _context.next) {
@@ -49961,7 +50087,7 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
             unavailable: function unavailable() {
               return _this.autoFireReason();
             }
-          });
+          }).name = 'auto-fire-start';
           this.a.button(p, this.tr('action.cancel'), 0, -181, 370, 44, function () {
             return _this.a.close();
           });
@@ -49986,28 +50112,32 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
           })) != null && _PRODUCTS$find.configured) ? this.tr('money.bundleUnknown') : !this.model.billing ? this.tr('money.storeUnavailable') : this.model.busy ? this.tr('money.busy') : null;
         };
         _proto.adReason = function adReason(id, status) {
+          var _status, _status2, _status3;
+          if (this.model.previewAds) status = this.model.previewStatus(id);
           var rule = AD_PLACEMENTS.find(function (p) {
             return p.id === id;
           });
           if (this.model.busy) return this.tr('money.busy');
           if (rule.group === 'fairy' && !this.a.game.s.extra.commerce.fairyAds) return this.tr('money.disabled');
-          if (rule.limit && ((status == null ? void 0 : status.used) || 0) >= rule.limit) return this.tr('money.limit');
-          if (((status == null ? void 0 : status.readyAt) || 0) > this.a.game.now()) return this.tr('action.waitSeconds', {
+          if (rule.limit && (((_status = status) == null ? void 0 : _status.used) || 0) >= rule.limit) return this.tr('money.limit');
+          if ((((_status2 = status) == null ? void 0 : _status2.readyAt) || 0) > this.a.game.now()) return this.tr('action.waitSeconds', {
             seconds: Math.ceil((status.readyAt - this.a.game.now()) / 1000)
           });
           if (id === 'fairy_diamond' && this.a.game.s.run.stage >= this.a.game.s.maxStage * .99) return this.tr('money.diamondStage');
           if (id === 'fairy_equipment' && this.a.game.s.maxStage >= 5000) return this.tr('money.equipmentStage');
           if ((id === 'shop_chest' || id === 'fairy_equipment') && this.a.game.s.equipment.length >= 100) return this.tr('error.full');
-          return !this.model.online.base ? this.tr('online.unreachable') : !(status != null && status.skip) && !this.model.ads ? this.tr('money.adsUnavailable') : null;
+          return this.model.previewAds ? null : !this.model.online.base ? this.tr('online.unreachable') : !((_status3 = status) != null && _status3.skip) && !this.model.ads ? this.tr('money.adsUnavailable') : null;
         };
         _proto.adLabel = function adLabel(id, status) {
+          var _status4, _status5, _status6;
+          if (this.model.previewAds) status = this.model.previewStatus(id);
           var rule = AD_PLACEMENTS.find(function (p) {
             return p.id === id;
           });
-          return this.tr(rule.limit && ((status == null ? void 0 : status.used) || 0) >= rule.limit ? 'money.limitShort' : ((status == null ? void 0 : status.readyAt) || 0) > this.a.game.now() ? 'action.waiting' : this.adReason(id, status) ? 'action.unavailable' : status != null && status.skip ? 'action.claimReady' : 'money.watch');
+          return this.tr(rule.limit && (((_status4 = status) == null ? void 0 : _status4.used) || 0) >= rule.limit ? 'money.limitShort' : (((_status5 = status) == null ? void 0 : _status5.readyAt) || 0) > this.a.game.now() ? 'action.waiting' : this.adReason(id, status) ? 'action.unavailable' : this.model.previewAds ? 'money.previewClaim' : (_status6 = status) != null && _status6.skip ? 'action.claimReady' : 'money.watch');
         };
         _proto.run = /*#__PURE__*/function () {
-          var _run = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(work, offline) {
+          var _run = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(work, offline, skipConnect) {
             var before, key;
             return _regeneratorRuntime().wrap(function _callee2$(_context2) {
               while (1) switch (_context2.prev = _context2.next) {
@@ -50015,42 +50145,48 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
                   if (offline === void 0) {
                     offline = false;
                   }
+                  if (skipConnect === void 0) {
+                    skipConnect = false;
+                  }
                   before = this.a.feedback.snapshot();
                   this.a.feedback.asyncPending++;
-                  _context2.prev = 3;
-                  if (!(!offline || this.model.online.base)) {
-                    _context2.next = 7;
+                  _context2.prev = 4;
+                  if (!(!skipConnect && (!offline || this.model.online.base))) {
+                    _context2.next = 8;
                     break;
                   }
-                  _context2.next = 7;
+                  _context2.next = 8;
                   return this.model.online.connect(this.tr('online.defaultName'));
-                case 7:
-                  _context2.next = 9;
+                case 8:
+                  _context2.next = 10;
                   return work();
-                case 9:
+                case 10:
                   this.a.feedback.finish(before);
-                  _context2.next = 16;
+                  _context2.next = 17;
                   break;
-                case 12:
-                  _context2.prev = 12;
-                  _context2.t0 = _context2["catch"](3);
+                case 13:
+                  _context2.prev = 13;
+                  _context2.t0 = _context2["catch"](4);
                   key = _context2.t0.message;
                   this.a.info(this.tr('money.result'), this.tr(/^(money|error|online)\./.test(key) ? key : 'money.verification'), 'blocked');
-                case 16:
-                  _context2.prev = 16;
+                case 17:
+                  _context2.prev = 17;
                   this.a.feedback.asyncPending--;
-                  return _context2.finish(16);
-                case 19:
+                  return _context2.finish(17);
+                case 20:
                 case "end":
                   return _context2.stop();
               }
-            }, _callee2, this, [[3, 12, 16, 19]]);
+            }, _callee2, this, [[4, 13, 17, 20]]);
           }));
-          function run(_x, _x2) {
+          function run(_x, _x2, _x3) {
             return _run.apply(this, arguments);
           }
           return run;
         }();
+        _proto.runAd = function runAd(work) {
+          return this.run(work, true, this.model.previewAds);
+        };
         _proto.rows = function rows() {
           var _this2 = this;
           return PRODUCTS.filter(function (p) {
@@ -50352,23 +50488,37 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
             this.result('money.disabled');
             return;
           }
-          void this.run( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
+          void this.runAd( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
             var s;
             return _regeneratorRuntime().wrap(function _callee8$(_context8) {
               while (1) switch (_context8.prev = _context8.next) {
                 case 0:
-                  if (!_this7.model.online.base) {
-                    _context8.next = 6;
+                  if (!_this7.model.previewAds) {
+                    _context8.next = 4;
                     break;
                   }
-                  _context8.next = 3;
-                  return _this7.model.online.request('/commerce/status');
-                case 3:
-                  _context8.t0 = _context8.sent;
-                  _context8.next = 7;
-                  break;
-                case 6:
                   _context8.t0 = {
+                    placements: AD_PLACEMENTS.filter(function (p) {
+                      return p.group !== 'legacy';
+                    }).map(function (p) {
+                      return _this7.model.previewStatus(p.id);
+                    })
+                  };
+                  _context8.next = 12;
+                  break;
+                case 4:
+                  if (!_this7.model.online.base) {
+                    _context8.next = 10;
+                    break;
+                  }
+                  _context8.next = 7;
+                  return _this7.model.online.request('/commerce/status');
+                case 7:
+                  _context8.t1 = _context8.sent;
+                  _context8.next = 11;
+                  break;
+                case 10:
+                  _context8.t1 = {
                     placements: AD_PLACEMENTS.filter(function (p) {
                       return p.group !== 'legacy';
                     }).map(function (p) {
@@ -50379,7 +50529,9 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
                       });
                     })
                   };
-                case 7:
+                case 11:
+                  _context8.t0 = _context8.t1;
+                case 12:
                   s = _context8.t0;
                   _this7.a.extensions.list('money.adPoints', s.placements.filter(function (p) {
                     return !group || p.group === group;
@@ -50394,12 +50546,12 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
                       }
                     });
                   }));
-                case 9:
+                case 14:
                 case "end":
                   return _context8.stop();
               }
             }, _callee8);
-          })), true);
+          })));
         };
         _proto.ad = function ad(id, status) {
           var _this8 = this;
@@ -50408,18 +50560,23 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
               return p.id === id;
             });
           this.a.shopUI.identity(p, this.adCategory(id), this.adReward(id), 174, 114, 18);
-          this.a.label(p, this.tr('money.adRule', {
-            used: (status == null ? void 0 : status.used) || 0,
-            limit: rule.limit || '∞',
-            seconds: Math.max(0, Math.ceil((((status == null ? void 0 : status.readyAt) || 0) - Date.now()) / 1000))
-          }), 0, 45, 370, 80, 17);
-          this.a.label(p, this.tr('money.optIn'), 0, -60, 370, 88, 16);
-          this.a.button(p, this.tr(status != null && status.skip ? 'action.claim' : 'money.watch'), 0, -177, 370, 55, function () {
+          var ruleText = this.a.label(p, '', 0, 45, 370, 80, 17);
+          this.a.modalRefresh = function () {
+            var current = _this8.model.previewAds ? _this8.model.previewStatus(id) : status;
+            ruleText.string = _this8.tr('money.adRule', {
+              used: (current == null ? void 0 : current.used) || 0,
+              limit: rule.limit || '∞',
+              seconds: Math.max(0, Math.ceil((((current == null ? void 0 : current.readyAt) || 0) - _this8.a.game.now()) / 1000))
+            });
+          };
+          this.a.modalRefresh();
+          this.a.label(p, this.tr(this.model.previewAds ? 'money.previewInfo' : 'money.optIn'), 0, -60, 370, 88, 16);
+          this.a.button(p, this.adLabel(id, status), 0, -177, 370, 55, function () {
             if ((id === 'shop_chest' || id === 'fairy_equipment') && _this8.a.game.s.equipment.length >= 100) {
               _this8.result('error.full');
               return;
             }
-            void _this8.run( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
+            void _this8.runAd( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
               var result;
               return _regeneratorRuntime().wrap(function _callee9$(_context9) {
                 while (1) switch (_context9.prev = _context9.next) {
@@ -50428,9 +50585,16 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
                     return _this8.model.watch(id);
                   case 2:
                     result = _context9.sent;
-                    _this8.result('money.adStatus.' + result);
+                    if (!(result === 'completed' && _this8.model.previewAds)) {
+                      _context9.next = 6;
+                      break;
+                    }
+                    _context9.next = 6;
+                    return _this8.a.operations.save();
+                  case 6:
+                    _this8.result(result === 'completed' && _this8.model.previewAds ? 'money.previewCompleted' : 'money.adStatus.' + result);
                     _this8.a.drawPanel();
-                  case 5:
+                  case 8:
                   case "end":
                     return _context9.stop();
                 }
@@ -50444,7 +50608,7 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
               return _this8.adLabel(id, status);
             },
             rewardReady: function rewardReady() {
-              return !!(status != null && status.skip) && !_this8.adReason(id, status);
+              return (_this8.model.previewAds || !!(status != null && status.skip)) && !_this8.adReason(id, status);
             }
           }).name = 'shop-ad-watch';
           this.a.button(p, this.tr('action.cancel'), 0, -254, 370, 44, function () {
@@ -52487,7 +52651,7 @@ System.register("chunks:///_virtual/ShopUI.ts", ['./rollupPluginModLoBabelHelper
               value: '12×3',
               hint: a.tr('money.adReward.shop_chest')
             }],
-            action: a.tr('money.watch'),
+            action: a.tr(a.payments.model.previewAds ? 'money.previewShort' : 'money.watch'),
             click: function click() {
               return a.payments.ads('shop');
             }
@@ -54701,8 +54865,8 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
         ascend: ['extra.ascend', 'prestige.title', 'intel.redeployButton', 'intel.redeployLocked', 'action.rebirth'],
         deck: ['squad.deck', 'squad.count', 'squad.deploy', 'squad.remove', 'nav.heroes', 'menu.cards', 'complete.saveDeck', 'complete.presets'],
         synergy: ['squad.synergies', 'squad.roles'],
-        battle: ['action.attack', 'battle.fight', 'hud.operations', 'menu.raid', 'menu.expeditions', 'menu.tournaments', 'online.enter', 'online.join', 'online.guildRaid', 'extra.door', 'battle.autoAd', 'battle.autoTime'],
-        shop: ['action.buy', 'money.store', 'money.watch', 'money.fairyBonus', 'extra.dustShop', 'extra.dustOffer', 'shop.regular', 'shop.progression', 'shop.limited', 'money.restore', 'money.retry'],
+        battle: ['action.attack', 'battle.fight', 'hud.operations', 'menu.raid', 'menu.expeditions', 'menu.tournaments', 'online.enter', 'online.join', 'online.guildRaid', 'extra.door', 'battle.autoAd', 'battle.autoPreview', 'battle.autoTime'],
+        shop: ['action.buy', 'money.store', 'money.watch', 'money.previewClaim', 'money.previewShort', 'money.fairyBonus', 'extra.dustShop', 'extra.dustOffer', 'shop.regular', 'shop.progression', 'shop.limited', 'money.restore', 'money.retry'],
         settings: ['hud.menu', 'hud.settings', 'menu.settings', 'menu.inbox', 'action.lock', 'settings.audio', 'locale.ko', 'locale.en', 'complete.account', 'complete.display', 'extra.hub', 'live.17', 'extra.notifications', 'extra.export', 'complete.import', 'complete.restoreBackup', 'tutorial.replay', 'cheat.title', 'cheat.restore', 'settings.on', 'settings.off', 'ops.osSettings'],
         back: ['action.cancel', 'action.back', 'action.close', 'action.next', 'action.previous', 'layout.collapse', 'layout.expand', 'guide.later', 'learn.previous', 'tutorial.skip', 'entry.backLogin', 'ops.pushDecline'],
         danger: ['action.sell', 'action.reset', 'action.revert', 'extra.delete', 'cheat.reset', 'artifact.salvage', 'online.leave', 'ops.block']
