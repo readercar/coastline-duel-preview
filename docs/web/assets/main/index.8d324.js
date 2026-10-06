@@ -3501,11 +3501,13 @@ System.register("chunks:///_virtual/EnemyHitFeedback.ts", ['./rollupPluginModLoB
   };
 });
 
-System.register("chunks:///_virtual/EntryPolicy.ts", ['cc'], function (exports) {
-  var cclegacy;
+System.register("chunks:///_virtual/EntryPolicy.ts", ['cc', './MercenaryUnlock.ts'], function (exports) {
+  var cclegacy, mercenaryUnlocked;
   return {
     setters: [function (module) {
       cclegacy = module.cclegacy;
+    }, function (module) {
+      mercenaryUnlocked = module.mercenaryUnlocked;
     }],
     execute: function () {
       exports({
@@ -3553,7 +3555,13 @@ System.register("chunks:///_virtual/EntryPolicy.ts", ['cc'], function (exports) 
       }
       function tutorialAdvance(s, event) {
         var step = s.tutorial.step;
-        if (step === 0 && event === 'begin' || step === 1 && s.totalTaps >= (s.tutorial.tapBaseline || 0) + 3 || step === 2 && s.run.master > (s.tutorial.masterBaseline || 1) || step === 3 && event === 'heroes' || step === 4 && s.run.heroes[0] > (s.tutorial.heroBaseline || 0) || step === 5 && event === 'fold' || step === 6 && event === 'unfold') s.tutorial.step++;
+        // Older checkpoints may already be waiting on a recruit below the new level gate.
+        if ((step === 3 || step === 4) && !mercenaryUnlocked(s, 0)) {
+          s.tutorial.step = 2;
+          return true;
+        }
+        var captainReady = mercenaryUnlocked(s, 0) && s.run.master > (s.tutorial.masterBaseline || 1);
+        if (step === 0 && event === 'begin' || step === 1 && s.totalTaps >= (s.tutorial.tapBaseline || 0) + 3 || step === 2 && captainReady || step === 3 && event === 'heroes' || step === 4 && s.run.heroes[0] > (s.tutorial.heroBaseline || 0) || step === 5 && event === 'fold' || step === 6 && event === 'unfold') s.tutorial.step++;
         return step !== s.tutorial.step;
       }
       var TAB_STAGES = exports('TAB_STAGES', [1, 1, 15, 8, 60, 3]);
@@ -8313,7 +8321,7 @@ System.register("chunks:///_virtual/FeatureLessons.ts", ['cc'], function (export
           'learn.captain.1': ['대장 탭 → 대장 옆 + 버튼으로 강화합니다.\n비용은 코인입니다. 회색 버튼을 누르면 보유량과 필요한 양을 확인할 수 있습니다.', 'Open Captain, then use + beside her portrait.\nUpgrades cost coins. A gray button explains your balance and the amount required.'],
           'learn.captain.2': ['강화는 코인을 소비하고 대장 레벨을 올립니다.\n재배치하면 대장 레벨과 현재 코인은 초기화됩니다.\n영구 성장은 작전 기록·장비·드론에서 준비하세요.', 'Upgrading spends coins and raises captain level.\nRedeployment resets her level and current coins.\nIntel, gear, and drones provide lasting growth.'],
           'learn.squad.0': ['용병은 화면을 누르지 않아도 자동으로 공격합니다.\n대장 1명과 전투 덱의 용병 최대 4명이 출격합니다.', 'Mercenaries attack automatically without taps.\nThe captain fights with up to four mercenaries in your combat deck.'],
-          'learn.squad.1': ['분대 탭에서 코인으로 고용·강화합니다.\n메뉴 → 용병 전투 덱에서 배치·제외를 고릅니다.\n무기마다 공격 주기와 한 번의 피해가 다릅니다.', 'Hire and upgrade with coins in Squad.\nUse Menu → Combat Deck to deploy or withdraw.\nWeapons have different attack intervals and hit damage.'],
+          'learn.squad.1': ['첫 용병 레아는 대장 레벨 10에서 해금됩니다.\n분대 탭에서 코인으로 고용·강화합니다.\n메뉴 → 용병 전투 덱에서 배치·제외를 고릅니다.\n무기마다 공격 주기와 한 번의 피해가 다릅니다.', 'Rhea, your first mercenary, unlocks at Captain level 10.\nHire and upgrade with coins in Squad.\nUse Menu → Combat Deck to deploy or withdraw.\nWeapons have different attack intervals and hit damage.'],
           'learn.squad.2': ['특정 캐릭터 조합을 모두 배치하면 시너지가 발동합니다.\n대장은 조합 인원에 포함되지 않습니다.\n획득 도감은 재배치 후에도 남지만 용병 레벨은 다시 성장시켜야 합니다.', 'Deploy every named character in a combination to activate its synergy. The captain does not count.\nYour owned collection survives redeployment; mercenary levels reset.'],
           'learn.equipment.0': ['무장은 장착하면 피해 배율을 올리는 장비입니다.\n상세의 현재 → 선택 수치로 장착 효과를 비교합니다.', 'Gear raises damage multipliers when equipped.\nCompare Current → Selected values in its details.'],
           'learn.equipment.1': ['획득 버튼에서 새 장비를 확인하고 장착하기를 누르세요.\n무장 탭에서 교체하며, 자물쇠로 판매를 보호합니다.', 'Inspect new gear using the loot button, then Equip.\nChange gear in Arsenal. Lock protects it from sale.'],
@@ -8709,8 +8717,8 @@ System.register("chunks:///_virtual/Feedback.ts", ['./rollupPluginModLoBabelHelp
   };
 });
 
-System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SpeechIllustrationUI.ts', './EquipmentUI.ts', './RewardArtUI.ts', './Feedback.ts', './UITheme.ts', './Mercenaries.ts', './Config.ts', './Amount.ts', './Dialogue.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _extends, _createClass, cclegacy, BlockInputEvents, Node, isValid, UITransform, tween, Vec3, Label, Graphics, Mask, UIOpacity, speechIllustration, equipmentReward, rewardBackground, feedbackSnapshot, feedbackDiff, GrowthFeedbackQueue, UI, attackSeconds, mercenaryArt, PETS, ARTIFACTS, CARDS, HEROES, display, DIALOGUE_CONTEXTS, DialogueDeck, DialogueDirector;
+System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SpeechIllustrationUI.ts', './MercenaryUnlock.ts', './EquipmentUI.ts', './RewardArtUI.ts', './Feedback.ts', './UITheme.ts', './Mercenaries.ts', './Config.ts', './Amount.ts', './Dialogue.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _extends, _createClass, cclegacy, BlockInputEvents, Node, isValid, UITransform, tween, Vec3, Label, Graphics, Mask, UIOpacity, speechIllustration, mercenaryUnlocked, equipmentReward, rewardBackground, feedbackSnapshot, feedbackDiff, GrowthFeedbackQueue, UI, attackSeconds, mercenaryArt, PETS, ARTIFACTS, CARDS, HEROES, display, DIALOGUE_CONTEXTS, DialogueDeck, DialogueDirector;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -8730,6 +8738,8 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
       UIOpacity = module.UIOpacity;
     }, function (module) {
       speechIllustration = module.speechIllustration;
+    }, function (module) {
+      mercenaryUnlocked = module.mercenaryUnlocked;
     }, function (module) {
       equipmentReward = module.equipmentReward;
     }, function (module) {
@@ -9194,7 +9204,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           var a = this.a;
           if (!a.entry.playing || this.showing || a.modal || a.liveOps.blocked || !a.operations.ready || a.operations.busy || a.operations.conflict) return;
           var h = HEROES.find(function (h) {
-            return a.game.s.maxStage >= h.unlock && !a.game.s.extra.mercenarySeen.includes(h.id);
+            return mercenaryUnlocked(a.game.s, h.id) && !a.game.s.extra.mercenarySeen.includes(h.id);
           });
           if (h && (a.game.s.tutorial.step >= 7 || h.id === 0 && a.game.s.tutorial.step >= 3)) this.showMercenary(h.id);
         };
@@ -42091,8 +42101,8 @@ System.register("chunks:///_virtual/FirebaseConfig.ts", ['cc'], function (export
   };
 });
 
-System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Squad.ts', './SquadName.ts', './DroneEffects.ts', './DroneFleet.ts', './AllyPlacement.ts', './Mercenaries.ts', './Balance.ts', './BattleFormation.ts', './Amount.ts', './Expansion.ts', './Config.ts', './EntryPolicy.ts'], function (exports) {
-  var _extends, _createForOfIteratorHelperLoose, _objectWithoutPropertiesLoose, _createClass, cclegacy, SQUAD_LIMIT, equipmentKey, validEquipmentKey, formationMultiplier, squadBonuses, collectionBonuses, squadNameError, activeDroneEffects, DRONE_SLOTS, droneSlots, equippedDrones, validBattlePosition, attackSeconds, attackWindup, BALANCE_VERSION, PREVIOUS_BALANCE_VERSION, troopWaves, TROOP_BALANCE, troopHP, gemstoneBonus, routedBonus, troopGold, ARTIFACT_DISCOVERY_COSTS, waveSize, previousBossWaveSize, enemyHPShare, ZERO, amount, mul, add, sub, newExpansion, Expansion, HEROES, CONFIG, SPELLS, SKILLS, migrateTutorial, tutorialComplete;
+System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Squad.ts', './SquadName.ts', './DroneEffects.ts', './DroneFleet.ts', './AllyPlacement.ts', './Mercenaries.ts', './Balance.ts', './BattleFormation.ts', './Amount.ts', './Expansion.ts', './Config.ts', './MercenaryUnlock.ts', './EntryPolicy.ts'], function (exports) {
+  var _extends, _createForOfIteratorHelperLoose, _objectWithoutPropertiesLoose, _createClass, cclegacy, SQUAD_LIMIT, equipmentKey, validEquipmentKey, formationMultiplier, squadBonuses, collectionBonuses, squadNameError, activeDroneEffects, DRONE_SLOTS, droneSlots, equippedDrones, validBattlePosition, attackSeconds, attackWindup, BALANCE_VERSION, PREVIOUS_BALANCE_VERSION, troopWaves, TROOP_BALANCE, troopHP, gemstoneBonus, routedBonus, troopGold, ARTIFACT_DISCOVERY_COSTS, waveSize, previousBossWaveSize, enemyHPShare, ZERO, amount, mul, add, sub, newExpansion, Expansion, HEROES, CONFIG, SPELLS, SKILLS, mercenaryUnlocked, migrateTutorial, tutorialComplete;
   return {
     setters: [function (module) {
       _extends = module.extends;
@@ -42149,6 +42159,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
       CONFIG = module.CONFIG;
       SPELLS = module.SPELLS;
       SKILLS = module.SKILLS;
+    }, function (module) {
+      mercenaryUnlocked = module.mercenaryUnlocked;
     }, function (module) {
       migrateTutorial = module.migrateTutorial;
       tutorialComplete = module.tutorialComplete;
@@ -43110,8 +43122,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             this.notice = 'error.invalid';
             return false;
           }
-          if (hero >= 0 && this.s.maxStage < HEROES[hero].unlock) {
-            this.notice = 'error.locked';
+          if (hero >= 0 && !mercenaryUnlocked(this.s, hero)) {
+            this.notice = hero === 0 ? 'error.captainLevel' : 'error.locked';
             return false;
           }
           var _this$purchaseQuote = this.purchaseQuote(hero, requested),
@@ -43899,8 +43911,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
   };
 });
 
-System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './ScrollPositionUI.ts', './DroneFleetUI.ts', './BossEntranceUI.ts', './SkillCatalog.ts', './SkillUI.ts', './ExplorationUI.ts', './SkillTrainingUI.ts', './EquipmentUI.ts', './Enemies.ts', './env', './EnemyArtBounds.ts', './RewardClaimUI.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './DroneFeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, ScrollPositionUI, DroneFleetUI, BossEntranceUI, tacticIcon, tacticHelp, tacticManager, tacticDetail, explorationEntry, explorationBoard, skillTree, skillDetail, equipmentDropButton, equipmentListRow, equipmentIdentity, equipmentStats, equipmentHelp, updateEquipmentDropButton, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, RewardClaimUI, SquadUI, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, DroneFeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, GooglePlayBilling, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
+System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './ScrollPositionUI.ts', './DroneFleetUI.ts', './BossEntranceUI.ts', './SkillCatalog.ts', './SkillUI.ts', './ExplorationUI.ts', './SkillTrainingUI.ts', './EquipmentUI.ts', './Enemies.ts', './env', './EnemyArtBounds.ts', './RewardClaimUI.ts', './SquadUI.ts', './MercenaryUnlock.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './DroneFeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
+  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, ScrollPositionUI, DroneFleetUI, BossEntranceUI, tacticIcon, tacticHelp, tacticManager, tacticDetail, explorationEntry, explorationBoard, skillTree, skillDetail, equipmentDropButton, equipmentListRow, equipmentIdentity, equipmentStats, equipmentHelp, updateEquipmentDropButton, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, RewardClaimUI, SquadUI, mercenaryUnlocked, mercenaryLock, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, DroneFeedbackUI, Game, display, ZERO, ratio, add, fmt, SKILLS, SPELLS, HEROES, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, GooglePlayBilling, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
@@ -43978,6 +43990,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
     }, function (module) {
       SquadUI = module.SquadUI;
     }, function (module) {
+      mercenaryUnlocked = module.mercenaryUnlocked;
+      mercenaryLock = module.mercenaryLock;
+    }, function (module) {
       BattlePlacementUI = module.BattlePlacementUI;
     }, function (module) {
       BattleTransitionUI = module.BattleTransitionUI;
@@ -44029,9 +44044,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       add = module.add;
       fmt = module.fmt;
     }, function (module) {
-      HEROES = module.HEROES;
       SKILLS = module.SKILLS;
       SPELLS = module.SPELLS;
+      HEROES = module.HEROES;
       ARTIFACTS = module.ARTIFACTS;
       CARDS = module.CARDS;
     }, function (module) {
@@ -44215,9 +44230,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           if (this.competitionDeadline && this.game.now() >= this.competitionDeadline) return this.tr('online.ended');
           if (shop) return state.equipment.length >= 100 ? this.tr('error.full') : this.needReason(this.tr('feedback.gems'), state.gems, 100);
           if (hero === undefined) return null;
-          if (hero >= 0 && state.maxStage < HEROES[hero].unlock) return this.tr('hero.locked', {
-            stage: HEROES[hero].unlock
-          });
+          if (hero >= 0 && !mercenaryUnlocked(state, hero)) {
+            var lock = mercenaryLock(state, hero);
+            return this.tr(lock.key, lock.args);
+          }
           var preview = new Game(undefined, this.game.now);
           preview.s = state;
           var cost = preview.upgradeCost(hero, 1);
@@ -44634,9 +44650,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }) : null;
         };
         _proto.levelReason = function levelReason(hero) {
-          if (hero >= 0 && this.game.s.maxStage < HEROES[hero].unlock) return this.tr('hero.locked', {
-            stage: HEROES[hero].unlock
-          });
+          if (hero >= 0 && !mercenaryUnlocked(this.game.s, hero)) {
+            var lock = mercenaryLock(this.game.s, hero);
+            return this.tr(lock.key, lock.args);
+          }
           return this.costReason('gold', this.game.purchaseQuote(hero, this.mode).cost);
         };
         _proto.levelButtonLabel = function levelButtonLabel(hero) {
@@ -46410,8 +46427,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             });
             this.scroll(this.panel, 0, -24, 458, 244, this.squadUI.orderHeroes(HEROES.filter(function (h) {
               var _HEROES$find;
-              return s.maxStage >= h.unlock || h.id === ((_HEROES$find = HEROES.find(function (h) {
-                return s.maxStage < h.unlock;
+              return mercenaryUnlocked(s, h.id) || h.id === ((_HEROES$find = HEROES.find(function (h) {
+                return !mercenaryUnlocked(s, h.id);
               })) == null ? void 0 : _HEROES$find.id);
             })).map(function (h) {
               return {
@@ -46422,23 +46439,19 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                 },
                 tutorialId: 'tutorial-recruit-' + h.id,
                 actionCategory: 'upgrade',
-                locked: s.maxStage < h.unlock,
+                locked: !mercenaryUnlocked(s, h.id),
                 unavailable: function unavailable() {
                   return _this23.levelReason(h.id);
                 },
                 actionLabel: function actionLabel() {
-                  return s.maxStage < h.unlock ? _this23.tr('action.locked') : _this23.levelButtonLabel(h.id);
+                  return !mercenaryUnlocked(s, h.id) ? _this23.tr('action.locked') : _this23.levelButtonLabel(h.id);
                 },
                 title: _this23.tr(h.name),
-                sub: s.maxStage < h.unlock ? _this23.tr('hero.locked', {
-                  stage: h.unlock
-                }) : undefined,
-                metrics: s.maxStage < h.unlock ? [{
-                  icon: 'flag',
-                  value: String(h.unlock),
-                  hint: _this23.tr('hero.locked', {
-                    stage: h.unlock
-                  })
+                sub: !mercenaryUnlocked(s, h.id) ? _this23.tr(mercenaryLock(s, h.id).key, mercenaryLock(s, h.id).args) : undefined,
+                metrics: !mercenaryUnlocked(s, h.id) ? [{
+                  icon: mercenaryLock(s, h.id).icon,
+                  value: String(mercenaryLock(s, h.id).value),
+                  hint: _this23.tr(mercenaryLock(s, h.id).key, mercenaryLock(s, h.id).args)
                 }] : [{
                   icon: 'symbol:up',
                   value: String(r.heroes[h.id]),
@@ -46467,12 +46480,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                   }
                 },
                 tint: [C.ember, C.mint, C.blue, C.violet][h.id % 4],
-                action: s.maxStage < h.unlock ? _this23.tr('action.locked') : _this23.levelButtonLabel(h.id),
+                action: !mercenaryUnlocked(s, h.id) ? _this23.tr('action.locked') : _this23.levelButtonLabel(h.id),
                 click: function click() {
-                  if (s.maxStage < h.unlock) {
-                    _this23.info(_this23.tr('unlock.title'), _this23.tr('hero.locked', {
-                      stage: h.unlock
-                    }), 'blocked');
+                  if (!mercenaryUnlocked(s, h.id)) {
+                    _this23.info(_this23.tr('unlock.title'), _this23.tr(mercenaryLock(s, h.id).key, mercenaryLock(s, h.id).args), 'blocked');
                     return;
                   }
                   g.buy(h.id, _this23.mode);
@@ -51177,6 +51188,18 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './SkillText.ts', './Discha
         'drone.fleet.totalHelp': 'Drone support · {effect} ×{value}\nIncludes full deployed bonuses and level-based bonuses from reserve drones.',
         'guide.pet': 'Deploy up to three drones in the slots above. Select an empty slot, then equip a drone from the list below. Deployed drones grant their full bonus.'
       });
+      Object.assign(translations.ko, {
+        'hero.captainLocked': '대장 레벨 {level}에서 해금 · 현재 Lv.{current}',
+        'error.captainLevel': '첫 용병은 대장 레벨 10에서 해금됩니다.',
+        'tutorial.captainUnlock': '빛나는 +로 대장 Lv.{level}까지 강화하세요.\n현재 Lv.{current} · 첫 용병 레아가 해금됩니다.',
+        'tutorial.fundsCaptain': '적을 사격해 코인을 모으고 대장을 강화하세요.\n현재 Lv.{current} / {level} · 레아 해금 조건'
+      });
+      Object.assign(translations.en, {
+        'hero.captainLocked': 'Captain Lv.{level} required · Current Lv.{current}',
+        'error.captainLevel': 'Your first mercenary unlocks at Captain level 10.',
+        'tutorial.captainUnlock': 'Use + to train your Captain to Lv.{level}.\nCurrent Lv.{current} · Unlock Rhea!',
+        'tutorial.fundsCaptain': 'Shoot enemies for coins, then upgrade.\nCaptain Lv.{current} / {level} · Unlock Rhea'
+      });
       cclegacy._RF.pop();
     }
   };
@@ -51749,9 +51772,9 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossEntranceUI.ts', './BossTimerUI.ts', './BrandSplashUI.ts', './CheatUI.ts', './CombatMotion.ts', './DischargeIcon.ts', './DroneFeedbackUI.ts', './DroneFleetUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MercenaryDetailUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardArtUI.ts', './RewardClaimUI.ts', './RewardContentsUI.ts', './RewardGlowUI.ts', './ScrollPositionUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillIconArt.ts', './SkillTrainingUI.ts', './SkillUI.ts', './SpeechIllustrationUI.ts', './SquadUI.ts', './TacticDetailUI.ts', './TitleUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './BossEntrance.ts', './BrandSplash.ts', './Config.ts', './Dialogue.ts', './DischargeText.ts', './DroneEffects.ts', './DroneFleet.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './SkillCatalog.ts', './SkillText.ts', './SpeechArtBounds.ts', './Squad.ts', './SquadName.ts', './TitleArtBounds.ts', './TitleCast.ts', './firebase-sdk.js'], function () {
+System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossEntranceUI.ts', './BossTimerUI.ts', './BrandSplashUI.ts', './CheatUI.ts', './CombatMotion.ts', './DischargeIcon.ts', './DroneFeedbackUI.ts', './DroneFleetUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MercenaryDetailUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardArtUI.ts', './RewardClaimUI.ts', './RewardContentsUI.ts', './RewardGlowUI.ts', './ScrollPositionUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillIconArt.ts', './SkillTrainingUI.ts', './SkillUI.ts', './SpeechIllustrationUI.ts', './SquadUI.ts', './TacticDetailUI.ts', './TitleUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './BossEntrance.ts', './BrandSplash.ts', './Config.ts', './Dialogue.ts', './DischargeText.ts', './DroneEffects.ts', './DroneFleet.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MercenaryUnlock.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './SkillCatalog.ts', './SkillText.ts', './SpeechArtBounds.ts', './Squad.ts', './SquadName.ts', './TitleArtBounds.ts', './TitleCast.ts', './firebase-sdk.js'], function () {
   return {
-    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     execute: function () {}
   };
 });
@@ -51830,8 +51853,8 @@ System.register("chunks:///_virtual/Mercenaries.ts", ['cc'], function (exports) 
   };
 });
 
-System.register("chunks:///_virtual/MercenaryDetailUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './UITheme.ts', './Expansion.ts', './Config.ts', './Mercenaries.ts', './SkillCatalog.ts', './Squad.ts'], function (exports) {
-  var _extends, cclegacy, UITransform, Mask, ScrollView, Vec2, Label, UI, BUTTON_TONES, SQUAD_ROLE_STYLE, Expansion, HEROES, attackSeconds, mercenaryArt, heroSkillIcon, SQUAD_TEAMS, squadRole, SQUAD_LIMIT;
+System.register("chunks:///_virtual/MercenaryDetailUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './UITheme.ts', './Expansion.ts', './MercenaryUnlock.ts', './Mercenaries.ts', './SkillCatalog.ts', './Squad.ts'], function (exports) {
+  var _extends, cclegacy, UITransform, Mask, ScrollView, Vec2, Label, UI, BUTTON_TONES, SQUAD_ROLE_STYLE, Expansion, mercenaryUnlocked, attackSeconds, mercenaryArt, heroSkillIcon, SQUAD_TEAMS, squadRole, SQUAD_LIMIT;
   return {
     setters: [function (module) {
       _extends = module.extends;
@@ -51849,7 +51872,7 @@ System.register("chunks:///_virtual/MercenaryDetailUI.ts", ['./rollupPluginModLo
     }, function (module) {
       Expansion = module.Expansion;
     }, function (module) {
-      HEROES = module.HEROES;
+      mercenaryUnlocked = module.mercenaryUnlocked;
     }, function (module) {
       attackSeconds = module.attackSeconds;
       mercenaryArt = module.mercenaryArt;
@@ -52138,10 +52161,56 @@ System.register("chunks:///_virtual/MercenaryDetailUI.ts", ['./rollupPluginModLo
           content.getComponent(UITransform).setContentSize(rightW, y + 8);
           scroll.scrollToOffset(new Vec2(), 0);
           // Browsing a locked character still shows their approved illustration and real zero stats.
-          if (s.maxStage < HEROES[id].unlock) a.lockIcon(scene, -leftW / 2 + 18, bodyH / 2 - 20);
+          if (!mercenaryUnlocked(s, id)) a.lockIcon(scene, -leftW / 2 + 18, bodyH / 2 - 20);
         };
         return MercenaryDetailUI;
       }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/MercenaryUnlock.ts", ['cc', './Config.ts'], function (exports) {
+  var cclegacy, HEROES;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+    }, function (module) {
+      HEROES = module.HEROES;
+    }],
+    execute: function () {
+      exports({
+        mercenaryLock: mercenaryLock,
+        mercenaryUnlocked: mercenaryUnlocked
+      });
+      cclegacy._RF.push({}, "0c9d6MFIH5D9arxY++omC1U", "MercenaryUnlock", undefined);
+      var FIRST_MERCENARY_CAPTAIN_LEVEL = exports('FIRST_MERCENARY_CAPTAIN_LEVEL', 10);
+
+      /** Keep recruits from existing saves and earlier runs available. */
+      function mercenaryUnlocked(s, id) {
+        var _s$extra;
+        if (!Number.isInteger(id) || id < 0 || id >= HEROES.length) return false;
+        if (id === 0) return s.run.master >= FIRST_MERCENARY_CAPTAIN_LEVEL || s.run.heroes[0] > 0 || !!((_s$extra = s.extra) != null && (_s$extra = _s$extra.mercenaryOwned) != null && _s$extra.includes(0));
+        return s.maxStage >= HEROES[id].unlock;
+      }
+      function mercenaryLock(s, id) {
+        return id === 0 ? {
+          key: 'hero.captainLocked',
+          args: {
+            level: FIRST_MERCENARY_CAPTAIN_LEVEL,
+            current: s.run.master
+          },
+          icon: 'symbol:up',
+          value: FIRST_MERCENARY_CAPTAIN_LEVEL
+        } : {
+          key: 'hero.locked',
+          args: {
+            stage: HEROES[id].unlock
+          },
+          icon: 'flag',
+          value: HEROES[id].unlock
+        };
+      }
       cclegacy._RF.pop();
     }
   };
@@ -59552,8 +59621,8 @@ System.register("chunks:///_virtual/TitleUI.ts", ['./rollupPluginModLoBabelHelpe
   };
 });
 
-System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './EntryPolicy.ts', './UITheme.ts', './I18n.ts', './Config.ts', './FeatureLessons.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _createClass, cclegacy, isValid, Mask, UITransform, Label, Node, Vec3, Graphics, UIOpacity, tween, tutorialComplete, tutorialSeen, tutorialAdvance, TUTORIAL_DONE, tabUnlocked, TAB_STAGES, UI, translations, SPELLS, lessonRead, lessonReceipt, lessonPage, LESSONS, lessonSteps;
+System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './EntryPolicy.ts', './UITheme.ts', './I18n.ts', './Config.ts', './MercenaryUnlock.ts', './FeatureLessons.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _createClass, cclegacy, isValid, Mask, UITransform, Label, Node, Vec3, Graphics, UIOpacity, tween, tutorialComplete, tutorialSeen, tutorialAdvance, TUTORIAL_DONE, tabUnlocked, TAB_STAGES, UI, translations, SPELLS, mercenaryUnlocked, FIRST_MERCENARY_CAPTAIN_LEVEL, lessonRead, lessonReceipt, lessonPage, LESSONS, lessonSteps;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -59582,6 +59651,9 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
       translations = module.translations;
     }, function (module) {
       SPELLS = module.SPELLS;
+    }, function (module) {
+      mercenaryUnlocked = module.mercenaryUnlocked;
+      FIRST_MERCENARY_CAPTAIN_LEVEL = module.FIRST_MERCENARY_CAPTAIN_LEVEL;
     }, function (module) {
       lessonRead = module.lessonRead;
       lessonReceipt = module.lessonReceipt;
@@ -60049,7 +60121,11 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             return;
           }
           var needsCoins = (step === 2 || step === 4) && !!a.levelReason(step === 2 ? -1 : 0);
-          this.guide(a.tr(needsCoins ? step === 2 ? 'tutorial.fundsUpgrade' : 'tutorial.fundsRecruit' : 'tutorial.step' + step), step + '/6');
+          var captainTraining = step === 2 && !mercenaryUnlocked(a.game.s, 0);
+          this.guide(a.tr(captainTraining ? needsCoins ? 'tutorial.fundsCaptain' : 'tutorial.captainUnlock' : needsCoins ? step === 2 ? 'tutorial.fundsUpgrade' : 'tutorial.fundsRecruit' : 'tutorial.step' + step, {
+            level: FIRST_MERCENARY_CAPTAIN_LEVEL,
+            current: a.game.s.run.master
+          }), step + '/6');
           if (step === 1) this.battleTarget();
           if (step === 2) this.exactTarget('tutorial-captain-upgrade');
           if (step === 3) this.exactTarget('tab-1');
@@ -60637,7 +60713,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             var step = this.a.game.s.tutorial.step,
               needsCoins = (step === 2 || step === 4) && !!this.a.levelReason(step === 2 ? -1 : 0),
               next = this.followup();
-            return step + ':' + needsCoins + ':' + this.firstBoss + ':' + this.a.tab + ':' + this.a.folded + ':' + (next == null ? void 0 : next.id) + ':' + (next == null ? void 0 : next.body);
+            return step + ':' + needsCoins + ':' + this.a.game.s.run.master + ':' + this.firstBoss + ':' + this.a.tab + ':' + this.a.folded + ':' + (next == null ? void 0 : next.id) + ':' + (next == null ? void 0 : next.body);
           }
         }]);
         return TutorialUI;
