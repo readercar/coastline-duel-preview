@@ -1,5 +1,18 @@
 [
   {
+    "buildVersion": "2026.10.06.23",
+    "tag": "preview-2026.10.06.23",
+    "sourceCommit": "78186bf93a9de85163b851a9d82edd6ced4508f4",
+    "version": "0.1.0",
+    "publishedAt": "2026-10-06T10:57:17.713Z",
+    "previousCommit": "87b75747cbea9ff614d62f254b242f1d1ea6c755",
+    "notes": [
+      "게임 이름을 배틀온걸스 / BATTLE ON GIRLS로 통일하고 한영 타이틀·안내를 검수했습니다.",
+      "계정 화면에 계정 및 데이터 삭제 요청 안내를 추가하고 공개 개인정보·삭제 안내를 연결했습니다.",
+      "Play 스토어용 아이콘·홍보 그래픽·한영 실제 게임 캡처와 업로드 키로 서명한 Android AAB·APK를 준비했습니다. 실제 광고·구매의 출시 활성화와 기기 검증은 아직 완료하지 않았습니다."
+    ]
+  },
+  {
     "buildVersion": "2026.10.06.22",
     "tag": "preview-2026.10.06.22",
     "sourceCommit": "181a1075bdbc069a5a721881d8a17ee0c1ab0031",

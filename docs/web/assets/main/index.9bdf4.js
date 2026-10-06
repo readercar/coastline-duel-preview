@@ -3851,7 +3851,7 @@ System.register("chunks:///_virtual/Expansion.ts", ['./rollupPluginModLoBabelHel
 });
 
 System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SkillCatalog.ts', './SkillUI.ts', './RewardClaims.ts', './Mercenaries.ts', './EntryPolicy.ts', './LiveOps.ts', './Balance.ts', './UITheme.ts', './Expansion.ts', './Amount.ts', './I18n.ts'], function (exports) {
-  var _extends, _asyncToGenerator, _regeneratorRuntime, _createClass, _createForOfIteratorHelperLoose, cclegacy, UITransform, tween, Vec3, talentIcon, heroSkillIcon, talentHelp, rewardDelta, attackSeconds, featureUnlocked, mailExpiry, GROWTH_STATS, gemstoneSlots, gemstoneBonus, UI, Expansion, display, t;
+  var _extends, _asyncToGenerator, _regeneratorRuntime, _createClass, _createForOfIteratorHelperLoose, cclegacy, sys, UITransform, tween, Vec3, talentIcon, heroSkillIcon, talentHelp, rewardDelta, attackSeconds, featureUnlocked, mailExpiry, GROWTH_STATS, gemstoneSlots, gemstoneBonus, UI, Expansion, display, t;
   return {
     setters: [function (module) {
       _extends = module.extends;
@@ -3861,6 +3861,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
     }, function (module) {
       cclegacy = module.cclegacy;
+      sys = module.sys;
       UITransform = module.UITransform;
       tween = module.tween;
       Vec3 = module.Vec3;
@@ -4675,6 +4676,13 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
               return _this13.exportSave();
             }
           }, {
+            title: this.g.s.locale === 'ko' ? '계정 및 데이터 삭제 요청' : 'Request account and data deletion',
+            action: this.tr('action.details'),
+            actionCategory: 'danger',
+            click: function click() {
+              return _this13.accountDeletion();
+            }
+          }, {
             title: this.tr('entry.logout'),
             action: this.tr('entry.logout'),
             click: function click() {
@@ -4686,6 +4694,19 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
         };
         _proto.firebaseAccount = function firebaseAccount() {
           this.account();
+        };
+        _proto.accountDeletion = function accountDeletion() {
+          var a = this.a,
+            ko = this.g.s.locale === 'ko',
+            p = a.open(ko ? '계정 및 데이터 삭제 요청' : 'Account and data deletion', 600);
+          a.label(p, ko ? '삭제 요청을 보내면 본인 확인 후 계정과 클라우드 진행 데이터를 삭제합니다. 삭제한 진행·재화·아이템은 복구할 수 없습니다.\n\n아래 안내에서 이메일 요청을 시작하세요. 비밀번호나 결제 카드 정보는 보내지 마세요.' : 'After verifying your request, we delete your account and cloud progress. Deleted progress, currency and items cannot be restored.\n\nUse the guide below to start an email request. Do not send passwords or card details.', 0, 70, 370, 210, 16);
+          a.label(p, (ko ? '계정 ID: ' : 'Account ID: ') + (a.operations.local ? a.onlineService.accountId : a.cloud.uid), 0, -85, 370, 60, 13);
+          a.button(p, ko ? '삭제 요청 안내 열기' : 'Open deletion request guide', 0, -180, 370, 55, function () {
+            return sys.openURL('https://readercar.github.io/coastline-duel-preview/docs/account-delete.html');
+          }, false, {
+            category: 'danger',
+            icon: 'symbol:mail'
+          }).name = 'account-deletion-guide';
         };
         _proto.renameAccount = function renameAccount() {
           var _this14 = this;
@@ -42511,7 +42532,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
 });
 
 System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SkillCatalog.ts', './SkillUI.ts', './ExplorationUI.ts', './SkillTrainingUI.ts', './EquipmentUI.ts', './Enemies.ts', './env', './EnemyArtBounds.ts', './RewardClaimUI.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './DroneFeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, Sprite, ScrollView, BlockInputEvents, resources, Texture2D, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, tacticIcon, tacticHelp, tacticManager, tacticDetail, explorationEntry, explorationBoard, skillTree, skillDetail, equipmentIdentity, equipmentStats, equipmentHelp, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, RewardClaimUI, SquadUI, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, DroneFeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
+  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, Sprite, ScrollView, BlockInputEvents, resources, Texture2D, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, tacticIcon, tacticHelp, tacticManager, tacticDetail, explorationEntry, explorationBoard, skillTree, skillDetail, equipmentIdentity, equipmentStats, equipmentHelp, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, RewardClaimUI, SquadUI, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, DroneFeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, GooglePlayBilling, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
@@ -42669,6 +42690,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
     }, function (module) {
       FirebaseCommerce = module.FirebaseCommerce;
       AdMobRewarded = module.AdMobRewarded;
+      GooglePlayBilling = module.GooglePlayBilling;
     }, function (module) {
       BUTTON_CATEGORY_KEYS = module.BUTTON_CATEGORY_KEYS;
       BUTTON_TONES = module.BUTTON_TONES;
@@ -42866,6 +42888,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                   this.onlineService = new Online(sys.localStorage);
                   this.payments = new MonetizationUI(this, new Monetization(this.game, sys.isNative && sys.os === sys.OS.ANDROID ? new FirebaseCommerce(sys.localStorage) : this.onlineService, rewardedAdMode(sys.isNative, DEBUG, EDITOR)));
                   if (!this.payments.model.previewAds && sys.isNative && sys.os === sys.OS.ANDROID) this.payments.model.ads = new AdMobRewarded(this.payments.model.online);
+                  if (sys.isNative && sys.os === sys.OS.ANDROID) this.payments.model.billing = new GooglePlayBilling(this.payments.model.online);
                   this.operations = new OperationsClient(this);
                   this.liveOps = new LiveOpsUI(this);
                   this.entry = new EntryUI(this);
@@ -42876,7 +42899,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                     window.addEventListener('error', this.browserError);
                     window.addEventListener('unhandledrejection', this.browserRejection);
                   }
-                case 23:
+                case 24:
                 case "end":
                   return _context.stop();
               }
@@ -50434,7 +50457,7 @@ System.register("chunks:///_virtual/MilitaryTheme.ts", ['./rollupPluginModLoBabe
       /** Presentation-only theme: save keys and economy retain their existing identities. */
       function applyMilitaryTheme(t) {
         var terms = {
-          ko: [['잿불의 탑', '여군 키우기'], ['능선 수호자', '돌격대장'], ['잿불 수호자', '돌격대장'], ['수호자', '대장'], ['용사', '대원'], ['동료', '분대원'], ['정령', '지원 드론'], ['유물', '작전 기록'], ['주문', '전술'], ['마나', '전술 에너지'], ['환생', '재배치'], ['원정', '작전'], ['탑', '전선'], ['검술', '사격'], ['검 공격', '소총 공격'], ['요정', '보급 드론'], ['부화', '조립'], ['알 획득', '부품 획득'], ['길드', '연대'], ['마법', '전술'], ['신비', '기밀'], ['골드', '코인'], ['능선검사 로웬', '소총수 레아'], ['검을', '총기를'], ['검:', '소총:'], ['두루마리', '훈련 교범'], ['소환', '지원'], ['비전', '전자전'], ['연금', '군수'], ['오라', '통신기'], ['투구', '전술 헬멧'], ['몬스터', '적 병력'], ['잿빛 능선', '전방 기지'], ['잿불 축제', '특별 작전'], ['여우 아이콘', '드론 아이콘'], ['첫 알', '첫 조립 캡슐']],
+          ko: [['잿불의 탑', '배틀온걸스'], ['능선 수호자', '돌격대장'], ['잿불 수호자', '돌격대장'], ['수호자', '대장'], ['용사', '대원'], ['동료', '분대원'], ['정령', '지원 드론'], ['유물', '작전 기록'], ['주문', '전술'], ['마나', '전술 에너지'], ['환생', '재배치'], ['원정', '작전'], ['탑', '전선'], ['검술', '사격'], ['검 공격', '소총 공격'], ['요정', '보급 드론'], ['부화', '조립'], ['알 획득', '부품 획득'], ['길드', '연대'], ['마법', '전술'], ['신비', '기밀'], ['골드', '코인'], ['능선검사 로웬', '소총수 레아'], ['검을', '총기를'], ['검:', '소총:'], ['두루마리', '훈련 교범'], ['소환', '지원'], ['비전', '전자전'], ['연금', '군수'], ['오라', '통신기'], ['투구', '전술 헬멧'], ['몬스터', '적 병력'], ['잿빛 능선', '전방 기지'], ['잿불 축제', '특별 작전'], ['여우 아이콘', '드론 아이콘'], ['첫 알', '첫 조립 캡슐']],
           en: [['Ember Guardian', 'Squad Captain'], ['Ridge Guardian', 'Squad Captain'], ['Guardian', 'Captain'], ['guardian', 'captain'], ['Hero', 'Soldier'], ['hero', 'soldier'], ['Spirit', 'Drone'], ['spirit', 'drone'], ['Pet', 'Drone'], ['pet', 'drone'], ['Artifact', 'Intel'], ['artifact', 'intel'], ['Spell', 'Tactic'], ['spell', 'tactic'], ['Mana', 'Energy'], ['mana', 'energy'], ['Prestige', 'Redeploy'], ['prestige', 'redeploy'], ['Expedition', 'Operation'], ['expedition', 'operation'], ['Fairy', 'Supply drone'], ['fairy', 'supply drone'], ['Hatch', 'Assemble'], ['hatch', 'assemble'], ['Guild', 'Regiment'], ['guild', 'regiment'], ['Gold', 'Coins'], ['blade', 'rifle'], ['Blade', 'Rifle'], ['scrolls', 'manuals'], ['Arcane', 'Electronic Warfare'], ['Alchemy', 'Logistics'], ['Summon', 'Support'], ['Aura', 'Radio'], ['Sword', 'Rifle'], ['Helm', 'Helmet']]
         };
         var _loop = function _loop() {
@@ -50458,7 +50481,7 @@ System.register("chunks:///_virtual/MilitaryTheme.ts", ['./rollupPluginModLoBabe
           _loop();
         }
         Object.assign(t.ko, {
-          'game.name': '여군 키우기',
+          'game.name': '배틀온걸스',
           'entry.subtitle': '강철 전선 · 그녀들의 반격',
           'entry.titleHint': '대장을 육성하고 정예 분대와 전선을 돌파하세요.',
           'nav.master': '대장',
@@ -50485,7 +50508,7 @@ System.register("chunks:///_virtual/MilitaryTheme.ts", ['./rollupPluginModLoBabe
           'spell.5': '공중 지원'
         });
         Object.assign(t.en, {
-          'game.name': 'ARMY GIRL',
+          'game.name': 'BATTLE ON GIRLS',
           'entry.subtitle': 'Steel Front · Strike Back',
           'entry.titleHint': 'Train your captain. Recruit an elite squad. Break the front.',
           'nav.master': 'Captain',
@@ -50664,6 +50687,13 @@ System.register("chunks:///_virtual/MilitaryTheme.ts", ['./rollupPluginModLoBabe
               var prefix = _arr3[_i8];
               if (t[locale][prefix + _i6]) t[locale][prefix + _i6] = (locale === 'ko' ? ['레아', '블레어', '카밀라'] : ['Rhea', 'Blair', 'Camilla'])[_i6 % 3] + (_i6 >= 3 ? ' ' + (Math.floor(_i6 / 3) + 1) : '');
             }
+          }
+        }
+        for (var _i9 = 0, _arr4 = ['ko', 'en']; _i9 < _arr4.length; _i9++) {
+          var _locale = _arr4[_i9];
+          for (var _i10 = 0, _arr5 = ['consent.terms.body', 'consent.privacy.body']; _i10 < _arr5.length; _i10++) {
+            var key = _arr5[_i10];
+            t[_locale][key] = t[_locale][key].split('tapWar').join(_locale === 'ko' ? '배틀온걸스' : 'BATTLE ON GIRLS');
           }
         }
       }
@@ -51598,7 +51628,7 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
           var _PRODUCTS$find;
           return !((_PRODUCTS$find = PRODUCTS.find(function (p) {
             return p.id === id;
-          })) != null && _PRODUCTS$find.configured) ? this.tr('money.bundleUnknown') : !this.model.billing ? this.tr('money.storeUnavailable') : this.model.busy ? this.tr('money.busy') : null;
+          })) != null && _PRODUCTS$find.configured) ? this.tr('money.bundleUnknown') : !this.model.billing ? this.tr('money.storeUnavailable') : this.model.busy ? this.tr('money.busy') : id === 'season_pass' && this.a.game.s.extra.commerce.passUntil > this.a.game.now() ? this.tr('action.purchased') : null;
         };
         _proto.adReason = function adReason(id, status) {
           var _status, _status2, _status3;
@@ -52266,7 +52296,7 @@ System.register("chunks:///_virtual/NativeServices.ts", ['./rollupPluginModLoBab
         }();
         _proto.request = /*#__PURE__*/function () {
           var _request = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(path, data) {
-            var auth, controller, timer, r, body;
+            var auth, reply;
             return _regeneratorRuntime().wrap(function _callee2$(_context2) {
               while (1) switch (_context2.prev = _context2.next) {
                 case 0:
@@ -52282,54 +52312,21 @@ System.register("chunks:///_virtual/NativeServices.ts", ['./rollupPluginModLoBab
                   auth = _context2.sent;
                   this.uid = auth.uid;
                   this.accountId = auth.uid;
-                  controller = new AbortController(), timer = setTimeout(function () {
-                    return controller.abort();
-                  }, 10000);
-                  _context2.prev = 8;
-                  _context2.next = 11;
-                  return fetch(this.base + path, _extends({
-                    method: data ? 'POST' : 'GET',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      Authorization: 'Bearer ' + auth.token
-                    }
+                  _context2.next = 9;
+                  return nativeCall('commerceRequest', _extends({
+                    path: path,
+                    uid: this.uid
                   }, data ? {
-                    body: JSON.stringify(data)
-                  } : {}, {
-                    signal: controller.signal
-                  }));
+                    data: data
+                  } : {}), 25000);
+                case 9:
+                  reply = _context2.sent;
+                  return _context2.abrupt("return", reply.result);
                 case 11:
-                  r = _context2.sent;
-                  _context2.next = 14;
-                  return r.json();
-                case 14:
-                  body = _context2.sent;
-                  if (r.ok) {
-                    _context2.next = 17;
-                    break;
-                  }
-                  throw Error(body.error || 'online.serverError');
-                case 17:
-                  return _context2.abrupt("return", body);
-                case 20:
-                  _context2.prev = 20;
-                  _context2.t0 = _context2["catch"](8);
-                  if (!/^(money|error|online)\./.test(_context2.t0.message)) {
-                    _context2.next = 24;
-                    break;
-                  }
-                  throw _context2.t0;
-                case 24:
-                  throw Error('online.unreachable');
-                case 25:
-                  _context2.prev = 25;
-                  clearTimeout(timer);
-                  return _context2.finish(25);
-                case 28:
                 case "end":
                   return _context2.stop();
               }
-            }, _callee2, this, [[8, 20, 25, 28]]);
+            }, _callee2, this);
           }));
           function request(_x, _x2) {
             return _request.apply(this, arguments);
@@ -52418,6 +52415,125 @@ System.register("chunks:///_virtual/NativeServices.ts", ['./rollupPluginModLoBab
           return show;
         }();
         return AdMobRewarded;
+      }());
+      /** Store prices and purchase tokens come from Play; rewards come from the verified server. */
+      var GooglePlayBilling = exports('GooglePlayBilling', /*#__PURE__*/function () {
+        function GooglePlayBilling(commerce) {
+          this.commerce = commerce;
+        }
+        var _proto3 = GooglePlayBilling.prototype;
+        _proto3.catalog = /*#__PURE__*/function () {
+          var _catalog = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4(ids) {
+            var result;
+            return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+              while (1) switch (_context4.prev = _context4.next) {
+                case 0:
+                  _context4.next = 2;
+                  return nativeCall('billingCatalog', {
+                    ids: ids
+                  }, 30000);
+                case 2:
+                  result = _context4.sent;
+                  return _context4.abrupt("return", result.quotes || []);
+                case 4:
+                case "end":
+                  return _context4.stop();
+              }
+            }, _callee4);
+          }));
+          function catalog(_x5) {
+            return _catalog.apply(this, arguments);
+          }
+          return catalog;
+        }();
+        _proto3.purchase = /*#__PURE__*/function () {
+          var _purchase = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(product) {
+            var result;
+            return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+              while (1) switch (_context5.prev = _context5.next) {
+                case 0:
+                  _context5.next = 2;
+                  return this.commerce.connect();
+                case 2:
+                  if (!(product === 'season_pass')) {
+                    _context5.next = 5;
+                    break;
+                  }
+                  _context5.next = 5;
+                  return this.commerce.request('/commerce/season/prepare', {});
+                case 5:
+                  _context5.next = 7;
+                  return nativeCall('billingPurchase', {
+                    product: product,
+                    uid: this.commerce.uid
+                  });
+                case 7:
+                  result = _context5.sent;
+                  if (!(result.status === 'purchased')) {
+                    _context5.next = 10;
+                    break;
+                  }
+                  return _context5.abrupt("return", {
+                    status: 'purchased',
+                    receipt: JSON.stringify({
+                      product: result.product,
+                      token: result.token
+                    })
+                  });
+                case 10:
+                  if (!(result.status === 'pending' || result.status === 'cancelled')) {
+                    _context5.next = 12;
+                    break;
+                  }
+                  return _context5.abrupt("return", {
+                    status: result.status
+                  });
+                case 12:
+                  throw Error('money.storeUnavailable');
+                case 13:
+                case "end":
+                  return _context5.stop();
+              }
+            }, _callee5, this);
+          }));
+          function purchase(_x6) {
+            return _purchase.apply(this, arguments);
+          }
+          return purchase;
+        }();
+        _proto3.restore = /*#__PURE__*/function () {
+          var _restore = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+            var result;
+            return _regeneratorRuntime().wrap(function _callee6$(_context6) {
+              while (1) switch (_context6.prev = _context6.next) {
+                case 0:
+                  _context6.next = 2;
+                  return this.commerce.connect();
+                case 2:
+                  _context6.next = 4;
+                  return nativeCall('billingRestore', {}, 30000);
+                case 4:
+                  result = _context6.sent;
+                  return _context6.abrupt("return", (result.purchases || []).filter(function (p) {
+                    return p.status === 'purchased';
+                  }).map(function (p) {
+                    return JSON.stringify({
+                      product: p.product,
+                      token: p.token
+                    });
+                  }));
+                case 6:
+                case "end":
+                  return _context6.stop();
+              }
+            }, _callee6, this);
+          }));
+          function restore() {
+            return _restore.apply(this, arguments);
+          }
+          return restore;
+        }();
+        return GooglePlayBilling;
       }());
       cclegacy._RF.pop();
     }
@@ -57055,9 +57171,10 @@ System.register("chunks:///_virtual/TitleUI.ts", ['./rollupPluginModLoBabelHelpe
           a.label(this.root, 'STEEL FRONT', -147, top - 79, 132, 24, 12, '#131c10');
           var title = a.nodeAt(this.root, 'title-logo', -56, top - 160, 330, 164);
           this.layer(title, .35, .03, 18);
-          var logo = a.game.s.locale === 'ko' ? '여군\n키우기' : 'ARMY\nGIRL';
-          a.label(title, logo, 3, -3, 330, 164, a.game.s.locale === 'ko' ? 69 : 65, '#172010', Label.HorizontalAlign.LEFT).lineHeight = 72;
-          var face = a.label(title, logo, 0, 0, 330, 164, a.game.s.locale === 'ko' ? 69 : 65, '#fff9df', Label.HorizontalAlign.LEFT);
+          var logo = a.game.s.locale === 'ko' ? '배틀온\n걸스' : 'BATTLE ON\nGIRLS',
+            logoSize = a.game.s.locale === 'ko' ? 65 : 47;
+          a.label(title, logo, 3, -3, 330, 164, logoSize, '#172010', Label.HorizontalAlign.LEFT).lineHeight = 72;
+          var face = a.label(title, logo, 0, 0, 330, 164, logoSize, '#fff9df', Label.HorizontalAlign.LEFT);
           face.lineHeight = 72;
           face.node.name = 'title-wordmark';
           a.polygon(this.root, -196, top - 254, 42, 4, [[-.5, -.5], [.5, -.5], [.5, .5], [-.5, .5]], '#ffda64');
