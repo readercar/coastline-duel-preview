@@ -3105,7 +3105,8 @@ System.register("chunks:///_virtual/DroneFleetUI.ts", ['cc', './Config.ts', './D
           var slots = a.game.droneSlots(),
             ids = a.game.equippedDrones(),
             multi = ids.length > 1,
-            base = partyBattlefieldLayout(a.folded, a.heightExtra, a.safeBottom, a.safeTop).scale;
+            partyScale = partyBattlefieldLayout(a.folded, a.heightExtra, a.safeBottom, a.safeTop).scale,
+            base = multi ? Math.min(.9, partyScale) : partyScale;
           var _loop3 = function _loop3(slot) {
             var _n$getComponent;
             var id = slots[slot],
@@ -55788,7 +55789,7 @@ System.register("chunks:///_virtual/RewardClaims.ts", ['./rollupPluginModLoBabel
 });
 
 System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './RewardArtUI.ts', './RewardContentsUI.ts', './RewardClaims.ts', './UITheme.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, UITransform, rewardBackground, rewardContents, rewardDelta, rewardAvailable, previewReward, UI;
+  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, UITransform, rewardBackground, rewardEntries, rewardContents, rewardDelta, rewardAvailable, previewReward, UI;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -55800,6 +55801,7 @@ System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabe
     }, function (module) {
       rewardBackground = module.rewardBackground;
     }, function (module) {
+      rewardEntries = module.rewardEntries;
       rewardContents = module.rewardContents;
     }, function (module) {
       rewardDelta = module.rewardDelta;
@@ -55902,7 +55904,7 @@ System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabe
           rewardBackground(a, p);
           var h = p.getComponent(UITransform).height,
             bottom = -h / 2,
-            cardHeight = Math.max(170, Math.min(230, h - 444)),
+            cardHeight = Math.min(Math.max(190, 136 + rewardEntries(a, this.preview(o).reward, 1).length * 46), Math.max(190, Math.min(250, h - 424))),
             cardBottom = bottom + 225,
             cardTop = cardBottom + cardHeight;
           var instruction = a.nodeAt(p, 'reward-instruction-plate', 0, cardTop + 24, 380, 42);
@@ -55917,8 +55919,8 @@ System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabe
             a.ui.surface(box, _multiplier === 1 ? '#3c3823' : '#244039', 'cut');
             box.scrollIdentity = 'reward:' + o.key + ':' + _multiplier;
             a.label(box, a.tr(_multiplier === 1 ? 'reward.base' : 'reward.double'), 0, cardHeight / 2 - 22, 174, 28, 18, _multiplier === 1 ? UI.gold : '#8be8ff');
-            a.ui.icon(a.nodeAt(box, 'reward-option-art', -43, cardHeight / 2 - 68, 64, 64), _multiplier === 1 ? 'shop:free' : 'shop:ad');
-            a.label(box, '×' + _multiplier, 43, cardHeight / 2 - 67, 66, 42, 30, _multiplier === 1 ? UI.gold : '#8be8ff').node.name = 'reward-option-multiplier';
+            a.ui.icon(a.nodeAt(box, 'reward-option-art', -43, cardHeight / 2 - 82, 86, 86), _multiplier === 1 ? 'shop:free' : 'shop:ad');
+            a.label(box, '×' + _multiplier, 47, cardHeight / 2 - 82, 66, 42, 30, _multiplier === 1 ? UI.gold : '#8be8ff').node.name = 'reward-option-multiplier';
             cards.push(box);
           }
           a.label(p, a.tr(a.payments.model.previewAds ? 'reward.previewInfo' : 'reward.adInfo'), 0, bottom + 200, 374, 40, 14, UI.muted);
@@ -56149,7 +56151,10 @@ System.register("chunks:///_virtual/RewardContentsUI.ts", ['./rollupPluginModLoB
       UI = module.UI;
     }],
     execute: function () {
-      exports('rewardContents', rewardContents);
+      exports({
+        rewardContents: rewardContents,
+        rewardEntries: rewardEntries
+      });
       cclegacy._RF.push({}, "dcc57lwsv1BJazRV7CwcsDt", "RewardContentsUI", undefined);
       var ICONS = {
         gold: 'symbol:coin',
@@ -56174,7 +56179,7 @@ System.register("chunks:///_virtual/RewardContentsUI.ts", ['./rollupPluginModLoB
       };
 
       /** Display the exact claim quote. Images never determine the reward or its quantity. */
-      function rewardContents(a, box, bundle, multiplier) {
+      function rewardEntries(a, bundle, multiplier) {
         var _bundle$equipment;
         var entries = [];
         var add = function add(key, value, collection) {
@@ -56207,13 +56212,17 @@ System.register("chunks:///_virtual/RewardContentsUI.ts", ['./rollupPluginModLoB
         }
         if ((_bundle$equipment = bundle.equipment) != null && _bundle$equipment.length) add('equipment', display(bundle.equipment.length * multiplier), true);
         if (bundle.mana) add('mana', display(bundle.mana * multiplier), true);
+        return entries;
+      }
+      function rewardContents(a, box, bundle, multiplier) {
+        var entries = rewardEntries(a, bundle, multiplier);
         var old = box.getChildByName('scroll');
         if (old) {
           old.removeFromParent();
           old.destroy();
         }
-        var height = box.getComponent(UITransform).height - 112;
-        a.scroll(box, 0, -46, 172, height, entries.map(function (entry) {
+        var height = box.getComponent(UITransform).height - 136;
+        a.scroll(box, 0, -59, 172, height, entries.map(function (entry) {
           return {
             title: '',
             height: 46,
@@ -56225,7 +56234,7 @@ System.register("chunks:///_virtual/RewardContentsUI.ts", ['./rollupPluginModLoB
             }
           };
         }));
-        if (!entries.length) a.label(box, a.tr('reward.empty'), 0, -46, 158, height, 14, UI.muted);
+        if (!entries.length) a.label(box, a.tr('reward.empty'), 0, -59, 158, height, 14, UI.muted);
         box.rewardQuote = entries;
       }
       cclegacy._RF.pop();
@@ -56400,10 +56409,9 @@ System.register("chunks:///_virtual/ScrollPositionUI.ts", ['./rollupPluginModLoB
           viewport.on(ScrollView.EventType.SCROLLING, remember);
           viewport.on(ScrollView.EventType.SCROLL_ENDED, remember);
           var offset = this.offsets.get(key) || 0;
-          this.a.scheduleOnce(function () {
-            if (!isValid(viewport, true) || !viewport.parent) return;
-            view.scrollToOffset(new Vec2(0, Math.min(offset, Math.max(0, view.getMaxScrollOffset().y))), 0);
-          }, 0);
+          // Content bounds are available after assigning content. Restore before input
+          // resumes, so a delayed callback cannot overwrite the user's next scroll.
+          view.scrollToOffset(new Vec2(0, Math.min(offset, Math.max(0, view.getMaxScrollOffset().y))), 0);
         };
         return ScrollPositionUI;
       }());
