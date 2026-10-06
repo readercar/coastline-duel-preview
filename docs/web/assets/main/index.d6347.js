@@ -909,23 +909,27 @@ System.register("chunks:///_virtual/BattleTransitionUI.ts", ['./rollupPluginModL
           });
           graphics.close();
           graphics.fill();
-          var art = areaTransitionArt(this.to),
+          // Fit the complete story below the HUD; the wider wipe still covers the field.
+          var visible = battleField(a.folded, a.heightExtra, a.safeBottom, a.safeTop),
+            art = areaTransitionArt(this.to),
             source = a.ui.frames.get(art),
-            ratio = source.texture.width / source.texture.height,
-            artWidth = Math.max(w, h * ratio),
-            artHeight = artWidth / ratio;
-          a.ui.paint(a.nodeAt(slab, 'area-convoy-art', 0, 0, artWidth, artHeight), art);
-          a.rect(slab, 0, 0, w, h, '#071014', undefined, 32);
+            ratio = source.width / source.height;
+          var artHeight = Math.min(Math.max(80, visible.top - visible.bottom - 12), 456 / ratio),
+            artWidth = artHeight * ratio,
+            artY = (visible.top + visible.bottom - field.top - field.bottom) / 2;
+          a.rect(slab, 0, 0, w, h, '#101a20');
+          a.ui.paint(a.nodeAt(slab, 'area-convoy-art', 0, artY, artWidth, artHeight), art);
+          a.rect(slab, 0, 0, w, h, '#071014', undefined, 20);
           a.polygon(slab, w / 2 - 70, 0, 36, h, [[-.5, -.5], [.2, -.5], [.5, .5], [-.2, .5]], UI.gold);
           for (var i = 0; i < 7; i++) a.polygon(slab, -205 + i * 76, -h / 2 + 17, 44, 14, [[-.5, -.5], [.16, -.5], [.5, .5], [-.16, .5]], '#556343');
           for (var _i = 0; _i < 8; _i++) a.rect(slab, -290 + _i * 74, h / 2 - 21, 36, 3, '#738056');
-          a.rect(slab, -74, 13, 268, 60, '#172025', undefined, 220);
-          a.rect(slab, -74, -42, 216, 40, '#172025', undefined, 220);
-          this.title = a.label(slab, a.tr('battle.entering'), -74, 13, 252, 54, a.game.s.locale === 'ko' ? 23 : 20, UI.text);
+          var captionY = -h / 2 + 27;
+          a.rect(slab, 0, captionY, 400, 40, '#172025', undefined, 232);
+          this.title = a.label(slab, a.tr('battle.entering'), -68, captionY, 250, 34, a.game.s.locale === 'ko' ? 18 : 16, UI.text);
           this.title.node.name = 'area-transition-title';
           this.number = a.label(slab, a.tr('battle.areaMove', {
             stage: this.to
-          }), -74, -42, 210, 40, 27, UI.gold);
+          }), 132, captionY, 126, 34, 22, UI.gold);
           this.number.node.name = 'area-transition-number';
         };
         _proto.paint = function paint() {
