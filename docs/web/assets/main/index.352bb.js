@@ -2765,7 +2765,7 @@ System.register("chunks:///_virtual/DroneFleet.ts", ['cc'], function (exports) {
 });
 
 System.register("chunks:///_virtual/DroneFleetUI.ts", ['cc', './Config.ts', './DroneFleet.ts', './BattleFormation.ts', './UITheme.ts'], function (exports) {
-  var cclegacy, Label, ScrollView, Vec2, isValid, Sprite, UITransform, PETS, droneMultiplier, partyBattlefieldLayout, UI;
+  var cclegacy, Label, ScrollView, Vec2, isValid, Sprite, UITransform, PETS, CONFIG, droneMultiplier, partyBattlefieldLayout, UI;
   return {
     setters: [function (module) {
       cclegacy = module.cclegacy;
@@ -2777,6 +2777,7 @@ System.register("chunks:///_virtual/DroneFleetUI.ts", ['cc', './Config.ts', './D
       UITransform = module.UITransform;
     }, function (module) {
       PETS = module.PETS;
+      CONFIG = module.CONFIG;
     }, function (module) {
       droneMultiplier = module.droneMultiplier;
     }, function (module) {
@@ -2980,9 +2981,14 @@ System.register("chunks:///_virtual/DroneFleetUI.ts", ['cc', './Config.ts', './D
             return a.rewards.local(a.tr('pet.hatch'), 'hatch:' + g.s.eggAt, function (x) {
               return x.hatch(a.id('egg'));
             }, function () {
-              return a.drawPanel();
-            });
+              a.drawPanel();
+              a.syncDrone();
+            }, undefined, a.tr('drone.supplyInfo', {
+              count: PETS.length,
+              hours: CONFIG.eggSeconds / 3600
+            }));
           }, false, {
+            category: 'shop',
             fontSize: 14,
             label: function label() {
               return g.now() >= g.s.eggAt ? a.tr('pet.hatch') : a.tr('action.remaining', {
@@ -44865,7 +44871,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             'equipment.sets': 'armor',
             'equipment.bulk': 'face:gems',
             'equipment.transmog': 'symbol:eye',
-            'pet.hatch': 'egg',
+            'pet.hatch': 'shop:drone',
             'artifact.salvage': 'symbol:hammer',
             'extra.heroSkill': 'lightning',
             'extra.ascend': 'symbol:up',
@@ -51538,6 +51544,24 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './SkillText.ts', './Discha
         'drone.fleet.proc.1': 'Cmdr +{percent}%\n×{count}',
         'drone.fleet.proc.2': 'Squad +{percent}%\n×{count}'
       });
+      Object.assign(translations.ko, {
+        'pet.hatch': '드론 보급',
+        'extra.collectible.2': '드론 보급 1회',
+        'extra.notice.0': '드론 보급 준비 완료',
+        'guide.tab3': '드론이 해금됐어요. 드론 탭에서 보급을 받고 편성하세요.',
+        'guide.egg': '드론 보급으로 무작위 드론 1종을 받습니다. 처음 얻으면 Lv.1, 보유 중이면 Lv.+1! 받은 뒤에는 다시 준비될 때까지 전투를 이어가세요.',
+        'complete.unlock.8': '드론이 해금되었습니다. 드론 탭에서 무작위 드론을 보급받고 최대 3대를 편성하세요.',
+        'drone.supplyInfo': '드론 {count}종 중 무작위 1종 보급\n기본 Lv.+1 · 2배 Lv.+2 · 이후 {hours}시간 대기\n미보유는 새로 획득합니다. 편성은 직접 선택하세요.'
+      });
+      Object.assign(translations.en, {
+        'pet.hatch': 'Drone supply',
+        'extra.collectible.2': 'Claim drone supply once',
+        'extra.notice.0': 'Drone supply ready',
+        'guide.tab3': 'Drones unlocked. Open the Drones tab to claim supplies and deploy them.',
+        'guide.egg': 'Drone supply gives one random drone. New drones start at Lv.1; owned drones gain one level. Keep fighting until the next supply is ready.',
+        'complete.unlock.8': 'Drones unlocked. Claim a random drone in the Drones tab, then deploy up to three drones.',
+        'drone.supplyInfo': 'One random drone from {count} types\nBase: +1 level · Double: +2 · Ready again in {hours} hours\nNew drones are unlocked. Choose a fleet slot to deploy.'
+      });
       cclegacy._RF.pop();
     }
   };
@@ -56290,13 +56314,14 @@ System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabe
           this.a = a;
         }
         var _proto = RewardClaimUI.prototype;
-        _proto.local = function local(title, key, claim, done, reason) {
+        _proto.local = function local(title, key, claim, done, reason, description) {
           this.offer({
             title: title,
             key: key,
             claim: claim,
             done: done,
-            reason: reason
+            reason: reason,
+            description: description
           });
         };
         _proto.remote = function remote(title, key, bundle, claim, done, reason) {
@@ -56363,14 +56388,22 @@ System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabe
           var _this = this;
           if (this.busy) return;
           var a = this.a;
-          var cancelled = false;
+          var cancelled = false,
+            finished = false;
+          var finish = function finish(multiplier) {
+            if (finished) return;
+            finished = true;
+            if (a.modal === modal) a.close();
+            o.done(multiplier);
+          };
           var leave = function leave() {
             cancelled = true;
-            o.done();
+            finish();
           };
           var p = a.open(a.tr('reward.choose', {
-            name: o.title
-          }), 680, true, 'teal', false, leave);
+              name: o.title
+            }), 680, true, 'teal', false, leave),
+            modal = a.modal;
           p.name = 'reward-claim-panel';
           rewardBackground(a, p);
           var h = p.getComponent(UITransform).height,
@@ -56378,9 +56411,10 @@ System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabe
             cardHeight = Math.min(Math.max(190, 136 + rewardEntries(a, this.preview(o).reward, 1).length * 46), Math.max(190, Math.min(250, h - 424))),
             cardBottom = bottom + 225,
             cardTop = cardBottom + cardHeight;
-          var instruction = a.nodeAt(p, 'reward-instruction-plate', 0, cardTop + 24, 380, 42);
+          var instructionHeight = o.description ? 64 : 42;
+          var instruction = a.nodeAt(p, 'reward-instruction-plate', 0, cardTop + instructionHeight / 2 + 3, 380, instructionHeight);
           a.ui.surface(instruction, '#172018', 'cut', 220, false, false);
-          a.label(instruction, a.tr(o.received ? 'reward.receivedInfo' : 'reward.chooseInfo'), 0, 0, 370, 42, 16, UI.text).node.name = 'reward-choice-instruction';
+          a.label(instruction, o.description || a.tr(o.received ? 'reward.receivedInfo' : 'reward.chooseInfo'), 0, 0, 370, instructionHeight, o.description ? 14 : 16, UI.text).node.name = 'reward-choice-instruction';
           var cards = [];
           for (var _iterator = _createForOfIteratorHelperLoose([1, 2].entries()), _step; !(_step = _iterator()).done;) {
             var _step$value = _step.value,
@@ -56417,7 +56451,7 @@ System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabe
               return _regeneratorRuntime().wrap(function _callee$(_context) {
                 while (1) switch (_context.prev = _context.next) {
                   case 0:
-                    if (!_this.busy) {
+                    if (!(_this.busy || cancelled || finished)) {
                       _context.next = 2;
                       break;
                     }
@@ -56535,30 +56569,32 @@ System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabe
                     _context.next = 47;
                     return a.operations.save();
                   case 47:
-                    o.done(multiplier);
+                    finish(multiplier);
                     a.toast(a.tr('reward.received', {
                       multiplier: multiplier
                     }));
                     a.feedback.finish(beforeFeedback);
-                    _context.next = 56;
+                    _context.next = 55;
                     break;
                   case 52:
                     _context.prev = 52;
                     _context.t0 = _context["catch"](9);
-                    key = _context.t0.message;
-                    a.info(a.tr('money.result'), a.tr(/^(money|error|online)\./.test(key) ? key : 'money.verification'), 'blocked');
-                  case 56:
-                    _context.prev = 56;
+                    if (!cancelled) {
+                      key = _context.t0.message;
+                      a.info(a.tr('money.result'), a.tr(/^(money|error|online)\./.test(key) ? key : 'money.verification'), 'blocked');
+                    }
+                  case 55:
+                    _context.prev = 55;
                     a.feedback.asyncPending--;
                     _this.busy = false;
                     a.refreshButtons();
                     a.updateHUD();
-                    return _context.finish(56);
-                  case 62:
+                    return _context.finish(55);
+                  case 61:
                   case "end":
                     return _context.stop();
                 }
-              }, _callee, null, [[9, 52, 56, 62]]);
+              }, _callee, null, [[9, 52, 55, 61]]);
             }));
             return function receive(_x) {
               return _ref.apply(this, arguments);
@@ -56673,13 +56709,27 @@ System.register("chunks:///_virtual/RewardContentsUI.ts", ['./rollupPluginModLoB
           var _key = _step2.value;
           if (bundle[_key] !== undefined) add(_key, a.format(mul(bundle[_key], multiplier)));
         }
-        for (var _iterator3 = _createForOfIteratorHelperLoose(REWARD_COLLECTIONS), _step3; !(_step3 = _iterator3()).done;) {
+        var _loop = function _loop() {
           var _bundle$collections;
-          var _key2 = _step3.value;
-          var _n = ((_bundle$collections = bundle.collections) == null || (_bundle$collections = _bundle$collections[_key2]) == null ? void 0 : _bundle$collections.reduce(function (sum, n) {
-            return sum + n;
-          }, 0)) || 0;
-          if (_n) add(_key2, display(_n * multiplier), true);
+          var key = _step3.value;
+          var rows = (_bundle$collections = bundle.collections) == null ? void 0 : _bundle$collections[key];
+          if (key === 'pets') {
+            rows == null || rows.forEach(function (n, id) {
+              if (n) entries.push({
+                key: key,
+                name: a.tr('pet.' + id),
+                value: display(n * multiplier)
+              });
+            });
+          } else {
+            var _n = (rows == null ? void 0 : rows.reduce(function (sum, n) {
+              return sum + n;
+            }, 0)) || 0;
+            if (_n) add(key, display(_n * multiplier), true);
+          }
+        };
+        for (var _iterator3 = _createForOfIteratorHelperLoose(REWARD_COLLECTIONS), _step3; !(_step3 = _iterator3()).done;) {
+          _loop();
         }
         if ((_bundle$equipment = bundle.equipment) != null && _bundle$equipment.length) add('equipment', display(bundle.equipment.length * multiplier), true);
         if (bundle.mana) add('mana', display(bundle.mana * multiplier), true);
