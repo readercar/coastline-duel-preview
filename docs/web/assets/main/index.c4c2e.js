@@ -58939,10 +58939,16 @@ System.register("chunks:///_virtual/SquadName.ts", ['cc'], function (exports) {
       function squadNameError(value) {
         if (typeof value !== 'string' || !value.trim()) return 'error.squadName.required';
         var normalized = value.normalize('NFC'),
-          length = Array.from(normalized).length;
+          characters = Array.from(normalized),
+          length = characters.length;
         // Punctuation is ordinary string data in JSON and parameterized SQL. Only
         // control characters, line separators and malformed Unicode are disallowed.
-        if (/(?:[\0-\x1F\x7F-\x9F\u2028\u2029]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])/.test(normalized)) return 'error.squadName.characters';
+        // Cocos 3.8's Android JS engine rejects Unicode property escapes at parse time.
+        // Iterate code points so valid surrogate pairs (including emoji) remain allowed.
+        if (characters.some(function (character) {
+          var code = character.codePointAt(0);
+          return code <= 0x1f || code >= 0x7f && code <= 0x9f || code >= 0xd800 && code <= 0xdfff || code === 0x2028 || code === 0x2029;
+        })) return 'error.squadName.characters';
         if (length > SQUAD_NAME_MAX) return 'error.squadName.long';
         if (length < SQUAD_NAME_MIN) return 'error.squadName.short';
         var lower = normalized.toLowerCase();

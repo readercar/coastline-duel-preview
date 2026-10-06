@@ -1,5 +1,18 @@
 [
   {
+    "buildVersion": "0.1.21",
+    "tag": "preview-0.1.21",
+    "sourceCommit": "7d27b56532066721f329680f1a3a925634fedd50",
+    "version": "0.1.21",
+    "policyVersion": "0.1.0",
+    "publishedAt": "2026-10-06T14:38:28.110Z",
+    "previousCommit": "c5bc05ccf6cdf2e4df7cb560b6328e0608b695f3",
+    "notes": [
+      "안드로이드에서 게임 시작을 중단하던 분대 이름 검사의 유니코드 정규식을 네이티브 엔진에서도 지원되는 코드로 교체했습니다. 기존 이름 길이·금지 문자·예약어와 이모지 허용 규칙을 유지합니다.",
+      "회사 시작 인트로의 선택 효과 로딩·GPU 오류 복구와 모든 게임의 TT Softs 회사 인트로 공통 지침을 반영했습니다. 원본 CI·계정 진행·저장·광고 검증 규칙을 유지합니다."
+    ]
+  },
+  {
     "buildVersion": "2026.10.06.25",
     "tag": "preview-2026.10.06.25",
     "sourceCommit": "fb35e9278db4628ddc3ed94b52a7849c0ace5a99",
