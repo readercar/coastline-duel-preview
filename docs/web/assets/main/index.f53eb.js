@@ -135,12 +135,15 @@ System.register("chunks:///_virtual/AreaTransition.ts", ['cc'], function (export
     execute: function () {
       exports('areaTransitionArt', areaTransitionArt);
       cclegacy._RF.push({}, "e66f35Cz3VO1pOncvd5+iIF", "AreaTransition", undefined);
-      /** The cleared battlefield remains visible before the 1-second total move. */
+      /** Three seconds total: cleared field delay, cover, a readable still image, reveal. */
       var AREA_TRANSITION_DELAY = exports('AREA_TRANSITION_DELAY', .5);
-      var AREA_TRANSITION_SECONDS = exports('AREA_TRANSITION_SECONDS', .5);
-      var AREA_TRANSITION_ART = exports('AREA_TRANSITION_ART', ['zone-entry', 'forest', 'snow', 'harbor', 'canyon']);
+      var AREA_TRANSITION_SECONDS = exports('AREA_TRANSITION_SECONDS', 2.5);
+      var AREA_TRANSITION_COVER = exports('AREA_TRANSITION_COVER', .3);
+      var AREA_TRANSITION_EXIT = exports('AREA_TRANSITION_EXIT', 2.2);
+      var AREA_TRANSITION_ARRIVAL = exports('AREA_TRANSITION_ARRIVAL', .45);
+      var AREA_TRANSITION_ART = exports('AREA_TRANSITION_ART', ["zone-entry", "forest", "snow", "harbor", "canyon", "ruined-city", "jungle-temple", "swamp", "coastal-road", "lunar-base", "airfield-night", "rail-yard", "underground-hangar", "sky-fortress", "rainy-village", "salt-flats", "autumn-valley", "frozen-radar", "industrial-refinery", "mountain-pass"]);
 
-      /** Consecutive arriving zones cycle through all five illustrations, including after reload. */
+      /** Consecutive arriving zones cycle through all twenty illustrations, including after reload. */
       function areaTransitionArt(stage) {
         var index = ((Math.trunc(stage) - 2) % AREA_TRANSITION_ART.length + AREA_TRANSITION_ART.length) % AREA_TRANSITION_ART.length;
         return 'transition/' + AREA_TRANSITION_ART[index];
@@ -783,7 +786,7 @@ System.register("chunks:///_virtual/BattlePlacementUI.ts", ['./rollupPluginModLo
 });
 
 System.register("chunks:///_virtual/BattleTransitionUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './AllyPlacement.ts', './UITheme.ts', './AreaTransition.ts'], function (exports) {
-  var _createClass, cclegacy, Mask, BlockInputEvents, Tween, tween, Vec3, isValid, battleField, UI, AREA_TRANSITION_DELAY, areaTransitionArt, AREA_TRANSITION_SECONDS;
+  var _createClass, cclegacy, Mask, BlockInputEvents, Tween, tween, Vec3, isValid, battleField, UI, AREA_TRANSITION_DELAY, AREA_TRANSITION_COVER, areaTransitionArt, AREA_TRANSITION_EXIT, AREA_TRANSITION_ARRIVAL, AREA_TRANSITION_SECONDS;
   return {
     setters: [function (module) {
       _createClass = module.createClass;
@@ -801,7 +804,10 @@ System.register("chunks:///_virtual/BattleTransitionUI.ts", ['./rollupPluginModL
       UI = module.UI;
     }, function (module) {
       AREA_TRANSITION_DELAY = module.AREA_TRANSITION_DELAY;
+      AREA_TRANSITION_COVER = module.AREA_TRANSITION_COVER;
       areaTransitionArt = module.areaTransitionArt;
+      AREA_TRANSITION_EXIT = module.AREA_TRANSITION_EXIT;
+      AREA_TRANSITION_ARRIVAL = module.AREA_TRANSITION_ARRIVAL;
       AREA_TRANSITION_SECONDS = module.AREA_TRANSITION_SECONDS;
       var _setter = {};
       _setter.AREA_TRANSITION_DELAY = module.AREA_TRANSITION_DELAY;
@@ -810,10 +816,7 @@ System.register("chunks:///_virtual/BattleTransitionUI.ts", ['./rollupPluginModL
     }],
     execute: function () {
       cclegacy._RF.push({}, "420acWFB79Ku6m9OH8VUAc7", "BattleTransitionUI", undefined);
-      var COVER = .12,
-        EXIT = .38,
-        ARRIVAL = .27;
-      /** Keep the cleared battlefield for 0.5s, then cover and reveal in 0.5s. */
+      /** Keep the cleared field for 0.5s, then hold the illustration before revealing at 3s. */
       var BattleTransitionUI = exports('BattleTransitionUI', /*#__PURE__*/function () {
         function BattleTransitionUI(a) {
           this.displayedStage = 0;
@@ -868,8 +871,8 @@ System.register("chunks:///_virtual/BattleTransitionUI.ts", ['./rollupPluginModL
           this.elapsed += dt;
           var effects = this.a.game.s.extra.effects,
             time = this.elapsed - AREA_TRANSITION_DELAY,
-            total = effects ? AREA_TRANSITION_SECONDS : .35;
-          if (!this.swapped && time >= (effects ? COVER : 0)) {
+            total = AREA_TRANSITION_SECONDS;
+          if (!this.swapped && time >= (effects ? AREA_TRANSITION_COVER : 0)) {
             this.swapped = true;
             this.seen = this.displayedStage = this.to;
             this.a.revealArea();
@@ -930,8 +933,8 @@ System.register("chunks:///_virtual/BattleTransitionUI.ts", ['./rollupPluginModL
           var effects = this.a.game.s.extra.effects,
             t = Math.max(0, this.elapsed - AREA_TRANSITION_DELAY);
           this.slab.active = this.elapsed >= AREA_TRANSITION_DELAY;
-          this.slab.setPosition(effects ? t < COVER ? -740 + 740 * (1 - Math.pow(1 - t / COVER, 3)) : t <= EXIT ? 0 : 740 * Math.pow((t - EXIT) / COVER, 3) : 0, 0);
-          if (this.title) this.title.string = this.a.tr(t >= ARRIVAL || !effects ? 'battle.entered' : 'battle.entering');
+          this.slab.setPosition(effects ? t < AREA_TRANSITION_COVER ? -740 + 740 * (1 - Math.pow(1 - t / AREA_TRANSITION_COVER, 3)) : t <= AREA_TRANSITION_EXIT ? 0 : 740 * Math.pow((t - AREA_TRANSITION_EXIT) / AREA_TRANSITION_COVER, 3) : 0, 0);
+          if (this.title) this.title.string = this.a.tr(t >= AREA_TRANSITION_ARRIVAL || !effects ? 'battle.entered' : 'battle.entering');
         };
         _proto.pulse = function pulse() {
           var a = this.a,
@@ -9039,8 +9042,8 @@ System.register("chunks:///_virtual/Feedback.ts", ['./rollupPluginModLoBabelHelp
   };
 });
 
-System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SpeechIllustrationUI.ts', './MercenaryUnlock.ts', './EquipmentUI.ts', './RewardArtUI.ts', './Feedback.ts', './UITheme.ts', './Mercenaries.ts', './Config.ts', './Amount.ts', './Dialogue.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _extends, _createClass, cclegacy, BlockInputEvents, Node, isValid, UITransform, tween, Vec3, Label, Graphics, Mask, UIOpacity, speechIllustration, mercenaryUnlocked, equipmentReward, rewardBackground, feedbackSnapshot, feedbackDiff, growthCounters, GrowthFeedbackQueue, UI, attackSeconds, mercenaryArt, PETS, ARTIFACTS, CARDS, HEROES, display, DIALOGUE_CONTEXTS, DialogueDeck, DialogueDirector;
+System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './PopupIllustrationUI.ts', './SpeechIllustrationUI.ts', './MercenaryUnlock.ts', './EquipmentUI.ts', './RewardArtUI.ts', './Feedback.ts', './UITheme.ts', './Mercenaries.ts', './Config.ts', './Amount.ts', './Dialogue.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _extends, _createClass, cclegacy, BlockInputEvents, Node, isValid, UITransform, tween, Vec3, Label, Graphics, Mask, UIOpacity, popupIllustration, speechIllustration, mercenaryUnlocked, equipmentReward, rewardBackground, feedbackSnapshot, feedbackDiff, growthCounters, GrowthFeedbackQueue, UI, attackSeconds, mercenaryArt, PETS, ARTIFACTS, CARDS, HEROES, display, DIALOGUE_CONTEXTS, DialogueDeck, DialogueDirector;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -9058,6 +9061,8 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
       Graphics = module.Graphics;
       Mask = module.Mask;
       UIOpacity = module.UIOpacity;
+    }, function (module) {
+      popupIllustration = module.popupIllustration;
     }, function (module) {
       speechIllustration = module.speechIllustration;
     }, function (module) {
@@ -9550,8 +9555,9 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           var h = Math.min(640, a.designH - 90),
             panel = a.nodeAt(layer, 'mercenary-panel', 0, 0, 420, h);
           a.ui.surface(panel, UI.bg, 'panel');
+          popupIllustration(a, panel, 'mercenary:' + id);
           var backdrop = a.nodeAt(panel, 'cutin-backdrop', 0, 0, 420, h);
-          a.ui.polygon(backdrop, [[-204, h / 2 - 72], [183, h / 2 - 48], [204, -h / 2 + 120], [-178, -h / 2 + 80]], UI.raised);
+          a.ui.polygon(backdrop, [[-204, h / 2 - 72], [183, h / 2 - 48], [204, -h / 2 + 120], [-178, -h / 2 + 80]], UI.raised, 100);
           a.label(panel, a.tr(preview ? 'merc.gallery' : recruited ? 'merc.joined' : 'merc.unlocked'), 0, h / 2 - 30, 380, 40, 26, UI.gold).node.name = 'mercenary-cutin-title';
           a.label(panel, a.tr(recruited ? 'merc.joinedName' : 'merc.ready', {
             name: a.tr('hero.' + id)
@@ -44333,8 +44339,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
   };
 });
 
-System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './FontUI.ts', './ScrollPositionUI.ts', './DroneFleetUI.ts', './BossEntranceUI.ts', './SkillCatalog.ts', './SkillUI.ts', './ExplorationUI.ts', './SkillTrainingUI.ts', './EquipmentUI.ts', './EquipmentDetailUI.ts', './Enemies.ts', './env', './EnemyArtBounds.ts', './RewardClaimUI.ts', './SquadUI.ts', './MercenaryUnlock.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './DroneFeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, FontUI, ScrollPositionUI, DroneFleetUI, BossEntranceUI, tacticIcon, tacticHelp, tacticManager, tacticDetail, explorationEntry, explorationBoard, skillTree, skillDetail, equipmentDropButton, equipmentListRow, updateEquipmentDropButton, equipmentDetail, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, RewardClaimUI, SquadUI, mercenaryUnlocked, mercenaryLock, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, DroneFeedbackUI, Game, display, ZERO, ratio, add, fmt, SKILLS, SPELLS, HEROES, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, GooglePlayBilling, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
+System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './FontUI.ts', './PopupIllustrationUI.ts', './ScrollPositionUI.ts', './DroneFleetUI.ts', './BossEntranceUI.ts', './SkillCatalog.ts', './SkillUI.ts', './ExplorationUI.ts', './SkillTrainingUI.ts', './EquipmentUI.ts', './EquipmentDetailUI.ts', './Enemies.ts', './env', './EnemyArtBounds.ts', './RewardClaimUI.ts', './SquadUI.ts', './MercenaryUnlock.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './DroneFeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
+  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, BlockInputEvents, UIOpacity, Mask, ScrollView, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, FontUI, popupIllustration, ScrollPositionUI, DroneFleetUI, BossEntranceUI, tacticIcon, tacticHelp, tacticManager, tacticDetail, explorationEntry, explorationBoard, skillTree, skillDetail, equipmentDropButton, equipmentListRow, updateEquipmentDropButton, equipmentDetail, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, RewardClaimUI, SquadUI, mercenaryUnlocked, mercenaryLock, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, DroneFeedbackUI, Game, display, ZERO, ratio, add, fmt, SKILLS, SPELLS, HEROES, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, GooglePlayBilling, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
@@ -44361,10 +44367,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       Tween = module.Tween;
       tween = module.tween;
       Vec3 = module.Vec3;
+      BlockInputEvents = module.BlockInputEvents;
       UIOpacity = module.UIOpacity;
       Mask = module.Mask;
       ScrollView = module.ScrollView;
-      BlockInputEvents = module.BlockInputEvents;
       resources = module.resources;
       Texture2D = module.Texture2D;
       Sprite = module.Sprite;
@@ -44377,6 +44383,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       profiler = module.profiler;
     }, function (module) {
       FontUI = module.FontUI;
+    }, function (module) {
+      popupIllustration = module.popupIllustration;
     }, function (module) {
       ScrollPositionUI = module.ScrollPositionUI;
     }, function (module) {
@@ -44532,6 +44540,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           _this = _Component.call.apply(_Component, [this].concat(args)) || this;
           _this.modalBack = null;
           _this.tooltipNode = null;
+          _this.tapDismissNotices = new WeakSet();
           _this.ui = new UITheme();
           _this.feedback = new FeedbackUI(_assertThisInitialized(_this));
           _this.scrollPositions = new ScrollPositionUI(_assertThisInitialized(_this));
@@ -45186,6 +45195,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
           this.toastNode = null;
         };
+        _proto.dismissNoticeOnTap = function dismissNoticeOnTap(node, close) {
+          this.tapDismissNotices.add(node);
+          if (!node.getComponent(BlockInputEvents)) node.addComponent(BlockInputEvents);
+          node.on(Node.EventType.TOUCH_END, function (event) {
+            event.propagationStopped = true;
+            close();
+          });
+        };
         _proto.tooltip = function tooltip(anchor, text, tone) {
           var _this$modal,
             _this7 = this;
@@ -45235,9 +45252,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           edge.stroke();
           this.label(n, text, -7, 0, w - 48, h - 22, 17, C.text, Label.HorizontalAlign.LEFT).node.name = 'tooltip-text';
           this.label(n, '×', w / 2 - 19, h / 2 - 18, 24, 24, 20, C.muted);
-          n.on(Node.EventType.TOUCH_END, function (e) {
-            e.propagationStopped = true;
-            _this7.hideTooltip();
+          this.dismissNoticeOnTap(n, function () {
+            if (_this7.tooltipNode === n) _this7.hideTooltip();
           });
           tween(n).delay(4).call(function () {
             if (_this7.tooltipNode === n) _this7.hideTooltip();
@@ -47060,6 +47076,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var box = this.nodeAt(this.modal, 'modal-panel', 0, (this.safeBottom - this.safeTop) / 2, 432, height);
           box.scrollIdentity = 'modal:' + scrollIdentity;
           if (surface === 'blocked') this.ui.surface(box, BLOCKED_NOTICE.background, 'panel', 255, true);else this.ui.paint(box, surface === 'slate' ? 'popup/slate' : 'popup/panel', true);
+          popupIllustration(this, box, scrollIdentity, surface === 'blocked');
           var panelAccent = surface === 'blocked' ? BLOCKED_NOTICE.border : this.game.s.extra.cosmetics[1] > 0 ? [C.line, C.gold, C.blue, C.violet, C.mint, C.ember][this.game.s.extra.cosmetics[1]] : this.tabTone;
           var heading = this.polygon(box, -40, height / 2 - 38, 336, 60, [[-.5, -.5], [.43, -.5], [.5, .5], [-.5, .5]], surface === 'blocked' ? BLOCKED_NOTICE.heading : C.paper);
           this.polygon(box, -199, height / 2 - 38, 34, 60, [[-.5, -.5], [.15, -.5], [.5, .5], [-.5, .5]], panelAccent);
@@ -47073,6 +47090,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             fontSize: 21,
             hint: this.tr('action.close')
           }).name = 'modal-close';
+          if (surface === 'blocked' && closable) {
+            var modal = this.modal;
+            this.dismissNoticeOnTap(box, function () {
+              if (_this24.modal === modal) _this24.dismissModal();
+            });
+          }
           return box;
         };
         _proto.dismissModal = function dismissModal() {
@@ -48772,6 +48795,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var n = tone === 'blocked' ? this.nodeAt(this.root, 'condition-toast', 0, -302, 434, 82) : this.rect(this.root, 0, -302, 434, 82, '#334754', C.gold);
           if (tone === 'blocked') this.ui.surface(n, BLOCKED_NOTICE.background, 'cut', 255, true);
           this.toastNode = n;
+          if (tone === 'blocked') this.dismissNoticeOnTap(n, function () {
+            if (_this61.toastNode === n) _this61.hideToast();
+          });
           this.label(n, text, 0, 0, 404, 72, 16, C.text);
           tween(n).delay(3.2).call(function () {
             if (isValid(n, true)) n.destroy();
@@ -56094,15 +56120,18 @@ System.register("chunks:///_virtual/ReferenceRules.ts", ['cc'], function (export
   };
 });
 
-System.register("chunks:///_virtual/RewardArtUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc'], function (exports) {
-  var _createForOfIteratorHelperLoose, cclegacy, UITransform, Graphics;
+System.register("chunks:///_virtual/RewardArtUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './PopupIllustrationUI.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, cclegacy, UITransform, Mask, Graphics, popupIllustration;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
     }, function (module) {
       cclegacy = module.cclegacy;
       UITransform = module.UITransform;
+      Mask = module.Mask;
       Graphics = module.Graphics;
+    }, function (module) {
+      popupIllustration = module.popupIllustration;
     }],
     execute: function () {
       exports('rewardBackground', rewardBackground);
@@ -56112,11 +56141,13 @@ System.register("chunks:///_virtual/RewardArtUI.ts", ['./rollupPluginModLoBabelH
         if (headerOffset === void 0) {
           headerOffset = 0;
         }
+        popupIllustration(a, panel, 'reward:' + panel.name);
         if (!a.ui.artSurface(panel, 'reward-celebration', undefined, false)) return;
         var clip = panel.getChildByName('ui-art'),
           image = clip.getChildByName('downloaded-pixel-surface');
         clip.name = 'reward-character-background';
         image.name = 'reward-character-scene';
+        clip.setSiblingIndex(2);
         var _contentSize = panel.getComponent(UITransform).contentSize,
           width = _contentSize.width,
           height = _contentSize.height,
@@ -56125,6 +56156,13 @@ System.register("chunks:///_virtual/RewardArtUI.ts", ['./rollupPluginModLoBabelH
         var scale = Math.min(width / frame.width, height / frame.height);
         a.ui.resize(image, frame.width * scale, frame.height * scale);
         image.setPosition(0, height / 2 - frame.height * scale / 2 - headerOffset);
+        // Keep the celebrating characters as a banner; the shared landscape fills the body.
+        var stencil = clip.getComponent(Mask).subComp,
+          top = height / 2 - 74,
+          banner = Math.min(190, height * .34);
+        stencil.clear();
+        stencil.rect(-width / 2, top - banner, width, banner);
+        stencil.fill();
         var points = a.ui.contours.get(panel);
         if (!points) return;
         var edge = a.nodeAt(panel, 'reward-art-border', 0, 0, width, height).addComponent(Graphics);
@@ -56142,7 +56180,7 @@ System.register("chunks:///_virtual/RewardArtUI.ts", ['./rollupPluginModLoBabelH
         }
         edge.close();
         edge.stroke();
-        edge.node.setSiblingIndex(2);
+        edge.node.setSiblingIndex(3);
       }
       cclegacy._RF.pop();
     }
@@ -60745,10 +60783,11 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             // Reading a stat never performs a game action or advances the guided step.
             var info = function info(n) {
               var _n$getChildByName;
-              if (n.getChildByName('metric-icon') || ['icon-help-target', 'icon-tooltip', 'role-badge', 'coin-counter-plate', 'diamond-counter-plate'].includes(n.name) || ((_n$getChildByName = n.getChildByName('button-label')) == null || (_n$getChildByName = _n$getChildByName.getComponent(Label)) == null ? void 0 : _n$getChildByName.string) === a.tr('ui.iconHelp')) allowed.push(n);
+              if (a.tapDismissNotices.has(n) || n.getChildByName('metric-icon') || ['icon-help-target', 'icon-tooltip', 'role-badge', 'coin-counter-plate', 'diamond-counter-plate'].includes(n.name) || ((_n$getChildByName = n.getChildByName('button-label')) == null || (_n$getChildByName = _n$getChildByName.getComponent(Label)) == null ? void 0 : _n$getChildByName.string) === a.tr('ui.iconHelp')) allowed.push(n);
               n.children.forEach(info);
             };
             info(a.modal || a.root);
+            if (a.toastNode && a.tapDismissNotices.has(a.toastNode)) allowed.push(a.toastNode);
             if (!_this9.active && !a.modal) {
               var characters = function characters(n) {
                 if (n.name === 'character-drag-target') allowed.push(n);
@@ -61003,6 +61042,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             }
           }
           if (a.tooltipNode && isValid(a.tooltipNode, true)) hole(a.tooltipNode);
+          if (a.toastNode && a.tapDismissNotices.has(a.toastNode)) hole(a.toastNode);
           var equipment = a.root.getChildByName('equipment-feedback');
           if (equipment && isValid(equipment, true)) hole(equipment);
           if (a.placement.dragging) {
