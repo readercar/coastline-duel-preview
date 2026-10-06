@@ -771,6 +771,7 @@
         "d4a669a6-a157-49ee-983c-e0af3d96025c@6c48a",
         "d542fbda-47b2-49d0-9203-c36462231e55",
         "d542fbda-47b2-49d0-9203-c36462231e55@6c48a",
+        "d55a5523-85f3-4722-9bf4-8fe9d910d243",
         "d6107af4-9240-4f39-a9ad-44033ebddd4e",
         "d6107af4-9240-4f39-a9ad-44033ebddd4e@6c48a",
         "d6eb5f39-0ec6-462e-ad33-a392b5d5e9f0",
@@ -910,6 +911,11 @@
         "ffe2cd79-91ed-4d46-b438-d2246edb79e6@6c48a"
     ],
     "paths": {
+        "d55a5523-85f3-4722-9bf4-8fe9d910d243": [
+            "ui/military/enemy-hit",
+            "cc.EffectAsset",
+            1
+        ],
         "99de859d-714c-4a15-84ef-8ed1e747181c": [
             "branding/tt-softs-ci",
             "cc.ImageAsset",
@@ -6652,6 +6658,8 @@
             "a2533",
             "d542fbda-47b2-49d0-9203-c36462231e55",
             "a2533",
+            "d55a5523-85f3-4722-9bf4-8fe9d910d243",
+            "e7516",
             "d6107af4-9240-4f39-a9ad-44033ebddd4e",
             "a2533",
             "d6eb5f39-0ec6-462e-ad33-a392b5d5e9f0",

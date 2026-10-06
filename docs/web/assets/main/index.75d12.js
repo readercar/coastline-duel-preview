@@ -1943,6 +1943,142 @@ System.register("chunks:///_virtual/EnemyArtBounds.ts", ['cc'], function (export
   };
 });
 
+System.register("chunks:///_virtual/EnemyHitFeedback.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc'], function (exports) {
+  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, Sprite, Material, UITransform, Vec4, isValid, resources, EffectAsset;
+  return {
+    setters: [function (module) {
+      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
+      _asyncToGenerator = module.asyncToGenerator;
+      _regeneratorRuntime = module.regeneratorRuntime;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+      Sprite = module.Sprite;
+      Material = module.Material;
+      UITransform = module.UITransform;
+      Vec4 = module.Vec4;
+      isValid = module.isValid;
+      resources = module.resources;
+      EffectAsset = module.EffectAsset;
+    }],
+    execute: function () {
+      exports('enemyHitOffset', enemyHitOffset);
+      cclegacy._RF.push({}, "8e80bu2kNdNRZeCeH3AlgC1", "EnemyHitFeedback", undefined);
+      // Move only sprite pixels; saved feet, health bars and shadows stay put.
+      // Visible target bounds and impact points share this world-space displacement.
+      var offsets = new WeakMap();
+      function enemyHitOffset(node) {
+        return offsets.get(node) || 0;
+      }
+      var EnemyHitFeedback = exports('EnemyHitFeedback', /*#__PURE__*/function () {
+        function EnemyHitFeedback() {
+          this.effect = null;
+          this.reactions = new Map();
+          this.clock = 0;
+          this.sequence = 0;
+        }
+        var _proto = EnemyHitFeedback.prototype;
+        _proto.load = /*#__PURE__*/function () {
+          var _load = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
+            var _this = this;
+            return _regeneratorRuntime().wrap(function _callee$(_context) {
+              while (1) switch (_context.prev = _context.next) {
+                case 0:
+                  return _context.abrupt("return", new Promise(function (resolve) {
+                    return resources.load('ui/military/enemy-hit', EffectAsset, function (error, effect) {
+                      if (!error) _this.effect = effect;
+                      resolve(!error);
+                    });
+                  }));
+                case 1:
+                case "end":
+                  return _context.stop();
+              }
+            }, _callee);
+          }));
+          function load() {
+            return _load.apply(this, arguments);
+          }
+          return load;
+        }();
+        _proto.hit = function hit(node, _hit) {
+          var sprite = node.getComponent(Sprite);
+          if (!sprite || !this.effect || !node.activeInHierarchy) return;
+          var reaction = this.reactions.get(node);
+          // Frame-based continuous damage produces distinct pulses, never a permanent white body.
+          if (_hit != null && _hit.continuous && reaction && this.clock - reaction.lastHit < .16) return;
+          if (!reaction) {
+            var material = new Material();
+            material.initialize({
+              effectAsset: this.effect,
+              defines: {
+                USE_TEXTURE: true
+              }
+            });
+            sprite.customMaterial = material;
+            reaction = {
+              node: node,
+              sprite: sprite,
+              material: material,
+              age: 0,
+              duration: .18,
+              amplitude: 0,
+              direction: 1,
+              lastHit: this.clock
+            };
+            this.reactions.set(node, reaction);
+          }
+          var critical = !!(_hit != null && _hit.critical),
+            size = node.getComponent(UITransform).width * Math.abs(node.worldScale.x);
+          reaction.age = 0;
+          reaction.duration = critical ? .24 : .18;
+          reaction.lastHit = this.clock;
+          reaction.amplitude = Math.min(critical ? 6 : 4.5, Math.max(critical ? 2.8 : 1.8, size * .035));
+          reaction.direction = ++this.sequence % 2 ? 1 : -1;
+          this.paint(reaction);
+        };
+        _proto.paint = function paint(reaction) {
+          var remaining = Math.max(0, 1 - reaction.age / reaction.duration);
+          var flash = reaction.age < .035 ? 1 : Math.pow(Math.max(0, 1 - (reaction.age - .035) / .095), 2);
+          var shift = Math.cos(reaction.age / reaction.duration * Math.PI * 6) * reaction.amplitude * remaining * remaining * reaction.direction;
+          offsets.set(reaction.node, shift);
+          reaction.material.setProperty('hitReaction', new Vec4(flash, shift, 0, 0));
+        };
+        _proto.tick = function tick(dt, effects) {
+          this.clock += dt;
+          for (var _iterator = _createForOfIteratorHelperLoose(this.reactions), _step; !(_step = _iterator()).done;) {
+            var _step$value = _step.value,
+              node = _step$value[0],
+              reaction = _step$value[1];
+            if (!effects || !isValid(node, true) || !node.activeInHierarchy) {
+              this.release(node, reaction);
+              continue;
+            }
+            reaction.age = Math.min(reaction.duration, reaction.age + dt);
+            this.paint(reaction);
+            if (reaction.age >= reaction.duration) this.release(node, reaction);
+          }
+        };
+        _proto.release = function release(node, reaction) {
+          offsets["delete"](node);
+          if (isValid(reaction.sprite, true) && reaction.sprite.customMaterial === reaction.material) reaction.sprite.customMaterial = null;
+          reaction.material.destroy();
+          this.reactions["delete"](node);
+        };
+        _proto.clear = function clear() {
+          for (var _iterator2 = _createForOfIteratorHelperLoose(this.reactions), _step2; !(_step2 = _iterator2()).done;) {
+            var _step2$value = _step2.value,
+              node = _step2$value[0],
+              reaction = _step2$value[1];
+            this.release(node, reaction);
+          }
+        };
+        return EnemyHitFeedback;
+      }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
 System.register("chunks:///_virtual/EntryPolicy.ts", ['cc'], function (exports) {
   var cclegacy;
   return {
@@ -41412,8 +41548,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
   };
 });
 
-System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts', './EnemyArtBounds.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, Sprite, ScrollView, BlockInputEvents, resources, Texture2D, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, enemyType, ENEMY_HIT_POINTS, SquadUI, BattlePlacementUI, BattleTransitionUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme;
+System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts', './EnemyArtBounds.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
+  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, enemyType, ENEMY_HIT_POINTS, SquadUI, BattlePlacementUI, BattleTransitionUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
@@ -41442,11 +41578,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       Vec3 = module.Vec3;
       UIOpacity = module.UIOpacity;
       Mask = module.Mask;
-      Sprite = module.Sprite;
       ScrollView = module.ScrollView;
       BlockInputEvents = module.BlockInputEvents;
       resources = module.resources;
       Texture2D = module.Texture2D;
+      Sprite = module.Sprite;
       SpriteFrame = module.SpriteFrame;
       EditBox = module.EditBox;
       screen = module.screen;
@@ -41477,6 +41613,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       MOTION_LEFT = module.MOTION_LEFT;
     }, function (module) {
       CombatMotion = module.CombatMotion;
+    }, function (module) {
+      enemyHitOffset = module.enemyHitOffset;
+      EnemyHitFeedback = module.EnemyHitFeedback;
     }, function (module) {
       mercenaryArt = module.mercenaryArt;
       attackSeconds = module.attackSeconds;
@@ -41579,6 +41718,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           _this.remoteBusy = false;
           _this.folded = false;
           _this.combatMotion = null;
+          _this.enemyFeedback = new EnemyHitFeedback();
           _this.pendingTaps = [];
           _this.autoFireClock = 0;
           _this.entry = void 0;
@@ -41712,12 +41852,21 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                   _context.next = 5;
                   return this.ui.load();
                 case 5:
+                  _context.next = 7;
+                  return this.enemyFeedback.load();
+                case 7:
+                  if (_context.sent) {
+                    _context.next = 9;
+                    break;
+                  }
+                  this.ui.missing.push('enemy-hit');
+                case 9:
                   if (this.isValid) {
-                    _context.next = 7;
+                    _context.next = 11;
                     break;
                   }
                   return _context.abrupt("return");
-                case 7:
+                case 11:
                   this.game = new Game(sys.localStorage);
                   this.extensions = new ExpansionUI(this);
                   this.onlineService = new Online(sys.localStorage);
@@ -41733,7 +41882,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                     window.addEventListener('error', this.browserError);
                     window.addEventListener('unhandledrejection', this.browserRejection);
                   }
-                case 19:
+                case 23:
                 case "end":
                   return _context.stop();
               }
@@ -41746,6 +41895,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         }();
         _proto.onDestroy = function onDestroy() {
           var _this$game;
+          this.enemyFeedback.clear();
           view.setResizeCallback(function () {});
           if (typeof window !== 'undefined') {
             window.removeEventListener('error', this.browserError);
@@ -42255,6 +42405,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         };
         _proto.draw = function draw() {
           var _this8 = this;
+          this.enemyFeedback.clear();
           this.placement.reset();
           this.hideTooltip();
           this.modal = null;
@@ -42870,22 +43021,18 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             var _points$cell = points[cell],
               x = _points$cell[0],
               y = _points$cell[1],
-              _t = unit.getComponent(UITransform);
-            return this.particles.getComponent(UITransform).convertToNodeSpaceAR(_t.convertToWorldSpaceAR(new Vec3((x / 192 - _t.anchorPoint.x) * _t.width, (1 - y / 192 - _t.anchorPoint.y) * _t.height, 0)));
+              _t = unit.getComponent(UITransform),
+              world = _t.convertToWorldSpaceAR(new Vec3((x / 192 - _t.anchorPoint.x) * _t.width, (1 - y / 192 - _t.anchorPoint.y) * _t.height, 0));
+            world.x += enemyHitOffset(unit);
+            return this.particles.getComponent(UITransform).convertToNodeSpaceAR(world);
           }
           var ink = this.ui.spriteVisibleBounds(unit, this.particles);
           return new Vec3(ink.x + ink.width * (.3 + cell % 3 * .2), ink.y + ink.height * (.35 + Math.floor(cell / 3) * .15), 0);
         };
-        _proto.hitEnemy = function hitEnemy(id) {
+        _proto.hitEnemy = function hitEnemy(id, hit) {
           if (!this.game.s.extra.effects) return;
-          var unit = this.enemy.getChildByName('hostile-' + id),
-            sprite = unit == null ? void 0 : unit.getComponent(Sprite);
-          if (!sprite) return;
-          Tween.stopAllByTarget(sprite);
-          sprite.color = this.color('#ffd5a0');
-          tween(sprite).to(.11, {
-            color: new Color(255, 255, 255, 255)
-          }).start();
+          var unit = this.enemy.getChildByName('hostile-' + id);
+          if (unit) this.enemyFeedback.hit(unit, hit);
         };
         _proto.damageFloat = function damageFloat(target, damage, hero, hit) {
           var _this16 = this;
@@ -42899,7 +43046,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           // Continuous tactics tick every frame. Sum a short interval for the same enemy, never across waves.
           var merged = (hit == null ? void 0 : hit.continuous) && this.damageNumbers.find(function (n) {
             var _n$hit;
-            return ((_n$hit = n.hit) == null ? void 0 : _n$hit.continuous) && n.hit.wave === hit.wave && n.hit.target === hit.target && _this16.damageTime - n.born < .18;
+            return ((_n$hit = n.hit) == null ? void 0 : _n$hit.continuous) && n.hit.wave === hit.wave && n.hit.target === hit.target && n.hit.critical === hit.critical && n.hit.special === hit.special && _this16.damageTime - n.born < .18;
           });
           if (merged) {
             merged.damage = add(merged.damage, damage);
@@ -43008,14 +43155,16 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           for (var _iterator6 = _createForOfIteratorHelperLoose(hits), _step6; !(_step6 = _iterator6()).done;) {
             var _hit$hero;
             var hit = _step6.value;
+            if (hit.damage === ZERO) continue;
+            this.hitEnemy(hit.target, hit);
             var target = this.shotTarget(hit.target);
             this.damageFloat(target, hit.damage, (_hit$hero = hit.hero) != null ? _hit$hero : -1, hit);
             if (hit.source === 'hero') this.weaponImpact(hit.hero, target, hit.target);else this.bulletImpact(target.x, target.y, hit.target);
-            this.hitEnemy(hit.target);
           }
           return hits.length > 0;
         };
         _proto.spawnEnemy = function spawnEnemy() {
+          this.enemyFeedback.clear();
           this.clear(this.particles);
           this.clear(this.damageLayer);
           this.damageNumbers = [];
@@ -46005,6 +46154,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           if (this.game && this.fairy && isValid(this.fairy, true)) this.fairy.active = this.fairyClaimReady();
           this.rewardGlow.tick(dt);
           if (!this.game || !((_this$entry2 = this.entry) != null && _this$entry2.playing)) return;
+          this.enemyFeedback.tick(dt, this.game.s.extra.effects);
           this.placement.tick();
           if (this.zoneTransition.observe()) {
             this.zoneTransition.tick(dt);
@@ -48838,9 +48988,9 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './CheatUI.ts', './CombatMotion.ts', './EntryUI.ts', './ExpansionUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SquadUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './Dialogue.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './Squad.ts', './SquadName.ts', './firebase-sdk.js'], function () {
+System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './CheatUI.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './ExpansionUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SquadUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './Dialogue.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './Squad.ts', './SquadName.ts', './firebase-sdk.js'], function () {
   return {
-    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     execute: function () {}
   };
 });
@@ -54464,8 +54614,8 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
   };
 });
 
-System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts', './EnemyArtBounds.ts', './Mercenaries.ts', './MotionBounds.ts', './ShopTheme.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, Color, resources, Texture2D, SpriteFrame, Graphics, UITransform, Node, Mask, Sprite, Vec3, Font, ENEMY_TYPES, BOSS_TYPES, ENEMY_ALPHA_BOUNDS, MERCENARY_COUNT, MOTION_FRAMES, SHOP_ICONS;
+System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts', './EnemyArtBounds.ts', './Mercenaries.ts', './MotionBounds.ts', './ShopTheme.ts', './EnemyHitFeedback.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, Color, resources, Texture2D, SpriteFrame, Graphics, UITransform, Node, Mask, Sprite, Vec3, Font, ENEMY_TYPES, BOSS_TYPES, ENEMY_ALPHA_BOUNDS, MERCENARY_COUNT, MOTION_FRAMES, SHOP_ICONS, enemyHitOffset;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -54495,6 +54645,8 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
       MOTION_FRAMES = module.MOTION_FRAMES;
     }, function (module) {
       SHOP_ICONS = module.SHOP_ICONS;
+    }, function (module) {
+      enemyHitOffset = module.enemyHitOffset;
     }],
     execute: function () {
       exports('contrastInk', contrastInk);
@@ -55111,7 +55263,9 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
           var points = [[left, 1 - bottom], [right, 1 - bottom], [right, 1 - top], [left, 1 - top]].map(function (_ref3) {
             var x = _ref3[0],
               y = _ref3[1];
-            return target.convertToNodeSpaceAR(t.convertToWorldSpaceAR(new Vec3((x - t.anchorPoint.x) * t.width, (y - t.anchorPoint.y) * t.height, 0)));
+            var world = t.convertToWorldSpaceAR(new Vec3((x - t.anchorPoint.x) * t.width, (y - t.anchorPoint.y) * t.height, 0));
+            world.x += enemyHitOffset(node);
+            return target.convertToNodeSpaceAR(world);
           });
           var x = Math.min.apply(Math, points.map(function (p) {
               return p.x;
