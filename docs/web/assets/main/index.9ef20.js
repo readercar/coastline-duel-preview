@@ -4376,6 +4376,262 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
   };
 });
 
+System.register("chunks:///_virtual/EquipmentDetailUI.ts", ['cc', './EquipmentUI.ts', './SpeechIllustrationUI.ts', './UITheme.ts'], function (exports) {
+  var cclegacy, UITransform, Mask, EQUIPMENT_STYLE, equipmentStats, equipmentHelp, EQUIPMENT_ICONS, speechIllustration, UI;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+      UITransform = module.UITransform;
+      Mask = module.Mask;
+    }, function (module) {
+      EQUIPMENT_STYLE = module.EQUIPMENT_STYLE;
+      equipmentStats = module.equipmentStats;
+      equipmentHelp = module.equipmentHelp;
+      EQUIPMENT_ICONS = module.EQUIPMENT_ICONS;
+    }, function (module) {
+      speechIllustration = module.speechIllustration;
+    }, function (module) {
+      UI = module.UI;
+    }],
+    execute: function () {
+      exports('equipmentDetail', equipmentDetail);
+      cclegacy._RF.push({}, "6323agwiDZOm6b9kmWexlIm", "EquipmentDetailUI", undefined);
+      var WORDS = {
+        ko: {
+          armory: '장비 보관소',
+          equipped: '현재 장착 중',
+          stored: '보관 중',
+          equip: '이 장비 장착',
+          equipHelp: '같은 부위의 현재 장비를 교체합니다.',
+          equippedHelp: '이미 장착한 장비입니다. 누르면 효과를 설명합니다.',
+          protect: '판매 보호',
+          unprotect: '보호 해제',
+          "protected": '판매 보호 중',
+          unprotected: '판매 보호 꺼짐',
+          protectionHelp: '보호하면 개별·일괄 판매에서 제외됩니다.\n장착과 장비 효과는 그대로 유지됩니다.',
+          protectedHelp: '이 장비는 개별·일괄 판매에서 제외됩니다.\n판매하려면 보호를 해제하세요.',
+          sell: '판매 +{gems}',
+          sellProtected: '판매 보호 중입니다. 보호 해제 후 판매할 수 있어요.',
+          sellEquipped: '장착 중인 장비는 판매할 수 없습니다.\n같은 부위의 다른 장비를 장착하세요.',
+          register: '수집 도감 등록',
+          registered: '수집 등록 완료',
+          registerHelp: '장비를 소모하지 않고 수집 도감에 기록합니다.\n도감 조합을 완성하면 해당 영구 보너스가 적용됩니다.',
+          guide: '장비 수치와 버튼\n등급: 품질 · 레벨: 획득 시 장비 레벨\n피해·코인: 장착하면 적용되는 배율\n장착: 같은 부위의 현재 장비 교체\n판매 보호: 개별·일괄 판매에서 제외\n판매: 장비를 소모하고 표시된 다이아 획득\n수집 등록: 장비를 유지한 채 도감에 기록'
+        },
+        en: {
+          armory: 'ARMORY',
+          equipped: 'Equipped',
+          stored: 'In storage',
+          equip: 'Equip this gear',
+          equipHelp: 'Replaces the equipped item in this part.',
+          equippedHelp: 'Already equipped. Tap to read its effects.',
+          protect: 'Protect from sale',
+          unprotect: 'Remove protection',
+          "protected": 'Sale protection ON',
+          unprotected: 'Sale protection OFF',
+          protectionHelp: 'Protection excludes this gear from single and bulk sales.\nYou can still equip it and use its effects.',
+          protectedHelp: 'Excluded from single and bulk sales.\nRemove protection to sell this gear.',
+          sell: 'Sell +{gems}',
+          sellProtected: 'Protected from sale. Remove protection to sell it.',
+          sellEquipped: 'Equipped gear cannot be sold.\nEquip another item in this part first.',
+          register: 'Register collection',
+          registered: 'Collection recorded',
+          registerHelp: 'Records this gear without consuming it.\nCompleting a collection grants its permanent bonus.',
+          guide: 'Gear stats and actions\nRank: quality · Level: level when obtained\nDamage / coin: multipliers applied when equipped\nEquip: replace the current item in this part\nSale protection: exclude from single and bulk sales\nSell: consume gear for the shown diamonds\nRegister: record in the collection and keep the gear'
+        }
+      };
+      function scene(a, p, e) {
+        var style = EQUIPMENT_STYLE[e.slot],
+          words = WORDS[a.game.s.locale],
+          n = a.nodeAt(p, 'equipment-detail-scene', 0, 174, 388, 206);
+        a.ui.surface(n, style.dark, 'cut');
+        var clip = a.nodeAt(n, 'equipment-detail-art-clip', 0, 0, 388, 206),
+          mask = clip.addComponent(Mask);
+        mask.type = Mask.Type.GRAPHICS_STENCIL;
+        var g = mask.subComp,
+          points = a.ui.contours.get(n);
+        g.fillColor = a.color(UI.text);
+        g.moveTo(points[0][0], points[0][1]);
+        points.slice(1).forEach(function (v) {
+          return g.lineTo(v[0], v[1]);
+        });
+        g.close();
+        g.fill();
+        var frame = a.ui.frames.get('title/assembly-ground');
+        if (frame) {
+          var scale = Math.max(388 / frame.width, 206 / frame.height),
+            h = frame.height * scale;
+          a.ui.paint(a.nodeAt(clip, 'equipment-detail-background', 0, (206 - h) / 2 + 60, frame.width * scale, h), 'title/assembly-ground');
+        }
+        a.rect(clip, 0, 0, 388, 206, '#18251e', undefined, 85);
+        speechIllustration(a, clip, 'equipment-detail-illustration', e.slot * 6, -108, 0, 174, 206, true);
+        var identity = a.nodeAt(clip, 'equipment-detail-identity', 89, 0, 200, 196);
+        a.ui.surface(identity, '#1e2d27', 'cut', 232);
+        a.label(identity, words.armory, 0, 73, 180, 22, 14, style.accent).node.name = 'equipment-detail-caption';
+        a.label(identity, a.tr('slot.' + e.slot), 0, 33, 180, 50, 27, UI.text).node.name = 'equipment-name';
+        a.label(identity, e.set >= 0 ? a.tr('extra.set', {
+          id: e.set + 1
+        }) : a.tr('equipment.noSet'), 0, -7, 180, 28, 15, UI.gold).node.name = 'equipment-set-name';
+        var equipped = a.game.s.equipped[e.slot] === e.id,
+          status = a.nodeAt(identity, 'equipment-detail-status', 0, -51, 180, 32);
+        a.ui.surface(status, equipped ? '#31594e' : '#38433e', 'cut');
+        a.ui.icon(a.nodeAt(status, 'status-icon', -72, 0, 18, 18), equipped ? 'symbol:check' : 'symbol:bag', UI.text);
+        a.label(status, equipped ? words.equipped : words.stored, 13, 0, 142, 26, 15, UI.text);
+        var art = a.nodeAt(clip, 'equipment-portrait', -118, -56, 74, 74);
+        a.ui.surface(art, style.accent, 'cut');
+        a.ui.icon(a.nodeAt(art, 'equipment-art', 0, 0, 64, 64), EQUIPMENT_ICONS[e.slot]);
+        a.iconHelp(art, function () {
+          return a.tr('equipment.help.part', {
+            name: a.tr('slot.' + e.slot)
+          });
+        });
+      }
+      function protect(a, id) {
+        var g = a.game,
+          ok = g.transaction(a.id('equipment-protection'), function () {
+            var item = g.s.equipment.find(function (e) {
+              return e.id === id;
+            });
+            g.require(!!item, 'error.invalid');
+            item.locked = !item.locked;
+          });
+        var item = g.s.equipment.find(function (e) {
+          return e.id === id;
+        });
+        if (item) a.item(item);
+        if (!ok) {
+          a.flushNotice();
+          return;
+        }
+        a.drawPanel();
+        void a.operations.save()["catch"](function (error) {
+          return a.operations.report('equipment.protection', error);
+        });
+      }
+
+      /** Inspect the real saved item. Artwork and help never change equipment or currencies. */
+      function equipmentDetail(a, e) {
+        a.tutorial.complete('first:gear');
+        var current = a.game.s.equipment.find(function (x) {
+            return x.id === a.game.s.equipped[e.slot];
+          }),
+          equipped = (current == null ? void 0 : current.id) === e.id,
+          words = WORDS[a.game.s.locale],
+          style = EQUIPMENT_STYLE[e.slot],
+          p = a.open(a.tr('slot.' + e.slot), 746, true, 'slate');
+        p.equipmentId = e.id;
+        scene(a, p, e);
+        equipmentStats(a, p, e, 42, 182);
+        var compare = a.nodeAt(p, 'equipment-comparison', 0, -71, 388, 88);
+        a.ui.surface(compare, '#24342c', 'cut');
+        a.label(p, a.tr('equipment.current'), -117, -44, 142, 22, 14, UI.muted);
+        a.label(p, a.tr('equipment.selected'), 117, -44, 142, 22, 14, UI.muted);
+        a.metric(p, 'symbol:damage', '×' + ((current == null ? void 0 : current.power) || 1).toFixed(2), -112, -81, 160, a.tr('equipment.help.current', {
+          power: ((current == null ? void 0 : current.power) || 1).toFixed(2)
+        })).name = 'equipment-current-power';
+        var arrow = a.nodeAt(p, 'compare-arrow', 0, -81, 24, 24);
+        a.ui.icon(arrow, 'symbol:next');
+        a.iconHelp(arrow, function () {
+          return a.tr('ui.help.compare', {
+            gain: (e.power / ((current == null ? void 0 : current.power) || 1) * 100 - 100).toFixed(1)
+          });
+        });
+        a.metric(p, 'symbol:damage', '×' + e.power.toFixed(2), 112, -81, 160, equipmentHelp(a, e, 'damage')).name = 'equipment-selected-power';
+        var gain = (e.power / ((current == null ? void 0 : current.power) || 1) - 1) * 100,
+          n = a.nodeAt(p, 'equipment-gain', 0, -45, 86, 24);
+        a.label(n, (gain >= 0 ? '+' : '') + gain.toFixed(1) + '%', 0, 0, 86, 22, 14, gain >= 0 ? '#b1de93' : '#ffacb9');
+        a.iconHelp(n, function () {
+          return equipmentHelp(a, e, 'damage');
+        });
+        a.button(p, equipped ? words.equipped : words.equip, 0, -144, 388, 44, function () {
+          return a.equipItem(e.id);
+        }, true, {
+          category: 'confirm',
+          icon: 'symbol:check',
+          completed: function completed() {
+            return a.game.s.equipped[e.slot] === e.id;
+          },
+          unavailable: function unavailable() {
+            return null;
+          },
+          hint: equipped ? words.equippedHelp : words.equipHelp,
+          fontSize: 18
+        }).name = 'equipment-equip';
+        a.label(p, equipped ? words.equippedHelp : words.equipHelp, 0, -183, 378, 32, 14, UI.muted).node.name = 'equipment-equip-guide';
+        a.button(p, e.locked ? words.unprotect : words.protect, -99, -227, 190, 44, function () {
+          return protect(a, e.id);
+        }, false, {
+          category: 'settings',
+          icon: 'lock',
+          style: e.locked ? 'selected' : 'secondary',
+          hint: e.locked ? words.protectedHelp : words.protectionHelp,
+          fontSize: 16
+        }).name = 'equipment-protect';
+        a.ui.icon(a.nodeAt(p.getChildByName('equipment-protect'), 'protection-icon', -72, 0, 22, 22), 'lock');
+        var protectionLabel = p.getChildByName('equipment-protect').getChildByName('button-label');
+        protectionLabel.setPosition(12, 0, 0);
+        protectionLabel.getComponent(UITransform).setContentSize(144, 34);
+        var sellReason = function sellReason() {
+          var _a$game$s$equipment$f;
+          return a.game.s.equipped[e.slot] === e.id ? words.sellEquipped : (_a$game$s$equipment$f = a.game.s.equipment.find(function (x) {
+            return x.id === e.id;
+          })) != null && _a$game$s$equipment$f.locked ? words.sellProtected : null;
+        };
+        var sell = a.button(p, words.sell.replace('{gems}', String(e.rarity + 1)), 99, -227, 190, 44, function () {
+          return a.confirm(a.itemName(e), a.tr('equipment.sellConfirm') + '\n' + a.tr('feedback.gems') + ' +' + (e.rarity + 1), function () {
+            return a.act(function () {
+              return a.game.sell([e.id], a.id('sell'));
+            }, function () {
+              a.close();
+              a.drawPanel();
+            });
+          });
+        }, false, {
+          category: 'danger',
+          unavailable: sellReason,
+          fontSize: 17
+        });
+        sell.name = 'equipment-sell';
+        a.ui.icon(a.nodeAt(sell, 'sale-currency-icon', -72, 0, 22, 22), 'face:gems');
+        sell.getChildByName('button-label').setPosition(12, 0, 0);
+        sell.getChildByName('button-label').getComponent(UITransform).setContentSize(144, 34);
+        var protection = a.nodeAt(p, 'equipment-protection-note', 0, -281, 388, 52);
+        a.ui.surface(protection, e.locked ? '#304036' : '#28312e', 'cut');
+        a.ui.icon(a.nodeAt(protection, 'metric-icon', -171, 0, 22, 22), 'lock', e.locked ? UI.mint : UI.muted);
+        a.label(protection, e.locked ? words.protectedHelp : words.protectionHelp, 16, 0, 338, 46, 14, UI.text).node.name = 'equipment-protection-guide';
+        a.touchAction(protection, function () {
+          return a.tooltip(protection, e.locked ? words.protectedHelp : words.protectionHelp);
+        });
+        a.button(p, a.squadUI.itemRegistered(e) ? words.registered : words.register, -29, -335, 330, 42, function () {
+          return a.squadUI.registerItem(e, function () {
+            return a.item(e);
+          });
+        }, false, {
+          category: 'confirm',
+          icon: 'symbol:star',
+          completed: function completed() {
+            return a.squadUI.itemRegistered(e);
+          },
+          label: function label() {
+            return a.squadUI.itemRegistered(e) ? words.registered : words.register;
+          },
+          hint: words.registerHelp,
+          unavailable: function unavailable() {
+            return a.squadUI.itemRegistered(e) ? a.tr('registry.registered') : null;
+          },
+          fontSize: 16
+        }).name = 'equipment-register';
+        var help = a.nodeAt(p, 'equipment-help', 178, -335, 44, 44);
+        a.ui.icon(a.nodeAt(help, 'equipment-help-icon', 0, 0, 22, 22), 'symbol:info', style.accent);
+        a.iconHelp(help, function () {
+          return words.guide + '\n\n' + words.registerHelp;
+        });
+      }
+      cclegacy._RF.pop();
+    }
+  };
+});
+
 System.register("chunks:///_virtual/EquipmentUI.ts", ['cc', './Amount.ts', './UITheme.ts'], function (exports) {
   var cclegacy, Label, UITransform, Graphics, display, UI, BUTTON_TONES;
   return {
@@ -43911,8 +44167,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
   };
 });
 
-System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './ScrollPositionUI.ts', './DroneFleetUI.ts', './BossEntranceUI.ts', './SkillCatalog.ts', './SkillUI.ts', './ExplorationUI.ts', './SkillTrainingUI.ts', './EquipmentUI.ts', './Enemies.ts', './env', './EnemyArtBounds.ts', './RewardClaimUI.ts', './SquadUI.ts', './MercenaryUnlock.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './DroneFeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, ScrollPositionUI, DroneFleetUI, BossEntranceUI, tacticIcon, tacticHelp, tacticManager, tacticDetail, explorationEntry, explorationBoard, skillTree, skillDetail, equipmentDropButton, equipmentListRow, equipmentIdentity, equipmentStats, equipmentHelp, updateEquipmentDropButton, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, RewardClaimUI, SquadUI, mercenaryUnlocked, mercenaryLock, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, DroneFeedbackUI, Game, display, ZERO, ratio, add, fmt, SKILLS, SPELLS, HEROES, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, GooglePlayBilling, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
+System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './ScrollPositionUI.ts', './DroneFleetUI.ts', './BossEntranceUI.ts', './SkillCatalog.ts', './SkillUI.ts', './ExplorationUI.ts', './SkillTrainingUI.ts', './EquipmentUI.ts', './EquipmentDetailUI.ts', './Enemies.ts', './env', './EnemyArtBounds.ts', './RewardClaimUI.ts', './SquadUI.ts', './MercenaryUnlock.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './DroneFeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
+  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, ScrollPositionUI, DroneFleetUI, BossEntranceUI, tacticIcon, tacticHelp, tacticManager, tacticDetail, explorationEntry, explorationBoard, skillTree, skillDetail, equipmentDropButton, equipmentListRow, updateEquipmentDropButton, equipmentDetail, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, RewardClaimUI, SquadUI, mercenaryUnlocked, mercenaryLock, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, DroneFeedbackUI, Game, display, ZERO, ratio, add, fmt, SKILLS, SPELLS, HEROES, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, GooglePlayBilling, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
@@ -43974,10 +44230,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
     }, function (module) {
       equipmentDropButton = module.equipmentDropButton;
       equipmentListRow = module.equipmentListRow;
-      equipmentIdentity = module.equipmentIdentity;
-      equipmentStats = module.equipmentStats;
-      equipmentHelp = module.equipmentHelp;
       updateEquipmentDropButton = module.updateEquipmentDropButton;
+    }, function (module) {
+      equipmentDetail = module.equipmentDetail;
     }, function (module) {
       enemyType = module.enemyType;
     }, function (module) {
@@ -46845,87 +47100,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           return true;
         };
         _proto.item = function item(e) {
-          var _this29 = this;
-          this.tutorial.complete('first:gear');
-          var current = this.game.s.equipment.find(function (x) {
-              return x.id === _this29.game.s.equipped[e.slot];
-            }),
-            equipped = (current == null ? void 0 : current.id) === e.id,
-            p = this.open(this.tr("slot." + e.slot), 620, true, 'slate');
-          equipmentIdentity(this, p, e, 181);
-          equipmentStats(this, p, e, 95);
-          this.label(p, this.tr('equipment.current'), -104, -13, 174, 24, 15, C.muted);
-          this.label(p, this.tr('equipment.selected'), 104, -13, 174, 24, 15, C.muted);
-          this.metric(p, 'symbol:damage', '×' + ((current == null ? void 0 : current.power) || 1).toFixed(2), -104, -46, 164, this.tr('equipment.help.current', {
-            power: ((current == null ? void 0 : current.power) || 1).toFixed(2)
-          })).name = 'equipment-current-power';
-          var arrow = this.nodeAt(p, 'compare-arrow', 0, -46, 28, 28);
-          this.ui.icon(arrow, 'symbol:next');
-          this.iconHelp(arrow, function () {
-            return _this29.tr('ui.help.compare', {
-              gain: (e.power / ((current == null ? void 0 : current.power) || 1) * 100 - 100).toFixed(1)
-            });
-          });
-          this.metric(p, 'symbol:damage', '×' + e.power.toFixed(2), 104, -46, 164, equipmentHelp(this, e, 'damage')).name = 'equipment-selected-power';
-          var gain = (e.power / ((current == null ? void 0 : current.power) || 1) - 1) * 100;
-          this.metric(p, gain >= 0 ? 'symbol:up' : 'symbol:down', (gain >= 0 ? '+' : '') + gain.toFixed(1) + '%', 0, -90, 188, equipmentHelp(this, e, 'damage')).name = 'equipment-gain';
-          this.button(p, this.tr(equipped ? 'action.equipped' : 'action.equip'), -128, -159, 112, 58, function () {
-            return _this29.equipItem(e.id);
-          }, true, {
-            category: 'confirm',
-            style: equipped ? 'selected' : 'primary',
-            unavailable: function unavailable() {
-              return null;
-            }
-          }).name = 'equipment-equip';
-          this.button(p, this.tr('action.lock'), 0, -159, 112, 58, function () {
-            _this29.game.lock(e.id);
-            _this29.item(e);
-          }, false, {
-            style: e.locked ? 'selected' : 'secondary'
-          });
-          this.button(p, this.tr('action.sell'), 128, -159, 112, 58, function () {
-            if (e.locked || equipped) {
-              _this29.toast(_this29.tr('equipment.protected'), 'blocked');
-              return;
-            }
-            _this29.confirm(_this29.itemName(e), _this29.tr('equipment.sellConfirm'), function () {
-              return _this29.act(function () {
-                return _this29.game.sell([e.id], _this29.id('sell'));
-              }, function () {
-                _this29.close();
-                _this29.drawPanel();
-              });
-            });
-          }, false, {
-            style: e.locked || equipped ? 'disabled' : 'danger',
-            hint: this.tr('action.sell') + ' · ' + (e.rarity + 1)
-          });
-          this.button(p, this.tr(this.squadUI.itemRegistered(e) ? 'registry.registered' : 'registry.register'), -98, -246, 174, 44, function () {
-            return _this29.squadUI.registerItem(e, function () {
-              return _this29.item(e);
-            });
-          }, false, {
-            category: 'confirm',
-            completed: function completed() {
-              return _this29.squadUI.itemRegistered(e);
-            },
-            label: function label() {
-              return _this29.tr(_this29.squadUI.itemRegistered(e) ? 'registry.registered' : 'registry.register');
-            },
-            unavailable: function unavailable() {
-              return _this29.squadUI.itemRegistered(e) ? _this29.tr('registry.registered') : null;
-            }
-          });
-          var guide = this.button(p, this.tr('ui.iconHelp'), 98, -246, 174, 44, function () {
-            return _this29.tooltip(guide, _this29.tr('ui.equipmentHelp'));
-          }, false, {
-            icon: 'symbol:info',
-            category: 'details'
-          });
+          equipmentDetail(this, e);
         };
         _proto.craft = function craft(set, slot, done) {
-          var _this30 = this;
+          var _this29 = this;
           var g = this.game,
             part = g.nextCraft(),
             setId = set != null ? set : Math.floor(part / 5),
@@ -46940,9 +47118,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.ui.surface(portrait, tones[piece], 'cut');
           this.ui.icon(this.nodeAt(portrait, 'craft-piece-art', 0, 0, 78, 78), icons[piece]);
           this.iconHelp(portrait, function () {
-            return _this30.tr('equipment.craftPieceInfo', {
-              name: _this30.tr('slot.' + piece),
-              state: _this30.tr('equipment.craftTargetState')
+            return _this29.tr('equipment.craftPieceInfo', {
+              name: _this29.tr('slot.' + piece),
+              state: _this29.tr('equipment.craftTargetState')
             });
           });
           this.label(p, this.tr('equipment.craftNext'), 36, 174, 228, 22, 15, C.muted, Label.HorizontalAlign.LEFT);
@@ -46957,18 +47135,18 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }), 36, 108, 228, 24, 16, C.gold, Label.HorizontalAlign.LEFT).node.name = 'craft-set-progress';
           var _loop6 = function _loop6(i) {
             var collected = g.s.setHistory.includes(setId * 5 + i),
-              n = _this30.nodeAt(p, 'craft-set-piece-' + i, -148 + i * 74, 31, 68, 90),
-              plate = _this30.nodeAt(n, 'piece-plate', 0, 13, 44, 44);
-            _this30.ui.surface(plate, tones[i], 'cut');
-            var art = _this30.nodeAt(plate, 'piece-art', 0, 0, 34, 34);
-            _this30.ui.icon(art, icons[i]);
+              n = _this29.nodeAt(p, 'craft-set-piece-' + i, -148 + i * 74, 31, 68, 90),
+              plate = _this29.nodeAt(n, 'piece-plate', 0, 13, 44, 44);
+            _this29.ui.surface(plate, tones[i], 'cut');
+            var art = _this29.nodeAt(plate, 'piece-art', 0, 0, 34, 34);
+            _this29.ui.icon(art, icons[i]);
             if (i !== piece && !collected) art.addComponent(UIOpacity).opacity = 155;
-            if (i === piece) _this30.rect(plate, 0, -6, 28, 3, contrastInk(tones[i]));
-            _this30.label(n, _this30.tr('slot.' + i), 0, -24, 68, 30, 14, C.text);
-            _this30.iconHelp(n, function () {
-              return _this30.tr('equipment.craftPieceInfo', {
-                name: _this30.tr('slot.' + i),
-                state: _this30.tr(collected ? 'extra.collected' : i === piece ? 'equipment.craftTargetState' : 'extra.missing')
+            if (i === piece) _this29.rect(plate, 0, -6, 28, 3, contrastInk(tones[i]));
+            _this29.label(n, _this29.tr('slot.' + i), 0, -24, 68, 30, 14, C.text);
+            _this29.iconHelp(n, function () {
+              return _this29.tr('equipment.craftPieceInfo', {
+                name: _this29.tr('slot.' + i),
+                state: _this29.tr(collected ? 'extra.collected' : i === piece ? 'equipment.craftTargetState' : 'extra.missing')
               });
             });
           };
@@ -46986,25 +47164,25 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           };
           this.label(p, this.tr(set === undefined ? 'equipment.craftNextHint' : 'equipment.craftChosenHint'), 0, -151, 374, 48, 17, C.muted);
           this.button(p, this.tr('action.cancel'), -98, -226, 176, 50, function () {
-            return _this30.close();
+            return _this29.close();
           }, false, {
             category: 'back'
           }).name = 'craft-cancel';
           this.button(p, this.tr('equipment.craft'), 98, -226, 176, 50, function () {
-            return _this30.act(function () {
-              return g.craft(_this30.id(set === undefined ? 'craft' : 'craft-part'), setId, piece);
+            return _this29.act(function () {
+              return g.craft(_this29.id(set === undefined ? 'craft' : 'craft-part'), setId, piece);
             }, function () {
               if (done) done();else {
-                _this30.close();
-                _this30.drawPanel();
-                _this30.item(g.s.equipment[g.s.equipment.length - 1]);
+                _this29.close();
+                _this29.drawPanel();
+                _this29.item(g.s.equipment[g.s.equipment.length - 1]);
               }
             });
           }, true, {
             category: 'upgrade',
             icon: 'symbol:hammer',
             unavailable: function unavailable() {
-              return g.s.setHistory.includes(setId * 5 + piece) ? _this30.tr('action.alreadyCrafted') : g.s.equipment.length >= 100 ? _this30.tr('error.full') : _this30.costReason('shards', cost);
+              return g.s.setHistory.includes(setId * 5 + piece) ? _this29.tr('action.alreadyCrafted') : g.s.equipment.length >= 100 ? _this29.tr('error.full') : _this29.costReason('shards', cost);
             }
           }).name = 'craft-confirm';
         };
@@ -47020,42 +47198,42 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.skills = function skills(fresh) {
-          var _this31 = this;
+          var _this30 = this;
           if (fresh === void 0) {
             fresh = true;
           }
           if (fresh && this.tutorial.explain('skills', function () {
-            return _this31.skills();
+            return _this30.skills();
           })) return;
           if (fresh) this.draft = [].concat(this.game.s.skills);
           // The tree remains an editable draft, outside single-button popup guides.
           skillTree(this);
         };
         _proto.perks = function perks() {
-          var _this32 = this;
+          var _this31 = this;
           var p = this.open(this.tr('perks.title'), 650);
           this.label(p, this.tr('perks.info'), 0, 242, 370, 50, 16, C.muted);
           this.scroll(p, 0, -25, 400, 450, Array.from({
             length: 6
           }, function (_, i) {
             return {
-              title: _this32.tr('perks.row', {
-                name: _this32.tr("branch." + i),
-                count: _this32.game.s.perks[i]
+              title: _this31.tr('perks.row', {
+                name: _this31.tr("branch." + i),
+                count: _this31.game.s.perks[i]
               }),
-              sub: Date.now() < _this32.game.s.perkUntil[i] ? _this32.tr('action.remaining', {
-                seconds: Math.ceil((_this32.game.s.perkUntil[i] - Date.now()) / 1000)
+              sub: Date.now() < _this31.game.s.perkUntil[i] ? _this31.tr('action.remaining', {
+                seconds: Math.ceil((_this31.game.s.perkUntil[i] - Date.now()) / 1000)
               }) : '',
               unavailable: function unavailable() {
-                return _this32.needReason(_this32.tr("branch." + i), _this32.game.s.perks[i], 1);
+                return _this31.needReason(_this31.tr("branch." + i), _this31.game.s.perks[i], 1);
               },
               icon: i,
-              action: _this32.tr('action.apply'),
+              action: _this31.tr('action.apply'),
               click: function click() {
-                return _this32.act(function () {
-                  return _this32.game.usePerk(i, _this32.id('perk'));
+                return _this31.act(function () {
+                  return _this31.game.usePerk(i, _this31.id('perk'));
                 }, function () {
-                  return _this32.extensions.perks();
+                  return _this31.extensions.perks();
                 });
               }
             };
@@ -47076,79 +47254,79 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.daily = function daily() {
-          var _this33 = this;
+          var _this32 = this;
           var p = this.open(this.tr('daily.title'), 570);
           this.scroll(p, 0, -24, 400, 450, [0, 1, 2, 3].map(function (i) {
             return {
-              title: _this33.tr("daily." + i),
+              title: _this32.tr("daily." + i),
               sub: function sub() {
-                return _this33.tr('daily.progress', {
-                  current: _this33.game.dailyProgress(i),
-                  goal: _this33.game.dailyGoal(i)
+                return _this32.tr('daily.progress', {
+                  current: _this32.game.dailyProgress(i),
+                  goal: _this32.game.dailyGoal(i)
                 });
               },
               unavailable: function unavailable() {
-                return _this33.rewardReason(_this33.tr("daily." + i), _this33.game.dailyProgress(i), _this33.game.dailyGoal(i), _this33.game.s.claims.includes("daily." + i));
+                return _this32.rewardReason(_this32.tr("daily." + i), _this32.game.dailyProgress(i), _this32.game.dailyGoal(i), _this32.game.s.claims.includes("daily." + i));
               },
               icon: i,
               art: i === 3 ? 'symbol:discharge' : ['shop:free', 'symbol:coin', 'shop:milestone'][i],
               tint: C.mint,
-              action: _this33.tr('action.claim'),
+              action: _this32.tr('action.claim'),
               click: function click() {
-                return _this33.rewards.local(_this33.tr('daily.' + i), 'daily:' + _this33.game.s.day + ':' + i, function (g) {
+                return _this32.rewards.local(_this32.tr('daily.' + i), 'daily:' + _this32.game.s.day + ':' + i, function (g) {
                   return g.claimDaily(i);
                 }, function () {
-                  return _this33.daily();
+                  return _this32.daily();
                 });
               }
             };
           }));
         };
         _proto.milestones = function milestones() {
-          var _this34 = this;
+          var _this33 = this;
           var p = this.open(this.tr('milestone.title'), 630);
           this.scroll(p, 0, -28, 400, 514, [8, 15, 60, 100, 500, 1000, 100000, 180000].map(function (stage) {
             return {
-              title: _this34.tr('hud.stage', {
+              title: _this33.tr('hud.stage', {
                 stage: stage
               }),
-              sub: _this34.tr('milestone.row', {
+              sub: _this33.tr('milestone.row', {
                 stage: stage
               }),
               unavailable: function unavailable() {
-                return _this34.rewardReason(_this34.tr('achievement.2'), _this34.game.s.maxStage, stage, _this34.game.s.claims.includes("milestone." + stage));
+                return _this33.rewardReason(_this33.tr('achievement.2'), _this33.game.s.maxStage, stage, _this33.game.s.claims.includes("milestone." + stage));
               },
               icon: 0,
               art: 'shop:milestone',
-              action: _this34.tr('action.claim'),
+              action: _this33.tr('action.claim'),
               click: function click() {
-                return _this34.rewards.local(_this34.tr('hud.stage', {
+                return _this33.rewards.local(_this33.tr('hud.stage', {
                   stage: stage
                 }), 'milestone:' + stage, function (g) {
                   return g.claimMilestone(stage);
                 }, function () {
-                  return _this34.milestones();
+                  return _this33.milestones();
                 });
               }
             };
           }));
         };
         _proto.offline = function offline() {
-          var _this35 = this;
+          var _this34 = this;
           var p = this.open(this.tr('offline.title'), 380);
           this.shopUI.identity(p, 'free', this.tr('offline.reward', {
             gold: this.format(this.game.s.offline)
           }), 54, 98, 22);
           this.label(p, this.tr('offline.info'), 0, -38, 370, 56, 17, C.muted);
           this.button(p, this.tr('action.claim'), 0, -126, 310, 50, function () {
-            return _this35.rewards.local(_this35.tr('offline.title'), 'offline:' + _this35.id('claim'), function (g) {
-              return g.collectOffline(_this35.id('offline'));
+            return _this34.rewards.local(_this34.tr('offline.title'), 'offline:' + _this34.id('claim'), function (g) {
+              return g.collectOffline(_this34.id('offline'));
             }, function () {
-              return _this35.close();
+              return _this34.close();
             });
           }, true, {
             unavailable: function unavailable() {
-              return _this35.game.s.offline <= ZERO ? _this35.tr('action.alreadyClaimed') : null;
+              return _this34.game.s.offline <= ZERO ? _this34.tr('action.alreadyClaimed') : null;
             }
           });
         };
@@ -47169,18 +47347,18 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.settings = function settings() {
-          var _this36 = this;
+          var _this35 = this;
           var p = this.open(this.tr('menu.settings'), 700);
           this.label(p, this.tr('settings.language'), 0, 239, 340, 30, 16, '#38696b');
           var language = function language(locale) {
-            _this36.game.s.locale = locale;
-            _this36.game.persist();
-            if (_this36.liveOps.push.supported && _this36.liveOps.push.choice === 'on') void _this36.liveOps.push.set(true, locale)["catch"](function (e) {
-              return _this36.operations.report('push.locale', e);
+            _this35.game.s.locale = locale;
+            _this35.game.persist();
+            if (_this35.liveOps.push.supported && _this35.liveOps.push.choice === 'on') void _this35.liveOps.push.set(true, locale)["catch"](function (e) {
+              return _this35.operations.report('push.locale', e);
             });
-            _this36.close();
-            _this36.draw();
-            _this36.settings();
+            _this35.close();
+            _this35.draw();
+            _this35.settings();
           };
           this.button(p, this.tr('locale.ko'), -94, 192, 175, 46, function () {
             return language('ko');
@@ -47195,54 +47373,54 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.button(p, this.tr('settings.audio', {
             state: this.tr(this.game.s.audio ? 'settings.on' : 'settings.off')
           }), 0, 120, 365, 48, function () {
-            _this36.game.s.audio = !_this36.game.s.audio;
-            _this36.game.persist();
-            _this36.settings();
+            _this35.game.s.audio = !_this35.game.s.audio;
+            _this35.game.persist();
+            _this35.settings();
           }, false, {
             icon: 'heart'
           });
           this.button(p, this.tr('settings.saveButton'), 0, 57, 365, 48, function () {
-            if (_this36.game.persist()) void _this36.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
+            if (_this35.game.persist()) void _this35.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
               return _regeneratorRuntime().wrap(function _callee2$(_context2) {
                 while (1) switch (_context2.prev = _context2.next) {
                   case 0:
                     _context2.next = 2;
-                    return _this36.operations.save();
+                    return _this35.operations.save();
                   case 2:
-                    _this36.toast(_this36.tr('settings.save'));
+                    _this35.toast(_this35.tr('settings.save'));
                   case 3:
                   case "end":
                     return _context2.stop();
                 }
               }, _callee2);
-            })));else _this36.flushNotice();
+            })));else _this35.flushNotice();
           }, true, {
             icon: 'scroll'
           });
           this.button(p, this.tr('live.17'), 0, -6, 365, 46, function () {
-            return _this36.liveOps.hub();
+            return _this35.liveOps.hub();
           }, false, {
             icon: 'mail'
           });
           this.button(p, this.tr('tutorial.replay'), 0, -66, 365, 38, function () {
-            return _this36.confirm(_this36.tr('tutorial.replay'), _this36.tr('tutorial.replayBody'), function () {
-              replayTutorial(_this36.game.s);
-              _this36.tutorial.resetSessionGuides();
-              _this36.game.revision++;
-              _this36.game.persist();
-              void _this36.operations.save()["catch"](function (e) {
-                return _this36.operations.report('tutorial.replay', e);
+            return _this35.confirm(_this35.tr('tutorial.replay'), _this35.tr('tutorial.replayBody'), function () {
+              replayTutorial(_this35.game.s);
+              _this35.tutorial.resetSessionGuides();
+              _this35.game.revision++;
+              _this35.game.persist();
+              void _this35.operations.save()["catch"](function (e) {
+                return _this35.operations.report('tutorial.replay', e);
               });
-              _this36.tab = 0;
-              _this36.folded = false;
-              _this36.draw();
+              _this35.tab = 0;
+              _this35.folded = false;
+              _this35.draw();
             });
           }, false, {
             style: 'quiet',
             fontSize: 14
           });
           this.button(p, this.tr('cheat.title'), 0, -120, 365, 38, function () {
-            return _this36.cheats.open();
+            return _this35.cheats.open();
           }, false, {
             style: 'quiet',
             icon: 'settings',
@@ -47250,7 +47428,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           });
           resources.load('branding/tt-softs-ci/texture', Texture2D, function (err, texture) {
             if (err || !p.isValid) return;
-            var n = _this36.nodeAt(p, 'company-ci', 0, -188, 120, 120 * texture.height / texture.width),
+            var n = _this35.nodeAt(p, 'company-ci', 0, -188, 120, 120 * texture.height / texture.width),
               sp = n.addComponent(Sprite),
               frame = new SpriteFrame();
             frame.texture = texture;
@@ -47259,26 +47437,26 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             n.getComponent(UITransform).setContentSize(120, 120 * texture.height / texture.width);
           });
           this.button(p, this.tr('complete.display'), -124, -270, 116, 68, function () {
-            return _this36.extensions.displaySettings();
+            return _this35.extensions.displaySettings();
           }, false, {
             style: 'quiet',
             icon: 'settings'
           });
           this.button(p, this.tr('complete.account'), 0, -270, 116, 68, function () {
-            return _this36.extensions.account();
+            return _this35.extensions.account();
           }, false, {
             style: 'quiet',
             icon: 'adventurer'
           });
           this.button(p, this.tr('complete.support'), 124, -270, 116, 68, function () {
-            return _this36.extensions.support();
+            return _this35.extensions.support();
           }, false, {
             style: 'quiet',
             icon: 'mail'
           });
         };
         _proto.cards = function cards() {
-          var _this37 = this;
+          var _this36 = this;
           var s = this.game.s,
             p = this.open(this.tr('menu.cards'), 720);
           this.label(p, this.tr('raid.deck', {
@@ -47291,28 +47469,28 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }), 0, 225, 385, 26, 15, C.gold);
           this.scroll(p, 0, -25, 400, 450, CARDS.map(function (c) {
             return {
-              title: _this37.tr(c.name),
-              sub: _this37.tr('raid.card', {
+              title: _this36.tr(c.name),
+              sub: _this36.tr('raid.card', {
                 level: s.cards[c.id],
                 fragments: s.fragments[c.id]
               }),
               icon: c.id,
               tint: [C.ember, C.violet, C.mint][c.type],
-              action: _this37.tr('action.details'),
+              action: _this36.tr('action.details'),
               click: function click() {
-                return _this37.cardDetail(c.id);
+                return _this36.cardDetail(c.id);
               }
             };
           }));
           this.button(p, this.tr('extra.dustShop'), -101, -306, 190, 44, function () {
-            return _this37.extensions.dustShop();
+            return _this36.extensions.dustShop();
           });
           this.button(p, this.tr('extra.crystal'), 101, -306, 190, 44, function () {
-            return _this37.extensions.crystal();
+            return _this36.extensions.crystal();
           });
         };
         _proto.cardDetail = function cardDetail(i) {
-          var _this38 = this;
+          var _this37 = this;
           var s = this.game.s,
             p = this.open(this.tr("card." + i), 570);
           this.ui.icon(this.nodeAt(p, 'popup-subject-art', -139, 166, 82, 82), 'cards');
@@ -47322,34 +47500,34 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             fragments: s.fragments[i]
           }), 0, 70, 360, 60, 22);
           this.button(p, this.tr(s.deck.includes(i) ? 'action.selected' : 'action.select'), 0, 0, 360, 48, function () {
-            _this38.game.setDeck(i);
-            _this38.cards();
+            _this37.game.setDeck(i);
+            _this37.cards();
           }, true, {
             category: 'deck',
             completed: function completed() {
-              return _this38.game.s.deck.includes(i);
+              return _this37.game.s.deck.includes(i);
             },
             unavailable: function unavailable() {
-              return _this38.raidChangeReason() || (_this38.game.s.deck.includes(i) ? _this38.tr('action.alreadyApplied') : null);
+              return _this37.raidChangeReason() || (_this37.game.s.deck.includes(i) ? _this37.tr('action.alreadyApplied') : null);
             }
           });
           this.button(p, this.tr('raid.upgrade', {
             cost: s.cards[i] * 10
           }), 0, -73, 360, 48, function () {
-            return _this38.act(function () {
-              return _this38.game.upgradeCard(i, _this38.id('card'));
+            return _this37.act(function () {
+              return _this37.game.upgradeCard(i, _this37.id('card'));
             }, function () {
-              return _this38.cardDetail(i);
+              return _this37.cardDetail(i);
             });
           }, true, {
             unavailable: function unavailable() {
-              return _this38.raidChangeReason() || _this38.costReason('dust', s.cards[i] * 10) || _this38.needReason(_this38.tr('feedback.fragments', {
+              return _this37.raidChangeReason() || _this37.costReason('dust', s.cards[i] * 10) || _this37.needReason(_this37.tr('feedback.fragments', {
                 index: i + 1
               }), s.fragments[i], s.cards[i]);
             }
           });
           this.button(p, this.tr('action.back'), 0, -192, 360, 44, function () {
-            return _this38.cards();
+            return _this37.cards();
           });
         };
         _proto.format = function format(value) {
@@ -47359,7 +47537,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.extensions.solo();
         };
         _proto.raidView = function raidView() {
-          var _this39 = this;
+          var _this38 = this;
           var p = this.open(this.tr('raid.title'), 700),
             r = this.game.raid;
           var status = this.label(p, '', 0, 266, 375, 32, 20, C.gold);
@@ -47367,45 +47545,45 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var _loop7 = function _loop7(i) {
             var x = i % 2 ? -94 : 94,
               y = 178 - Math.floor(i / 2) * 88;
-            var b = _this39.button(p, '', x, y, 170, 70, function () {
-              _this39.game.raidTap(i);
-              _this39.sound(170 + i * 30);
+            var b = _this38.button(p, '', x, y, 170, 70, function () {
+              _this38.game.raidTap(i);
+              _this38.sound(170 + i * 30);
             }, false, {
               category: 'battle',
               unavailable: function unavailable() {
-                return r.ended ? _this39.tr('action.battleEnded') : r.hp[i] <= 0 ? _this39.tr('action.targetDefeated') : null;
+                return r.ended ? _this38.tr('action.battleEnded') : r.hp[i] <= 0 ? _this38.tr('action.targetDefeated') : null;
               }
             });
-            parts.push(_this39.label(b, '', 0, 0, 156, 61, 16, C.text));
+            parts.push(_this38.label(b, '', 0, 0, 156, 61, 16, C.text));
           };
           for (var i = 0; i < 8; i++) {
             _loop7(i);
           }
           var done = this.button(p, this.tr('action.claim'), 0, -243, 365, 51, function () {
             if (!r.ended) return;
-            _this39.rewards.local(_this39.tr('raid.result'), 'raid:' + r.portal + ':' + r.expiresAt, function (g) {
-              return g.claimRaid(_this39.id('raid'));
+            _this38.rewards.local(_this38.tr('raid.result'), 'raid:' + r.portal + ':' + r.expiresAt, function (g) {
+              return g.claimRaid(_this38.id('raid'));
             }, function (multiplier) {
               if (multiplier === void 0) {
                 multiplier = 1;
               }
-              return _this39.info(_this39.tr('raid.result'), _this39.tr('raid.reward', {
+              return _this38.info(_this38.tr('raid.result'), _this38.tr('raid.reward', {
                 damage: display(r.damage),
                 dust: Math.floor(r.damage / 100) * multiplier
               }));
             });
           }, true, {
             unavailable: function unavailable() {
-              return r.claimed ? _this39.tr('action.alreadyClaimed') : !r.ended ? _this39.tr('action.battleRunning') : null;
+              return r.claimed ? _this38.tr('action.alreadyClaimed') : !r.ended ? _this38.tr('action.battleRunning') : null;
             }
           });
           this.modalRefresh = function () {
-            status.string = _this39.tr('raid.damage', {
+            status.string = _this38.tr('raid.damage', {
               damage: display(r.damage),
               seconds: Math.ceil(r.seconds)
             });
             parts.forEach(function (l, i) {
-              return l.string = _this39.tr('raid.part', {
+              return l.string = _this38.tr('raid.part', {
                 part: i + 1
               }) + '\n' + display(r.hp[i] + r.armor[i]);
             });
@@ -47414,7 +47592,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.modalRefresh();
         };
         _proto.events = function events() {
-          var _this40 = this;
+          var _this39 = this;
           var p = this.open(this.tr('event.title'), 670);
           this.label(p, this.tr('event.balance', {
             tokens: this.game.s.eventTokens
@@ -47422,58 +47600,58 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.label(p, this.tr('event.rule'), 0, 158, 380, 116, 17, C.muted);
           explorationEntry(this, p);
           this.button(p, this.tr('extra.eventModes'), 99, 57, 182, 50, function () {
-            return _this40.extensions.eventHub();
+            return _this39.extensions.eventHub();
           });
           this.scroll(p, 0, -140, 400, 270, Array.from({
             length: 10
           }, function (_, i) {
             return {
-              title: _this40.tr('event.reward', {
+              title: _this39.tr('event.reward', {
                 tokens: (i + 1) * 100
               }),
               unavailable: function unavailable() {
-                return _this40.rewardReason(_this40.tr('feedback.eventTokens'), Math.max(_this40.game.s.extra.eventEarned, _this40.game.s.eventTokens), (i + 1) * 100, _this40.game.s.claims.includes("event." + i));
+                return _this39.rewardReason(_this39.tr('feedback.eventTokens'), Math.max(_this39.game.s.extra.eventEarned, _this39.game.s.eventTokens), (i + 1) * 100, _this39.game.s.claims.includes("event." + i));
               },
               icon: 0,
               art: 'shop:free',
-              action: _this40.tr('action.claim'),
+              action: _this39.tr('action.claim'),
               click: function click() {
-                return _this40.rewards.local(_this40.tr('event.title'), 'event:' + _this40.game.s.extra.eventSeason + ':' + i, function (g) {
+                return _this39.rewards.local(_this39.tr('event.title'), 'event:' + _this39.game.s.extra.eventSeason + ':' + i, function (g) {
                   return g.claimEvent(i);
                 }, function () {
-                  return _this40.events();
+                  return _this39.events();
                 });
               }
             };
           }));
         };
         _proto.board = function board(first) {
-          var _this41 = this;
+          var _this40 = this;
           if (first === void 0) {
             first = true;
           }
           if (first && this.tutorial.explain('exploration', function () {
-            return _this41.board(false);
+            return _this40.board(false);
           })) return;
           explorationBoard(this);
         };
         _proto.meta = function meta() {
-          var _this42 = this;
+          var _this41 = this;
           var p = this.open(this.tr('meta.title'), 540);
           [['meta.souls', function () {
-            return _this42.extensions.souls();
+            return _this41.extensions.souls();
           }], ['meta.gems', function () {
-            return _this42.extensions.gems();
+            return _this41.extensions.gems();
           }], ['meta.research', function () {
-            return _this42.research();
+            return _this41.research();
           }], ['meta.monuments', function () {
-            return _this42.extensions.monuments();
+            return _this41.extensions.monuments();
           }]].forEach(function (v, i) {
-            return _this42.button(p, _this42.tr(v[0]), 0, 139 - i * 91, 372, 70, v[1]);
+            return _this41.button(p, _this41.tr(v[0]), 0, 139 - i * 91, 372, 70, v[1]);
           });
         };
         _proto.souls = function souls() {
-          var _this43 = this;
+          var _this42 = this;
           var s = this.game.s,
             p = this.open(this.tr('meta.souls'), 440);
           this.label(p, this.tr('meta.soulInfo', {
@@ -47481,19 +47659,19 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             count: s.titans.filter(Boolean).length
           }), 0, 60, 380, 160, 20);
           this.button(p, this.tr('meta.summon'), 0, -105, 370, 55, function () {
-            return _this43.act(function () {
-              return _this43.game.summon(_this43.id('summon'));
+            return _this42.act(function () {
+              return _this42.game.summon(_this42.id('summon'));
             }, function () {
-              return _this43.souls();
+              return _this42.souls();
             });
           }, true, {
             unavailable: function unavailable() {
-              return _this43.extensions.summonReason(1);
+              return _this42.extensions.summonReason(1);
             }
           });
         };
         _proto.stones = function stones() {
-          var _this44 = this;
+          var _this43 = this;
           var s = this.game.s,
             p = this.open(this.tr('meta.gems'), 680);
           this.label(p, this.tr('meta.gemInfo', {
@@ -47501,19 +47679,19 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             count: s.stones.filter(Boolean).length
           }), 0, 251, 375, 42, 19, C.gold);
           this.button(p, this.tr('meta.crack'), 0, 190, 375, 46, function () {
-            return _this44.act(function () {
-              return _this44.game.crack(_this44.id('geode'));
+            return _this43.act(function () {
+              return _this43.game.crack(_this43.id('geode'));
             }, function () {
-              return _this44.stones();
+              return _this43.stones();
             });
           }, true, {
             unavailable: function unavailable() {
-              return _this44.costReason('geodes', 1);
+              return _this43.costReason('geodes', 1);
             }
           });
           this.scroll(p, 0, -74, 400, 440, s.stones.map(function (level, i) {
             return {
-              title: _this44.tr('meta.stone', {
+              title: _this43.tr('meta.stone', {
                 index: i + 1,
                 level: level
               }),
@@ -47523,35 +47701,35 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.research = function research() {
-          var _this45 = this;
+          var _this44 = this;
           var s = this.game.s,
             p = this.open(this.tr('meta.research'), 650);
           this.scroll(p, 0, -25, 400, 520, s.research.map(function (level, i) {
             return {
-              title: _this45.tr('meta.researchNode', {
+              title: _this44.tr('meta.researchNode', {
                 index: i + 1,
                 level: level
               }),
               unavailable: function unavailable() {
-                return i % 3 && _this45.game.s.research[i - 1] < 3 ? _this45.tr('action.previousLevel', {
+                return i % 3 && _this44.game.s.research[i - 1] < 3 ? _this44.tr('action.previousLevel', {
                   level: 3
-                }) : _this45.needReason(_this45.tr('extra.researchCurrency'), Math.floor(_this45.game.s.extra.summonCount / 5) - _this45.game.s.research.reduce(function (a, b) {
+                }) : _this44.needReason(_this44.tr('extra.researchCurrency'), Math.floor(_this44.game.s.extra.summonCount / 5) - _this44.game.s.research.reduce(function (a, b) {
                   return a + b;
                 }, 0), 1);
               },
-              action: _this45.tr('action.upgrade'),
+              action: _this44.tr('action.upgrade'),
               click: function click() {
-                return _this45.act(function () {
-                  return _this45.game.upgradeResearch(i, _this45.id('research'));
+                return _this44.act(function () {
+                  return _this44.game.upgradeResearch(i, _this44.id('research'));
                 }, function () {
-                  return _this45.research();
+                  return _this44.research();
                 });
               }
             };
           }));
         };
         _proto.monuments = function monuments() {
-          var _this46 = this;
+          var _this45 = this;
           var s = this.game.s,
             p = this.open(this.tr('meta.monuments'), 670);
           this.label(p, this.tr('meta.monumentInfo', {
@@ -47559,22 +47737,22 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }), 0, 225, 380, 80, 19, C.gold);
           this.scroll(p, 0, -66, 400, 460, s.monuments.map(function (level, i) {
             return {
-              title: _this46.tr('meta.monument', {
+              title: _this45.tr('meta.monument', {
                 index: i + 1,
                 level: level
               }),
               unavailable: function unavailable() {
-                return _this46.game.s.maxStage < 180000 ? _this46.tr('hero.locked', {
+                return _this45.game.s.maxStage < 180000 ? _this45.tr('hero.locked', {
                   stage: 180000
-                }) : _this46.costReason('mementos', Math.log10(Math.pow(2, i) * (_this46.game.s.monuments[i] + 1)));
+                }) : _this45.costReason('mementos', Math.log10(Math.pow(2, i) * (_this45.game.s.monuments[i] + 1)));
               },
-              action: _this46.tr('action.upgrade'),
+              action: _this45.tr('action.upgrade'),
               icon: i,
               click: function click() {
-                return _this46.act(function () {
-                  return _this46.game.monument(i, _this46.id('monument'));
+                return _this45.act(function () {
+                  return _this45.game.monument(i, _this45.id('monument'));
                 }, function () {
-                  return _this46.monuments();
+                  return _this45.monuments();
                 });
               }
             };
@@ -47583,7 +47761,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         _proto.remote = /*#__PURE__*/function () {
           var _remote = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(work) {
             var _this$tutorial5,
-              _this47 = this;
+              _this46 = this;
             var firstUseKey, before, _this$operations3, key;
             return _regeneratorRuntime().wrap(function _callee3$(_context3) {
               while (1) switch (_context3.prev = _context3.next) {
@@ -47611,7 +47789,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                   key = _context3.t0.message;
                   if (key === 'online.unreachable') {
                     this.confirm(this.tr('extra.retry'), this.tr(key), function () {
-                      void _this47.remote(work);
+                      void _this46.remote(work);
                     }, {}, 'blocked');
                   } else this.toast(this.tr(key.startsWith('online.') || key.startsWith('error.') || key.startsWith('extra.') ? key : 'online.serverError'), 'blocked');
                 case 16:
@@ -47647,14 +47825,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           return field;
         };
         _proto.guild = function guild() {
-          var _this48 = this;
+          var _this47 = this;
           void this.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
             var boot, guilds, _p, name, data, p, message;
             return _regeneratorRuntime().wrap(function _callee7$(_context7) {
               while (1) switch (_context7.prev = _context7.next) {
                 case 0:
                   _context7.next = 2;
-                  return _this48.onlineService.connect(_this48.tr('online.defaultName'));
+                  return _this47.onlineService.connect(_this47.tr('online.defaultName'));
                 case 2:
                   boot = _context7.sent;
                   if (boot.membership) {
@@ -47662,25 +47840,25 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                     break;
                   }
                   _context7.next = 6;
-                  return _this48.onlineService.request('/guilds');
+                  return _this47.onlineService.request('/guilds');
                 case 6:
                   guilds = _context7.sent;
-                  _p = _this48.open(_this48.tr('menu.clan'), 690);
-                  name = _this48.edit(_p, 0, 230, 375, 48, _this48.tr('online.guildName'));
+                  _p = _this47.open(_this47.tr('menu.clan'), 690);
+                  name = _this47.edit(_p, 0, 230, 375, 48, _this47.tr('online.guildName'));
                   name.maxLength = 24;
-                  _this48.button(_p, _this48.tr('online.create'), 0, 163, 375, 46, function () {
+                  _this47.button(_p, _this47.tr('online.create'), 0, 163, 375, 46, function () {
                     var value = name.string;
-                    void _this48.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+                    void _this47.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
                       return _regeneratorRuntime().wrap(function _callee4$(_context4) {
                         while (1) switch (_context4.prev = _context4.next) {
                           case 0:
                             _context4.next = 2;
-                            return _this48.onlineService.command('/guild/create', {
+                            return _this47.onlineService.command('/guild/create', {
                               name: value
                             });
                           case 2:
-                            _this48.remoteBusy = false;
-                            _this48.guild();
+                            _this47.remoteBusy = false;
+                            _this47.guild();
                           case 4:
                           case "end":
                             return _context4.stop();
@@ -47689,63 +47867,63 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                     })));
                   }, true, {
                     unavailable: function unavailable() {
-                      return _this48.textReason(name.string, 2, 24);
+                      return _this47.textReason(name.string, 2, 24);
                     }
                   });
-                  _this48.scroll(_p, 0, -80, 400, 400, guilds.map(function (g) {
+                  _this47.scroll(_p, 0, -80, 400, 400, guilds.map(function (g) {
                     return {
                       title: g.name,
-                      sub: _this48.tr('online.members', {
+                      sub: _this47.tr('online.members', {
                         count: g.members
                       }),
                       unavailable: function unavailable() {
-                        return g.members >= 50 ? _this48.tr('online.full') : null;
+                        return g.members >= 50 ? _this47.tr('online.full') : null;
                       },
-                      action: _this48.tr('online.join'),
+                      action: _this47.tr('online.join'),
                       click: function click() {
-                        return _this48.extensions.joinGuild(g.id, g.name);
+                        return _this47.extensions.joinGuild(g.id, g.name);
                       }
                     };
                   }));
                   return _context7.abrupt("return");
                 case 13:
                   _context7.next = 15;
-                  return _this48.onlineService.request('/guild');
+                  return _this47.onlineService.request('/guild');
                 case 15:
                   data = _context7.sent;
-                  p = _this48.open(data.guild.name, 710);
-                  _this48.label(p, _this48.tr('online.members', {
+                  p = _this47.open(data.guild.name, 710);
+                  _this47.label(p, _this47.tr('online.members', {
                     count: data.members.length
                   }), -60, 271, 250, 30, 18, C.gold);
-                  _this48.button(p, '⋯', 164, 271, 55, 34, function () {
-                    return _this48.extensions.guildTools();
+                  _this47.button(p, '⋯', 164, 271, 55, 34, function () {
+                    return _this47.extensions.guildTools();
                   });
-                  _this48.button(p, _this48.tr('online.roster'), -101, 221, 185, 43, function () {
-                    return _this48.guildMembers(data);
+                  _this47.button(p, _this47.tr('online.roster'), -101, 221, 185, 43, function () {
+                    return _this47.guildMembers(data);
                   });
-                  _this48.button(p, _this48.tr('online.guildRaid'), 101, 221, 185, 43, function () {
-                    return _this48.guildRaid(data);
+                  _this47.button(p, _this47.tr('online.guildRaid'), 101, 221, 185, 43, function () {
+                    return _this47.guildRaid(data);
                   });
-                  _this48.scroll(p, 0, 10, 400, 355, data.messages.map(function (m) {
+                  _this47.scroll(p, 0, 10, 400, 355, data.messages.map(function (m) {
                     return {
                       title: m.name,
-                      sub: /^\[sticker:[0-5]\]$/.test(m.body) ? _this48.tr('extra.sticker.' + m.body[9]) : m.body
+                      sub: /^\[sticker:[0-5]\]$/.test(m.body) ? _this47.tr('extra.sticker.' + m.body[9]) : m.body
                     };
                   }));
-                  message = _this48.edit(p, -35, -216, 303, 46, _this48.tr('online.message'));
-                  _this48.button(p, _this48.tr('online.send'), 161, -216, 70, 46, function () {
+                  message = _this47.edit(p, -35, -216, 303, 46, _this47.tr('online.message'));
+                  _this47.button(p, _this47.tr('online.send'), 161, -216, 70, 46, function () {
                     var value = message.string;
-                    void _this48.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+                    void _this47.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
                       return _regeneratorRuntime().wrap(function _callee5$(_context5) {
                         while (1) switch (_context5.prev = _context5.next) {
                           case 0:
                             _context5.next = 2;
-                            return _this48.onlineService.command('/guild/chat', {
+                            return _this47.onlineService.command('/guild/chat', {
                               body: value
                             });
                           case 2:
-                            _this48.remoteBusy = false;
-                            _this48.guild();
+                            _this47.remoteBusy = false;
+                            _this47.guild();
                           case 4:
                           case "end":
                             return _context5.stop();
@@ -47754,23 +47932,23 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                     })));
                   }, true, {
                     unavailable: function unavailable() {
-                      return _this48.textReason(message.string, 1, 240);
+                      return _this47.textReason(message.string, 1, 240);
                     }
                   });
-                  _this48.button(p, _this48.tr('online.refresh'), -101, -281, 185, 44, function () {
-                    return _this48.guild();
+                  _this47.button(p, _this47.tr('online.refresh'), -101, -281, 185, 44, function () {
+                    return _this47.guild();
                   });
-                  _this48.button(p, _this48.tr('online.leave'), 101, -281, 185, 44, function () {
-                    return _this48.confirm(_this48.tr('online.leave'), _this48.tr('online.leaveConfirm'), function () {
-                      void _this48.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+                  _this47.button(p, _this47.tr('online.leave'), 101, -281, 185, 44, function () {
+                    return _this47.confirm(_this47.tr('online.leave'), _this47.tr('online.leaveConfirm'), function () {
+                      void _this47.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
                         return _regeneratorRuntime().wrap(function _callee6$(_context6) {
                           while (1) switch (_context6.prev = _context6.next) {
                             case 0:
                               _context6.next = 2;
-                              return _this48.onlineService.command('/guild/leave');
+                              return _this47.onlineService.command('/guild/leave');
                             case 2:
-                              _this48.remoteBusy = false;
-                              _this48.guild();
+                              _this47.remoteBusy = false;
+                              _this47.guild();
                             case 4:
                             case "end":
                               return _context6.stop();
@@ -47780,7 +47958,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                     });
                   }, false, {
                     unavailable: function unavailable() {
-                      return data.role === 'leader' && data.members.length > 1 ? _this48.tr('online.transferFirst') : null;
+                      return data.role === 'leader' && data.members.length > 1 ? _this47.tr('online.transferFirst') : null;
                     }
                   });
                 case 26:
@@ -47791,34 +47969,34 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           })));
         };
         _proto.guildMembers = function guildMembers(data) {
-          var _this49 = this;
+          var _this48 = this;
           var p = this.open(this.tr('online.roster'), 650);
           this.scroll(p, 0, -28, 400, 520, data.members.map(function (m) {
             return {
               title: m.name,
               detail: function detail() {
-                return _this49.extensions.member(m.id);
+                return _this48.extensions.member(m.id);
               },
-              sub: _this49.tr(m.role === 'leader' ? 'online.leader' : 'online.member'),
-              action: data.role === 'leader' && m.id !== _this49.onlineService.accountId ? _this49.tr('action.details') : undefined,
+              sub: _this48.tr(m.role === 'leader' ? 'online.leader' : 'online.member'),
+              action: data.role === 'leader' && m.id !== _this48.onlineService.accountId ? _this48.tr('action.details') : undefined,
               click: function click() {
-                if (data.role !== 'leader' || m.id === _this49.onlineService.accountId) return;
-                var box = _this49.open(m.name, 350);
+                if (data.role !== 'leader' || m.id === _this48.onlineService.accountId) return;
+                var box = _this48.open(m.name, 350);
                 ['transfer', 'kick'].forEach(function (action, i) {
-                  return _this49.button(box, _this49.tr("online." + action), 0, 30 - i * 86, 360, 55, function () {
-                    return _this49.confirm(_this49.tr("online." + action), m.name, function () {
-                      void _this49.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
+                  return _this48.button(box, _this48.tr("online." + action), 0, 30 - i * 86, 360, 55, function () {
+                    return _this48.confirm(_this48.tr("online." + action), m.name, function () {
+                      void _this48.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
                         return _regeneratorRuntime().wrap(function _callee8$(_context8) {
                           while (1) switch (_context8.prev = _context8.next) {
                             case 0:
                               _context8.next = 2;
-                              return _this49.onlineService.command('/guild/role', {
+                              return _this48.onlineService.command('/guild/role', {
                                 target: m.id,
                                 action: action
                               });
                             case 2:
-                              _this49.remoteBusy = false;
-                              _this49.guild();
+                              _this48.remoteBusy = false;
+                              _this48.guild();
                             case 4:
                             case "end":
                               return _context8.stop();
@@ -47833,17 +48011,17 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.guildRaid = function guildRaid(data) {
-          var _this50 = this;
+          var _this49 = this;
           var p = this.open(this.tr('online.guildRaid'), 440);
           this.label(p, this.tr('online.guildHP', {
             hp: display(data.guild.raid_hp)
           }), 0, 90, 380, 60, 24, C.ember);
           this.label(p, this.tr('online.guildRaidInfo'), 0, 9, 380, 90, 18, C.muted);
           this.button(p, this.tr('action.attack'), 0, -124, 370, 55, function () {
-            _this50.extensions.guildBattle();
+            _this49.extensions.guildBattle();
           }, true, {
             unavailable: function unavailable() {
-              return data.guild.raid_hp <= 0 ? _this50.tr('online.raidComplete') : null;
+              return data.guild.raid_hp <= 0 ? _this49.tr('online.raidComplete') : null;
             }
           });
         };
@@ -47851,7 +48029,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.extensions.tournaments();
         };
         _proto.competitionBattle = function competitionBattle(state) {
-          var _this51 = this;
+          var _this50 = this;
           var p = this.open(this.tr(this.competitionId < 0 ? 'complete.regular' : 'online.abyss'), 680);
           this.label(p, this.tr('hud.stage', {
             stage: state.run.stage
@@ -47864,20 +48042,20 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             if (hero === void 0) {
               hero = -1;
             }
-            void _this51.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
+            void _this50.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
               var result;
               return _regeneratorRuntime().wrap(function _callee9$(_context9) {
                 while (1) switch (_context9.prev = _context9.next) {
                   case 0:
                     _context9.next = 2;
-                    return _this51.onlineService.command('/competition/action', {
-                      id: _this51.competitionId,
+                    return _this50.onlineService.command('/competition/action', {
+                      id: _this50.competitionId,
                       action: action,
                       hero: hero
                     });
                   case 2:
                     result = _context9.sent;
-                    _this51.competitionBattle(result.state);
+                    _this50.competitionBattle(result.state);
                   case 4:
                   case "end":
                     return _context9.stop();
@@ -47889,26 +48067,26 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return command('tap');
           }, true, {
             unavailable: function unavailable() {
-              return _this51.competitionReason(state);
+              return _this50.competitionReason(state);
             }
           });
           this.button(p, this.tr('competition.chest', {
             currency: this.tr('feedback.gems')
           }), 0, -203, 375, 44, function () {
-            return _this51.confirm(_this51.tr('competition.chest', {
-              currency: _this51.tr('feedback.gems')
-            }), _this51.tr('shop.confirm', {
+            return _this50.confirm(_this50.tr('competition.chest', {
+              currency: _this50.tr('feedback.gems')
+            }), _this50.tr('shop.confirm', {
               cost: 100
             }), function () {
               return command('shop');
             }, {
               unavailable: function unavailable() {
-                return _this51.competitionReason(state, undefined, true);
+                return _this50.competitionReason(state, undefined, true);
               }
             });
           }, false, {
             unavailable: function unavailable() {
-              return _this51.competitionReason(state, undefined, true);
+              return _this50.competitionReason(state, undefined, true);
             }
           });
           this.button(p, this.tr('online.upgradeMaster', {
@@ -47917,7 +48095,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return command('upgrade');
           }, false, {
             unavailable: function unavailable() {
-              return _this51.competitionReason(state, -1);
+              return _this50.competitionReason(state, -1);
             }
           });
           this.button(p, this.tr('nav.heroes'), -100, -140, 180, 50, function () {
@@ -47925,19 +48103,19 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }, false, {
             category: 'upgrade',
             unavailable: function unavailable() {
-              return _this51.competitionReason(state, 0);
+              return _this50.competitionReason(state, 0);
             }
           });
           this.button(p, this.tr(state.run.boss ? 'battle.leave' : 'battle.fight'), 100, -140, 180, 50, function () {
             return command('boss');
           }, false, {
             unavailable: function unavailable() {
-              return _this51.competitionReason(state);
+              return _this50.competitionReason(state);
             }
           });
           this.button(p, this.tr('online.backMain'), 0, -270, 375, 50, function () {
-            _this51.close();
-            _this51.drawPanel();
+            _this50.close();
+            _this50.drawPanel();
           });
         };
         _proto.spells = function spells(slot) {
@@ -47956,9 +48134,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           skillDetail(this, i);
         };
         _proto.artifactDetail = function artifactDetail(i) {
-          var _this52 = this;
+          var _this51 = this;
           if (this.tutorial.explain('intel', function () {
-            return _this52.artifactDetail(i);
+            return _this51.artifactDetail(i);
           })) return;
           this.tutorial.finishPractice('intel');
           this.tutorial.complete('first:artifact');
@@ -47979,191 +48157,191 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.button(p, this.tr('intel.upgrade', {
             cost: this.formatIntel(this.game.artifactCost(i))
           }), 0, -49, 370, 54, function () {
-            return _this52.act(function () {
-              return _this52.game.upgradeArtifact(i, _this52.id('artifact'));
+            return _this51.act(function () {
+              return _this51.game.upgradeArtifact(i, _this51.id('artifact'));
             }, function () {
-              _this52.drawPanel();
-              _this52.artifactDetail(i);
+              _this51.drawPanel();
+              _this51.artifactDetail(i);
             });
           }, true, {
             fontSize: 18,
             unavailable: function unavailable() {
-              return _this52.costReason('relics', _this52.game.artifactCost(i));
+              return _this51.costReason('relics', _this51.game.artifactCost(i));
             }
           }).name = 'intel-upgrade';
           this.button(p, this.tr('artifact.salvage'), -96, -129, 178, 54, function () {
-            return _this52.confirm(_this52.tr('artifact.salvage'), _this52.tr('artifact.salvageInfo'), function () {
-              return _this52.act(function () {
-                return _this52.game.salvageArtifact(i, _this52.id('salvage'));
+            return _this51.confirm(_this51.tr('artifact.salvage'), _this51.tr('artifact.salvageInfo'), function () {
+              return _this51.act(function () {
+                return _this51.game.salvageArtifact(i, _this51.id('salvage'));
               }, function () {
-                _this52.close();
-                _this52.drawPanel();
+                _this51.close();
+                _this51.drawPanel();
               });
             });
           }, false, {
             style: 'danger',
             unavailable: function unavailable() {
-              return s.enchanted[i] ? _this52.tr('error.protected') : _this52.costReason('gems', 20);
+              return s.enchanted[i] ? _this51.tr('error.protected') : _this51.costReason('gems', 20);
             }
           });
           this.button(p, this.tr('intel.enchantButton'), 96, -129, 178, 54, function () {
-            return _this52.act(function () {
-              return _this52.game.enchantArtifact(i, _this52.id('enchant'));
+            return _this51.act(function () {
+              return _this51.game.enchantArtifact(i, _this51.id('enchant'));
             }, function () {
-              return _this52.artifactDetail(i);
+              return _this51.artifactDetail(i);
             });
           }, false, {
             hint: this.tr('artifact.enchantInfo'),
             unavailable: function unavailable() {
-              return s.enchanted[i] ? _this52.tr('action.alreadyApplied') : !s.artifacts.every(function (v) {
+              return s.enchanted[i] ? _this51.tr('action.alreadyApplied') : !s.artifacts.every(function (v) {
                 return v > 0;
-              }) ? _this52.tr('artifact.enchantInfo') : _this52.costReason('relics', 3);
+              }) ? _this51.tr('artifact.enchantInfo') : _this51.costReason('relics', 3);
             }
           });
           this.button(p, this.tr('learn.open'), -96, -226, 178, 44, function () {
-            return _this52.tutorial.explain('intel', function () {
-              return _this52.artifactDetail(i);
+            return _this51.tutorial.explain('intel', function () {
+              return _this51.artifactDetail(i);
             }, true);
           }, false).name = 'intel-detail-help';
           this.button(p, this.tr('intel.details'), 96, -226, 178, 44, function () {
-            var body = _this52.tr('intel.detailBody', {
-              name: _this52.tr('artifact.' + i),
+            var body = _this51.tr('intel.detailBody', {
+              name: _this51.tr('artifact.' + i),
               effect: effect,
-              current: _this52.artifactMultiplier(i),
-              next: _this52.artifactMultiplier(i, 1),
-              cost: _this52.formatIntel(_this52.game.artifactCost(i)),
-              points: _this52.formatIntel(s.relics)
+              current: _this51.artifactMultiplier(i),
+              next: _this51.artifactMultiplier(i, 1),
+              cost: _this51.formatIntel(_this51.game.artifactCost(i)),
+              points: _this51.formatIntel(s.relics)
             });
-            var detail = _this52.open(_this52.tr('intel.details'), 550, true, 'teal', false, function () {
-              return _this52.artifactDetail(i);
+            var detail = _this51.open(_this51.tr('intel.details'), 550, true, 'teal', false, function () {
+              return _this51.artifactDetail(i);
             });
-            _this52.label(detail, body, 0, 5, 374, 340, 17, C.text);
-            _this52.button(detail, _this52.tr('action.back'), 0, -211, 370, 44, function () {
-              return _this52.artifactDetail(i);
+            _this51.label(detail, body, 0, 5, 374, 340, 17, C.text);
+            _this51.button(detail, _this51.tr('action.back'), 0, -211, 370, 44, function () {
+              return _this51.artifactDetail(i);
             });
           }, false);
         };
         _proto.salvaged = function salvaged() {
-          var _this53 = this;
+          var _this52 = this;
           var p = this.open(this.tr('artifact.salvaged'), 600);
           this.scroll(p, 0, -24, 400, 480, this.game.s.salvaged.map(function (i) {
             return {
-              title: _this53.tr("artifact." + i),
-              sub: _this53.tr('artifact.rebuyInfo'),
+              title: _this52.tr("artifact." + i),
+              sub: _this52.tr('artifact.rebuyInfo'),
               unavailable: function unavailable() {
-                return _this53.costReason('gems', 25);
+                return _this52.costReason('gems', 25);
               },
               icon: i,
-              action: _this53.tr('action.buy'),
+              action: _this52.tr('action.buy'),
               click: function click() {
-                return _this53.act(function () {
-                  return _this53.game.rebuyArtifact(i, _this53.id('rebuy'));
+                return _this52.act(function () {
+                  return _this52.game.rebuyArtifact(i, _this52.id('rebuy'));
                 }, function () {
-                  _this53.drawPanel();
-                  _this53.salvaged();
+                  _this52.drawPanel();
+                  _this52.salvaged();
                 });
               }
             };
           }));
         };
         _proto.equipmentTools = function equipmentTools() {
-          var _this54 = this;
+          var _this53 = this;
           var p = this.open(this.tr('nav.equipment'), 460);
           [['registry.title', function () {
-            return _this54.squadUI.registry();
+            return _this53.squadUI.registry();
           }], ['equipment.sets', function () {
-            return _this54.sets();
+            return _this53.sets();
           }], ['equipment.bulk', function () {
-            return _this54.confirm(_this54.tr('equipment.bulk'), _this54.tr('equipment.bulkInfo'), function () {
-              return _this54.act(function () {
-                return _this54.game.sell(_this54.game.s.equipment.filter(function (e) {
-                  return !e.locked && !_this54.game.s.equipped.includes(e.id);
+            return _this53.confirm(_this53.tr('equipment.bulk'), _this53.tr('equipment.bulkInfo'), function () {
+              return _this53.act(function () {
+                return _this53.game.sell(_this53.game.s.equipment.filter(function (e) {
+                  return !e.locked && !_this53.game.s.equipped.includes(e.id);
                 }).map(function (e) {
                   return e.id;
-                }), _this54.id('bulk'));
+                }), _this53.id('bulk'));
               }, function () {
-                _this54.close();
-                _this54.drawPanel();
+                _this53.close();
+                _this53.drawPanel();
               });
             });
           }], ['equipment.transmog', function () {
-            return _this54.transmog();
+            return _this53.transmog();
           }]].forEach(function (v, i) {
-            return _this54.button(p, _this54.tr(v[0]), 0, 114 - i * 96, 375, 60, v[1], false, {
+            return _this53.button(p, _this53.tr(v[0]), 0, 114 - i * 96, 375, 60, v[1], false, {
               unavailable: i === 2 ? function () {
-                return _this54.game.s.equipment.some(function (e) {
-                  return !e.locked && !_this54.game.s.equipped.includes(e.id);
-                }) ? null : _this54.tr('extra.noSellable');
+                return _this53.game.s.equipment.some(function (e) {
+                  return !e.locked && !_this53.game.s.equipped.includes(e.id);
+                }) ? null : _this53.tr('extra.noSellable');
               } : undefined
             });
           });
         };
         _proto.transmog = function transmog() {
-          var _this55 = this;
+          var _this54 = this;
           var p = this.open(this.tr('equipment.transmog'), 650);
           this.scroll(p, 0, -24, 400, 520, this.game.s.equipment.map(function (e) {
             return {
-              title: _this55.itemName(e),
+              title: _this54.itemName(e),
               icon: e.slot,
               unavailable: function unavailable() {
-                return _this55.game.s.appearance[e.slot] === e.id ? _this55.tr('action.alreadyApplied') : null;
+                return _this54.game.s.appearance[e.slot] === e.id ? _this54.tr('action.alreadyApplied') : null;
               },
-              action: _this55.tr(_this55.game.s.appearance[e.slot] === e.id ? 'action.selected' : 'action.apply'),
+              action: _this54.tr(_this54.game.s.appearance[e.slot] === e.id ? 'action.selected' : 'action.apply'),
               click: function click() {
-                return _this55.act(function () {
-                  return _this55.game.transmog(e.slot, e.id, _this55.id('transmog'));
+                return _this54.act(function () {
+                  return _this54.game.transmog(e.slot, e.id, _this54.id('transmog'));
                 }, function () {
-                  _this55.close();
-                  _this55.draw();
+                  _this54.close();
+                  _this54.draw();
                 });
               }
             };
           }));
         };
         _proto.achievements = function achievements() {
-          var _this56 = this;
+          var _this55 = this;
           var p = this.open(this.tr('achievement.title'), 570);
           this.scroll(p, 0, -24, 400, 450, [0, 1, 2, 3].map(function (i) {
             return {
-              title: _this56.tr("achievement." + i),
+              title: _this55.tr("achievement." + i),
               sub: function sub() {
-                return _this56.tr('daily.progress', {
-                  current: _this56.game.achievementProgress(i),
-                  goal: _this56.game.achievementGoal(i)
+                return _this55.tr('daily.progress', {
+                  current: _this55.game.achievementProgress(i),
+                  goal: _this55.game.achievementGoal(i)
                 });
               },
               unavailable: function unavailable() {
-                return _this56.rewardReason(_this56.tr("achievement." + i), _this56.game.achievementProgress(i), _this56.game.achievementGoal(i));
+                return _this55.rewardReason(_this55.tr("achievement." + i), _this55.game.achievementProgress(i), _this55.game.achievementGoal(i));
               },
               icon: i,
               art: i === 3 ? 'symbol:discharge' : undefined,
               tint: C.gold,
-              action: _this56.tr('action.claim'),
+              action: _this55.tr('action.claim'),
               click: function click() {
-                return _this56.rewards.local(_this56.tr('achievement.' + i), 'achievement:' + i + ':' + _this56.game.s.achievements[i], function (g) {
-                  return g.claimAchievement(i, _this56.id('achievement'));
+                return _this55.rewards.local(_this55.tr('achievement.' + i), 'achievement:' + i + ':' + _this55.game.s.achievements[i], function (g) {
+                  return g.claimAchievement(i, _this55.id('achievement'));
                 }, function () {
-                  return _this56.achievements();
+                  return _this55.achievements();
                 });
               }
             };
           }));
         };
         _proto.globalRaid = function globalRaid() {
-          var _this57 = this;
+          var _this56 = this;
           void this.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10() {
             var data;
             return _regeneratorRuntime().wrap(function _callee10$(_context10) {
               while (1) switch (_context10.prev = _context10.next) {
                 case 0:
                   _context10.next = 2;
-                  return _this57.onlineService.connect(_this57.tr('online.defaultName'));
+                  return _this56.onlineService.connect(_this56.tr('online.defaultName'));
                 case 2:
                   _context10.next = 4;
-                  return _this57.onlineService.request('/global');
+                  return _this56.onlineService.request('/global');
                 case 4:
                   data = _context10.sent;
-                  _this57.globalRaidPanel(data);
+                  _this56.globalRaidPanel(data);
                 case 6:
                 case "end":
                   return _context10.stop();
@@ -48172,22 +48350,22 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           })));
         };
         _proto.globalRaidPanel = function globalRaidPanel(data) {
-          var _this58 = this;
+          var _this57 = this;
           var p = this.open(this.tr('extra.globalRaid'), 450);
           this.label(p, this.tr('online.guildHP', {
             hp: display(data.hp)
           }), 0, 90, 375, 70, 24);
           this.button(p, this.tr('action.attack'), 0, -65, 375, 60, function () {
-            void _this58.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
+            void _this57.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
               var next;
               return _regeneratorRuntime().wrap(function _callee11$(_context11) {
                 while (1) switch (_context11.prev = _context11.next) {
                   case 0:
                     _context11.next = 2;
-                    return _this58.onlineService.command('/global/attack');
+                    return _this57.onlineService.command('/global/attack');
                   case 2:
                     next = _context11.sent;
-                    _this58.globalRaidPanel(next);
+                    _this57.globalRaidPanel(next);
                   case 4:
                   case "end":
                     return _context11.stop();
@@ -48196,32 +48374,32 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             })));
           }, true, {
             unavailable: function unavailable() {
-              return data.hp <= 0 ? _this58.tr('online.raidComplete') : null;
+              return data.hp <= 0 ? _this57.tr('online.raidComplete') : null;
             }
           });
         };
         _proto.eventRanks = function eventRanks() {
-          var _this59 = this;
+          var _this58 = this;
           void this.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12() {
             var rows, p;
             return _regeneratorRuntime().wrap(function _callee12$(_context12) {
               while (1) switch (_context12.prev = _context12.next) {
                 case 0:
                   _context12.next = 2;
-                  return _this59.onlineService.connect(_this59.tr('online.defaultName'));
+                  return _this58.onlineService.connect(_this58.tr('online.defaultName'));
                 case 2:
                   _context12.next = 4;
-                  return _this59.onlineService.request('/global/ranks');
+                  return _this58.onlineService.request('/global/ranks');
                 case 4:
                   rows = _context12.sent;
-                  p = _this59.open(_this59.tr('extra.eventRanks'), 660);
-                  _this59.scroll(p, 0, -25, 400, 530, rows.map(function (r, i) {
+                  p = _this58.open(_this58.tr('extra.eventRanks'), 660);
+                  _this58.scroll(p, 0, -25, 400, 530, rows.map(function (r, i) {
                     return {
-                      title: _this59.tr('online.rank', {
+                      title: _this58.tr('online.rank', {
                         rank: i + 1,
                         name: r.name
                       }),
-                      sub: _this59.tr('extra.contribution', {
+                      sub: _this58.tr('extra.contribution', {
                         value: r.damage
                       })
                     };
@@ -48246,14 +48424,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           return !!this.game && !!((_this$entry = this.entry) != null && _this$entry.playing) && this.game.s.maxStage >= 3 && this.game.fairyReady() && this.operations.ready && !this.operations.busy && !this.operations.conflict && !this.remoteBusy && !this.feedback.asyncPending && !this.liveOps.blocked;
         };
         _proto.updateHUD = function updateHUD() {
-          var _this60 = this;
+          var _this59 = this;
           var g = this.game,
             r = g.s.run;
           updateEquipmentDropButton(this, this.equipmentPile);
           this.fairy.active = this.fairyClaimReady();
           this.stageLabel.string = String(this.zoneTransition.displayedStage || r.stage);
           this.stageNeighbors.forEach(function (l, i) {
-            return l.string = String(Math.max(1, (_this60.zoneTransition.displayedStage || r.stage) + (i ? 1 : -1)));
+            return l.string = String(Math.max(1, (_this59.zoneTransition.displayedStage || r.stage) + (i ? 1 : -1)));
           });
           this.enemyLabel.string = this.tr('battle.wave', {
             count: g.enemyHealth().filter(function (h) {
@@ -48282,7 +48460,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var l = this.bossButton.getComponentInChildren(Label);
           if (l) l.string = this.tr(r.boss ? 'battle.leave' : 'battle.fight');
           this.spellLabels.forEach(function (l, slot) {
-            var i = _this60.spellShown[slot];
+            var i = _this59.spellShown[slot];
             l.string = r.master < SPELLS[i].unlock ? String(SPELLS[i].unlock) : i !== 0 && r.spells[i] > 0 ? Math.ceil(r.spells[i]) + 's ×' + r.stacks[i] : r.cooldowns[i] > 0 ? Math.ceil(r.cooldowns[i]) + 's' : '✓';
           });
         };
@@ -48376,11 +48554,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }).start();
         };
         _proto.spark = function spark(x, y, color) {
-          var _this61 = this;
+          var _this60 = this;
           var magic = color === C.violet;
           this.burst(magic ? 'ring' : 'impact', x, y, magic ? 92 : 66, magic ? .3 : .2);
           var _loop8 = function _loop8() {
-            var n = _this61.combatSprite(magic ? 'shard' : 'sparkle', 'hit-particle', x, y, 12 + i % 3 * 3);
+            var n = _this60.combatSprite(magic ? 'shard' : 'sparkle', 'hit-particle', x, y, 12 + i % 3 * 3);
             if (!n) return 1; // continue
             var angle = i * Math.PI / 3 + Math.random() * .3,
               opacity = n.addComponent(UIOpacity);
@@ -48420,7 +48598,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           } catch (_unused) {}
         };
         _proto.toast = function toast(text, tone) {
-          var _this62 = this;
+          var _this61 = this;
           if (tone === void 0) {
             tone = 'normal';
           }
@@ -48432,11 +48610,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.label(n, text, 0, 0, 404, 72, 16, C.text);
           tween(n).delay(3.2).call(function () {
             if (isValid(n, true)) n.destroy();
-            if (_this62.toastNode === n) _this62.toastNode = null;
+            if (_this61.toastNode === n) _this61.toastNode = null;
           }).start();
         };
         _proto.flushNotice = function flushNotice() {
-          var _this63 = this;
+          var _this62 = this;
           if (!this.modal && !this.tutorial.active && this.game.s.extra.unlockNotices.length) {
             var stage = this.game.s.extra.unlockNotices.shift();
             this.game.persist();
@@ -48454,7 +48632,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                 sp: reward.count
               }
             }, function () {
-              return _this63.close();
+              return _this62.close();
             });else this.feedback.notice('complete.reward.' + reward.kind, {
               value: reward.value,
               count: reward.count,
@@ -51772,9 +51950,9 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossEntranceUI.ts', './BossTimerUI.ts', './BrandSplashUI.ts', './CheatUI.ts', './CombatMotion.ts', './DischargeIcon.ts', './DroneFeedbackUI.ts', './DroneFleetUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MercenaryDetailUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardArtUI.ts', './RewardClaimUI.ts', './RewardContentsUI.ts', './RewardGlowUI.ts', './ScrollPositionUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillIconArt.ts', './SkillTrainingUI.ts', './SkillUI.ts', './SpeechIllustrationUI.ts', './SquadUI.ts', './TacticDetailUI.ts', './TitleUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './BossEntrance.ts', './BrandSplash.ts', './Config.ts', './Dialogue.ts', './DischargeText.ts', './DroneEffects.ts', './DroneFleet.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MercenaryUnlock.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './SkillCatalog.ts', './SkillText.ts', './SpeechArtBounds.ts', './Squad.ts', './SquadName.ts', './TitleArtBounds.ts', './TitleCast.ts', './firebase-sdk.js'], function () {
+System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossEntranceUI.ts', './BossTimerUI.ts', './BrandSplashUI.ts', './CheatUI.ts', './CombatMotion.ts', './DischargeIcon.ts', './DroneFeedbackUI.ts', './DroneFleetUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentDetailUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MercenaryDetailUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardArtUI.ts', './RewardClaimUI.ts', './RewardContentsUI.ts', './RewardGlowUI.ts', './ScrollPositionUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillIconArt.ts', './SkillTrainingUI.ts', './SkillUI.ts', './SpeechIllustrationUI.ts', './SquadUI.ts', './TacticDetailUI.ts', './TitleUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './BossEntrance.ts', './BrandSplash.ts', './Config.ts', './Dialogue.ts', './DischargeText.ts', './DroneEffects.ts', './DroneFleet.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MercenaryUnlock.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './SkillCatalog.ts', './SkillText.ts', './SpeechArtBounds.ts', './Squad.ts', './SquadName.ts', './TitleArtBounds.ts', './TitleCast.ts', './firebase-sdk.js'], function () {
   return {
-    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     execute: function () {}
   };
 });
