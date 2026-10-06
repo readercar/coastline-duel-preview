@@ -4511,6 +4511,10 @@ System.register("chunks:///_virtual/EquipmentDetailUI.ts", ['cc', './EquipmentUI
 
       /** Inspect the real saved item. Artwork and help never change equipment or currencies. */
       function equipmentDetail(a, e) {
+        // A failed save can replace the snapshot; list callbacks may still hold the old object.
+        e = a.game.s.equipment.find(function (item) {
+          return item.id === e.id;
+        }) || e;
         a.tutorial.complete('first:gear');
         var current = a.game.s.equipment.find(function (x) {
             return x.id === a.game.s.equipped[e.slot];
