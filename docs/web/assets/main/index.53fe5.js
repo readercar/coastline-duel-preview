@@ -532,7 +532,7 @@ System.register("chunks:///_virtual/BattlePlacementUI.ts", ['./rollupPluginModLo
               }
             };
             _this.gesture = g;
-            _this.a.scheduleOnce(g.arm, 1.5);
+            _this.a.scheduleOnce(g.arm, .5);
           });
           hit.on(Node.EventType.TOUCH_MOVE, function (e) {
             var _e$getID2;

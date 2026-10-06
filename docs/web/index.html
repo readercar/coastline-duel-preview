@@ -1,65 +1,17 @@
-<!DOCTYPE html>
-<html>
-<head>
-<script src="runtime-config.js"></script>
-  <meta charset="utf-8">
-
-  <title>Cocos Creator | tapWar</title>
-
-  <!--http://www.html5rocks.com/en/mobile/mobifying/-->
-  <meta name="viewport"
-        content="width=device-width,user-scalable=no,initial-scale=1,minimum-scale=1,maximum-scale=1,minimal-ui=true"/>
-
-  <!--https://developer.apple.com/library/safari/documentation/AppleApplications/Reference/SafariHTMLRef/Articles/MetaTags.html-->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="format-detection" content="telephone=no">
-
-  <!-- force webkit on 360 -->
-  <meta name="renderer" content="webkit"/>
-  <meta name="force-rendering" content="webkit"/>
-  <!-- force edge on IE -->
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
-  <meta name="msapplication-tap-highlight" content="no">
-
-  <!-- force full screen on some browser -->
-  <meta name="full-screen" content="yes"/>
-  <meta name="x5-fullscreen" content="true"/>
-  <meta name="360-fullscreen" content="true"/>
-
-  <!--fix fireball/issues/3568 -->
-  <!--<meta name="browsermode" content="application">-->
-  <meta name="x5-page-mode" content="app">
-
-  <!--<link rel="apple-touch-icon" href=".png" />-->
-  <!--<link rel="apple-touch-icon-precomposed" href=".png" />-->
-
-  <link rel="stylesheet" type="text/css" href="style.02f4a.css"/>
-
-</head>
-<body>
-  <div id="GameDiv" cc_exact_fit_screen="true">
-      <div id="Cocos3dGameContainer">
-        <canvas id="GameCanvas" oncontextmenu="event.preventDefault()" tabindex="99"></canvas>
-      </div>
-    </div>
-  
-
-<!-- Polyfills bundle. -->
-
-<script src="src/polyfills.bundle.5adbf.js" charset="utf-8"> </script>
-
-
-<!-- SystemJS support. -->
-<script src="src/system.bundle.a5884.js" charset="utf-8"> </script>
-
-<!-- Import map -->
-<script src="src/import-map.7fdd5.json" type="systemjs-importmap" charset="utf-8"> </script>
-
-<script>
-    System.import('./index.6ae0b.js').catch(function(err) { console.error(err); })
-</script>
-
-</body>
-</html>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>tapWar</title><style>html,body{margin:0;min-height:100%;background:#151a16;color:#f5f5f2;font:16px system-ui,sans-serif}main{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}button{margin-top:16px;padding:12px 32px;border:1px solid #fff1b6;background:#ffd83d;color:#151a16;font:inherit;cursor:pointer}</style></head><body><main><p id="preview-message">게임을 불러오는 중… / Loading game…</p><button id="preview-retry" hidden></button></main><script>(function startPreview(){
+ const ko=navigator.language.startsWith('ko'),message=document.getElementById('preview-message'),retry=document.getElementById('preview-retry');
+ document.documentElement.lang=ko?'ko':'en';retry.textContent=ko?'다시 시도':'Try Again';
+ async function load(){
+  retry.hidden=true;message.textContent=ko?'게임을 불러오는 중…':'Loading game…';
+  try{
+   const metadata=await fetch('build-info.json?latest='+Date.now(),{cache:'no-store'});
+   if(!metadata.ok)throw Error('metadata');
+   const info=await metadata.json();
+   if(typeof info.entry!=='string'||!/^app(?:\.[a-zA-Z0-9_-]+)*\.html$/.test(info.entry))throw Error('entry');
+   const entry=await fetch(info.entry);
+   if(!entry.ok)throw Error('entry');
+   const html=await entry.text();document.open();document.write(html);document.close();
+  }catch{message.textContent=ko?'게임을 불러오지 못했습니다. 다시 시도해 주세요.':'Could not load the game. Please try again.';retry.hidden=false;}
+ }
+ retry.onclick=load;void load();
+})();</script></body></html>
