@@ -1857,7 +1857,7 @@ System.register("chunks:///_virtual/DroneEffects.ts", ['cc'], function (exports)
     }],
     execute: function () {
       exports('activeDroneEffect', activeDroneEffect);
-      cclegacy._RF.push({}, "f8e71VZR4lOFrO7isG8X9nc", "DroneEffects", undefined);
+      cclegacy._RF.push({}, "8ca4d1tqLdLl7hthHd43OoZ", "DroneEffects", undefined);
       /** Presentation-only cues. They never change the saved drone bonuses or combat rules. */
       function activeDroneEffect(state, effect) {
         var id = state.activePet,
@@ -1888,7 +1888,7 @@ System.register("chunks:///_virtual/DroneFeedbackUI.ts", ['./rollupPluginModLoBa
       Graphics = module.Graphics;
     }],
     execute: function () {
-      cclegacy._RF.push({}, "6af75SQy8JDspx7qaHEF9FU", "DroneFeedbackUI", undefined);
+      cclegacy._RF.push({}, "e865dL1vChNOrrWDfAZR2l/", "DroneFeedbackUI", undefined);
       var DroneFeedbackUI = exports('DroneFeedbackUI', /*#__PURE__*/function () {
         function DroneFeedbackUI(a) {
           this.pending = [];
