@@ -1,11 +1,11 @@
 {
   "name": "tapWar",
-  "version": "0.1.20",
-  "builtAt": "2026-10-06T14:31:36.749Z",
+  "version": "0.1.0",
+  "builtAt": "2026-10-06T14:35:00.849Z",
   "engine": "Cocos Creator 3.8.8",
-  "entry": "app.0.1.20.html",
-  "buildVersion": "0.1.20",
+  "entry": "app.2026.10.06.25.html",
+  "buildVersion": "2026.10.06.25",
   "policyVersion": "0.1.0",
-  "sourceCommit": "2867f73f091a7d6a07aca4d0e7f84f4fcc5aec39",
-  "tag": "preview-0.1.20"
+  "sourceCommit": "fb35e9278db4628ddc3ed94b52a7849c0ace5a99",
+  "tag": "preview-2026.10.06.25"
 }

@@ -52174,7 +52174,7 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
           key: "displayVersion",
           get: function get() {
             var preview = globalThis.TAPWAR_PREVIEW_BUILD;
-            return typeof preview === 'string' && /^\d+\.\d+\.\d+$/.test(preview) ? preview : this.version.split('.').concat(['0', '0']).slice(0, 3).join('.');
+            return typeof preview === 'string' && /^(\d+\.\d+\.\d+|\d{4}\.\d{2}\.\d{2}\.\d+)$/.test(preview) ? preview : this.version.split('.').concat(['0', '0']).slice(0, 3).join('.');
           }
         }]);
         return LiveOpsUI;
@@ -52405,10 +52405,10 @@ System.register("chunks:///_virtual/MercenaryDetailUI.ts", ['./rollupPluginModLo
           var level = a.nodeAt(scene, 'mercenary-card-level', 145, cardH / 2 - 27, 92, 34);
           a.ui.surface(level, style.color, 'cut');
           a.label(level, 'Lv.' + s.run.heroes[id], 0, 0, 84, 28, 20, UI.ink);
-          a.touchAction(level, function () {
-            return a.tooltip(level, a.tr('ui.help.heroLevel', {
+          a.iconHelp(level, function () {
+            return a.tr('ui.help.heroLevel', {
               level: s.run.heroes[id]
-            }));
+            });
           });
           var identity = a.nodeAt(scene, 'mercenary-detail-identity', 0, -cardH / 2 + 44, cardW - 8, 84);
           a.ui.surface(identity, UI.bg, 'cut', 242);
