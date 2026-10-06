@@ -6848,6 +6848,9 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
         };
         _proto.petPuzzle = function petPuzzle() {
           var _this21 = this;
+          if (this.a.tutorial.explain('maintenance', function () {
+            return _this21.petPuzzle();
+          })) return;
           var a = this.a,
             target = this.g.petRewardTarget(),
             p = this.maintenanceContent(a.open(this.tr('extra.petPuzzle'), 730)),
@@ -8799,12 +8802,28 @@ System.register("chunks:///_virtual/FeatureLessons.ts", ['cc'], function (export
         title: 'menu.meta',
         stage: 1000,
         icon: 'gems'
+      }, {
+        id: 'regiment',
+        title: 'menu.clan',
+        stage: 100,
+        icon: 'flag'
+      }, {
+        id: 'competition',
+        title: 'menu.tournament',
+        stage: 60,
+        icon: 'trophy'
+      }, {
+        id: 'maintenance',
+        title: 'extra.petPuzzle',
+        stage: 8,
+        icon: 'interface:drone'
       }]);
-      var lessonSteps = exports('lessonSteps', function lessonSteps(id) {
-        return id === 'skills' || id === 'exploration' ? 4 : 3;
+      var LESSON_UI_REVISION = exports('LESSON_UI_REVISION', 'ui-v3');
+      var lessonSteps = exports('lessonSteps', function lessonSteps(_id) {
+        return 4;
       });
       var lessonReceipt = exports('lessonReceipt', function lessonReceipt(id) {
-        return 'lesson:' + id + (id === 'skills' ? ':v2' : '');
+        return 'lesson:' + id + ':' + LESSON_UI_REVISION;
       });
       function lessonRead(s, id) {
         var _s$tutorial$completed;
@@ -8812,7 +8831,7 @@ System.register("chunks:///_virtual/FeatureLessons.ts", ['cc'], function (export
       }
       function lessonPage(s, id) {
         var _Array$from$find;
-        var total = lessonSteps(id);
+        var total = lessonSteps();
         return (_Array$from$find = Array.from({
           length: total
         }, function (_, i) {
@@ -47483,6 +47502,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             cards: 'cards',
             event: 'events',
             meta: 'growth',
+            clan: 'regiment',
+            tournament: 'competition',
             'squad.deck': 'squad',
             'registry.title': 'registry'
           };
@@ -48284,6 +48305,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         };
         _proto.guild = function guild() {
           var _this47 = this;
+          if (featureUnlocked(this.game.s, 'menu.clan') && this.tutorial.explain('regiment', function () {
+            return _this47.guild();
+          })) return;
           void this.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
             var boot, guilds, _p, name, data, p, message;
             return _regeneratorRuntime().wrap(function _callee7$(_context7) {
@@ -48484,10 +48508,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           });
         };
         _proto.competition = function competition() {
+          var _this50 = this;
+          if (featureUnlocked(this.game.s, 'menu.tournament') && this.tutorial.explain('competition', function () {
+            return _this50.competition();
+          })) return;
           this.extensions.tournaments();
         };
         _proto.competitionBattle = function competitionBattle(state) {
-          var _this50 = this;
+          var _this51 = this;
           var p = this.open(this.tr(this.competitionId < 0 ? 'complete.regular' : 'online.abyss'), 680);
           this.label(p, this.tr('hud.stage', {
             stage: state.run.stage
@@ -48500,20 +48528,20 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             if (hero === void 0) {
               hero = -1;
             }
-            void _this50.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
+            void _this51.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
               var result;
               return _regeneratorRuntime().wrap(function _callee9$(_context9) {
                 while (1) switch (_context9.prev = _context9.next) {
                   case 0:
                     _context9.next = 2;
-                    return _this50.onlineService.command('/competition/action', {
-                      id: _this50.competitionId,
+                    return _this51.onlineService.command('/competition/action', {
+                      id: _this51.competitionId,
                       action: action,
                       hero: hero
                     });
                   case 2:
                     result = _context9.sent;
-                    _this50.competitionBattle(result.state);
+                    _this51.competitionBattle(result.state);
                   case 4:
                   case "end":
                     return _context9.stop();
@@ -48525,26 +48553,26 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return command('tap');
           }, true, {
             unavailable: function unavailable() {
-              return _this50.competitionReason(state);
+              return _this51.competitionReason(state);
             }
           });
           this.button(p, this.tr('competition.chest', {
             currency: this.tr('feedback.gems')
           }), 0, -203, 375, 44, function () {
-            return _this50.confirm(_this50.tr('competition.chest', {
-              currency: _this50.tr('feedback.gems')
-            }), _this50.tr('shop.confirm', {
+            return _this51.confirm(_this51.tr('competition.chest', {
+              currency: _this51.tr('feedback.gems')
+            }), _this51.tr('shop.confirm', {
               cost: 100
             }), function () {
               return command('shop');
             }, {
               unavailable: function unavailable() {
-                return _this50.competitionReason(state, undefined, true);
+                return _this51.competitionReason(state, undefined, true);
               }
             });
           }, false, {
             unavailable: function unavailable() {
-              return _this50.competitionReason(state, undefined, true);
+              return _this51.competitionReason(state, undefined, true);
             }
           });
           this.button(p, this.tr('online.upgradeMaster', {
@@ -48553,7 +48581,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return command('upgrade');
           }, false, {
             unavailable: function unavailable() {
-              return _this50.competitionReason(state, -1);
+              return _this51.competitionReason(state, -1);
             }
           });
           this.button(p, this.tr('nav.heroes'), -100, -140, 180, 50, function () {
@@ -48561,25 +48589,29 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }, false, {
             category: 'upgrade',
             unavailable: function unavailable() {
-              return _this50.competitionReason(state, 0);
+              return _this51.competitionReason(state, 0);
             }
           });
           this.button(p, this.tr(state.run.boss ? 'battle.leave' : 'battle.fight'), 100, -140, 180, 50, function () {
             return command('boss');
           }, false, {
             unavailable: function unavailable() {
-              return _this50.competitionReason(state);
+              return _this51.competitionReason(state);
             }
           });
           this.button(p, this.tr('online.backMain'), 0, -270, 375, 50, function () {
-            _this50.close();
-            _this50.drawPanel();
+            _this51.close();
+            _this51.drawPanel();
           });
         };
         _proto.spells = function spells(slot) {
+          var _this52 = this;
           if (slot === void 0) {
             slot = 0;
           }
+          if (this.tutorial.explain('tactics', function () {
+            return _this52.spells(slot);
+          })) return;
           tacticManager(this, slot);
         };
         _proto.spellDetail = function spellDetail(id, slot) {
@@ -48592,9 +48624,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           skillDetail(this, i);
         };
         _proto.artifactDetail = function artifactDetail(i) {
-          var _this51 = this;
+          var _this53 = this;
           if (this.tutorial.explain('intel', function () {
-            return _this51.artifactDetail(i);
+            return _this53.artifactDetail(i);
           })) return;
           this.tutorial.finishPractice('intel');
           this.tutorial.complete('first:artifact');
@@ -48615,191 +48647,191 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.button(p, this.tr('intel.upgrade', {
             cost: this.formatIntel(this.game.artifactCost(i))
           }), 0, -49, 370, 54, function () {
-            return _this51.act(function () {
-              return _this51.game.upgradeArtifact(i, _this51.id('artifact'));
+            return _this53.act(function () {
+              return _this53.game.upgradeArtifact(i, _this53.id('artifact'));
             }, function () {
-              _this51.drawPanel();
-              _this51.artifactDetail(i);
+              _this53.drawPanel();
+              _this53.artifactDetail(i);
             });
           }, true, {
             fontSize: 18,
             unavailable: function unavailable() {
-              return _this51.costReason('relics', _this51.game.artifactCost(i));
+              return _this53.costReason('relics', _this53.game.artifactCost(i));
             }
           }).name = 'intel-upgrade';
           this.button(p, this.tr('artifact.salvage'), -96, -129, 178, 54, function () {
-            return _this51.confirm(_this51.tr('artifact.salvage'), _this51.tr('artifact.salvageInfo'), function () {
-              return _this51.act(function () {
-                return _this51.game.salvageArtifact(i, _this51.id('salvage'));
+            return _this53.confirm(_this53.tr('artifact.salvage'), _this53.tr('artifact.salvageInfo'), function () {
+              return _this53.act(function () {
+                return _this53.game.salvageArtifact(i, _this53.id('salvage'));
               }, function () {
-                _this51.close();
-                _this51.drawPanel();
+                _this53.close();
+                _this53.drawPanel();
               });
             });
           }, false, {
             style: 'danger',
             unavailable: function unavailable() {
-              return s.enchanted[i] ? _this51.tr('error.protected') : _this51.costReason('gems', 20);
+              return s.enchanted[i] ? _this53.tr('error.protected') : _this53.costReason('gems', 20);
             }
           });
           this.button(p, this.tr('intel.enchantButton'), 96, -129, 178, 54, function () {
-            return _this51.act(function () {
-              return _this51.game.enchantArtifact(i, _this51.id('enchant'));
+            return _this53.act(function () {
+              return _this53.game.enchantArtifact(i, _this53.id('enchant'));
             }, function () {
-              return _this51.artifactDetail(i);
+              return _this53.artifactDetail(i);
             });
           }, false, {
             hint: this.tr('artifact.enchantInfo'),
             unavailable: function unavailable() {
-              return s.enchanted[i] ? _this51.tr('action.alreadyApplied') : !s.artifacts.every(function (v) {
+              return s.enchanted[i] ? _this53.tr('action.alreadyApplied') : !s.artifacts.every(function (v) {
                 return v > 0;
-              }) ? _this51.tr('artifact.enchantInfo') : _this51.costReason('relics', 3);
+              }) ? _this53.tr('artifact.enchantInfo') : _this53.costReason('relics', 3);
             }
           });
           this.button(p, this.tr('learn.open'), -96, -226, 178, 44, function () {
-            return _this51.tutorial.explain('intel', function () {
-              return _this51.artifactDetail(i);
+            return _this53.tutorial.explain('intel', function () {
+              return _this53.artifactDetail(i);
             }, true);
           }, false).name = 'intel-detail-help';
           this.button(p, this.tr('intel.details'), 96, -226, 178, 44, function () {
-            var body = _this51.tr('intel.detailBody', {
-              name: _this51.tr('artifact.' + i),
+            var body = _this53.tr('intel.detailBody', {
+              name: _this53.tr('artifact.' + i),
               effect: effect,
-              current: _this51.artifactMultiplier(i),
-              next: _this51.artifactMultiplier(i, 1),
-              cost: _this51.formatIntel(_this51.game.artifactCost(i)),
-              points: _this51.formatIntel(s.relics)
+              current: _this53.artifactMultiplier(i),
+              next: _this53.artifactMultiplier(i, 1),
+              cost: _this53.formatIntel(_this53.game.artifactCost(i)),
+              points: _this53.formatIntel(s.relics)
             });
-            var detail = _this51.open(_this51.tr('intel.details'), 550, true, 'teal', false, function () {
-              return _this51.artifactDetail(i);
+            var detail = _this53.open(_this53.tr('intel.details'), 550, true, 'teal', false, function () {
+              return _this53.artifactDetail(i);
             });
-            _this51.label(detail, body, 0, 5, 374, 340, 17, C.text);
-            _this51.button(detail, _this51.tr('action.back'), 0, -211, 370, 44, function () {
-              return _this51.artifactDetail(i);
+            _this53.label(detail, body, 0, 5, 374, 340, 17, C.text);
+            _this53.button(detail, _this53.tr('action.back'), 0, -211, 370, 44, function () {
+              return _this53.artifactDetail(i);
             });
           }, false);
         };
         _proto.salvaged = function salvaged() {
-          var _this52 = this;
+          var _this54 = this;
           var p = this.open(this.tr('artifact.salvaged'), 600);
           this.scroll(p, 0, -24, 400, 480, this.game.s.salvaged.map(function (i) {
             return {
-              title: _this52.tr("artifact." + i),
-              sub: _this52.tr('artifact.rebuyInfo'),
+              title: _this54.tr("artifact." + i),
+              sub: _this54.tr('artifact.rebuyInfo'),
               unavailable: function unavailable() {
-                return _this52.costReason('gems', 25);
+                return _this54.costReason('gems', 25);
               },
               icon: i,
-              action: _this52.tr('action.buy'),
+              action: _this54.tr('action.buy'),
               click: function click() {
-                return _this52.act(function () {
-                  return _this52.game.rebuyArtifact(i, _this52.id('rebuy'));
+                return _this54.act(function () {
+                  return _this54.game.rebuyArtifact(i, _this54.id('rebuy'));
                 }, function () {
-                  _this52.drawPanel();
-                  _this52.salvaged();
+                  _this54.drawPanel();
+                  _this54.salvaged();
                 });
               }
             };
           }));
         };
         _proto.equipmentTools = function equipmentTools() {
-          var _this53 = this;
+          var _this55 = this;
           var p = this.open(this.tr('nav.equipment'), 460);
           [['registry.title', function () {
-            return _this53.squadUI.registry();
+            return _this55.squadUI.registry();
           }], ['equipment.sets', function () {
-            return _this53.sets();
+            return _this55.sets();
           }], ['equipment.bulk', function () {
-            return _this53.confirm(_this53.tr('equipment.bulk'), _this53.tr('equipment.bulkInfo'), function () {
-              return _this53.act(function () {
-                return _this53.game.sell(_this53.game.s.equipment.filter(function (e) {
-                  return !e.locked && !_this53.game.s.equipped.includes(e.id);
+            return _this55.confirm(_this55.tr('equipment.bulk'), _this55.tr('equipment.bulkInfo'), function () {
+              return _this55.act(function () {
+                return _this55.game.sell(_this55.game.s.equipment.filter(function (e) {
+                  return !e.locked && !_this55.game.s.equipped.includes(e.id);
                 }).map(function (e) {
                   return e.id;
-                }), _this53.id('bulk'));
+                }), _this55.id('bulk'));
               }, function () {
-                _this53.close();
-                _this53.drawPanel();
+                _this55.close();
+                _this55.drawPanel();
               });
             });
           }], ['equipment.transmog', function () {
-            return _this53.transmog();
+            return _this55.transmog();
           }]].forEach(function (v, i) {
-            return _this53.button(p, _this53.tr(v[0]), 0, 114 - i * 96, 375, 60, v[1], false, {
+            return _this55.button(p, _this55.tr(v[0]), 0, 114 - i * 96, 375, 60, v[1], false, {
               unavailable: i === 2 ? function () {
-                return _this53.game.s.equipment.some(function (e) {
-                  return !e.locked && !_this53.game.s.equipped.includes(e.id);
-                }) ? null : _this53.tr('extra.noSellable');
+                return _this55.game.s.equipment.some(function (e) {
+                  return !e.locked && !_this55.game.s.equipped.includes(e.id);
+                }) ? null : _this55.tr('extra.noSellable');
               } : undefined
             });
           });
         };
         _proto.transmog = function transmog() {
-          var _this54 = this;
+          var _this56 = this;
           var p = this.open(this.tr('equipment.transmog'), 650);
           this.scroll(p, 0, -24, 400, 520, this.game.s.equipment.map(function (e) {
             return {
-              title: _this54.itemName(e),
+              title: _this56.itemName(e),
               icon: e.slot,
               unavailable: function unavailable() {
-                return _this54.game.s.appearance[e.slot] === e.id ? _this54.tr('action.alreadyApplied') : null;
+                return _this56.game.s.appearance[e.slot] === e.id ? _this56.tr('action.alreadyApplied') : null;
               },
-              action: _this54.tr(_this54.game.s.appearance[e.slot] === e.id ? 'action.selected' : 'action.apply'),
+              action: _this56.tr(_this56.game.s.appearance[e.slot] === e.id ? 'action.selected' : 'action.apply'),
               click: function click() {
-                return _this54.act(function () {
-                  return _this54.game.transmog(e.slot, e.id, _this54.id('transmog'));
+                return _this56.act(function () {
+                  return _this56.game.transmog(e.slot, e.id, _this56.id('transmog'));
                 }, function () {
-                  _this54.close();
-                  _this54.draw();
+                  _this56.close();
+                  _this56.draw();
                 });
               }
             };
           }));
         };
         _proto.achievements = function achievements() {
-          var _this55 = this;
+          var _this57 = this;
           var p = this.open(this.tr('achievement.title'), 570);
           this.scroll(p, 0, -24, 400, 450, [0, 1, 2, 3].map(function (i) {
             return {
-              title: _this55.tr("achievement." + i),
+              title: _this57.tr("achievement." + i),
               sub: function sub() {
-                return _this55.tr('daily.progress', {
-                  current: _this55.game.achievementProgress(i),
-                  goal: _this55.game.achievementGoal(i)
+                return _this57.tr('daily.progress', {
+                  current: _this57.game.achievementProgress(i),
+                  goal: _this57.game.achievementGoal(i)
                 });
               },
               unavailable: function unavailable() {
-                return _this55.rewardReason(_this55.tr("achievement." + i), _this55.game.achievementProgress(i), _this55.game.achievementGoal(i));
+                return _this57.rewardReason(_this57.tr("achievement." + i), _this57.game.achievementProgress(i), _this57.game.achievementGoal(i));
               },
               icon: i,
               art: i === 3 ? 'symbol:discharge' : undefined,
               tint: C.gold,
-              action: _this55.tr('action.claim'),
+              action: _this57.tr('action.claim'),
               click: function click() {
-                return _this55.rewards.local(_this55.tr('achievement.' + i), 'achievement:' + i + ':' + _this55.game.s.achievements[i], function (g) {
-                  return g.claimAchievement(i, _this55.id('achievement'));
+                return _this57.rewards.local(_this57.tr('achievement.' + i), 'achievement:' + i + ':' + _this57.game.s.achievements[i], function (g) {
+                  return g.claimAchievement(i, _this57.id('achievement'));
                 }, function () {
-                  return _this55.achievements();
+                  return _this57.achievements();
                 });
               }
             };
           }));
         };
         _proto.globalRaid = function globalRaid() {
-          var _this56 = this;
+          var _this58 = this;
           void this.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10() {
             var data;
             return _regeneratorRuntime().wrap(function _callee10$(_context10) {
               while (1) switch (_context10.prev = _context10.next) {
                 case 0:
                   _context10.next = 2;
-                  return _this56.onlineService.connect(_this56.tr('online.defaultName'));
+                  return _this58.onlineService.connect(_this58.tr('online.defaultName'));
                 case 2:
                   _context10.next = 4;
-                  return _this56.onlineService.request('/global');
+                  return _this58.onlineService.request('/global');
                 case 4:
                   data = _context10.sent;
-                  _this56.globalRaidPanel(data);
+                  _this58.globalRaidPanel(data);
                 case 6:
                 case "end":
                   return _context10.stop();
@@ -48808,22 +48840,22 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           })));
         };
         _proto.globalRaidPanel = function globalRaidPanel(data) {
-          var _this57 = this;
+          var _this59 = this;
           var p = this.open(this.tr('extra.globalRaid'), 450);
           this.label(p, this.tr('online.guildHP', {
             hp: display(data.hp)
           }), 0, 90, 375, 70, 24);
           this.button(p, this.tr('action.attack'), 0, -65, 375, 60, function () {
-            void _this57.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
+            void _this59.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
               var next;
               return _regeneratorRuntime().wrap(function _callee11$(_context11) {
                 while (1) switch (_context11.prev = _context11.next) {
                   case 0:
                     _context11.next = 2;
-                    return _this57.onlineService.command('/global/attack');
+                    return _this59.onlineService.command('/global/attack');
                   case 2:
                     next = _context11.sent;
-                    _this57.globalRaidPanel(next);
+                    _this59.globalRaidPanel(next);
                   case 4:
                   case "end":
                     return _context11.stop();
@@ -48832,32 +48864,32 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             })));
           }, true, {
             unavailable: function unavailable() {
-              return data.hp <= 0 ? _this57.tr('online.raidComplete') : null;
+              return data.hp <= 0 ? _this59.tr('online.raidComplete') : null;
             }
           });
         };
         _proto.eventRanks = function eventRanks() {
-          var _this58 = this;
+          var _this60 = this;
           void this.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12() {
             var rows, p;
             return _regeneratorRuntime().wrap(function _callee12$(_context12) {
               while (1) switch (_context12.prev = _context12.next) {
                 case 0:
                   _context12.next = 2;
-                  return _this58.onlineService.connect(_this58.tr('online.defaultName'));
+                  return _this60.onlineService.connect(_this60.tr('online.defaultName'));
                 case 2:
                   _context12.next = 4;
-                  return _this58.onlineService.request('/global/ranks');
+                  return _this60.onlineService.request('/global/ranks');
                 case 4:
                   rows = _context12.sent;
-                  p = _this58.open(_this58.tr('extra.eventRanks'), 660);
-                  _this58.scroll(p, 0, -25, 400, 530, rows.map(function (r, i) {
+                  p = _this60.open(_this60.tr('extra.eventRanks'), 660);
+                  _this60.scroll(p, 0, -25, 400, 530, rows.map(function (r, i) {
                     return {
-                      title: _this58.tr('online.rank', {
+                      title: _this60.tr('online.rank', {
                         rank: i + 1,
                         name: r.name
                       }),
-                      sub: _this58.tr('extra.contribution', {
+                      sub: _this60.tr('extra.contribution', {
                         value: r.damage
                       })
                     };
@@ -48882,14 +48914,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           return !!this.game && !!((_this$entry = this.entry) != null && _this$entry.playing) && this.game.s.maxStage >= 3 && this.game.fairyReady() && this.operations.ready && !this.operations.busy && !this.operations.conflict && !this.remoteBusy && !this.feedback.asyncPending && !this.liveOps.blocked;
         };
         _proto.updateHUD = function updateHUD() {
-          var _this59 = this;
+          var _this61 = this;
           var g = this.game,
             r = g.s.run;
           updateEquipmentDropButton(this, this.equipmentPile);
           this.fairy.active = this.fairyClaimReady();
           this.stageLabel.string = String(this.zoneTransition.displayedStage || r.stage);
           this.stageNeighbors.forEach(function (l, i) {
-            return l.string = String(Math.max(1, (_this59.zoneTransition.displayedStage || r.stage) + (i ? 1 : -1)));
+            return l.string = String(Math.max(1, (_this61.zoneTransition.displayedStage || r.stage) + (i ? 1 : -1)));
           });
           this.enemyLabel.string = this.tr('battle.wave', {
             count: g.enemyHealth().filter(function (h) {
@@ -48918,7 +48950,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var l = this.bossButton.getComponentInChildren(Label);
           if (l) l.string = this.tr(r.boss ? 'battle.leave' : 'battle.fight');
           this.spellLabels.forEach(function (l, slot) {
-            var i = _this59.spellShown[slot];
+            var i = _this61.spellShown[slot];
             l.string = r.master < SPELLS[i].unlock ? String(SPELLS[i].unlock) : i !== 0 && r.spells[i] > 0 ? Math.ceil(r.spells[i]) + 's ×' + r.stacks[i] : r.cooldowns[i] > 0 ? Math.ceil(r.cooldowns[i]) + 's' : '✓';
           });
         };
@@ -49012,11 +49044,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }).start();
         };
         _proto.spark = function spark(x, y, color) {
-          var _this60 = this;
+          var _this62 = this;
           var magic = color === C.violet;
           this.burst(magic ? 'ring' : 'impact', x, y, magic ? 92 : 66, magic ? .3 : .2);
           var _loop8 = function _loop8() {
-            var n = _this60.combatSprite(magic ? 'shard' : 'sparkle', 'hit-particle', x, y, 12 + i % 3 * 3);
+            var n = _this62.combatSprite(magic ? 'shard' : 'sparkle', 'hit-particle', x, y, 12 + i % 3 * 3);
             if (!n) return 1; // continue
             var angle = i * Math.PI / 3 + Math.random() * .3,
               opacity = n.addComponent(UIOpacity);
@@ -49056,7 +49088,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           } catch (_unused) {}
         };
         _proto.toast = function toast(text, tone) {
-          var _this61 = this;
+          var _this63 = this;
           if (tone === void 0) {
             tone = 'normal';
           }
@@ -49066,16 +49098,16 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           if (tone === 'blocked') this.ui.surface(n, BLOCKED_NOTICE.background, 'cut', 255, true);
           this.toastNode = n;
           if (tone === 'blocked') this.dismissNoticeOnTap(n, function () {
-            if (_this61.toastNode === n) _this61.hideToast();
+            if (_this63.toastNode === n) _this63.hideToast();
           });
           this.label(n, text, 0, 0, 404, 72, 16, C.text);
           tween(n).delay(3.2).call(function () {
             if (isValid(n, true)) n.destroy();
-            if (_this61.toastNode === n) _this61.toastNode = null;
+            if (_this63.toastNode === n) _this63.toastNode = null;
           }).start();
         };
         _proto.flushNotice = function flushNotice() {
-          var _this62 = this;
+          var _this64 = this;
           if (!this.modal && !this.tutorial.active && this.game.s.extra.unlockNotices.length) {
             var stage = this.game.s.extra.unlockNotices.shift();
             this.game.persist();
@@ -49093,7 +49125,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                 sp: reward.count
               }
             }, function () {
-              return _this62.close();
+              return _this64.close();
             });else this.feedback.notice('complete.reward.' + reward.kind, {
               value: reward.value,
               count: reward.count,
@@ -49234,11 +49266,13 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
   };
 });
 
-System.register("chunks:///_virtual/I18n.ts", ['cc', './SkillText.ts', './DischargeText.ts', './Enemies.ts', './FeatureLessons.ts', './Squad.ts', './Mercenaries.ts', './Dialogue.ts', './MilitaryTheme.ts'], function (exports) {
-  var cclegacy, applySkillText, applyDischargeText, applyEnemyText, applyLessonText, applySquadText, applyMercenaryText, applyDialogueText, applyMilitaryTheme;
+System.register("chunks:///_virtual/I18n.ts", ['cc', './LessonCopy.ts', './SkillText.ts', './DischargeText.ts', './Enemies.ts', './FeatureLessons.ts', './Squad.ts', './Mercenaries.ts', './Dialogue.ts', './MilitaryTheme.ts'], function (exports) {
+  var cclegacy, applyReviewedLessonText, applySkillText, applyDischargeText, applyEnemyText, applyLessonText, applySquadText, applyMercenaryText, applyDialogueText, applyMilitaryTheme;
   return {
     setters: [function (module) {
       cclegacy = module.cclegacy;
+    }, function (module) {
+      applyReviewedLessonText = module.applyReviewedLessonText;
     }, function (module) {
       applySkillText = module.applySkillText;
     }, function (module) {
@@ -51866,6 +51900,160 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './SkillText.ts', './Discha
         'complete.unlock.8': 'Drones unlocked. Claim a random drone in the Drones tab, then deploy up to three drones.',
         'drone.supplyInfo': 'One random drone from {count} types\nBase: +1 level · Double: +2 · Ready again in {hours} hours\nNew drones are unlocked. Choose a fleet slot to deploy.'
       });
+
+      // Keep reviewed UI guidance after legacy theme terminology overrides.
+      applyReviewedLessonText(translations);
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/LessonCopy.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc'], function (exports) {
+  var _createForOfIteratorHelperLoose, cclegacy;
+  return {
+    setters: [function (module) {
+      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+    }],
+    execute: function () {
+      exports({
+        applyReviewedLessonText: applyReviewedLessonText,
+        readableLessonText: readableLessonText
+      });
+      cclegacy._RF.push({}, "215bf8eOmJNgoF0deVvWkkE", "LessonCopy", undefined);
+      /** Reviewed against the current UI; each page covers one decision without spending. */
+      var COPY = {
+        "captain": [["전장을 탭하면 대장이 사격합니다.\n대장 레벨이 높을수록 탭 피해가 커집니다.", "전장 탭 → 적 공격.\n대장 탭의 + 버튼 → 강화.\n0.5초 누른 뒤 끌면 배치 위치를 옮깁니다.", "강화에는 코인이 필요합니다.\n×1·×10·×100·최대의 총비용을 확인하세요.\n대장 Lv.10에서 첫 용병 레아가 열립니다.", "전역하면 대장 레벨·현재 코인이 초기화됩니다.\n장비·드론·작전 기록의 영구 성장은 유지됩니다.\n옮긴 전투 위치는 계정에 저장됩니다."], ["Tap the field to fire with your captain.\nCaptain levels increase damage per tap.", "Tap an enemy to attack.\nUse + in Captain to upgrade.\nHold for 0.5 seconds, then drag to reposition.", "Upgrades cost coins.\nCheck the total for ×1, ×10, ×100, or Max.\nRhea unlocks at Captain level 10.", "Discharge resets captain levels and current coins.\nGear, drones, and intel keep their lasting growth.\nBattle positions are saved to your account."]],
+        "squad": [["편성한 용병이 자동으로 사격합니다.\n대장 1명 + 용병 최대 4명이 출격합니다.", "분대에서 고용할 용병을 고르세요.\n프로필 → 상세 카드 → 분대에서 배치·제외.\n편성한 용병은 목록 위쪽의 체크 태그로 표시됩니다.", "첫 고용은 표시된 1회 비용으로 Lv.1이 됩니다.\n추가 강화는 선택한 배율의 총비용을 씁니다.\n카드의 능력·성장·장비·분대 탭을 비교하세요.", "특정 용병 조합을 모두 배치하면 시너지가 발동합니다.\n대장은 시너지 조합에 포함되지 않습니다.\n전역해도 고용·편성은 남고 용병 레벨은 초기화됩니다."], ["Deployed mercenaries fire automatically.\nOne captain and up to four mercenaries fight together.", "Choose a mercenary in Squad.\nOpen her profile → card → Squad to deploy or withdraw.\nDeployed soldiers appear first with a check tag.", "A first hire pays the shown single cost for level 1.\nLater upgrades use your selected quantity and total cost.\nCompare Combat, Growth, Gear, and Squad card tabs.", "Deploy every named soldier in a combo to activate synergy.\nThe captain does not count.\nDischarge keeps ownership and the deck but resets levels."]],
+        "equipment": [["무장은 피해·코인 배율을 높이는 장비입니다.\n상세의 현재 → 선택 수치로 교체 효과를 비교합니다.", "무장 탭에서 장비를 고르세요.\n상세에서 장착·판매 보호·도감 등록을 선택합니다.\n수치와 i 아이콘을 짧게 누르면 효과를 읽습니다.", "장착·교체·도감 등록은 무료입니다.\n제작은 장비 조각, 판매는 장비를 소모합니다.\n판매 버튼의 실제 지급 다이아를 확인하세요.", "장착 중이거나 판매 보호한 장비는 팔 수 없습니다.\n등록하기는 노랑, 등록 완료는 녹색입니다.\n등록은 장비를 소모하지 않고 전역 후에도 유지됩니다."], ["Gear improves damage and coin multipliers.\nCompare Current → Selected before swapping.", "Choose gear in Arsenal.\nUse Equip, Protect from sale, or Register in its details.\nTap a stat or i icon to read the effect.", "Equipping, swapping, and registration are free.\nCrafting uses gear shards; selling consumes the gear.\nCheck the actual diamond payout on Sell.", "Equipped or protected gear cannot be sold.\nRegister is yellow; Registered is green.\nRegistration keeps the item and survives discharge."]],
+        "drones": [["드론은 코인·대장 피해·용병 피해를 지원합니다.\n서로 다른 드론을 최대 3개 슬롯에 편성합니다.", "드론 탭 → 편대 관리 → 슬롯 → 드론 선택.\n상세에서 실제 지원 효과와 레벨을 확인하세요.\n준비된 보급함에서 새 드론을 얻습니다.", "편성 드론은 지원 효과를 100% 적용합니다.\n미편성 효율은 Lv./100이며 최대 100%입니다.\n정비 훈련은 같은 부품 두 장을 찾는 성장 활동입니다.", "편성·레벨은 계정에 저장되고 전역 후에도 남습니다.\n정비 설명에서 시도·성장 대상을 확인하세요.\n실제 지원 보너스가 적용될 때 발동 안내가 뜹니다."], ["Drones support coins, captain damage, or mercenary damage.\nDeploy up to three different drones in fleet slots.", "Drones → Manage Fleet → choose a slot and drone.\nRead its actual effect and level in Details.\nOpen a ready supply crate for a new drone.", "Deployed drones apply 100% of their support.\nUndeployed efficiency is level/100, capped at 100%.\nMaintenance is a matching game for drone growth.", "Fleet slots and levels are saved and survive discharge.\nRead Maintenance for attempts and its growth target.\nSupport feedback appears when an actual bonus applies."]],
+        "intel": [["작전 기록은 보유하면 자동 적용되는 영구 성장입니다.\n예: 기밀 작전 보고서 1의 Lv.1은 피해·코인 ×1.22.", "현재 구역 60 → 대장 탭의 전역 → 작전 포인트.\n작전 기록 탭에서 확보·상세·강화를 선택합니다.\n보유 {points} · 새 기록 비용 {cost}.", "확보·강화에는 작전 포인트를 씁니다.\n새 기록은 미보유 기록 중 무작위로 선택됩니다.\n해체: 다이아 20개, 강화 투자 포인트 80% 반환.", "기록과 강화 레벨은 전역 후에도 유지됩니다.\n해체한 기록의 효과는 즉시 중단됩니다.\n새 기록 확보 비용은 해체해도 반환되지 않습니다."], ["Owned intel applies lasting bonuses automatically.\nClassified Report 1, level 1: damage and coins ×1.22.", "Current sector 60 → Discharge in Captain → Intel Points.\nAcquire, inspect, and upgrade records in Intel.\nBalance: {points} · New record: {cost}.", "Acquisition and upgrades spend Intel Points.\nA new record is random among unowned records.\nSalvage: 20 diamonds, 80% of upgrade investment back.", "Records and their levels survive discharge.\nSalvaging immediately removes a record’s effect.\nIts acquisition cost is not refunded."]],
+        "supply": [["보급소에서 무료 보상과 선택 구매를 확인합니다.\n상품의 아이콘·색상으로 재화와 카테고리를 구분합니다.", "일반·성장·기간 한정 탭에서 상품을 고르세요.\n상세에서 구성품·가격·수령 조건을 확인합니다.\n지금 받을 보상에만 수령 가능 표시가 뜹니다.", "무료 수령과 코인·다이아·결제를 구분하세요.\n회색 버튼은 비용이나 서비스 조건이 맞지 않습니다.\n버튼을 짧게 누르면 구체적인 이유를 읽습니다.", "수령·구매 기록은 계정에 저장됩니다.\n광고 2배는 완료 확인 뒤 추가 보상을 지급합니다.\n결제 상품과 이용 권한은 광고로 대신 지급하지 않습니다."], ["Supply contains free rewards and optional purchases.\nIcons and colors distinguish currencies and categories.", "Choose General, Growth, or Limited offers.\nInspect contents, price, and claim conditions.\nClaim now appears only for a reward you can receive.", "Distinguish free, coin, diamond, and paid offers.\nGray buttons mean a cost or service condition is unmet.\nTap the button to read the specific reason.", "Claims and purchases are saved to your account.\nAd doubling requires completion verification.\nPaid products and access rights cannot be replaced by ads."]],
+        "redeploy": [["전역은 현재 전투 성장을 초기화하는 기능입니다.\n작전 포인트를 받아 영구 작전 기록을 준비합니다.", "대장 탭 → 전역 → 초기화 범위 확인.\n예상 작전 포인트는 {reward}입니다.\n최종 확인 버튼을 누르기 전에는 초기화하지 않습니다.", "현재 구역 60 이상에서 전역할 수 있습니다.\n구역·대장·용병 레벨·현재 코인이 초기화됩니다.\n설명을 읽거나 확인창을 닫는 것은 무료입니다.", "장비·드론·기록·영구 성장과 고용 이력은 유지됩니다.\n현재 강화 비용과 전역 보상을 비교해 결정하세요.\n남은 작전 포인트도 계정에 보관됩니다."], ["Discharge resets your current combat growth.\nEarn Intel Points for lasting intel records.", "Captain → Discharge → review what resets.\nEstimated Intel Points: {reward}.\nNothing resets until you confirm the real action.", "Discharge requires current sector 60 or higher.\nSector, captain/mercenary levels, and coins reset.\nReading or closing confirmation spends nothing.", "Gear, drones, intel, lasting growth, and ownership remain.\nCompare current growth with the discharge reward.\nUnspent Intel Points remain in your account."]],
+        "tactics": [["전술은 에너지와 대기 시간을 사용하는 전투 기술입니다.\n기술마다 피해·치명타·코인·지속 효과가 다릅니다.", "대장 탭의 전술 배치 → 6칸 중 선택 → 기술 교체.\n메뉴를 접으면 전장 아래의 전술 버튼이 보입니다.\n같은 기술은 목록·상세·전장에서 같은 아이콘입니다.", "사용에는 에너지, 강화에는 코인이 필요합니다.\n대장 해금 레벨과 현재 대기 시간을 확인하세요.\n상세의 현재 효과·지속 시간·중첩을 비교합니다.", "전술 칸 번호와 선택한 기술은 계정에 저장됩니다.\n준비 중에는 버튼의 남은 시간을 확인하세요.\n기술별 실제 지원 효과만 전투에 적용됩니다."], ["Tactics use energy and cooldowns in combat.\nTheir damage, critical, coin, and duration effects differ.", "Captain → Tactic Slots → pick one of six → replace.\nHide the menu to use the battlefield tactic buttons.\nThe same tactic keeps its icon in every view.", "Casting uses energy; upgrades use coins.\nCheck the captain unlock level and remaining cooldown.\nCompare actual effect, duration, and stacks in Details.", "Slot numbers and selected tactics are saved.\nWhile unavailable, check the remaining time.\nOnly each tactic’s actual implemented effects apply."]],
+        "registry": [["수집 도감은 획득한 장비의 등록 이력을 기록합니다.\n용병 도감의 캐릭터 상세와는 별도 기능입니다.", "장비 상세 → 등록하기를 누르세요.\n수집 도감에서 등록 여부와 누적 효과를 확인합니다.\n등록 완료는 녹색 버튼으로 표시됩니다.", "등록은 무료이고 장비를 소모하지 않습니다.\n미획득 장비는 먼저 획득해야 합니다.\n완료 항목은 중복 등록할 수 없습니다.", "등록 이력과 누적 효과는 계정에 저장됩니다.\n전역 후에도 등록 이력은 유지됩니다.\n도감을 읽는 조작은 장비·재화를 바꾸지 않습니다."], ["The equipment registry records your collected gear.\nIt is separate from the mercenary character codex.", "Open gear Details → Register.\nReview registration and total bonuses in the registry.\nA green button marks Registered.", "Registration is free and does not consume gear.\nAcquire missing gear first.\nCompleted entries cannot be registered twice.", "Registration and total bonuses are saved.\nRegistration survives discharge.\nReading the registry changes no gear or currency."]],
+        "rewards": [["일일·업적·구역·보급·오프라인 보상을 확인합니다.\n실제 받을 보상이 있을 때만 수령 가능이 표시됩니다.", "작전에서 목표와 현재 달성 상태를 확인하세요.\n수령창에서 보상 아이콘·수량을 읽습니다.\n기본 수령 또는 광고 2배를 선택합니다.", "기본 수령은 광고 없이 표시된 보상을 받습니다.\n광고 2배는 완료 확인 후 같은 보상을 추가 지급합니다.\n웹·테스트는 광고 없이 2배를 받을 수 있습니다.", "보상과 수령 기록은 한 번만 저장됩니다.\n광고 취소·검증 실패에는 추가 보상이 없습니다.\n닫기·취소만으로는 보상을 지급하지 않습니다."], ["Check daily, achievement, sector, supply, and offline rewards.\nClaim now appears only for an actual available reward.", "Review goals and progress in Ops.\nRead the reward icons and amounts in the claim window.\nChoose Base claim or Ad ×2.", "Base claim grants the shown reward without an ad.\nAd ×2 adds the same reward after verification.\nWeb and test builds allow doubling without ads.", "Rewards and claim records are saved once.\nCancelled or failed ads grant no extra reward.\nClosing or cancelling the window grants nothing."]],
+        "skills": [["특성 수련은 6계열·18개 노드의 영구 성장입니다.\n피해·코인 등 실제 능력에 맞는 노드를 선택합니다.", "노드 선택 → +/−로 임시 배분 → 효과 비교.\n적용을 눌러야 편집한 수련이 저장됩니다.\n되돌리기는 적용 전 편집만 취소합니다.", "다음 레벨 비용은 편집 레벨 +1 포인트입니다.\n다음 티어는 선행 노드 Lv.3이 필요합니다.\n현재·편집 배율과 남은 포인트를 비교하세요.", "적용한 특성은 전역 후에도 유지됩니다.\n미적용 편집과 실제 능력은 구분됩니다.\n반환·초기화 전에 표시된 회수 범위를 확인하세요."], ["Talents give lasting growth through six branches and 18 nodes.\nChoose nodes for their actual damage or coin effects.", "Select a node → edit with +/− → compare effects.\nApply saves your edited training.\nUndo discards only unapplied edits.", "The next level costs edited level +1 points.\nHigher tiers require predecessor level 3.\nCompare saved/draft factors and remaining points.", "Applied talents survive discharge.\nUnapplied edits are separate from actual stats.\nReview the refund scope before returning or resetting."]],
+        "cards": [["카드 덱은 레이드에서 사용할 기술 카드입니다.\n용병 전투 덱과 다른 별도 덱입니다.", "작전 → 카드 → 카드 상세를 여세요.\n효과를 확인하고 카드 덱에 3장을 고릅니다.\n레이드 진입 전에 편성한 덱을 확인하세요.", "카드 기능은 최고 구역 100부터 열립니다.\n합성·성장 비용은 화면의 카드 조각 등을 확인합니다.\n카드를 읽고 비교하는 조작은 무료입니다.", "카드 획득·성장·편성은 계정에 저장됩니다.\n용병 배치와 카드 선택은 서로 바꾸지 않습니다.\n실제 레이드 효과는 선택한 카드로 판정합니다."], ["The card deck holds ability cards for raids.\nIt is separate from your mercenary combat deck.", "Ops → Cards → open Details.\nRead effects and choose three cards for the deck.\nReview your deck before entering a raid.", "Cards unlock at best sector 100.\nCheck the shown shards and costs for fusion or growth.\nReading and comparing cards is free.", "Card ownership, growth, and the deck are saved.\nMercenary deployment and card selection are separate.\nYour selected cards determine actual raid effects."]],
+        "raids": [["레이드는 제한 시간 안에 부위를 공격하는 별도 전투입니다.\n일반 구역 전투와 카드 효과를 구분합니다.", "작전 → 솔로 레이드 → 카드 3장 확인.\n포털 선택 → 부위 공격 → 결과 보상 수령.\n남은 시간과 부위 상태를 확인하세요.", "레이드는 최고 구역 100부터 열립니다.\n포털·일일 목표의 수령 상태를 확인합니다.\n연대 레이드는 계정·참여·서버 카드 조건을 따릅니다.", "결과에서 실제 지급 보상을 확인하고 수령합니다.\n완료·수령 기록은 계정에 저장됩니다.\n실패한 요청에는 성공 보상을 지급하지 않습니다."], ["Raids are timed battles against enemy parts.\nTheir card effects are separate from normal sector combat.", "Ops → Solo Raid → review three cards.\nSelect a portal → attack parts → claim the result.\nWatch remaining time and part health.", "Raids unlock at best sector 100.\nCheck portal and daily-goal claim status.\nRegiment raids follow account, entry, and server-card rules.", "Review actual rewards in the result before claiming.\nCompletion and claim records are saved.\nFailed requests grant no success reward."]],
+        "events": [["특별 작전은 이벤트 토큰을 쓰는 기간별 보상입니다.\n누적 목표와 보급품 탐색은 서로 다른 기능입니다.", "작전 → 특별 작전 → 누적 목표 확인.\n완료한 목표의 보상을 수령합니다.\n보급품 탐색은 별도 버튼에서 상자를 엽니다.", "누적 목표의 수령은 무료입니다.\n탐색 상자 열기는 이벤트 토큰을 소비합니다.\n토큰 보유량과 필요한 수량을 먼저 비교하세요.", "완료 목표·열린 상자는 중복 지급하지 않습니다.\n해당 시즌의 진행과 남은 시간을 확인하세요.\n시즌 변경 후에는 새 목표·조건을 다시 확인합니다."], ["Special Ops are seasonal rewards using event tokens.\nCumulative goals and supply search follow different rules.", "Ops → Special Ops → review cumulative goals.\nClaim rewards for completed goals.\nOpen Supply Search separately to uncover crates.", "Milestone claims are free.\nOpening search crates spends event tokens.\nCompare your balance with the required amount first.", "Completed goals and opened crates cannot pay twice.\nWatch current-season progress and remaining time.\nReview new goals and conditions when the season changes."]],
+        "exploration": [["보급품 탐색은 16칸에서 보급상자를 여는 기능입니다.\n숨겨진 다이아 보상을 찾아 수령합니다.", "작전 → 특별 작전 → 보급품 탐색.\n닫힌 상자를 선택해 비용을 확인합니다.\n열린 칸과 아직 닫힌 칸을 구분하세요.", "상자 1개에 이벤트 토큰 20개를 씁니다.\n기본 다이아 보상은 5·10·15개입니다.\n설명·지도 확인만으로 토큰을 소비하지 않습니다.", "열린 상자와 수령 상태는 계정에 저장됩니다.\n같은 칸의 보상은 중복 지급하지 않습니다.\n전체 완료 여부와 시즌 남은 시간을 확인하세요."], ["Supply Search has 16 hidden crates to uncover.\nFind and claim their diamond rewards.", "Ops → Special Ops → Supply Search.\nChoose a closed crate and check its cost.\nDistinguish open tiles from closed ones.", "Each crate costs 20 event tokens.\nBase diamond rewards are 5, 10, or 15.\nReading the guide or map spends no tokens.", "Opened crates and claim status are saved.\nThe same tile cannot pay twice.\nCheck overall completion and season time remaining."]],
+        "growth": [["심화 성장은 보석·연구·지원 수집·기념물입니다.\n각 기능의 재화와 해금 조건은 다릅니다.", "작전 → 심화 성장 또는 추가 성장.\n대상 능력·현재/다음 효과·비용을 비교하세요.\n확인 후 해당 성장 버튼을 누릅니다.", "보석·연구는 최고 구역 1,000에서 열립니다.\n지원 수집은 100,000구역 또는 계정 30일 뒤입니다.\n기념물은 최고 구역 180,000이 필요합니다.", "영구 성장 효과는 전역 후에도 유지됩니다.\n재화 아이콘·이름을 확인하고 투자하세요.\n부족·잠금 상태를 읽는 조작은 무료입니다."], ["Advanced Growth includes gems, research, support, and monuments.\nEach system has its own currency and unlock condition.", "Ops → Advanced Growth or More Growth.\nCompare the stat, current/next effect, and cost.\nUse that system’s growth action after reviewing.", "Gems and research unlock at best sector 1,000.\nSupport unlocks at sector 100,000 or account age 30 days.\nMonuments require best sector 180,000.", "Lasting growth survives discharge.\nCheck currency icons and names before investing.\nReading locked or insufficient conditions is free."]],
+        "regiment": [["연대는 다른 계정과 협력하는 서버 기능입니다.\n용병 전투 덱의 개인 분대와 구분합니다.", "작전 → 연대에서 소속과 참여 상태를 확인하세요.\n사용 가능한 가입·연대 도구·레이드 화면을 엽니다.\n서버에 표시된 참여 조건을 따릅니다.", "연대는 최고 구역 100부터 열립니다.\n온라인 연결과 계정 인증이 필요합니다.\n행동별 요구 재화·횟수는 화면에서 확인하세요.", "가입·참여·결과는 서버 상태로 확인합니다.\n연결 오류에는 성공 처리를 하지 않습니다.\n개인 용병 편성과 연대 소속은 별도로 저장됩니다."], ["Regiments are online cooperation between accounts.\nThey are separate from your personal mercenary squad.", "Ops → Regiment → review membership and participation.\nOpen available join, regiment tools, or raid views.\nFollow the participation conditions shown by the server.", "Regiments unlock at best sector 100.\nAn online connection and authenticated account are required.\nCheck each action’s currency and attempt limits.", "Membership, participation, and results use server state.\nConnection failures are not treated as success.\nYour mercenary deck and regiment are saved separately."]],
+        "competition": [["경쟁 작전은 서버의 대회·순위 기능입니다.\n일반 구역 처치 보상과 별도로 진행합니다.", "작전 → 대회에서 현재 참가 상태를 확인하세요.\n가능한 행동의 조건과 보상을 먼저 읽습니다.\n서버 결과로 순위·완료 상태를 확인합니다.", "대회는 최고 구역 60부터 열립니다.\n온라인 연결과 계정 인증이 필요합니다.\n참가 비용·횟수 제한은 실제 화면을 따릅니다.", "진행·순위·보상은 서버 기록으로 판정합니다.\n수령 가능 상태를 확인한 뒤 보상을 받으세요.\n이미 수령한 보상은 중복 지급하지 않습니다."], ["Competition is the server tournament and ranking system.\nIt is separate from ordinary sector-kill rewards.", "Ops → Tournament → review participation status.\nRead an action’s requirements and reward first.\nUse server results to check rank and completion.", "Tournaments unlock at best sector 60.\nAn online connection and authenticated account are required.\nFollow actual entry costs and attempt limits on screen.", "Progress, rank, and rewards follow server records.\nCheck availability before claiming a reward.\nAlready claimed rewards cannot pay twice."]],
+        "maintenance": [["드론 정비는 같은 부품 두 장을 찾는 훈련입니다.\n16장 카드에서 8쌍을 완성합니다.", "닫힌 카드 1장 → 두 번째 카드 선택.\n같은 부품이면 한 쌍이 완료됩니다.\n실제 성장 대상은 화면 위의 드론 이름입니다.", "매일 시도 16회로 갱신됩니다.\n한 쌍의 첫 카드에 시도 1회, 둘째 카드는 무료입니다.\n남은 시도가 없으면 다음 일일 갱신을 기다립니다.", "기본 보상: 한 쌍마다 대상 드론 Lv.+1.\n8쌍 완성 보상: 장비 조각 5개.\n카드·시도·성장·수령 기록은 계정에 저장됩니다."], ["Drone maintenance is a matching exercise.\nFind eight identical pairs among 16 cards.", "Choose one closed card, then a second.\nIdentical parts complete a pair.\nThe drone named at the top receives the growth.", "You receive 16 attempts each daily reset.\nA pair’s first card costs one attempt; its second is free.\nWith no attempts left, wait for the next daily reset.", "Base reward: target drone +1 level per matched pair.\nAll eight pairs give five gear shards.\nCards, attempts, growth, and claims are saved."]]
+      };
+      var BASICS = {
+        "learn.part.0": ["목적", "Purpose"],
+        "learn.part.1": ["사용 순서", "Steps"],
+        "learn.part.2": ["비용·조건", "Costs & conditions"],
+        "learn.part.3": ["저장·주의", "Save & cautions"],
+        "learn.title": ["{name} 안내", "{name} guide"],
+        "learn.next": ["다음", "Next"],
+        "learn.previous": ["이전", "Back"],
+        "learn.practice": ["화면 열기", "Open feature"],
+        "learn.libraryIntro": ["기능을 골라 목적·조작·비용·저장을 확인하세요.", "Choose a feature to review purpose, steps, costs, and saving."],
+        "learn.readOnly": ["설명 읽기는 무료 · 재화를 소비하지 않습니다.", "Reading is free · No currency is spent."],
+        "learn.available": ["지금 사용 가능 · {state}", "Available now · {state}"],
+        "learn.locked": ["최고 구역 {stage} 필요 · {state}", "Best sector {stage} required · {state}"],
+        "guide.begin": ["따라 해 보기로 시작.\n탭·강화·고용을 배웁니다.", "Start with Show Me How.\nLearn tapping, upgrades, and hiring."],
+        "tutorial.step1": ["적을 3번 탭하세요. ({taps}/3)\n처치하면 코인을 얻습니다.", "Tap an enemy 3 times. ({taps}/3)\nKills grant coins."],
+        "tutorial.step2": ["대장 +를 한 번 강화하세요.\n표시된 코인 비용을 확인하세요.", "Upgrade Captain once with +.\nCheck the displayed coin cost."],
+        "tutorial.captainUnlock": ["대장 Lv.{current}/{level}\n+ 강화로 레아를 해금하세요.", "Captain level {current}/{level}\nUse + to unlock Rhea."],
+        "tutorial.fundsCaptain": ["코인이 부족합니다.\n적을 처치한 뒤 강화하세요.", "Not enough coins.\nDefeat enemies, then upgrade."],
+        "tutorial.fundsUpgrade": ["코인이 부족합니다.\n적을 처치한 뒤 강화하세요.", "Not enough coins.\nDefeat enemies, then upgrade."],
+        "tutorial.fundsRecruit": ["고용 코인이 부족합니다.\n적을 처치한 뒤 돌아오세요.", "Not enough coins to hire.\nDefeat enemies, then return."],
+        "tutorial.step3": ["하단 분대 탭을 여세요.\n편성한 용병이 자동 공격합니다.", "Open Squad below.\nDeployed mercenaries fire automatically."],
+        "tutorial.step4": ["레아를 코인으로 고용하세요.\n첫 고용은 Lv.1로 합류합니다.", "Hire Rhea with coins.\nA first hire joins at level 1."],
+        "tutorial.step5": ["메뉴 접기 ↓를 누르세요.\n전장과 전술 버튼이 보입니다.", "Press Hide Menu ↓.\nBattlefield tactic buttons appear."],
+        "tutorial.step6": ["메뉴 펼치기 ↑를 누르세요.\n설명은 훈련소에서 다시 봅니다.", "Press Show Menu ↑.\nReplay guides in Feature Training."],
+        "tutorial.complete": ["기본 훈련 완료! 새 기능은 해금 때 안내합니다.", "Basic training complete! New features are explained as they unlock."],
+        "guide.master": ["대장 탭 → + 강화.\n표시된 비용을 확인하세요.", "Captain → + Upgrade.\nCheck the shown cost."],
+        "guide.daily": ["작전 → 일일 임무.\n완료한 목표의 보상을 수령하세요.", "Ops → Daily Tasks.\nClaim rewards for completed goals."],
+        "guide.tab3": ["드론이 열렸습니다.\n3개 슬롯의 편성을 배워 보세요.", "Drones unlocked.\nLearn the three fleet slots."],
+        "guide.egg": ["드론 보급함을 확인하세요.\n준비 완료 후 열 수 있습니다.", "Check the drone supply crate.\nOpen it when ready."],
+        "guide.pet": ["편대 관리 → 슬롯 → 드론.\n상세에서 실제 효과를 비교하세요.", "Manage Fleet → slot → drone.\nCompare actual effects in Details."],
+        "guide.spell": ["메뉴 접기 ↓.\n전장 아래의 전술을 사용하세요.", "Hide Menu ↓.\nUse the battlefield tactics below."],
+        "guide.spellCast": ["빛나는 전술을 누르세요.\n에너지·대기 시간을 확인하세요.", "Tap the highlighted tactic.\nCheck energy and cooldown."],
+        "guide.feature15": ["무장·특별 작전이 열렸습니다.\n비용·보상을 읽고 시작하세요.", "Arsenal and Special Ops unlocked.\nReview costs and rewards first."],
+        "guide.feature50": ["특성 수련이 열렸습니다.\n임시 배분 → 적용을 배워 보세요.", "Talents unlocked.\nLearn Draft → Apply."],
+        "guide.feature60": ["전역·작전 기록·대회 해금.\n작전에서 설명을 확인하세요.", "Discharge, Intel, and tournaments unlocked.\nReview guides in Ops."],
+        "guide.feature100": ["카드·레이드·연대 해금.\n작전에서 기능별 설명을 보세요.", "Cards, raids, and regiments unlocked.\nRead their guides in Ops."],
+        "guide.feature1000": ["보석·연구가 열렸습니다.\n심화 성장의 비용을 확인하세요.", "Gems and research unlocked.\nCheck Advanced Growth costs."],
+        "guide.feature100000": ["지원 수집이 열렸습니다.\n추가 성장에서 재화를 확인하세요.", "Support collection unlocked.\nCheck its currency in More Growth."],
+        "guide.supportAge": ["계정 30일로 지원 수집 해금.\n작전 → 추가 성장에서 확인하세요.", "Account age unlocked support collection.\nFind it in Ops → More Growth."],
+        "guide.feature180000": ["기념물이 열렸습니다.\n영구 효과와 비용을 비교하세요.", "Monuments unlocked.\nCompare lasting effects and costs."],
+        "tutorial.recruitUpgrade": ["레아를 한 단계 강화하세요.\n편성한 용병이 자동 공격합니다.", "Upgrade Rhea by one level.\nDeployed mercenaries fire automatically."],
+        "tutorial.recruitReturn": ["레아를 다시 고용하세요.\nLv.1부터 전투 성장을 시작합니다.", "Hire Rhea again.\nRestart combat growth at level 1."],
+        "tutorial.fundsMercenary": ["코인이 부족합니다.\n적을 처치한 뒤 레아를 성장시키세요.", "Not enough coins.\nDefeat enemies, then grow Rhea."],
+        "guide.tab5": ["보급소가 열렸습니다.\n무료 보상과 선택 구매를 구분하세요.", "Supply unlocked.\nDistinguish free rewards from purchases."],
+        "guide.tab2": ["무장이 열렸습니다.\n교체 효과·판매 보호를 배웁니다.", "Arsenal unlocked.\nLearn swapping and protection from sale."],
+        "guide.tab4": ["작전 기록이 열렸습니다.\n전역 포인트로 영구 성장합니다.", "Intel unlocked.\nDischarge points provide lasting growth."],
+        "guide.free": ["지금 받을 무료 보상을 찾으세요.\n상품 구매는 선택입니다.", "Find an available free reward.\nPurchases are optional."],
+        "guide.gear": ["장비 상세 → 현재/선택 비교.\n장착·판매 보호를 고르세요.", "Gear Details → Current/Selected.\nChoose Equip or Protect."],
+        "guide.prestige": ["현재 구역 60 이상 → 전역.\n초기화 범위·포인트를 확인하세요.", "Current sector 60+ → Discharge.\nReview reset scope and points."],
+        "guide.relics": ["현재 구역 60 → 대장 → 전역.\n작전 포인트를 준비하세요.", "Current sector 60 → Captain → Discharge.\nPrepare Intel Points."],
+        "guide.discover": ["새 기록 확보 → 포인트 소비.\n미보유 기록 중 무작위 획득.", "Acquire a record → spend Intel Points.\nReceive a random unowned record."],
+        "guide.artifact": ["기록 상세를 여세요.\n효과·강화 비용을 비교하세요.", "Open record Details.\nCompare effects and upgrade costs."],
+        "guide.boss": ["첫 보스! 제한 30초.\n실패하면 강화 후 재도전하세요.", "First boss! 30-second limit.\nUpgrade and retry if time runs out."],
+        "guide.bossEscorts": ["호위를 먼저 처치하세요.\n모두 처치한 뒤 보스를 공격합니다.", "Defeat escorts first.\nAttack the boss after every escort falls."],
+        "guide.bossExposed": ["호위 처치 완료.\n이제 보스를 공격하세요.", "Escorts defeated.\nNow attack the boss."],
+        "guide.bossRetry": ["시간 초과! 같은 구역에서 강화.\n보스 도전으로 30초 재시작.", "Time up! Upgrade in this sector.\nFight Boss restarts the 30-second timer."],
+        "tutorial.skipTitle": ["기본 훈련을 마칠까요?", "Finish basic training?"],
+        "tutorial.skipBody": ["현재 게임 진행은 유지합니다.\n설정에서 기본 훈련을 다시 시작할 수 있습니다.", "Your game progress stays intact.\nReplay basic training from Settings."],
+        "tutorial.replay": ["기본 훈련 다시 보기", "Replay basic training"],
+        "tutorial.replayBody": ["진행을 유지하고 현재 UI의 기본 조작을 다시 안내합니다.", "Keep your progress and review the current UI’s basic controls."]
+      };
+      function applyReviewedLessonText(t) {
+        for (var _i = 0, _Object$entries = Object.entries(COPY); _i < _Object$entries.length; _i++) {
+          var _Object$entries$_i = _Object$entries[_i],
+            id = _Object$entries$_i[0],
+            pages = _Object$entries$_i[1];
+          for (var page = 0; page < 4; page++) {
+            t.ko['learn.' + id + '.' + page] = pages[0][page];
+            t.en['learn.' + id + '.' + page] = pages[1][page];
+          }
+        }
+        for (var _i2 = 0, _Object$entries2 = Object.entries(BASICS); _i2 < _Object$entries2.length; _i2++) {
+          var _Object$entries2$_i = _Object$entries2[_i2],
+            key = _Object$entries2$_i[0],
+            _Object$entries2$_i$ = _Object$entries2$_i[1],
+            ko = _Object$entries2$_i$[0],
+            en = _Object$entries2$_i$[1];
+          t.ko[key] = ko;
+          t.en[key] = en;
+        }
+      }
+
+      /** Break Korean at spaces before Cocos can split the middle of a word. */
+      function readableLessonText(text, locale) {
+        if (locale !== 'ko') return text;
+        var width = function width(word) {
+          return Array.from(word).reduce(function (n, c) {
+            return n + (/[A-Za-z0-9 .,()/:%+−-]/.test(c) ? .55 : 1);
+          }, 0);
+        };
+        return text.split('\n').map(function (paragraph) {
+          var lines = [];
+          var line = '',
+            units = 0;
+          for (var _iterator = _createForOfIteratorHelperLoose(paragraph.split(/\s+/)), _step; !(_step = _iterator()).done;) {
+            var word = _step.value;
+            var n = width(word);
+            if (line && units + .55 + n > 19) {
+              lines.push(line);
+              line = word;
+              units = n;
+            } else {
+              line += (line ? ' ' : '') + word;
+              units += n + (line === word ? 0 : .55);
+            }
+          }
+          if (line) lines.push(line);
+          return lines.join('\n');
+        }).join('\n');
+      }
       cclegacy._RF.pop();
     }
   };
@@ -52451,9 +52639,9 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossEntranceUI.ts', './BossTimerUI.ts', './BrandSplashUI.ts', './CheatUI.ts', './CombatMotion.ts', './DischargeIcon.ts', './DroneFeedbackUI.ts', './DroneFleetUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentDetailUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './FontUI.ts', './GameApp.ts', './LiveOpsUI.ts', './MercenaryDetailUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PackedUIArt.ts', './PopupIllustrationUI.ts', './PushNotifications.ts', './RewardArtUI.ts', './RewardClaimUI.ts', './RewardContentsUI.ts', './RewardGlowUI.ts', './ScrollPositionUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillIconArt.ts', './SkillTrainingUI.ts', './SkillUI.ts', './SpeechIllustrationUI.ts', './SquadUI.ts', './TacticDetailUI.ts', './TitleUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './BossEntrance.ts', './BrandSplash.ts', './Config.ts', './Dialogue.ts', './DischargeText.ts', './DroneEffects.ts', './DroneFleet.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MercenaryUnlock.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './SkillCatalog.ts', './SkillText.ts', './SpeechArtBounds.ts', './Squad.ts', './SquadName.ts', './TitleArtBounds.ts', './TitleCast.ts', './UIFontCatalog.ts', './firebase-sdk.js'], function () {
+System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossEntranceUI.ts', './BossTimerUI.ts', './BrandSplashUI.ts', './CheatUI.ts', './CombatMotion.ts', './DischargeIcon.ts', './DroneFeedbackUI.ts', './DroneFleetUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentDetailUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './FontUI.ts', './GameApp.ts', './LiveOpsUI.ts', './MercenaryDetailUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PackedUIArt.ts', './PopupIllustrationUI.ts', './PushNotifications.ts', './RewardArtUI.ts', './RewardClaimUI.ts', './RewardContentsUI.ts', './RewardGlowUI.ts', './ScrollPositionUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillIconArt.ts', './SkillTrainingUI.ts', './SkillUI.ts', './SpeechIllustrationUI.ts', './SquadUI.ts', './TacticDetailUI.ts', './TitleUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './BossEntrance.ts', './BrandSplash.ts', './Config.ts', './Dialogue.ts', './DischargeText.ts', './DroneEffects.ts', './DroneFleet.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LessonCopy.ts', './LiveOps.ts', './Mercenaries.ts', './MercenaryUnlock.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './SkillCatalog.ts', './SkillText.ts', './SpeechArtBounds.ts', './Squad.ts', './SquadName.ts', './TitleArtBounds.ts', './TitleCast.ts', './UIFontCatalog.ts', './firebase-sdk.js'], function () {
   return {
-    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     execute: function () {}
   };
 });
@@ -60918,8 +61106,8 @@ System.register("chunks:///_virtual/TitleUI.ts", ['./rollupPluginModLoBabelHelpe
   };
 });
 
-System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './EntryPolicy.ts', './UITheme.ts', './I18n.ts', './Config.ts', './MercenaryUnlock.ts', './FeatureLessons.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _createClass, cclegacy, isValid, Mask, UITransform, Label, Node, Vec3, Graphics, UIOpacity, tween, tutorialComplete, tutorialSeen, tutorialAdvance, TUTORIAL_DONE, tabUnlocked, TAB_STAGES, UI, translations, SPELLS, mercenaryUnlocked, FIRST_MERCENARY_CAPTAIN_LEVEL, lessonRead, lessonReceipt, lessonPage, LESSONS, lessonSteps;
+System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './EntryPolicy.ts', './UITheme.ts', './I18n.ts', './LessonCopy.ts', './Config.ts', './MercenaryUnlock.ts', './FeatureLessons.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _createClass, cclegacy, isValid, Label, Mask, UITransform, Node, Vec3, Graphics, UIOpacity, tween, featureUnlocked, tabUnlocked, tutorialComplete, tutorialSeen, tutorialAdvance, TUTORIAL_DONE, TAB_STAGES, UI, translations, readableLessonText, SPELLS, mercenaryUnlocked, FIRST_MERCENARY_CAPTAIN_LEVEL, lessonRead, lessonReceipt, lessonPage, LESSONS, lessonSteps;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -60927,25 +61115,28 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
     }, function (module) {
       cclegacy = module.cclegacy;
       isValid = module.isValid;
+      Label = module.Label;
       Mask = module.Mask;
       UITransform = module.UITransform;
-      Label = module.Label;
       Node = module.Node;
       Vec3 = module.Vec3;
       Graphics = module.Graphics;
       UIOpacity = module.UIOpacity;
       tween = module.tween;
     }, function (module) {
+      featureUnlocked = module.featureUnlocked;
+      tabUnlocked = module.tabUnlocked;
       tutorialComplete = module.tutorialComplete;
       tutorialSeen = module.tutorialSeen;
       tutorialAdvance = module.tutorialAdvance;
       TUTORIAL_DONE = module.TUTORIAL_DONE;
-      tabUnlocked = module.tabUnlocked;
       TAB_STAGES = module.TAB_STAGES;
     }, function (module) {
       UI = module.UI;
     }, function (module) {
       translations = module.translations;
+    }, function (module) {
+      readableLessonText = module.readableLessonText;
     }, function (module) {
       SPELLS = module.SPELLS;
     }, function (module) {
@@ -61016,23 +61207,28 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             }), 560, true, 'teal', false, back);
           this.clearSpotlight();
           p.name = 'lesson-panel';
-          var total = lessonSteps(id),
+          var total = lessonSteps(),
             receipt = lessonReceipt(id);
           a.label(p, a.tr('learn.progress', {
             step: page + 1,
             total: total,
             part: a.tr('learn.part.' + page)
-          }), 0, 173, 374, 40, 19, UI.gold).node.name = 'lesson-progress';
+          }), 0, 173, 354, 28, 17, UI.gold, Label.HorizontalAlign.LEFT).node.name = 'lesson-progress';
           a.ui.icon(a.nodeAt(p, 'lesson-icon', 0, 115, 48, 48), topic.icon, UI.gold);
-          a.label(p, a.tr('learn.' + id + '.' + page, {
+          var body = a.label(p, readableLessonText(a.tr('learn.' + id + '.' + page, {
             points: a.formatIntel(a.game.s.relics),
             cost: a.formatIntel(a.game.discoverCost()),
             reward: a.formatIntel(a.game.prestigeReward())
-          }), 0, -18, 374, 204, 18, UI.text).node.name = 'lesson-body';
+          }), a.game.s.locale), 0, -24, 354, 216, 18, UI.text, Label.HorizontalAlign.LEFT);
+          body.node.name = 'lesson-body';
+          body.verticalAlign = Label.VerticalAlign.TOP;
+          body.lineHeight = 27;
           if (page > 0) a.button(p, a.tr('learn.previous'), -98, -176, 176, 44, function () {
             return _this2.lessonScreen(id, page - 1, resume, back);
           }, false, {
-            style: 'secondary'
+            style: 'secondary',
+            category: 'back',
+            fontSize: 17
           }).name = 'lesson-previous';
           a.button(p, a.tr(page < total - 1 ? 'learn.next' : 'learn.practice'), page ? 98 : 0, -176, page ? 176 : 370, 44, function () {
             _this2.complete(receipt + ':page:' + page);
@@ -61041,16 +61237,20 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
               return;
             }
             _this2.complete(receipt);
-            var stages = id === 'equipment' || id === 'events' ? [15] : id === 'skills' ? [50] : id === 'intel' || id === 'redeploy' ? [60] : id === 'cards' || id === 'raids' ? [100] : id === 'growth' ? [1000, 100000, 180000] : [];
+            var stages = id === 'equipment' || id === 'events' ? [15] : id === 'skills' ? [50] : id === 'intel' || id === 'redeploy' ? [60] : id === 'cards' || id === 'raids' || id === 'regiment' ? [100] : id === 'competition' ? [60] : id === 'growth' ? [1000, 100000, 180000] : [];
             for (var _i = 0, _stages = stages; _i < _stages.length; _i++) {
               var stage = _stages[_i];
               if (a.game.s.maxStage >= stage) _this2.complete('feature:' + stage);
             }
+            if (id === 'growth' && featureUnlocked(a.game.s, 'extra.souls')) _this2.complete('feature:support-age');
             if (id === 'intel' || id === 'redeploy') _this2.practiceTopic = id;
             a.close();
             resume();
-          }, true).name = 'lesson-next';
-          a.label(p, a.tr('learn.libraryIntro'), 0, -234, 374, 43, 13, UI.muted);
+          }, true, {
+            category: page < total - 1 ? 'confirm' : 'details',
+            fontSize: 17
+          }).name = 'lesson-next';
+          a.label(p, a.tr('learn.readOnly'), 0, -234, 374, 36, 14, UI.muted).node.name = 'lesson-read-only';
         };
         _proto.lessons = function lessons(back) {
           var _this3 = this;
@@ -61066,7 +61266,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           a.scroll(p, 0, -36, 400, 440, LESSONS.map(function (topic) {
             return {
               title: a.tr(topic.title),
-              sub: a.tr('learn.status', {
+              sub: a.tr(_this3.lessonAvailable(topic.id) ? 'learn.available' : 'learn.locked', {
                 stage: topic.stage,
                 state: a.tr(lessonRead(a.game.s, topic.id) ? 'learn.read' : 'learn.unread')
               }),
@@ -61083,13 +61283,19 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             };
           }));
         };
+        _proto.lessonAvailable = function lessonAvailable(id) {
+          var topic = LESSONS.find(function (t) {
+            return t.id === id;
+          });
+          return 'tab' in topic ? tabUnlocked(this.a.game.s, topic.tab) : id === 'growth' ? this.a.game.s.maxStage >= topic.stage || featureUnlocked(this.a.game.s, 'extra.souls') : this.a.game.s.maxStage >= topic.stage;
+        };
         _proto.practiceLesson = function practiceLesson(id) {
           var _actions$id;
           var a = this.a,
             topic = LESSONS.find(function (topic) {
               return topic.id === id;
             });
-          if (a.game.s.maxStage < topic.stage) {
+          if (!this.lessonAvailable(id)) {
             this.lessons();
             a.toast(a.tr('unlock.stage', {
               name: a.tr(topic.title),
@@ -61104,7 +61310,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           if (id === 'redeploy' || id === 'tactics') {
             a.close();
             this.tab(0, true);
-            if (id === 'tactics') a.setFolded(true);
+            if (id === 'tactics') a.spells(0);
             return;
           }
           var actions = {
@@ -61130,7 +61336,16 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
               return a.board(false);
             },
             growth: function growth() {
-              return a.meta();
+              return a.game.s.maxStage < 1000 ? a.extensions.souls() : a.meta();
+            },
+            regiment: function regiment() {
+              return a.guild();
+            },
+            competition: function competition() {
+              return a.competition();
+            },
+            maintenance: function maintenance() {
+              return a.extensions.petPuzzle();
             }
           };
           (_actions$id = actions[id]) == null || _actions$id.call(actions);
@@ -61370,13 +61585,16 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           var a = this.a,
             step = a.game.s.tutorial.step;
           this.shown = this.signature;
+          if (a.feedback.showing) return;
           if (step >= TUTORIAL_DONE) {
             var next = this.followup();
             if (next) {
               this.guide(a.tr(next.body), '!', true);
               if (next.id === 'practice:intel') this.exactTarget(a.game.s.artifacts.some(function (v) {
                 return v > 0;
-              }) ? 'tutorial-intel-detail' : a.game.s.relics < a.game.discoverCost() ? 'tab-0' : 'tutorial-intel-discover');else if (next.id === 'practice:redeploy') this.exactTarget('tutorial-redeploy');else if (next.target) {
+              }) ? 'tutorial-intel-detail' : a.game.s.relics < a.game.discoverCost() ? 'tab-0' : 'tutorial-intel-discover');else if (next.id === 'practice:redeploy') this.exactTarget('tutorial-redeploy');else if (next.targetName) {
+                this.exactTarget(next.targetName);
+              } else if (next.target) {
                 if (next.id.startsWith('first:boss')) {
                   if (a.game.s.run.bossFailed) this.exactTarget('tutorial-boss-retry');else this.battleTarget();
                 } else if (next.id === 'feature:50') this.exactTarget(a.folded ? 'tutorial-fold' : 'shortcut-skills');else if (next.id === 'feature:60') this.exactTarget(a.tab === 0 && !a.folded ? 'tutorial-redeploy' : 'tab-0');else if (next.id === 'first:daily' || next.id.startsWith('feature:')) this.exactTarget('hud-operations');else if (next.id === 'first:spell' && !a.folded) this.exactTarget('tutorial-fold');else this.outline.apply(this, next.target);
@@ -61384,7 +61602,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
               var p = a.root.children.find(function (n) {
                 return n.name === 'tutorial-guide-root';
               });
-              if (p) a.button(p, '×', 99, 22, 28, 24, function () {
+              if (p) a.button(p, '×', 104, 30, 28, 24, function () {
                 _this7.postponed.add(next.id);
                 _this7.practiceTopic = null;
                 a.draw();
@@ -61399,7 +61617,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           if (step < 1) {
             this.guide(a.tr('guide.begin'), '0/6', true);
             var _p = a.root.getChildByName('tutorial-guide-root');
-            if (_p) a.button(_p, a.tr('tutorial.begin'), 69, 21, 94, 26, function () {
+            if (_p) a.button(_p, a.tr('tutorial.begin'), 66, 30, 102, 28, function () {
               return _this7.event('begin');
             }, true, {
               fontSize: 14,
@@ -61419,9 +61637,10 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           }
           var needsCoins = (step === 2 || step === 4) && !!a.levelReason(step === 2 ? -1 : 0);
           var captainTraining = step === 2 && !mercenaryUnlocked(a.game.s, 0);
-          this.guide(a.tr(captainTraining ? needsCoins ? 'tutorial.fundsCaptain' : 'tutorial.captainUnlock' : needsCoins ? step === 2 ? 'tutorial.fundsUpgrade' : 'tutorial.fundsRecruit' : 'tutorial.step' + step, {
+          this.guide(a.tr(captainTraining ? needsCoins ? 'tutorial.fundsCaptain' : 'tutorial.captainUnlock' : needsCoins ? step === 2 ? 'tutorial.fundsUpgrade' : 'tutorial.fundsMercenary' : step === 4 && a.game.s.run.heroes[0] > 0 ? 'tutorial.recruitUpgrade' : step === 4 && a.game.s.extra.mercenaryOwned.includes(0) ? 'tutorial.recruitReturn' : 'tutorial.step' + step, {
             level: FIRST_MERCENARY_CAPTAIN_LEVEL,
-            current: a.game.s.run.master
+            current: a.game.s.run.master,
+            taps: Math.min(3, Math.max(0, a.game.s.totalTaps - (a.game.s.tutorial.tapBaseline || 0)))
           }), step + '/6');
           if (step === 1) this.battleTarget();
           if (step === 2) this.exactTarget('tutorial-captain-upgrade');
@@ -61439,20 +61658,23 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             boss = false;
           }
           var a = this.a,
-            w = 244,
-            h = 72,
-            x = 112,
-            y = a.designH / 2 - 140 - a.safeTop;
+            w = 264,
+            h = 98,
+            x = 96,
+            y = a.designH / 2 - 155 - a.safeTop;
           var wrap = a.nodeAt(a.root, 'tutorial-guide-root', x, y, w, h),
             p = a.nodeAt(wrap, 'ink-surface', 0, 0, w, h);
           var contour = [[-w / 2, h / 2], [w / 2 - 15, h / 2], [w / 2, h / 2 - 15], [w / 2, -h / 2 + 13], [w / 2 - 23, -h / 2], [-w / 2, -h / 2]];
           a.ui.contours.set(wrap, contour);
           a.ui.polygon(p, contour, '#111114', 240);
           a.polygon(p, -w / 2 + 3, 0, 6, h, [[-.5, -.5], [.5, -.5], [.5, .5], [-.5, .5]], '#ffe000');
-          a.ui.icon(a.nodeAt(p, 'guide-mark', -103, 20, 18, 18), 'symbol:next', '#ffe000');
-          a.label(p, progress, -69, 20, 49, 21, 14, '#ffe000', Label.HorizontalAlign.LEFT);
-          a.label(p, body, 0, -12, w - 24, 40, 14, '#ffffff', Label.HorizontalAlign.LEFT);
-          if (!boss) a.button(p, '×', 99, 22, 28, 24, function () {
+          a.ui.icon(a.nodeAt(p, 'guide-mark', -112, 30, 18, 18), 'symbol:next', '#ffe000');
+          a.label(p, progress, -77, 30, 49, 21, 14, '#ffe000', Label.HorizontalAlign.LEFT);
+          var text = a.label(p, body, 0, -15, w - 24, 60, 14, '#ffffff', Label.HorizontalAlign.LEFT);
+          text.node.name = 'tutorial-guide-body';
+          text.verticalAlign = Label.VerticalAlign.TOP;
+          text.lineHeight = 18;
+          if (!boss) a.button(p, '×', 104, 30, 28, 24, function () {
             return _this8.skip();
           }, false, {
             style: 'quiet',
@@ -61474,7 +61696,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
         };
         _proto.exactTarget = function exactTarget(name) {
           var target = this.find(name);
-          if (!target) return;
+          if (!target || !target.activeInHierarchy || !this.visible(target)) return;
           this.inputTarget = target;
           var size = target.getComponent(UITransform);
           this.gameFocus = this.focus(target, 0, 0, size.width, size.height, true);
@@ -61895,11 +62117,12 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             id: 'practice:redeploy',
             body: 'guide.prestige'
           };
-          var offer = function offer(id, body, target) {
+          var offer = function offer(id, body, target, targetName) {
             return !tutorialSeen(s, id) && !_this11.postponed.has(id) ? {
               id: id,
               body: body,
-              target: target
+              target: target,
+              targetName: targetName
             } : undefined;
           };
           var bossTarget = s.run.bossFailed ? [180, 442 + extra - a.safeTop - a.safeBottom, 111, 44] : [0, 95 - extra, 276, 236];
@@ -61909,31 +62132,35 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             if (next) return next;
           }
           if (!s.claims.includes('daily.0')) {
-            var _next = offer('first:daily', 'guide.daily', [-164, 451 + extra - a.safeTop - a.safeBottom, 38, 38]);
+            var _next = offer('first:daily', 'guide.daily', undefined, 'hud-operations');
             if (_next) return _next;
           }
           var tab = [5, 3, 2, 4].find(function (tab) {
             return tabUnlocked(s, tab) && !tutorialSeen(s, 'tab:' + tab) && !_this11.postponed.has('tab:' + tab);
           });
-          if (tab !== undefined && tab !== a.tab) return offer('tab:' + tab, 'guide.tab' + tab, [-200 + 80 * tab, -452 - extra, 76, 56]);
+          if (tab !== undefined && tab !== a.tab) return offer('tab:' + tab, 'guide.tab' + tab, undefined, 'tab-' + tab);
           var feature = [15, 50, 60, 100, 1000, 100000, 180000].find(function (stage) {
             return s.maxStage >= stage && !tutorialSeen(s, 'feature:' + stage) && !_this11.postponed.has('feature:' + stage);
           });
-          if (feature !== undefined) return offer('feature:' + feature, 'guide.feature' + feature, [-164, 451 + extra - a.safeTop - a.safeBottom, 38, 38]);
+          if (feature !== undefined) return offer('feature:' + feature, 'guide.feature' + feature, undefined, feature === 50 ? a.folded ? 'tutorial-fold' : 'shortcut-skills' : feature === 60 ? a.tab === 0 && !a.folded ? 'tutorial-redeploy' : 'tab-0' : 'hud-operations');
+          if (s.maxStage < 100000 && featureUnlocked(s, 'extra.souls')) {
+            var _next2 = offer('feature:support-age', 'guide.supportAge', undefined, 'hud-operations');
+            if (_next2) return _next2;
+          }
           if (a.tab === 0 && SPELLS.some(function (sp) {
             return s.run.master >= sp.unlock;
           }) && !tutorialSeen(s, 'first:spell') && !this.postponed.has('first:spell')) {
-            if (!a.folded) return offer('first:spell', 'guide.spell', [171, -39 - extra, 128, 32]);
-            var _next2 = s.spellSlots.find(function (id) {
+            if (!a.folded) return offer('first:spell', 'guide.spell', undefined, 'tutorial-fold');
+            var _next3 = s.spellSlots.find(function (id) {
                 return s.run.master < SPELLS[id].unlock;
               }),
               shown = s.spellSlots.filter(function (id) {
-                return s.run.master >= SPELLS[id].unlock || id === _next2;
+                return s.run.master >= SPELLS[id].unlock || id === _next3;
               }),
               index = shown.findIndex(function (id) {
                 return s.run.master >= SPELLS[id].unlock;
               });
-            if (index >= 0) return offer('first:spell', 'guide.spellCast', [(index - (shown.length - 1) / 2) * 80, -400 - extra, 73, 60]);
+            if (index >= 0) return offer('first:spell', 'guide.spellCast', undefined, 'current-tactic-' + shown[index]);
           }
           if (a.folded) return;
           if (a.tab === 5 && !s.claims.includes('daily.0')) return offer('first:free', 'guide.free');
@@ -61944,12 +62171,12 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             return offer('first:pet', 'guide.pet');
           }
           if (a.tab === 2) return offer('first:gear', 'guide.gear');
-          if (a.tab === 0 && s.run.stage >= 60 && !s.prestiges) return offer('first:prestige', 'guide.prestige', [164, -270 - extra, 135, 60]);
+          if (a.tab === 0 && s.run.stage >= 60 && !s.prestiges) return offer('first:prestige', 'guide.prestige', undefined, 'tutorial-redeploy');
           if (a.tab === 4) {
             if (!s.prestiges) return offer('first:relics', 'guide.relics');
             if (!s.artifacts.some(function (v) {
               return v > 0;
-            })) return offer('first:discover', 'guide.discover', [149, -156 - extra, 154, 36]);
+            })) return offer('first:discover', 'guide.discover', undefined, 'tutorial-intel-discover');
             return offer('first:artifact', 'guide.artifact');
           }
         };
@@ -61971,7 +62198,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           var topic = LESSONS.find(function (topic) {
             return 'tab' in topic && topic.tab === _tab;
           });
-          if (!skipLesson && _tab >= 2 && topic && this.explain(topic.id, function () {
+          if (!skipLesson && _tab >= 1 && topic && this.explain(topic.id, function () {
             return _this12.tab(_tab, true);
           })) return;
           if (this.practiceTopic === 'intel' && _tab === 0) this.practiceTopic = 'redeploy';else if (this.practiceTopic === 'intel' && _tab !== 4 || this.practiceTopic === 'redeploy' && _tab !== 0) this.practiceTopic = null;
@@ -62012,7 +62239,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             var step = this.a.game.s.tutorial.step,
               needsCoins = (step === 2 || step === 4) && !!this.a.levelReason(step === 2 ? -1 : 0),
               next = this.followup();
-            return step + ':' + needsCoins + ':' + this.a.game.s.run.master + ':' + this.firstBoss + ':' + this.a.tab + ':' + this.a.folded + ':' + (next == null ? void 0 : next.id) + ':' + (next == null ? void 0 : next.body);
+            return step + ':' + needsCoins + ':' + this.a.game.s.run.master + ':' + this.firstBoss + ':' + this.a.tab + ':' + this.a.folded + ':' + Math.min(3, Math.max(0, this.a.game.s.totalTaps - (this.a.game.s.tutorial.tapBaseline || 0))) + ':' + (next == null ? void 0 : next.id) + ':' + (next == null ? void 0 : next.body) + ':' + (next == null ? void 0 : next.targetName) + ':' + this.a.feedback.showing;
           }
         }]);
         return TutorialUI;
