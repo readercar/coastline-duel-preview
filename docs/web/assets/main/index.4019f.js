@@ -1,3 +1,71 @@
+System.register("chunks:///_virtual/AllyPlacement.ts", ['cc', './MotionBounds.ts', './BattleFormation.ts'], function (exports) {
+  var cclegacy, MOTION_BOUNDS, soldierSize;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+    }, function (module) {
+      MOTION_BOUNDS = module.MOTION_BOUNDS;
+    }, function (module) {
+      soldierSize = module.soldierSize;
+    }],
+    execute: function () {
+      exports({
+        actorBounds: actorBounds,
+        battleField: battleField,
+        projectAlly: projectAlly,
+        validBattlePosition: validBattlePosition
+      });
+      cclegacy._RF.push({}, "f6841X1gzVCTKPSh7X3yy0X", "AllyPlacement", undefined);
+      var ALLY_RIGHT = exports('ALLY_RIGHT', -48); // 40% of the 480px screen, measured from its left edge.
+      var ALLY_LEFT = exports('ALLY_LEFT', -190);
+      function battleField(folded, extra, safeBottom, safeTop) {
+        if (safeBottom === void 0) {
+          safeBottom = 0;
+        }
+        if (safeTop === void 0) {
+          safeTop = 0;
+        }
+        return {
+          bottom: (folded ? -337 : -39) - extra + safeBottom,
+          top: 290 + extra - safeTop
+        };
+      }
+      function actorBounds(art) {
+        return art < 0 ? [96, 96, 192, 0] : MOTION_BOUNDS[art];
+      }
+      /** Fit every firing/idle frame, retaining the same foot origin and camera projection. */
+      function projectAlly(art, desired, scale, originY, field) {
+        var bounds = actorBounds(art),
+          left = bounds[0],
+          right = bounds[1],
+          top = bounds[2],
+          bottom = bounds[3],
+          pad = 4;
+        var y = desired.y,
+          size = 0;
+        for (var i = 0; i < 8; i++) {
+          size = Math.min(soldierSize((y - originY) / scale), (ALLY_RIGHT - ALLY_LEFT - pad * 2) * 192 / (left + right) / scale);
+          var _unit = size * scale / 192;
+          y = Math.max(field.bottom + pad + bottom * _unit, Math.min(field.top - pad - top * _unit, y));
+        }
+        var unit = size * scale / 192,
+          x = Math.max(ALLY_LEFT + pad + left * unit, Math.min(ALLY_RIGHT - pad - right * unit, desired.x));
+        return {
+          x: x,
+          y: y,
+          size: size,
+          bounds: bounds
+        };
+      }
+      function validBattlePosition(p) {
+        var v = p;
+        return !!v && typeof v === 'object' && !Array.isArray(v) && Number.isFinite(v.x) && Number.isFinite(v.y) && v.x >= 0 && v.x <= .4 && v.y >= 0 && v.y <= 1;
+      }
+      cclegacy._RF.pop();
+    }
+  };
+});
+
 System.register("chunks:///_virtual/Amount.ts", ['cc'], function (exports) {
   var cclegacy;
   return {
@@ -153,9 +221,10 @@ System.register("chunks:///_virtual/Balance.ts", ['cc'], function (exports) {
 });
 
 System.register("chunks:///_virtual/BattleFormation.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts'], function (exports) {
-  var _extends, cclegacy, enemyType;
+  var _createForOfIteratorHelperLoose, _extends, cclegacy, enemyType;
   return {
     setters: [function (module) {
+      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
       _extends = module.extends;
     }, function (module) {
       cclegacy = module.cclegacy;
@@ -165,6 +234,7 @@ System.register("chunks:///_virtual/BattleFormation.ts", ['./rollupPluginModLoBa
     execute: function () {
       exports({
         allyPosition: allyPosition,
+        battleDensityScale: battleDensityScale,
         battlefieldOffset: battlefieldOffset,
         bossBattlefieldLayout: bossBattlefieldLayout,
         bossSize: bossSize,
@@ -172,6 +242,7 @@ System.register("chunks:///_virtual/BattleFormation.ts", ['./rollupPluginModLoBa
         enemyFormation: enemyFormation,
         enemyHPShare: enemyHPShare,
         enemyPosition: enemyPosition,
+        partyBattlefieldLayout: partyBattlefieldLayout,
         previousBossWaveSize: previousBossWaveSize,
         soldierSize: soldierSize,
         survivingEnemies: survivingEnemies,
@@ -179,7 +250,7 @@ System.register("chunks:///_virtual/BattleFormation.ts", ['./rollupPluginModLoBa
       });
       cclegacy._RF.push({}, "f06b59oNv5FNK8jmW3Mqgpy", "BattleFormation", undefined);
       /** Compact formations in the 480-wide battlefield. All coordinates denote feet. */
-      var SOLDIER_SIZE = exports('SOLDIER_SIZE', 96);
+      var SOLDIER_SIZE = exports('SOLDIER_SIZE', 84);
       /** Feet higher in the field recede towards the horizon, equally for both factions. */
       function depthScale(y) {
         return Math.max(.64, 1 - Math.max(0, y - 65) * .0015);
@@ -205,12 +276,14 @@ System.register("chunks:///_virtual/BattleFormation.ts", ['./rollupPluginModLoBa
         if (mercenaries === void 0) {
           mercenaries = 4;
         }
-        var feet = [[-72, 65], [-124, 119], [-20, 119], mercenaries === 3 ? [-72, 204] : [-106, 204], [-38, 204]];
+        var feet = [[-128, 83], [-154, 158], [-102, 158], mercenaries === 3 ? [-128, 248] : [-154, 248], [-102, 248]];
         var _feet$Math$max = feet[Math.max(0, Math.min(index, feet.length - 1))],
           x = _feet$Math$max[0],
-          y = _feet$Math$max[1];
+          y = _feet$Math$max[1],
+          center = feet[0][0],
+          spread = Math.min(Math.abs(x - center), Math.max(0, 190 + center - soldierSize(y) / 2));
         return {
-          x: Math.max(x, -190 + soldierSize(y) / 2),
+          x: center + Math.sign(x - center) * spread,
           y: y
         };
       }
@@ -239,7 +312,11 @@ System.register("chunks:///_virtual/BattleFormation.ts", ['./rollupPluginModLoBa
         for (var i = first; i < count; i++) total += enemyType(stage, boss, i, wave).hp;
         return (boss ? .3 : 1) * enemyType(stage, boss, index, wave).hp / total;
       }
-      /** One layout per wave: redraws keep health slots in place, new waves change both axes. */
+      /** Compact hostile ranks while keeping the party projection independent of wave size. */
+      function battleDensityScale(count) {
+        return count > 20 ? .58 : count > 10 ? .76 : count > 4 ? .88 : 1;
+      }
+      /** Stable wide columns and depth bands, with no thin strip of stacked rear escorts. */
       function enemyFormation(count, seed, boss) {
         if (seed === void 0) {
           seed = 0;
@@ -255,70 +332,66 @@ System.register("chunks:///_virtual/BattleFormation.ts", ['./rollupPluginModLoBa
           n ^= n + Math.imul(n ^ n >>> 7, n | 61);
           return ((n ^ n >>> 14) >>> 0) / 4294967296;
         };
-        var units = [];
-        var right = function right(y) {
-          return 210 - soldierSize(y, true) / 2;
+        var density = battleDensityScale(count),
+          units = [];
+        var point = function point(x, y) {
+          var size = soldierSize(y, true) * density;
+          return {
+            x: Math.max(20 + size / 2, Math.min(210 - size / 2, x)),
+            y: y
+          };
         };
         if (boss) {
-          // Slot zero is always the central boss. Escorts have stable IDs around its front and rear.
-          var rearRows = Math.ceil(Math.max(0, count - 5) / 5),
-            rearGap = rearRows > 1 ? 48 / (rearRows - 1) : 0;
-          for (var i = 0; i < count - 1; i++) {
-            var front = i < 4,
-              row = front ? Math.floor(i / 2) : Math.floor((i - 4) / 5),
-              col = front ? i % 2 : (i - 4) % 5;
-            var y = (front ? 42 + row * 36 : 213 + row * rearGap) + (random() - .5) * 8 + col % 2 * 5;
-            var x = (front ? 55 + col * 105 : 46 + col * 29) + (row % 2 ? 5 : 0) + (random() - .5) * 8;
-            units.push({
-              x: Math.max(40, Math.min(right(y) - 2, x)),
-              y: y
-            });
+          var escorts = count - 1,
+            front = Math.ceil(escorts / 2),
+            rear = escorts - front,
+            frontPitch = count > 20 ? 62 : 74;
+          // Leave the large boss's complete body open; troops occupy separate front/rear ranks.
+          for (var _iterator = _createForOfIteratorHelperLoose([[front, false], [rear, true]]), _step; !(_step = _iterator()).done;) {
+            var _step$value = _step.value,
+              amount = _step$value[0],
+              behind = _step$value[1];
+            var columns = amount > 10 ? 4 : amount > 4 ? 3 : amount > 1 ? 2 : 1;
+            for (var i = 0; i < amount; i++) {
+              var row = Math.floor(i / columns),
+                col = i % columns,
+                inRow = Math.min(columns, amount - row * columns);
+              var x = inRow === 1 ? 112 + (random() - .5) * 50 : inRow === 2 ? 65 + col * 105 : inRow === 3 ? 56 + col * 64 : 48 + col * 47;
+              var y = (behind ? 314 + row * 52 : -14 - row * frontPitch) + (col % 2 ? 5 : -5) + (random() - .5) * 7;
+              units.push(point(x + (random() - .5) * 8, y));
+            }
           }
           return [_extends({}, BOSS_POSITION)].concat(units.sort(function (a, b) {
             return a.y - b.y || a.x - b.x;
           }));
         }
+        if (count === 1) return [point(68 + random() * 98, 50 + random() * 165)];
         if (count <= 4) {
-          for (var _i = 0; _i < count; _i++) {
-            var position = {
-              x: 0,
-              y: 0
-            };
-            var _loop = function _loop() {
-              var y = 58 + random() * 152,
-                x = 82 + random() * (right(y) - 90);
-              position = {
-                x: x,
-                y: y
-              };
-              if (units.every(function (p) {
-                return Math.abs(p.x - x) >= 30 || Math.abs(p.y - y) >= 44;
-              })) return 1; // break
-            };
-
-            for (var attempt = 0; attempt < 200; attempt++) {
-              if (_loop()) break;
-            }
-            units.push(position);
+          var anchors = [[66, 62], [160, 82], [80, 192], [160, 220]],
+            order = count === 2 ? [0, 3] : count === 3 ? [0, 1, 3] : [0, 1, 2, 3];
+          var flip = random() < .5,
+            dy = (random() - .5) * 18;
+          for (var _i = 0, _order = order; _i < _order.length; _i++) {
+            var _i2 = _order[_i];
+            var _anchors$_i = anchors[_i2],
+              _x = _anchors$_i[0],
+              _y = _anchors$_i[1];
+            units.push(point((flip ? 226 - _x : _x) + (random() - .5) * 14, _y + dy + (random() - .5) * 12));
           }
         } else {
-          var columns = count >= 15 ? 5 : 3,
-            start = 52 + random() * 12,
-            gap = count >= 15 ? 35 + random() * 3 : 43 + random() * 5,
-            spacing = 24 + random() * 4;
-          var margin = 4 + random() * 8;
-          for (var _i2 = 0; _i2 < count; _i2++) {
-            var _row = Math.floor(_i2 / columns),
-              _col = _i2 % columns,
-              _y = start + _row * gap + _col % 2 * 9 + (random() - .5) * 8;
-            var _x = Math.max(40, Math.min(right(_y) - 3, right(_y) - (columns - 1 - _col) * spacing - margin + (random() - .5) * 8));
-            units.push({
-              x: _x,
-              y: _y
-            });
+          var _columns = count <= 10 ? 2 : count > 20 ? 4 : 3,
+            rows = Math.ceil(count / _columns),
+            pitch = count > 20 ? 60 : count > 10 ? 68 : 78;
+          var start = 125 - (rows - 1) * pitch / 2 + (random() - .5) * 12;
+          for (var _i3 = 0; _i3 < count; _i3++) {
+            var _row = Math.floor(_i3 / _columns),
+              _col = _i3 % _columns,
+              _inRow = Math.min(_columns, count - _row * _columns);
+            var _x2 = _inRow === 1 ? 117 : _inRow === 2 ? 64 + _col * 108 : _inRow === 3 ? 56 + _col * 64 : 48 + _col * 47;
+            var _y2 = start + _row * pitch + (_col % 2 ? 10 : -10) + (random() - .5) * 7;
+            units.push(point(_x2 + (_row % 2 ? 3 : -3) + (random() - .5) * 7, _y2));
           }
         }
-        // IDs remain stable within the wave; back rows render behind front rows.
         return units.sort(function (a, b) {
           return a.y - b.y || a.x - b.x;
         });
@@ -346,6 +419,21 @@ System.register("chunks:///_virtual/BattleFormation.ts", ['./rollupPluginModLoBa
         return (bottom + top) / 2 - 155.5;
       }
       /** A large boss and its escort ranks must fit between the HUD and the open menu. */
+      function partyBattlefieldLayout(folded, heightExtra, safeBottom, safeTop) {
+        if (safeBottom === void 0) {
+          safeBottom = 0;
+        }
+        if (safeTop === void 0) {
+          safeTop = 0;
+        }
+        var bottom = (folded ? -337 : -39) - heightExtra + safeBottom,
+          top = 290 + heightExtra - safeTop;
+        var scale = Math.min(1, Math.max(.1, (top - bottom - 20) / 270));
+        return {
+          scale: scale,
+          y: (bottom + top) / 2 - 185 * scale
+        };
+      }
       function bossBattlefieldLayout(folded, heightExtra, safeBottom, safeTop) {
         if (safeBottom === void 0) {
           safeBottom = 0;
@@ -646,6 +734,15 @@ System.register("chunks:///_virtual/CombatMotion.ts", ['./rollupPluginModLoBabel
               angle: node.angle
             }
           });
+        }
+        /** Update camera projection without restarting the captain's attack or idle clock. */;
+        _proto.projectCaptain = function projectCaptain(node, x) {
+          var a = this.actors.get(node);
+          if (a != null && a.rest) a.rest.scale.x = x;
+        };
+        _proto.placeCaptain = function placeCaptain(node, position) {
+          var a = this.actors.get(node);
+          if (a != null && a.rest) a.rest.position.set(position);
         };
         _proto.ready = function ready(node, seconds) {
           var a = this.actors.get(node);
@@ -1118,10 +1215,9 @@ System.register("chunks:///_virtual/Dialogue.ts", ['./rollupPluginModLoBabelHelp
           this.run = null;
           this.stage = 0;
           this.boss = false;
-          this.ambientAt = 8;
-          this.eventAt = 0;
           this.lastAttack = 0;
-          this.holdUntil = 0;
+          this.wasBlocked = false;
+          this.wasSpeaking = false;
           this.attackers = new Set();
           this.spoken = new Map();
           this.sequence = 0;
@@ -1131,10 +1227,6 @@ System.register("chunks:///_virtual/Dialogue.ts", ['./rollupPluginModLoBabelHelp
         _proto2.recordAttack = function recordAttack(speaker) {
           this.attackers.add(speaker);
           this.lastAttack = this.time;
-        };
-        _proto2.hold = function hold(seconds) {
-          this.holdUntil = Math.max(this.holdUntil, this.time + seconds);
-          this.pending = null;
         };
         _proto2.step = function step(state, dt) {
           var _this = this;
@@ -1147,8 +1239,8 @@ System.register("chunks:///_virtual/Dialogue.ts", ['./rollupPluginModLoBabelHelp
             this.spoken.clear();
             this.pending = null;
             this.lastAttack = this.time;
-            this.ambientAt = this.time + 8;
-            this.eventAt = this.time + 3;
+            this.wasBlocked = state.blocked;
+            this.wasSpeaking = !!state.speaking;
             return null;
           }
           if (state.stage > this.stage) this.pending = {
@@ -1163,27 +1255,37 @@ System.register("chunks:///_virtual/Dialogue.ts", ['./rollupPluginModLoBabelHelp
           if (state.blocked) {
             this.pending = null;
             this.attackers.clear();
-            this.holdUntil = Math.max(this.holdUntil, this.time + 3);
+            this.wasBlocked = true;
+            this.wasSpeaking = false;
             return null;
           }
           if (this.pending && this.pending.until < this.time) this.pending = null;
-          if (this.time < this.holdUntil) return null;
+          if (state.speaking) {
+            this.wasSpeaking = true;
+            return null;
+          }
+          var released = this.wasBlocked || this.wasSpeaking;
+          this.wasBlocked = false;
+          this.wasSpeaking = false;
           var context, candidates;
           var roster = [-1].concat(state.roster);
-          if (this.pending && this.time >= this.eventAt) {
+          if (this.pending) {
             context = this.pending.context;
             this.pending = null;
             candidates = roster;
-          } else if (this.time >= this.ambientAt) {
+          } else {
             // Creator's array-spread transform does not expand Set iterators.
             candidates = Array.from(this.attackers).filter(function (id) {
               return roster.includes(id);
             });
-            if (candidates.length && this.time - this.lastAttack < 3) context = 'battle';else if (this.time - this.lastAttack >= 20) {
+            if (candidates.length && this.time - this.lastAttack < 3) context = 'battle';else if (released) {
+              context = this.time - this.lastAttack < 3 ? 'battle' : 'idle';
+              candidates = roster;
+            } else if (this.time - this.lastAttack >= 20) {
               context = 'idle';
               candidates = roster;
             } else return null;
-          } else return null;
+          }
           var speaker = candidates.sort(function (a, b) {
             var _this$spoken$get, _this$spoken$get2;
             return ((_this$spoken$get = _this.spoken.get(a)) != null ? _this$spoken$get : -1) - ((_this$spoken$get2 = _this.spoken.get(b)) != null ? _this$spoken$get2 : -1);
@@ -1191,9 +1293,6 @@ System.register("chunks:///_virtual/Dialogue.ts", ['./rollupPluginModLoBabelHelp
           if (speaker === undefined) return null;
           this.spoken.set(speaker, ++this.sequence);
           this.attackers.clear();
-          this.ambientAt = this.time + 14;
-          this.eventAt = this.time + 5;
-          this.holdUntil = this.time + 3.5;
           return {
             speaker: speaker,
             context: context
@@ -2248,6 +2347,7 @@ System.register("chunks:///_virtual/Expansion.ts", ['./rollupPluginModLoBabelHel
       });
       function newExpansion(now) {
         return {
+          battlePositions: {},
           mercenaryOwned: [],
           mercenaryDeck: [],
           equipmentObtained: [],
@@ -3801,12 +3901,27 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             seconds: attackSeconds(i)
           }), 0, 85, 370, 28, 13);
           var values = [this.g.s.run.heroes[i], this.x.ascensions[i], this.x.heroSkills[i], this.g.s.weapons[i], this.g.s.scrolls[i]],
-            icons = ['symbol:up', 'rebirth', 'lightning', 'sword', 'scroll'],
-            hints = ['action.level', 'extra.ascensions', 'extra.heroSkill', 'extra.weapons', 'extra.scrolls'];
+            icons = ['symbol:up', 'rebirth', 'lightning', 'sword', 'scroll'];
+          var boost = (1 + values[3] + values[4] * .5).toFixed(2),
+            target = [10, 25, 50, 100, 200, 400, 800][values[2]],
+            hints = [this.tr('ui.help.heroLevel', {
+              level: values[0]
+            }), this.tr('ui.help.heroAscend', {
+              count: values[1]
+            }), this.tr('ui.help.heroSkill', {
+              count: values[2],
+              next: target ? this.tr('action.level', {
+                level: target
+              }) : this.tr('action.maxReached')
+            }), this.tr('ui.help.heroWeapon', {
+              count: values[3],
+              boost: boost
+            }), this.tr('ui.help.heroManual', {
+              count: values[4],
+              boost: boost
+            })];
           values.forEach(function (v, j) {
-            return a.metric(p, icons[j], String(v), j < 3 ? -125 + j * 125 : -78 + (j - 3) * 156, j < 3 ? 54 : 9, j < 3 ? 116 : 146, _this20.tr(hints[j], {
-              level: v
-            }));
+            return a.metric(p, icons[j], String(v), j < 3 ? -125 + j * 125 : -78 + (j - 3) * 156, j < 3 ? 54 : 9, j < 3 ? 116 : 146, hints[j]);
           });
           a.button(p, this.tr('extra.heroSkill'), -98, -78, 178, 56, function () {
             return _this20.action(function () {
@@ -3815,9 +3930,10 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
               return _this20.hero(i);
             });
           }, true, {
+            category: 'upgrade',
             unavailable: function unavailable() {
-              var target = [10, 25, 50, 100, 200, 400, 800][_this20.x.heroSkills[i]];
-              return !target ? _this20.tr('action.maxReached') : a.progressReason(_this20.tr('action.heroLevel'), _this20.g.s.run.heroes[i], target) || a.costReason('gold', _this20.g.upgradeCost(i, 5));
+              var next = [10, 25, 50, 100, 200, 400, 800][_this20.x.heroSkills[i]];
+              return !next ? _this20.tr('action.maxReached') : a.progressReason(_this20.tr('action.heroLevel'), _this20.g.s.run.heroes[i], next) || a.costReason('gold', _this20.g.upgradeCost(i, 5));
             }
           });
           a.button(p, this.tr('extra.ascend'), 98, -78, 178, 56, function () {
@@ -3829,28 +3945,19 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
               });
             });
           }, false, {
+            category: 'ascend',
             unavailable: function unavailable() {
               return a.progressReason(_this20.tr('action.heroLevel'), _this20.g.s.run.heroes[i], 1000);
             }
           });
-          a.metric(p, 'symbol:damage', a.format(this.g.heroDamage(i)), 0, -149, 210, this.tr('hero.stats', {
-            level: this.g.s.run.heroes[i],
+          a.metric(p, 'symbol:damage', a.format(this.g.heroDamage(i)), 0, -149, 210, this.tr('ui.help.heroDPS', {
             damage: a.format(this.g.heroDamage(i))
           }));
-          a.button(p, this.tr('ui.iconHelp'), 0, -220, 370, 44, function () {
-            return a.info(_this20.tr("hero." + i), _this20.tr('extra.heroStats', {
-              level: values[0],
-              ascensions: values[1],
-              skills: values[2],
-              weapons: values[3],
-              scrolls: values[4]
-            }) + '\n' + _this20.tr('complete.heroSkillInfo', {
-              level: [10, 25, 50, 100, 200, 400, 800][_this20.x.heroSkills[i]] || 800,
-              damage: a.format(_this20.g.heroDamage(i))
-            }));
+          var guide = a.button(p, this.tr('ui.iconHelp'), 0, -220, 370, 44, function () {
+            return a.tooltip(guide, _this20.tr('ui.help.heroGuide'));
           }, false, {
             icon: 'symbol:info',
-            iconOnly: true
+            category: 'details'
           });
         };
         _proto.petDetail = function petDetail(i) {
@@ -5534,7 +5641,8 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
         _proto.limited = function limited() {
           var _this66 = this;
           var day = Math.floor(this.g.now() / 86400000);
-          this.list('extra.limited', [{
+          this.list('extra.limited', [this.a.shopUI.row('equipment', {
+            height: 112,
             title: this.tr('extra.limitedOffer'),
             sub: this.tr('extra.limitedInfo'),
             unavailable: function unavailable() {
@@ -5558,7 +5666,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                 return _this66.limited();
               });
             }
-          }]);
+          })]);
         };
         _createClass(ExpansionUI, [{
           key: "g",
@@ -5827,11 +5935,12 @@ System.register("chunks:///_virtual/FeatureLessons.ts", ['cc'], function (export
 });
 
 System.register("chunks:///_virtual/Feedback.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Amount.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _extends, cclegacy, ZERO, sub;
+  var _createForOfIteratorHelperLoose, _extends, _createClass, cclegacy, ZERO, sub;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
       _extends = module.extends;
+      _createClass = module.createClass;
     }, function (module) {
       cclegacy = module.cclegacy;
     }, function (module) {
@@ -6007,13 +6116,60 @@ System.register("chunks:///_virtual/Feedback.ts", ['./rollupPluginModLoBabelHelp
           dps: after.dps > before.dps + 1e-9 ? [before.dps, after.dps] : null
         };
       }
+      /** Keep one readable line and the latest successful action, with no gap between them. */
+      var GrowthFeedbackQueue = exports('GrowthFeedbackQueue', /*#__PURE__*/function () {
+        function GrowthFeedbackQueue() {
+          this.run = null;
+          this.pending = null;
+          this.active = null;
+        }
+        var _proto = GrowthFeedbackQueue.prototype;
+        _proto.clear = function clear(run) {
+          this.run = run;
+          this.pending = null;
+          this.active = null;
+        };
+        _proto.request = function request(run, diff) {
+          if (this.run !== run) this.clear(run);
+          this.pending = diff;
+        };
+        _proto.step = function step(run, now, blocked) {
+          if (blocked === void 0) {
+            blocked = false;
+          }
+          if (this.run !== run) this.clear(run);
+          if (this.active && now >= this.active.until) this.active = null;
+          if (blocked) {
+            if (this.active && !this.pending) this.pending = this.active.diff;
+            this.active = null;
+            return null;
+          }
+          if (this.active && now < this.active.until) return this.active;
+          this.active = null;
+          if (this.pending) {
+            this.active = {
+              diff: this.pending,
+              until: now + 2000
+            };
+            this.pending = null;
+          }
+          return this.active;
+        };
+        _createClass(GrowthFeedbackQueue, [{
+          key: "waiting",
+          get: function get() {
+            return !!this.pending;
+          }
+        }]);
+        return GrowthFeedbackQueue;
+      }());
       cclegacy._RF.pop();
     }
   };
 });
 
 System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Feedback.ts', './UITheme.ts', './Mercenaries.ts', './Config.ts', './Amount.ts', './Dialogue.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _extends, _createClass, cclegacy, isValid, UITransform, tween, Vec3, BlockInputEvents, Graphics, Mask, UIOpacity, feedbackSnapshot, feedbackDiff, UI, mercenaryArt, attackSeconds, GrowthGate, PETS, ARTIFACTS, CARDS, HEROES, display, DIALOGUE_CONTEXTS, DialogueDeck, DialogueDirector;
+  var _createForOfIteratorHelperLoose, _extends, _createClass, cclegacy, isValid, UITransform, tween, Vec3, BlockInputEvents, Graphics, Mask, UIOpacity, feedbackSnapshot, feedbackDiff, GrowthFeedbackQueue, UI, mercenaryArt, attackSeconds, PETS, ARTIFACTS, CARDS, HEROES, display, DIALOGUE_CONTEXTS, DialogueDeck, DialogueDirector;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -6032,12 +6188,12 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
     }, function (module) {
       feedbackSnapshot = module.feedbackSnapshot;
       feedbackDiff = module.feedbackDiff;
+      GrowthFeedbackQueue = module.GrowthFeedbackQueue;
     }, function (module) {
       UI = module.UI;
     }, function (module) {
       mercenaryArt = module.mercenaryArt;
       attackSeconds = module.attackSeconds;
-      GrowthGate = module.GrowthGate;
     }, function (module) {
       PETS = module.PETS;
       ARTIFACTS = module.ARTIFACTS;
@@ -6058,7 +6214,10 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           this.knownItems = null;
           this.overlay = null;
           this.banner = null;
-          this.growthGate = new GrowthGate();
+          this.growthQueue = new GrowthFeedbackQueue();
+          this.displayedGrowth = null;
+          this.announcedGrowth = new WeakSet();
+          this.growthLines = new WeakMap();
           this.dialogue = new DialogueDeck();
           this.director = new DialogueDirector();
           this.chatter = null;
@@ -6097,7 +6256,6 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
             this.deckReaction.destroy();
           }
           this.clearChatter();
-          this.director.hold(2);
           // Use the title area so the list, deployment controls and close button stay usable.
           var h = panel.getComponent(UITransform).height,
             n = a.nodeAt(panel, 'squad-reaction', -40, h / 2 - 38, 320, 60);
@@ -6123,7 +6281,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
         _proto.chatterTick = function chatterTick(dt) {
           var _this2 = this;
           var a = this.a,
-            blocked = !a.entry.playing || !!a.modal || this.showing || !!(this.banner && isValid(this.banner, true)) || a.tutorial.active || a.tutorial.firstBoss || a.liveOps.blocked || !a.operations.ready || a.operations.busy || a.operations.conflict || a.remoteBusy || this.asyncPending > 0;
+            blocked = !a.entry.playing || !!a.modal || this.showing || !!(a.toastNode && isValid(a.toastNode, true)) || !!(a.tooltipNode && isValid(a.tooltipNode, true)) || !!(this.banner && isValid(this.banner, true)) || this.growthQueue.waiting || a.tutorial.active || a.tutorial.firstBoss || a.liveOps.blocked || !a.operations.ready || a.operations.busy || a.operations.conflict || a.remoteBusy || this.asyncPending > 0;
           if (blocked) this.clearChatter();
           var r = a.game.s.run,
             cue = this.director.step({
@@ -6131,7 +6289,8 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
               stage: r.stage,
               boss: r.boss,
               roster: a.game.activeMercenaries(),
-              blocked: blocked
+              blocked: blocked,
+              speaking: !!(this.chatter && isValid(this.chatter, true))
             }, dt);
           if (!cue) return;
           this.clearChatter();
@@ -6190,7 +6349,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
               return old.key === e.key && ((_old$args = old.args) == null ? void 0 : _old$args.index) === ((_e$args = e.args) == null ? void 0 : _e$args.index) && old.value === 0;
             });
           });
-          if (diff.growth.length || diff.tap || diff.dps || rewards.length) {
+          if (rewards.length) {
             var toast = this.a.root.children.find(function (n) {
               return n === _this3.a.toastNode;
             });
@@ -6209,6 +6368,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
         };
         _proto.tick = function tick() {
           var _this4 = this;
+          this.tickGrowth();
           if (this.a.remoteBusy || this.asyncPending || this.a.operations.busy) return;
           var equipment = this.a.game.s.equipment;
           if (!this.knownItems) this.knownItems = new Set(equipment.map(function (e) {
@@ -6326,7 +6486,6 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           var a = this.a;
           if (this.showing) return;
           this.clearChatter();
-          this.director.hold(4);
           var layer = a.nodeAt(a.root, 'mercenary-cutin', 0, 0, 480, a.designH);
           this.overlay = layer;
           layer.addComponent(BlockInputEvents);
@@ -6411,28 +6570,56 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           }
           this.chime();
         };
+        _proto.clearBanner = function clearBanner() {
+          if (this.banner && isValid(this.banner, true)) {
+            this.banner.removeFromParent();
+            this.banner.destroy();
+          }
+          this.banner = null;
+        };
         _proto.growth = function growth(diff) {
+          this.growthQueue.request(this.a.game.s.run, diff);
+          this.clearChatter();
+          this.tickGrowth();
+        };
+        _proto.tickGrowth = function tickGrowth() {
+          var a = this.a;
+          if (!a.entry.playing) {
+            this.growthQueue.clear(a.game.s.run);
+            this.clearBanner();
+            this.displayedGrowth = null;
+            return;
+          }
+          var blocked = !!a.modal || this.showing || !!(a.toastNode && isValid(a.toastNode, true)) || !!(a.tooltipNode && isValid(a.tooltipNode, true)) || a.liveOps.blocked || !a.operations.ready || a.operations.busy || a.operations.conflict || a.remoteBusy || this.asyncPending > 0;
+          var cue = this.growthQueue.step(a.game.s.run, a.game.now(), blocked);
+          if (!cue) {
+            this.clearBanner();
+            this.displayedGrowth = null;
+            return;
+          }
+          if (cue === this.displayedGrowth && this.banner && isValid(this.banner, true)) return;
+          this.clearBanner();
+          this.clearChatter();
+          this.displayedGrowth = cue;
+          this.showGrowth(cue.diff);
+        };
+        _proto.showGrowth = function showGrowth(diff) {
           var _first$args;
           var a = this.a;
-          // Keep the current two-second bubble unchanged under repeated upgrades.
-          if (!this.growthGate.request(Date.now())) return;
-          this.clearChatter();
-          this.director.hold(3);
-          if (this.banner && isValid(this.banner, true)) this.banner.destroy();
-          var n = a.nodeAt(a.root, 'growth-feedback', -122, a.designH / 2 - 114 - a.safeTop, 220, 100);
+          // Stay just below the top HUD, near the center but biased toward the enemy side.
+          var n = a.nodeAt(a.root, 'growth-feedback', 66, a.designH / 2 - 257 - a.safeTop, 280, 106);
           this.banner = n;
-          if (a.modal) n.setSiblingIndex(a.modal.getSiblingIndex());
-          a.ui.surface(a.nodeAt(n, 'growth-header', 0, 0, 220, 100), UI.bg, 'slant');
+          a.ui.surface(a.nodeAt(n, 'growth-header', 0, 0, 280, 106), UI.bg, 'slant');
           var first = diff.growth[0],
             soldier = first != null && first.key.startsWith('hero.') ? Number(first.key.slice(5)) : -1;
-          var portrait = a.nodeAt(n, 'portrait-plate', -84, 8, 42, 52);
+          var portrait = a.nodeAt(n, 'portrait-plate', -110, 8, 42, 52);
           a.ui.surface(portrait, UI.gold, 'cut');
-          var profile = a.nodeAt(n, 'growth-portrait', -84, 8, 40, 48);
+          var profile = a.nodeAt(n, 'growth-portrait', -110, 8, 40, 48);
           a.ui.icon(profile, soldier >= 0 ? 'face:merc-' + mercenaryArt(soldier) : 'face:guardian');
           a.label(n, first ? a.tr('merc.level', {
             before: first.args.before,
             after: first.args.after
-          }) : a.tr('feedback.power'), 24, 30, 156, 22, 16, UI.gold);
+          }) : a.tr('feedback.power'), 26, 32, 206, 22, 16, UI.gold);
           var stats = diff.tap || diff.dps;
           var before = stats ? a.format(stats[0]) : '',
             after = stats ? a.format(stats[1]) : '';
@@ -6442,22 +6629,28 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
             before: before,
             after: after
           }) : a.tr('feedback.improved');
-          a.label(n, changed, 24, 9, 156, 20, 12, UI.text);
+          a.label(n, changed, 26, 10, 206, 20, 12, UI.text);
           var context = soldier >= 0 && Number(first == null || (_first$args = first.args) == null ? void 0 : _first$args.before) === 0 ? 'recruit' : 'growth';
-          a.label(n, a.tr(this.dialogue.next(soldier, context)), 24, -22, 156, 40, 14, UI.text).node.name = 'growth-dialogue';
-          if (a.game.s.extra.effects) {
-            this.particles(profile, 'growth', 40, 48);
-            n.setScale(.88, .88, 1);
-            tween(n).to(.18, {
-              scale: new Vec3(1, 1, 1)
-            }, {
-              easing: 'backOut'
-            }).start();
+          // Rebuilding the same visible cue keeps its original line and expiry.
+          var line = this.growthLines.get(diff);
+          if (!line) {
+            line = this.dialogue.next(soldier, context);
+            this.growthLines.set(diff, line);
           }
-          a.scheduleOnce(function () {
-            if (isValid(n, true)) n.destroy();
-          }, 2);
-          this.chime();
+          a.label(n, a.tr(line), 26, -24, 206, 40, 15, UI.text).node.name = 'growth-dialogue';
+          if (!this.announcedGrowth.has(diff)) {
+            this.announcedGrowth.add(diff);
+            if (a.game.s.extra.effects) {
+              this.particles(profile, 'growth', 40, 48);
+              n.setScale(.88, .88, 1);
+              tween(n).to(.18, {
+                scale: new Vec3(1, 1, 1)
+              }, {
+                easing: 'backOut'
+              }).start();
+            }
+            this.chime();
+          }
         };
         _proto.particles = function particles(parent, kind, w, h, y) {
           if (y === void 0) {
@@ -39127,8 +39320,8 @@ System.register("chunks:///_virtual/FirebaseConfig.ts", ['cc'], function (export
   };
 });
 
-System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Squad.ts', './SquadName.ts', './Mercenaries.ts', './Balance.ts', './BattleFormation.ts', './Amount.ts', './Expansion.ts', './Config.ts', './EntryPolicy.ts'], function (exports) {
-  var _extends, _createForOfIteratorHelperLoose, _objectWithoutPropertiesLoose, _createClass, cclegacy, SQUAD_LIMIT, equipmentKey, validEquipmentKey, formationMultiplier, squadBonuses, collectionBonuses, squadNameError, attackSeconds, attackWindup, BALANCE_VERSION, PREVIOUS_BALANCE_VERSION, troopWaves, TROOP_BALANCE, troopHP, gemstoneBonus, routedBonus, troopGold, ARTIFACT_DISCOVERY_COSTS, waveSize, previousBossWaveSize, enemyHPShare, ZERO, amount, mul, add, sub, newExpansion, Expansion, HEROES, CONFIG, SPELLS, SKILLS, migrateTutorial, tutorialComplete;
+System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Squad.ts', './SquadName.ts', './AllyPlacement.ts', './Mercenaries.ts', './Balance.ts', './BattleFormation.ts', './Amount.ts', './Expansion.ts', './Config.ts', './EntryPolicy.ts'], function (exports) {
+  var _extends, _createForOfIteratorHelperLoose, _objectWithoutPropertiesLoose, _createClass, cclegacy, SQUAD_LIMIT, equipmentKey, validEquipmentKey, formationMultiplier, squadBonuses, collectionBonuses, squadNameError, validBattlePosition, attackSeconds, attackWindup, BALANCE_VERSION, PREVIOUS_BALANCE_VERSION, troopWaves, TROOP_BALANCE, troopHP, gemstoneBonus, routedBonus, troopGold, ARTIFACT_DISCOVERY_COSTS, waveSize, previousBossWaveSize, enemyHPShare, ZERO, amount, mul, add, sub, newExpansion, Expansion, HEROES, CONFIG, SPELLS, SKILLS, migrateTutorial, tutorialComplete;
   return {
     setters: [function (module) {
       _extends = module.extends;
@@ -39146,6 +39339,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
       collectionBonuses = module.collectionBonuses;
     }, function (module) {
       squadNameError = module.squadNameError;
+    }, function (module) {
+      validBattlePosition = module.validBattlePosition;
     }, function (module) {
       attackSeconds = module.attackSeconds;
       attackWindup = module.attackWindup;
@@ -39558,6 +39753,11 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           if (!validIds(s.extra.mercenaryOwned, HEROES.length) || !validIds(s.extra.mercenaryDeck, SQUAD_LIMIT) || s.extra.mercenaryDeck.some(function (id) {
             return !s.extra.mercenaryOwned.includes(id);
           })) throw Error('mercenaryDeck');
+          if (!s.extra.battlePositions || typeof s.extra.battlePositions !== 'object' || Array.isArray(s.extra.battlePositions) || Object.keys(s.extra.battlePositions).length > HEROES.length + 1 || Object.entries(s.extra.battlePositions).some(function (_ref) {
+            var key = _ref[0],
+              p = _ref[1];
+            return !(key === 'captain' || /^(0|[1-9]\d?)$/.test(key) && Number(key) < HEROES.length) || !validBattlePosition(p);
+          })) throw Error('battlePositions');
           for (var _i6 = 0, _arr2 = [s.extra.equipmentObtained, s.extra.equipmentRegistry]; _i6 < _arr2.length; _i6++) {
             var values = _arr2[_i6];
             if (!Array.isArray(values) || values.length > 1015 || new Set(values).size !== values.length || values.some(function (key) {
@@ -39829,9 +40029,9 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           for (var _iterator2 = _createForOfIteratorHelperLoose(scheduled.sort(function (a, b) {
               return a.time - b.time || (a.phase === b.phase ? 0 : a.phase === 'attack' ? -1 : 1) || a.hero - b.hero;
             })), _step2; !(_step2 = _iterator2()).done;) {
-            var _ref = _step2.value;
-            var time = _ref.time,
-              event = _objectWithoutPropertiesLoose(_ref, _excluded);
+            var _ref2 = _step2.value;
+            var time = _ref2.time,
+              event = _objectWithoutPropertiesLoose(_ref2, _excluded);
             this.heroEvents.push(event);
             if (event.phase === 'hit') {
               hits[event.hero]++;
@@ -40085,6 +40285,20 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           if (ok && changed) this.heroClocks.fill(0);
           return ok;
         };
+        _proto.setBattlePosition = function setBattlePosition(hero, x, y, key) {
+          var _this7 = this;
+          return this.transaction(key, function () {
+            _this7.require(hero === -1 || Number.isInteger(hero) && _this7.activeMercenaries().includes(hero), 'error.invalid');
+            _this7.require(validBattlePosition({
+              x: x,
+              y: y
+            }), 'error.invalid');
+            _this7.s.extra.battlePositions[hero < 0 ? 'captain' : String(hero)] = {
+              x: x,
+              y: y
+            };
+          });
+        };
         _proto.squadMultiplier = function squadMultiplier(stat, boss) {
           if (boss === void 0) {
             boss = this.s.run.boss;
@@ -40092,23 +40306,23 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           return formationMultiplier(stat, boss, [].concat(squadBonuses(this.activeMercenaries()), collectionBonuses(this.s.extra.mercenaryOwned, this.s.extra.equipmentRegistry)));
         };
         _proto.registerEquipment = function registerEquipment(key, transaction) {
-          var _this7 = this;
+          var _this8 = this;
           return this.transaction(transaction, function () {
-            _this7.require(validEquipmentKey(key), 'error.invalid');
-            _this7.require(_this7.s.extra.equipmentObtained.includes(key), 'error.locked');
-            _this7.require(!_this7.s.extra.equipmentRegistry.includes(key), 'error.claimed');
-            _this7.s.extra.equipmentRegistry.push(key);
+            _this8.require(validEquipmentKey(key), 'error.invalid');
+            _this8.require(_this8.s.extra.equipmentObtained.includes(key), 'error.locked');
+            _this8.require(!_this8.s.extra.equipmentRegistry.includes(key), 'error.claimed');
+            _this8.s.extra.equipmentRegistry.push(key);
           });
         };
         _proto.registerAllEquipment = function registerAllEquipment(transaction) {
-          var _this8 = this;
+          var _this9 = this;
           return this.transaction(transaction, function () {
-            var _this8$s$extra$equipm;
-            var pending = _this8.s.extra.equipmentObtained.filter(function (key) {
-              return !_this8.s.extra.equipmentRegistry.includes(key);
+            var _this9$s$extra$equipm;
+            var pending = _this9.s.extra.equipmentObtained.filter(function (key) {
+              return !_this9.s.extra.equipmentRegistry.includes(key);
             });
-            _this8.require(pending.length > 0, 'error.claimed');
-            (_this8$s$extra$equipm = _this8.s.extra.equipmentRegistry).push.apply(_this8$s$extra$equipm, pending);
+            _this9.require(pending.length > 0, 'error.claimed');
+            (_this9$s$extra$equipm = _this9.s.extra.equipmentRegistry).push.apply(_this9$s$extra$equipm, pending);
           });
         };
         _proto.heroAttackRate = function heroAttackRate() {
@@ -40194,18 +40408,18 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           return this.s.run.stage < 60 ? ZERO : amount(Math.max(1, Math.floor(Math.pow(this.s.run.stage / 60, 2.1))));
         };
         _proto.prestige = function prestige(id) {
-          var _this9 = this;
+          var _this10 = this;
           return this.transaction(id, function () {
-            _this9.require(_this9.s.run.stage >= 60, 'error.locked');
-            _this9.s.relics = add(_this9.s.relics, _this9.prestigeReward());
-            _this9.s.prestiges++;
-            _this9.s.dayPrestiges++;
-            _this9.s.extra.towerKeys += 3;
-            _this9.s.extra.ascensions.fill(0);
-            _this9.s.extra.heroSkills.fill(0);
-            if (_this9.s.maxStage >= 100000) _this9.s.souls += 100;
-            if (_this9.s.maxStage >= 180000) _this9.s.mementos = add(_this9.s.mementos, amount(10));
-            _this9.s.run = _this9.newRun(Math.max(1, Math.floor(_this9.s.maxStage * .05)));
+            _this10.require(_this10.s.run.stage >= 60, 'error.locked');
+            _this10.s.relics = add(_this10.s.relics, _this10.prestigeReward());
+            _this10.s.prestiges++;
+            _this10.s.dayPrestiges++;
+            _this10.s.extra.towerKeys += 3;
+            _this10.s.extra.ascensions.fill(0);
+            _this10.s.extra.heroSkills.fill(0);
+            if (_this10.s.maxStage >= 100000) _this10.s.souls += 100;
+            if (_this10.s.maxStage >= 180000) _this10.s.mementos = add(_this10.s.mementos, amount(10));
+            _this10.s.run = _this10.newRun(Math.max(1, Math.floor(_this10.s.maxStage * .05)));
           });
         };
         _proto.discoverCost = function discoverCost() {
@@ -40213,78 +40427,78 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           return amount(ARTIFACT_DISCOVERY_COSTS[Math.min(discovered, ARTIFACT_DISCOVERY_COSTS.length - 1)]);
         };
         _proto.discover = function discover(id) {
-          var _this10 = this;
+          var _this11 = this;
           return this.transaction(id, function () {
-            var c = _this10.discoverCost(),
-              options = _this10.s.artifacts.map(function (l, i) {
-                return l === 0 && !_this10.s.salvaged.includes(i) ? i : -1;
+            var c = _this11.discoverCost(),
+              options = _this11.s.artifacts.map(function (l, i) {
+                return l === 0 && !_this11.s.salvaged.includes(i) ? i : -1;
               }).filter(function (i) {
                 return i >= 0;
               });
-            _this10.require(options.length > 0, 'error.complete');
-            _this10.require(_this10.s.relics >= c);
-            _this10.s.relics = sub(_this10.s.relics, c);
-            _this10.s.artifacts[options[Math.floor(_this10.random() * options.length)]] = 1;
+            _this11.require(options.length > 0, 'error.complete');
+            _this11.require(_this11.s.relics >= c);
+            _this11.s.relics = sub(_this11.s.relics, c);
+            _this11.s.artifacts[options[Math.floor(_this11.random() * options.length)]] = 1;
           });
         };
         _proto.artifactCost = function artifactCost(i) {
           return amount(Math.pow(this.s.artifacts[i] + 1, 1.4));
         };
         _proto.upgradeArtifact = function upgradeArtifact(i, id) {
-          var _this11 = this;
+          var _this12 = this;
           return this.transaction(id, function () {
-            _this11.require(_this11.s.artifacts[i] > 0, 'error.locked');
-            var c = _this11.artifactCost(i);
-            _this11.require(_this11.s.relics >= c);
-            _this11.s.relics = sub(_this11.s.relics, c);
-            _this11.s.artifacts[i]++;
-            _this11.s.artifactInvested[i] = add(_this11.s.artifactInvested[i], c);
+            _this12.require(_this12.s.artifacts[i] > 0, 'error.locked');
+            var c = _this12.artifactCost(i);
+            _this12.require(_this12.s.relics >= c);
+            _this12.s.relics = sub(_this12.s.relics, c);
+            _this12.s.artifacts[i]++;
+            _this12.s.artifactInvested[i] = add(_this12.s.artifactInvested[i], c);
           });
         };
         _proto.salvageArtifact = function salvageArtifact(i, id) {
-          var _this12 = this;
+          var _this13 = this;
           return this.transaction(id, function () {
-            _this12.require(_this12.s.artifacts[i] > 0 && !_this12.s.enchanted[i], 'error.protected');
-            _this12.require(_this12.s.gems >= 20);
-            _this12.s.gems -= 20;
-            _this12.s.relics = add(_this12.s.relics, mul(_this12.s.artifactInvested[i], .8));
-            _this12.s.artifactInvested[i] = ZERO;
-            _this12.s.artifacts[i] = 0;
-            _this12.s.salvaged.push(i);
+            _this13.require(_this13.s.artifacts[i] > 0 && !_this13.s.enchanted[i], 'error.protected');
+            _this13.require(_this13.s.gems >= 20);
+            _this13.s.gems -= 20;
+            _this13.s.relics = add(_this13.s.relics, mul(_this13.s.artifactInvested[i], .8));
+            _this13.s.artifactInvested[i] = ZERO;
+            _this13.s.artifacts[i] = 0;
+            _this13.s.salvaged.push(i);
           });
         };
         _proto.rebuyArtifact = function rebuyArtifact(i, id) {
-          var _this13 = this;
+          var _this14 = this;
           return this.transaction(id, function () {
-            _this13.require(_this13.s.salvaged.includes(i), 'error.invalid');
-            _this13.require(_this13.s.gems >= 25);
-            _this13.s.gems -= 25;
-            _this13.s.salvaged = _this13.s.salvaged.filter(function (x) {
+            _this14.require(_this14.s.salvaged.includes(i), 'error.invalid');
+            _this14.require(_this14.s.gems >= 25);
+            _this14.s.gems -= 25;
+            _this14.s.salvaged = _this14.s.salvaged.filter(function (x) {
               return x !== i;
             });
-            _this13.s.artifacts[i] = 1;
+            _this14.s.artifacts[i] = 1;
           });
         };
         _proto.enchantArtifact = function enchantArtifact(i, id) {
-          var _this14 = this;
+          var _this15 = this;
           return this.transaction(id, function () {
-            _this14.require(_this14.s.artifacts.every(function (l) {
+            _this15.require(_this15.s.artifacts.every(function (l) {
               return l > 0;
             }), 'error.locked');
-            _this14.require(!_this14.s.enchanted[i], 'error.claimed');
-            _this14.require(_this14.s.relics >= amount(1000));
-            _this14.s.relics = sub(_this14.s.relics, amount(1000));
-            _this14.s.enchanted[i] = 1;
+            _this15.require(!_this15.s.enchanted[i], 'error.claimed');
+            _this15.require(_this15.s.relics >= amount(1000));
+            _this15.s.relics = sub(_this15.s.relics, amount(1000));
+            _this15.s.enchanted[i] = 1;
           });
         };
         _proto.transmog = function transmog(slot, item, id) {
-          var _this15 = this;
+          var _this16 = this;
           return this.transaction(id, function () {
-            var e = _this15.s.equipment.find(function (e) {
+            var e = _this16.s.equipment.find(function (e) {
               return e.id === item;
             });
-            _this15.require(!!e && e.slot === slot, 'error.invalid');
-            _this15.s.appearance[slot] = item;
+            _this16.require(!!e && e.slot === slot, 'error.invalid');
+            _this16.s.appearance[slot] = item;
           });
         };
         _proto.achievementProgress = function achievementProgress(i) {
@@ -40294,30 +40508,30 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           return [100, 100, 50, 1][i] * Math.pow(2, this.s.achievements[i]);
         };
         _proto.claimAchievement = function claimAchievement(i, id) {
-          var _this16 = this;
+          var _this17 = this;
           return this.transaction(id, function () {
-            _this16.require(_this16.achievementProgress(i) >= _this16.achievementGoal(i), 'error.locked');
-            _this16.s.achievements[i]++;
-            _this16.s.gems += 10;
+            _this17.require(_this17.achievementProgress(i) >= _this17.achievementGoal(i), 'error.locked');
+            _this17.s.achievements[i]++;
+            _this17.s.gems += 10;
           });
         };
         _proto.applySkills = function applySkills(draft, id) {
-          var _this17 = this;
+          var _this18 = this;
           return this.transaction(id, function () {
-            _this17.require(draft.length === 18, 'error.invalid');
-            var available = _this17.s.sp + _this17.s.skills.reduce(function (a, l) {
+            _this18.require(draft.length === 18, 'error.invalid');
+            var available = _this18.s.sp + _this18.s.skills.reduce(function (a, l) {
               return a + l * (l + 1) / 2;
             }, 0);
             var cost = 0;
             draft.forEach(function (l, i) {
               var c = SKILLS[i];
-              _this17.require(Number.isInteger(l) && l >= 0 && l <= c.max, 'error.invalid');
-              if (l > 0 && c.prerequisite >= 0) _this17.require(draft[c.prerequisite] >= 3, 'error.prerequisite');
+              _this18.require(Number.isInteger(l) && l >= 0 && l <= c.max, 'error.invalid');
+              if (l > 0 && c.prerequisite >= 0) _this18.require(draft[c.prerequisite] >= 3, 'error.prerequisite');
               cost += l * (l + 1) / 2;
             });
-            _this17.require(cost <= available);
-            _this17.s.sp = available - cost;
-            _this17.s.skills = [].concat(draft);
+            _this18.require(cost <= available);
+            _this18.s.sp = available - cost;
+            _this18.s.skills = [].concat(draft);
           });
         };
         _proto.drop = function drop(slot, rarity, set) {
@@ -40372,7 +40586,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           return 5 + slot;
         };
         _proto.craft = function craft(id, set, slot) {
-          var _this18 = this;
+          var _this19 = this;
           if (set === void 0) {
             set = Math.floor(this.nextCraft() / 5);
           }
@@ -40380,18 +40594,18 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             slot = this.nextCraft() % 5;
           }
           return this.transaction(id, function () {
-            _this18.require(Number.isInteger(set) && set >= 0 && set < 200 && Number.isInteger(slot) && slot >= 0 && slot < 5, 'error.invalid');
-            _this18.require(!_this18.s.setHistory.includes(set * 5 + slot), 'error.claimed');
-            _this18.require(_this18.s.equipment.length < CONFIG.inventoryCap, 'error.full');
-            var cost = _this18.craftCost(set, slot);
-            _this18.require(_this18.s.shards >= cost);
-            _this18.s.shards -= cost;
-            _this18.drop(slot, 2, set);
-            _this18.s.setHistory.push(set * 5 + slot);
-            _this18.s.crafted += cost;
+            _this19.require(Number.isInteger(set) && set >= 0 && set < 200 && Number.isInteger(slot) && slot >= 0 && slot < 5, 'error.invalid');
+            _this19.require(!_this19.s.setHistory.includes(set * 5 + slot), 'error.claimed');
+            _this19.require(_this19.s.equipment.length < CONFIG.inventoryCap, 'error.full');
+            var cost = _this19.craftCost(set, slot);
+            _this19.require(_this19.s.shards >= cost);
+            _this19.s.shards -= cost;
+            _this19.drop(slot, 2, set);
+            _this19.s.setHistory.push(set * 5 + slot);
+            _this19.s.crafted += cost;
             if ([0, 1, 2, 3, 4].every(function (part) {
-              return _this18.s.setHistory.includes(set * 5 + part);
-            })) _this18.rewardNotice('equipmentSet', set + 1);
+              return _this19.s.setHistory.includes(set * 5 + part);
+            })) _this19.rewardNotice('equipmentSet', set + 1);
           });
         };
         _proto.equip = function equip(id) {
@@ -40415,22 +40629,22 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           }
         };
         _proto.sell = function sell(items, id) {
-          var _this19 = this;
+          var _this20 = this;
           return this.transaction(id, function () {
-            _this19.require(items.length > 0, 'error.invalid');
-            var targets = _this19.s.equipment.filter(function (e) {
+            _this20.require(items.length > 0, 'error.invalid');
+            var targets = _this20.s.equipment.filter(function (e) {
               return items.includes(e.id);
             });
-            _this19.require(targets.length === new Set(items).size && targets.every(function (e) {
-              return !e.locked && !_this19.s.equipped.includes(e.id);
+            _this20.require(targets.length === new Set(items).size && targets.every(function (e) {
+              return !e.locked && !_this20.s.equipped.includes(e.id);
             }), 'error.protected');
-            _this19.s.gems += targets.reduce(function (a, e) {
+            _this20.s.gems += targets.reduce(function (a, e) {
               return a + e.rarity + 1;
             }, 0);
-            _this19.s.equipment = _this19.s.equipment.filter(function (e) {
+            _this20.s.equipment = _this20.s.equipment.filter(function (e) {
               return !items.includes(e.id);
             });
-            _this19.s.extra.unseenEquipment = _this19.s.extra.unseenEquipment.filter(function (id) {
+            _this20.s.extra.unseenEquipment = _this20.s.extra.unseenEquipment.filter(function (id) {
               return !items.includes(id);
             });
           });
@@ -40458,21 +40672,21 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           return this.s.activePet >= 0 && this.s.pets[this.s.activePet] > 0 ? this.s.activePet : 0;
         };
         _proto.hatch = function hatch(id) {
-          var _this20 = this;
+          var _this21 = this;
           return this.transaction(id, function () {
-            _this20.require(_this20.s.maxStage >= 8, 'error.locked');
-            _this20.require(_this20.now() >= _this20.s.eggAt, 'error.timer');
-            _this20.s.pets[Math.floor(_this20.random() * 12)]++;
-            _this20.s.extra.dailyEggs++;
-            _this20.s.eggAt = _this20.now() + CONFIG.eggSeconds * 1000;
+            _this21.require(_this21.s.maxStage >= 8, 'error.locked');
+            _this21.require(_this21.now() >= _this21.s.eggAt, 'error.timer');
+            _this21.s.pets[Math.floor(_this21.random() * 12)]++;
+            _this21.s.extra.dailyEggs++;
+            _this21.s.eggAt = _this21.now() + CONFIG.eggSeconds * 1000;
           });
         };
         _proto.usePerk = function usePerk(i, id) {
-          var _this21 = this;
+          var _this22 = this;
           return this.transaction(id, function () {
-            _this21.require(_this21.s.perks[i] > 0);
-            _this21.s.perks[i]--;
-            _this21.s.perkUntil[i] = _this21.now() + 300000;
+            _this22.require(_this22.s.perks[i] > 0);
+            _this22.s.perks[i]--;
+            _this22.s.perkUntil[i] = _this22.now() + 300000;
           });
         };
         _proto.dailyReset = function dailyReset() {
@@ -40493,144 +40707,150 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
         _proto.dailyGoal = function dailyGoal(i) {
           return [1, 100, 50, 1][i];
         };
+        _proto.fairyReward = function fairyReward() {
+          return mul(this.goldReward(false), CONFIG.supplyWaves);
+        };
+        _proto.fairyReady = function fairyReady() {
+          return this.now() >= this.s.fairyAt && this.fairyReward() > ZERO;
+        };
         _proto.claimFairy = function claimFairy(id) {
-          var _this22 = this;
+          var _this23 = this;
           return this.transaction(id, function () {
-            _this22.require(_this22.now() >= _this22.s.fairyAt, 'error.timer');
-            _this22.s.run.gold = add(_this22.s.run.gold, mul(_this22.goldReward(false), CONFIG.supplyWaves));
-            _this22.s.extra.dailyFairies++;
-            _this22.s.fairyAt = _this22.now() + 60000;
+            _this23.require(_this23.fairyReady(), 'error.timer');
+            _this23.s.run.gold = add(_this23.s.run.gold, _this23.fairyReward());
+            _this23.s.extra.dailyFairies++;
+            _this23.s.fairyAt = _this23.now() + 60000;
           });
         };
         _proto.claimDaily = function claimDaily(i) {
-          var _this23 = this;
+          var _this24 = this;
           return this.transaction("daily." + this.s.day + "." + i, function () {
             var key = "daily." + i;
-            _this23.require(!_this23.s.claims.includes(key), 'error.claimed');
-            _this23.require(_this23.dailyProgress(i) >= _this23.dailyGoal(i), 'error.locked');
-            _this23.s.claims.push(key);
-            _this23.s.gems += [25, 10, 15, 25][i];
-            if (i === 2) _this23.s.geodes++;
-            if (i === 3) _this23.s.shards += 5;
+            _this24.require(!_this24.s.claims.includes(key), 'error.claimed');
+            _this24.require(_this24.dailyProgress(i) >= _this24.dailyGoal(i), 'error.locked');
+            _this24.s.claims.push(key);
+            _this24.s.gems += [25, 10, 15, 25][i];
+            if (i === 2) _this24.s.geodes++;
+            if (i === 3) _this24.s.shards += 5;
           });
         };
         _proto.claimMilestone = function claimMilestone(stage) {
-          var _this24 = this;
+          var _this25 = this;
           return this.transaction("milestone." + stage, function () {
             var key = "milestone." + stage;
-            _this24.require([8, 15, 60, 100, 500, 1000, 100000, 180000].includes(stage), 'error.invalid');
-            _this24.require(!_this24.s.claims.includes(key), 'error.claimed');
-            _this24.require(_this24.s.maxStage >= stage, 'error.locked');
-            _this24.s.claims.push(key);
-            _this24.s.gems += 25;
-            _this24.s.shards += 5;
+            _this25.require([8, 15, 60, 100, 500, 1000, 100000, 180000].includes(stage), 'error.invalid');
+            _this25.require(!_this25.s.claims.includes(key), 'error.claimed');
+            _this25.require(_this25.s.maxStage >= stage, 'error.locked');
+            _this25.s.claims.push(key);
+            _this25.s.gems += 25;
+            _this25.s.shards += 5;
           });
         };
         _proto.collectOffline = function collectOffline(id) {
-          var _this25 = this;
+          var _this26 = this;
           return this.transaction(id, function () {
-            _this25.require(_this25.s.offline > ZERO, 'error.claimed');
-            _this25.s.run.gold = add(_this25.s.run.gold, _this25.s.offline);
-            _this25.s.offline = ZERO;
+            _this26.require(_this26.s.offline > ZERO, 'error.claimed');
+            _this26.s.run.gold = add(_this26.s.run.gold, _this26.s.offline);
+            _this26.s.offline = ZERO;
           });
         };
         _proto.buyDeal = function buyDeal(kind, id) {
-          var _this26 = this;
+          var _this27 = this;
           return this.transaction(id, function () {
             var costs = [30, 60, 100],
               c = costs[kind];
-            _this26.require(c !== undefined, 'error.invalid');
-            _this26.require(_this26.s.gems >= c);
-            _this26.s.gems -= c;
-            if (kind === 0) _this26.s.pets[Math.floor(_this26.random() * 12)] += 3;
-            if (kind === 1) _this26.s.shards += 10;
+            _this27.require(c !== undefined, 'error.invalid');
+            _this27.require(_this27.s.gems >= c);
+            _this27.s.gems -= c;
+            if (kind === 0) _this27.s.pets[Math.floor(_this27.random() * 12)] += 3;
+            if (kind === 1) _this27.s.shards += 10;
             if (kind === 2) {
-              _this26.s.shards += 10;
-              _this26.s.geodes++;
-              var hero = Math.floor(_this26.random() * HEROES.length),
-                before = Math.min.apply(Math, _this26.s.weapons);
-              _this26.s.weapons[hero]++;
-              _this26.rewardNotice('weapon', hero);
-              if (Math.min.apply(Math, _this26.s.weapons) > before) _this26.rewardNotice('weaponSet', Math.min.apply(Math, _this26.s.weapons));
+              _this27.s.shards += 10;
+              _this27.s.geodes++;
+              var hero = Math.floor(_this27.random() * HEROES.length),
+                before = Math.min.apply(Math, _this27.s.weapons);
+              _this27.s.weapons[hero]++;
+              _this27.rewardNotice('weapon', hero);
+              if (Math.min.apply(Math, _this27.s.weapons) > before) _this27.rewardNotice('weaponSet', Math.min.apply(Math, _this27.s.weapons));
             }
           });
         };
         _proto.summon = function summon(id) {
-          var _this27 = this;
+          var _this28 = this;
           return this.transaction(id, function () {
-            _this27.require(_this27.s.maxStage >= 100000 || _this27.now() - _this27.s.created >= 30 * 86400000, 'error.locked');
-            _this27.require(_this27.s.souls >= 10);
-            _this27.s.souls -= 10;
-            _this27.s.titans[Math.floor(_this27.random() * 120)]++;
-            _this27.s.extra.summonCount++;
+            _this28.require(_this28.s.maxStage >= 100000 || _this28.now() - _this28.s.created >= 30 * 86400000, 'error.locked');
+            _this28.require(_this28.s.souls >= 10);
+            _this28.s.souls -= 10;
+            _this28.s.titans[Math.floor(_this28.random() * 120)]++;
+            _this28.s.extra.summonCount++;
           });
         };
         _proto.crack = function crack(id) {
-          var _this28 = this;
+          var _this29 = this;
           return this.transaction(id, function () {
-            _this28.require(_this28.s.geodes > 0);
-            _this28.s.geodes--;
-            _this28.s.extra.geodesOpened++;
-            _this28.s.stones[Math.floor(_this28.random() * 24)]++;
+            _this29.require(_this29.s.geodes > 0);
+            _this29.s.geodes--;
+            _this29.s.extra.geodesOpened++;
+            _this29.s.stones[Math.floor(_this29.random() * 24)]++;
           });
         };
         _proto.upgradeResearch = function upgradeResearch(i, id) {
-          var _this29 = this;
+          var _this30 = this;
           return this.transaction(id, function () {
-            _this29.require(Number.isInteger(i) && i >= 0 && i < _this29.s.research.length, 'error.invalid');
-            var points = Math.floor(_this29.s.extra.summonCount / 5);
-            var spent = _this29.s.research.reduce(function (a, b) {
+            _this30.require(Number.isInteger(i) && i >= 0 && i < _this30.s.research.length, 'error.invalid');
+            var points = Math.floor(_this30.s.extra.summonCount / 5);
+            var spent = _this30.s.research.reduce(function (a, b) {
               return a + b;
             }, 0);
-            _this29.require(points > spent);
-            if (i % 3) _this29.require(_this29.s.research[i - 1] >= 3, 'error.prerequisite');
-            _this29.s.research[i]++;
+            _this30.require(points > spent);
+            if (i % 3) _this30.require(_this30.s.research[i - 1] >= 3, 'error.prerequisite');
+            _this30.s.research[i]++;
           });
         };
         _proto.monument = function monument(i, id) {
-          var _this30 = this;
+          var _this31 = this;
           return this.transaction(id, function () {
-            _this30.require(Number.isInteger(i) && i >= 0 && i < _this30.s.monuments.length, 'error.invalid');
-            _this30.require(_this30.s.maxStage >= 180000, 'error.locked');
-            var cost = amount(Math.pow(2, i) * (_this30.s.monuments[i] + 1));
-            _this30.require(_this30.s.mementos >= cost);
-            _this30.s.mementos = sub(_this30.s.mementos, cost);
-            _this30.s.monuments[i]++;
-            _this30.s.extra.monumentInvested[i] = add(_this30.s.extra.monumentInvested[i], cost);
+            _this31.require(Number.isInteger(i) && i >= 0 && i < _this31.s.monuments.length, 'error.invalid');
+            _this31.require(_this31.s.maxStage >= 180000, 'error.locked');
+            var cost = amount(Math.pow(2, i) * (_this31.s.monuments[i] + 1));
+            _this31.require(_this31.s.mementos >= cost);
+            _this31.s.mementos = sub(_this31.s.mementos, cost);
+            _this31.s.monuments[i]++;
+            _this31.s.extra.monumentInvested[i] = add(_this31.s.extra.monumentInvested[i], cost);
           });
         };
         _proto.claimEvent = function claimEvent(i) {
-          var _this31 = this;
+          var _this32 = this;
           return this.transaction("event.path." + this.s.extra.eventSeason + "." + i, function () {
-            _this31.require(Number.isInteger(i) && i >= 0 && i < 10, 'error.invalid');
+            _this32.require(Number.isInteger(i) && i >= 0 && i < 10, 'error.invalid');
             var key = "event." + i;
-            _this31.require(!_this31.s.claims.includes(key), 'error.claimed');
-            _this31.require(Math.max(_this31.s.extra.eventEarned, _this31.s.eventTokens) >= (i + 1) * 100, 'error.locked');
-            _this31.s.claims.push(key);
-            _this31.s.shards += 5;
-            _this31.s.gems += 15;
+            _this32.require(!_this32.s.claims.includes(key), 'error.claimed');
+            _this32.require(Math.max(_this32.s.extra.eventEarned, _this32.s.eventTokens) >= (i + 1) * 100, 'error.locked');
+            _this32.s.claims.push(key);
+            _this32.s.shards += 5;
+            _this32.s.gems += 15;
           });
         };
         _proto.revealTile = function revealTile(i, id) {
-          var _this32 = this;
+          var _this33 = this;
           return this.transaction(id, function () {
-            _this32.require(Number.isInteger(i) && i >= 0 && i < _this32.s.board.length, 'error.invalid');
-            _this32.require(!_this32.s.board[i], 'error.claimed');
-            _this32.require(_this32.s.eventTokens >= 20);
-            _this32.s.eventTokens -= 20;
-            _this32.s.board[i] = Math.floor(_this32.random() * 3) + 1;
-            _this32.s.gems += _this32.s.board[i] * 5;
+            _this33.require(Number.isInteger(i) && i >= 0 && i < _this33.s.board.length, 'error.invalid');
+            _this33.require(!_this33.s.board[i], 'error.claimed');
+            _this33.require(_this33.s.eventTokens >= 20);
+            _this33.s.eventTokens -= 20;
+            _this33.s.board[i] = Math.floor(_this33.random() * 3) + 1;
+            _this33.s.gems += _this33.s.board[i] * 5;
           });
         };
         _proto.upgradeCard = function upgradeCard(i, id) {
-          var _this33 = this;
+          var _this34 = this;
           return this.transaction(id, function () {
-            _this33.require(!_this33.raid || _this33.raid.claimed, 'error.protected');
-            var c = _this33.s.cards[i] * 10;
-            _this33.require(_this33.s.dust >= c && _this33.s.fragments[i] >= _this33.s.cards[i]);
-            _this33.s.dust -= c;
-            _this33.s.fragments[i] -= _this33.s.cards[i];
-            _this33.s.cards[i]++;
+            _this34.require(!_this34.raid || _this34.raid.claimed, 'error.protected');
+            var c = _this34.s.cards[i] * 10;
+            _this34.require(_this34.s.dust >= c && _this34.s.fragments[i] >= _this34.s.cards[i]);
+            _this34.s.dust -= c;
+            _this34.s.fragments[i] -= _this34.s.cards[i];
+            _this34.s.cards[i]++;
           });
         };
         _proto.setDeck = function setDeck(i) {
@@ -40643,7 +40863,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           }
         };
         _proto.startRaid = function startRaid(portal) {
-          var _this34 = this;
+          var _this35 = this;
           if (portal === void 0) {
             portal = this.s.portal;
           }
@@ -40656,12 +40876,12 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             return false;
           }
           return this.transaction("solo-start-" + this.now() + "-" + this.revision, function () {
-            _this34.require(Number.isInteger(portal) && portal >= 1 && portal <= Math.min(1000, _this34.s.portal), 'error.locked');
+            _this35.require(Number.isInteger(portal) && portal >= 1 && portal <= Math.min(1000, _this35.s.portal), 'error.locked');
             var hp = 1000 * Math.pow(1.2, portal - 1);
-            _this34.raid = {
-              expiresAt: _this34.now() + 30000,
+            _this35.raid = {
+              expiresAt: _this35.now() + 30000,
               portal: portal,
-              deck: _this34.s.deck.slice(),
+              deck: _this35.s.deck.slice(),
               seconds: 30,
               hp: Array(8).fill(hp),
               armor: Array(8).fill(portal > 2 ? hp * .5 : 0),
@@ -40674,7 +40894,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           });
         };
         _proto.raidTap = function raidTap(part) {
-          var _this35 = this;
+          var _this36 = this;
           var r = this.raid;
           if (r && this.now() >= r.expiresAt) {
             r.seconds = 0;
@@ -40684,7 +40904,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           var damage = 12;
           r.hits++;
           r.deck.forEach(function (card, i) {
-            var level = new Expansion(_this35).boostedLevel(card, true);
+            var level = new Expansion(_this36).boostedLevel(card, true);
             var proc = card % 3 === 0 ? r.hits % 4 === 0 ? 30 * level : 0 : card % 3 === 1 ? level * Math.min(20, r.hits) : 5 * level;
             damage += proc;
             r.cardDamage[i] += proc;
@@ -40700,25 +40920,25 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           })) r.ended = true;
         };
         _proto.claimRaid = function claimRaid(id) {
-          var _this36 = this;
+          var _this37 = this;
           return this.transaction(id, function () {
-            var r = _this36.raid;
-            _this36.require(!!r && r.ended && !r.claimed, 'error.claimed');
+            var r = _this37.raid;
+            _this37.require(!!r && r.ended && !r.claimed, 'error.claimed');
             if (!r) return;
             r.claimed = true;
-            _this36.s.dust += Math.floor(r.damage / 100);
+            _this37.s.dust += Math.floor(r.damage / 100);
             r.deck.forEach(function (i) {
-              return _this36.s.fragments[i]++;
+              return _this37.s.fragments[i]++;
             });
             if (r.hp.every(function (h) {
               return h === 0;
             })) {
-              _this36.s.portal = Math.max(_this36.s.portal, Math.min(1000, r.portal + 1));
-              if (!_this36.s.extra.soloCleared.includes(r.portal)) {
-                _this36.s.extra.soloCleared.push(r.portal);
-                var hero = Math.floor(_this36.random() * HEROES.length);
-                _this36.s.scrolls[hero]++;
-                _this36.rewardNotice('scroll', hero);
+              _this37.s.portal = Math.max(_this37.s.portal, Math.min(1000, r.portal + 1));
+              if (!_this37.s.extra.soloCleared.includes(r.portal)) {
+                _this37.s.extra.soloCleared.push(r.portal);
+                var hero = Math.floor(_this37.random() * HEROES.length);
+                _this37.s.scrolls[hero]++;
+                _this37.rewardNotice('scroll', hero);
               }
             }
           });
@@ -40739,15 +40959,15 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
   };
 });
 
-System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts', './EnemyArtBounds.ts', './SquadUI.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _extends, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, Sprite, ScrollView, BlockInputEvents, resources, Texture2D, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, enemyType, ENEMY_HIT_POINTS, SquadUI, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, bossBattlefieldLayout, bossSize, soldierSize, waveSize, enemyFormation, CheatUI, FeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, BUTTON_TONES, contrastInk, UI, SQUAD_ROLE_STYLE, UITheme;
+System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts', './EnemyArtBounds.ts', './SquadUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
+  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, Sprite, ScrollView, BlockInputEvents, resources, Texture2D, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, enemyType, ENEMY_HIT_POINTS, SquadUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, soldierSize, partyBattlefieldLayout, bossSize, enemyFormation, CheatUI, FeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, UI, SQUAD_ROLE_STYLE, UITheme;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
-      _extends = module.extends;
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
       _asyncToGenerator = module.asyncToGenerator;
       _regeneratorRuntime = module.regeneratorRuntime;
+      _extends = module.extends;
       _createClass = module.createClass;
       _assertThisInitialized = module.assertThisInitialized;
     }, function (module) {
@@ -40788,6 +41008,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
     }, function (module) {
       SquadUI = module.SquadUI;
     }, function (module) {
+      ShopUI = module.ShopUI;
+    }, function (module) {
+      RewardGlowUI = module.RewardGlowUI;
+    }, function (module) {
+      SHOP_STYLE = module.SHOP_STYLE;
+    }, function (module) {
       squadRole = module.squadRole;
       SQUAD_LIMIT = module.SQUAD_LIMIT;
     }, function (module) {
@@ -40803,10 +41029,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       battlefieldOffset = module.battlefieldOffset;
       allyPosition = module.allyPosition;
       SOLDIER_SIZE = module.SOLDIER_SIZE;
-      bossBattlefieldLayout = module.bossBattlefieldLayout;
-      bossSize = module.bossSize;
-      soldierSize = module.soldierSize;
+      battleDensityScale = module.battleDensityScale;
       waveSize = module.waveSize;
+      soldierSize = module.soldierSize;
+      partyBattlefieldLayout = module.partyBattlefieldLayout;
+      bossSize = module.bossSize;
       enemyFormation = module.enemyFormation;
     }, function (module) {
       CheatUI = module.CheatUI;
@@ -40829,6 +41056,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       CARDS = module.CARDS;
     }, function (module) {
       t = module.t;
+      matchesTranslation = module.matchesTranslation;
     }, function (module) {
       ExpansionUI = module.ExpansionUI;
     }, function (module) {
@@ -40857,8 +41085,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       FirebaseCommerce = module.FirebaseCommerce;
       AdMobRewarded = module.AdMobRewarded;
     }, function (module) {
+      BUTTON_CATEGORY_KEYS = module.BUTTON_CATEGORY_KEYS;
       BUTTON_TONES = module.BUTTON_TONES;
       contrastInk = module.contrastInk;
+      ICON_HELP_KEYS = module.ICON_HELP_KEYS;
       UI = module.UI;
       SQUAD_ROLE_STYLE = module.SQUAD_ROLE_STYLE;
       UITheme = module.UITheme;
@@ -40877,6 +41107,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
           _this = _Component.call.apply(_Component, [this].concat(args)) || this;
           _this.modalBack = null;
+          _this.tooltipNode = null;
           _this.ui = new UITheme();
           _this.feedback = new FeedbackUI(_assertThisInitialized(_this));
           _this.buttonStates = [];
@@ -40921,6 +41152,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           _this.competitionDeadline = 0;
           _this.extensions = void 0;
           _this.squadUI = new SquadUI(_assertThisInitialized(_this));
+          _this.shopUI = new ShopUI(_assertThisInitialized(_this));
+          _this.rewardGlow = new RewardGlowUI(_assertThisInitialized(_this));
           _this.game = void 0;
           _this.root = void 0;
           _this.panel = void 0;
@@ -41152,6 +41385,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var _this2 = this,
             _options$iconOnly,
             _options$icon,
+            _options$icon2,
             _this$tutorial2;
           if (accent === void 0) {
             accent = false;
@@ -41167,12 +41401,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return text === _this2.tr(key);
           }) || text === '×';
           var style = options.style || (quiet ? 'quiet' : accent ? 'primary' : 'secondary');
-          var category = function category(keys) {
-            return keys.some(function (key) {
-              return text === _this2.tr(key);
+          var category = options.category || (text === '×' ? 'back' : ['+', '−'].includes(text) ? 'upgrade' : Object.keys(BUTTON_CATEGORY_KEYS).find(function (kind) {
+            return BUTTON_CATEGORY_KEYS[kind].some(function (key) {
+              return matchesTranslation(_this2.game.s.locale, key, text) || !!options.hint && matchesTranslation(_this2.game.s.locale, key, options.hint);
             });
-          };
-          var tone = options.tone || (category(['squad.codex', 'squad.collections', 'registry.title', 'registry.combos', 'hero.mastery']) ? BUTTON_TONES.codex : category(['squad.deck']) ? BUTTON_TONES.deck : category(['squad.synergies', 'squad.roles']) ? BUTTON_TONES.synergy : category(['action.confirm', 'action.apply', 'action.equip', 'action.claim', 'squad.deploy', 'registry.register', 'registry.registerAll']) ? BUTTON_TONES.confirm : category(['action.details', 'action.open', 'merc.preview']) ? BUTTON_TONES.details : style === 'primary' ? BUTTON_TONES.confirm : style === 'secondary' ? BUTTON_TONES.details : style === 'selected' ? C.mint : style === 'danger' ? C.danger : undefined);
+          })) || (style === 'danger' ? 'danger' : style === 'quiet' ? 'settings' : style === 'primary' || style === 'selected' ? 'confirm' : 'details');
+          var tone = options.tone || BUTTON_TONES[category];
           var symbols = {
             'action.confirm': 'symbol:check',
             'action.cancel': 'symbol:close',
@@ -41210,23 +41444,36 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               return _this2.tr(key) === text;
             }),
             iconOnly = (_options$iconOnly = options.iconOnly) != null ? _options$iconOnly : text === '×' || key === 'layout.collapse' || key === 'layout.expand';
-          var icon = (iconOnly || (_options$icon = options.icon) != null && _options$icon.startsWith('symbol:') ? options.icon : undefined) || (text === '×' ? 'symbol:close' : iconOnly && key ? symbols[key] : undefined);
-          var claimable = text === this.tr('action.claim');
-          if (claimable) options = _extends({}, options, {
-            tone: C.gold
-          });
+          var icon = (iconOnly || (_options$icon = options.icon) != null && _options$icon.startsWith('symbol:') || (_options$icon2 = options.icon) != null && _options$icon2.startsWith('shop:') ? options.icon : undefined) || (text === '×' ? 'symbol:close' : iconOnly && key ? symbols[key] : undefined);
+          var claimable = text === this.tr('action.claim') || text === this.tr('action.claimReady');
           var n = this.nodeAt(parent, 'ui-button', x, y, w, h);
           n.name = 'ui-button';
-          this.ui.paint(n, 'popup/' + style, true, 255, style === 'disabled' ? '#444852' : tone);
-          var ink = options.ink || (style === 'disabled' ? C.muted : tone ? contrastInk(tone) : C.text);
+          // One silhouette and one outline: changing availability only changes its fill.
+          var paint = function paint(blocked) {
+            return _this2.ui.surface(n, blocked ? '#444852' : tone, 'cut', 255, true, false);
+          };
+          paint(style === 'disabled');
+          var ink = options.ink || contrastInk(tone);
           var stacked = !!icon && !iconOnly && w < 140 && h >= 48,
-            iconSize = iconOnly ? Math.min(36, h - 12) : stacked ? 20 : 24;
-          if (icon) this.ui.icon(this.nodeAt(n, 'button-art-icon', iconOnly || stacked ? 0 : -w / 2 + 24, stacked ? 10 : 0, iconSize, iconSize), icon, ink);
+            iconSize = options.iconSize ? Math.min(options.iconSize, h - 12) : iconOnly ? Math.min(36, h - 12) : stacked ? 20 : 24;
+          var iconBlocked;
+          var renderIcon = function renderIcon(blocked) {
+            if (!icon || iconBlocked === blocked) return;
+            iconBlocked = blocked;
+            var old = n.getChildByName('button-art-icon');
+            if (old) {
+              old.removeFromParent();
+              old.destroy();
+            }
+            _this2.ui.icon(_this2.nodeAt(n, 'button-art-icon', iconOnly || stacked ? 0 : -w / 2 + 24, stacked ? 10 : 0, iconSize, iconSize), icon, blocked ? C.muted : ink);
+          };
+          renderIcon(style === 'disabled');
           var label = this.label(n, iconOnly ? '' : text === this.tr('action.claim') ? this.tr('action.claimReady') : text, icon && !iconOnly && !stacked ? 17 : 0, stacked ? -13 : 0, w - (icon && !iconOnly && !stacked ? 60 : 20), stacked ? 23 : h - 10, stacked ? 14 : options.fontSize || 18, ink);
           label.node.name = 'button-label';
-          var edge = this.nodeAt(n, 'button-outline', 0, 0, w, h).addComponent(Graphics),
-            outline = this.ui.contours.get(n);
+          var edge = this.nodeAt(n, 'button-outline', 0, 0, w, h).addComponent(Graphics);
+          var marker = this.nodeAt(n, 'button-category', 0, 0, w, h).addComponent(Graphics);
           var outlineState = function outlineState(blocked) {
+            var outline = _this2.ui.contours.get(n);
             edge.clear();
             edge.lineWidth = 1.5;
             edge.strokeColor = _this2.color(claimable && !blocked ? C.gold : '#929889');
@@ -41236,8 +41483,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             });
             edge.close();
             edge.stroke();
+            marker.clear();
+            if (blocked || style === 'selected') {
+              marker.fillColor = _this2.color(blocked ? tone : ink);
+              marker.rect(-w / 2 + 12, -h / 2 + 4, w - 24, 3);
+              marker.fill();
+            }
           };
-          outlineState(false);
+          outlineState(style === 'disabled');
           var unavailable = options.unavailable || (text === this.tr('action.claimed') ? function () {
             return _this2.tr('action.alreadyClaimed');
           } : text === this.tr('action.equipped') ? function () {
@@ -41254,15 +41507,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                 signature = String(blocked) + next;
               if (last === signature) return;
               last = signature;
-              _this2.ui.paint(n, 'popup/' + (blocked ? 'disabled' : style === 'disabled' && options.unavailable ? 'primary' : style), true, 255, blocked ? '#444852' : tone);
+              paint(blocked);
               if (!iconOnly) label.string = next;
               label.color = _this2.color(blocked ? '#c2c5cc' : ink);
               outlineState(blocked);
-              var art = n.getChildByName('button-art-icon');
-              if (art) {
-                var opacity = art.getComponent(UIOpacity) || art.addComponent(UIOpacity);
-                opacity.opacity = blocked ? 115 : 255;
-              }
+              renderIcon(blocked);
             };
             this.buttonStates.push({
               node: n,
@@ -41271,6 +41520,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             refresh();
           }
           if (unavailable) this.buttonReasons.set(n, unavailable);
+          if (claimable || options.rewardReady) this.rewardGlow.register(n, function () {
+            var _options$rewardReady;
+            return !(unavailable != null && unavailable()) && ((_options$rewardReady = options.rewardReady == null ? void 0 : options.rewardReady()) != null ? _options$rewardReady : claimable);
+          });
           this.touchAction(n, function () {
             var reason = unavailable == null ? void 0 : unavailable();
             if (reason) {
@@ -41389,7 +41642,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var reveal = function reveal() {
             if (isValid(n, true) && hint) {
               held = true;
-              _this4.toast(hint);
+              _this4.tooltip(n, hint);
             }
           };
           var rest = n.position.clone(),
@@ -41442,14 +41695,80 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
           var inline = parent.name === 'list-row',
             ink = inline && !this.ui.inPopup(parent) ? C.ink : C.text;
-          var n = this.nodeAt(parent, 'ink-surface', x, y, w, 30);
+          var n = this.nodeAt(parent, 'ink-surface', x, y, w, inline ? 30 : 36);
           if (!inline) this.ui.surface(n, C.panel);
           this.ui.icon(this.nodeAt(n, 'metric-icon', -w / 2 + 17, 0, 20, 20), icon, ink);
           this.label(n, value, 13, 0, w - 42, 26, 16, ink, Label.HorizontalAlign.LEFT);
-          if (hint) this.touchAction(n, function () {
-            return _this5.toast(hint);
-          }, hint);
+          var meaning = ICON_HELP_KEYS[icon] ? this.tr(ICON_HELP_KEYS[icon]) : '',
+            detail = hint.includes('\n') ? hint : [meaning, this.tr('ui.help.value', {
+              value: value
+            }), hint].filter(Boolean).join('\n');
+          this.touchAction(n, function () {
+            return _this5.tooltip(n, detail);
+          }, detail);
           return n;
+        };
+        _proto.iconHelp = function iconHelp(n, detail) {
+          var _this6 = this;
+          var size = n.getComponent(UITransform).contentSize,
+            target = this.nodeAt(n, 'icon-help-target', 0, 0, Math.max(40, size.width), Math.max(40, size.height));
+          this.touchAction(target, function () {
+            return _this6.tooltip(target, detail());
+          });
+        };
+        _proto.hideTooltip = function hideTooltip() {
+          if (this.tooltipNode && isValid(this.tooltipNode, true)) {
+            Tween.stopAllByTarget(this.tooltipNode);
+            this.tooltipNode.removeFromParent();
+            this.tooltipNode.destroy();
+          }
+          this.tooltipNode = null;
+        };
+        _proto.tooltip = function tooltip(anchor, text) {
+          var _this$modal,
+            _this7 = this;
+          if (!isValid(anchor, true) || !this.root) return;
+          this.hideTooltip();
+          var layer = ((_this$modal = this.modal) == null ? void 0 : _this$modal.getChildByName('modal-panel')) || this.root,
+            transform = layer.getComponent(UITransform),
+            a = anchor.getComponent(UITransform);
+          var point = transform.convertToNodeSpaceAR(a.convertToWorldSpaceAR(new Vec3())),
+            w = Math.min(380, transform.width - 28),
+            chars = (w - 48) / 8;
+          var lines = text.split('\n').reduce(function (sum, line) {
+            return sum + Math.max(1, Math.ceil([].concat(line).reduce(function (count, c) {
+              return count + (/[\u1100-\uffff]/.test(c) ? 1.8 : 1);
+            }, 0) / chars));
+          }, 0);
+          var h = Math.min(Math.max(76, lines * 23 + 30), Math.min(280, transform.height - 130)),
+            left = -transform.width / 2 + w / 2 + 12,
+            right = transform.width / 2 - w / 2 - 12;
+          var bottom = -transform.height / 2 + h / 2 + 12 + (layer === this.root ? this.safeBottom : 0),
+            top = transform.height / 2 - h / 2 - (layer === this.root ? this.safeTop + 18 : 84);
+          var y = point.y - a.height / 2 - h / 2 - 9;
+          if (y < bottom) y = point.y + a.height / 2 + h / 2 + 9;
+          var n = this.nodeAt(layer, 'icon-tooltip', Math.max(left, Math.min(right, point.x)), Math.max(bottom, Math.min(top, y)), w, h);
+          this.tooltipNode = n;
+          this.ui.surface(n, '#202631', 'cut', 255, false, false);
+          var edge = this.nodeAt(n, 'tooltip-border', 0, 0, w, h).addComponent(Graphics),
+            points = this.ui.contours.get(n);
+          edge.strokeColor = this.color(BUTTON_TONES.details);
+          edge.lineWidth = 2;
+          edge.moveTo(points[0][0], points[0][1]);
+          points.slice(1).forEach(function (p) {
+            return edge.lineTo(p[0], p[1]);
+          });
+          edge.close();
+          edge.stroke();
+          this.label(n, text, -7, 0, w - 48, h - 22, 17, C.text, Label.HorizontalAlign.LEFT).node.name = 'tooltip-text';
+          this.label(n, '×', w / 2 - 19, h / 2 - 18, 24, 24, 20, C.muted);
+          n.on(Node.EventType.TOUCH_END, function (e) {
+            e.propagationStopped = true;
+            _this7.hideTooltip();
+          });
+          tween(n).delay(4).call(function () {
+            if (_this7.tooltipNode === n) _this7.hideTooltip();
+          }).start();
         };
         _proto.stopTweens = function stopTweens(n) {
           Tween.stopAllByTarget(n);
@@ -41459,14 +41778,15 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
         };
         _proto.draw = function draw() {
-          var _this6 = this;
+          var _this8 = this;
+          this.hideTooltip();
           this.modal = null;
           this.modalRefresh = null;
           this.toastNode = null;
           this.node.children.filter(function (n) {
             return n.name === 'EmberRoot';
           }).forEach(function (n) {
-            _this6.stopTweens(n);
+            _this8.stopTweens(n);
             n.removeFromParent();
             if (isValid(n, true)) n.destroy();
           });
@@ -41485,57 +41805,53 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.enemyTransition = 0;
           this.allySignature = '';
           this.world();
-          this.polygon(hud, 0, 392, 480, 176, [[-.5, .5], [.5, .5], [.5, -.5], [-.5, -.5]], C.bg, 245);
+          this.rect(hud, 0, 452, 480, 56, C.bg).name = 'menu-bar-backdrop';
           var hudMenu = this.button(hud, this.tr('hud.menu'), -196, 450, 76, 52, function () {
-            return _this6.menu();
+            return _this8.menu();
           }, false, {
             style: 'quiet',
+            category: 'settings',
             icon: 'symbol:menu',
             hint: this.tr('hud.menu'),
-            fontSize: 14,
-            tone: '#303b43',
-            ink: '#ffffff'
+            fontSize: 14
           });
           hudMenu.name = 'tutorial-menu';
           var operations = this.button(hud, this.tr('hud.operations'), -114, 450, 76, 52, function () {
-            return _this6.menu(true);
+            return _this8.menu(true);
           }, false, {
             style: 'quiet',
+            category: 'battle',
             icon: 'symbol:flag',
-            fontSize: 14,
-            tone: '#c9a45b',
-            ink: '#171d18'
+            fontSize: 14
           });
           operations.name = 'hud-operations';
           var inbox = this.button(hud, this.tr('menu.inbox'), 114, 450, 76, 52, function () {
-            return _this6.extensions.inbox();
+            return _this8.extensions.inbox();
           }, false, {
             style: 'quiet',
+            category: 'settings',
             icon: 'symbol:mail',
-            fontSize: 14,
-            tone: '#e9ece4',
-            ink: '#22342a'
+            fontSize: 14
           });
           inbox.name = 'hud-inbox';
           var settings = this.button(hud, this.tr('hud.settings'), 196, 450, 76, 52, function () {
-            return _this6.settings();
+            return _this8.settings();
           }, false, {
             style: 'quiet',
+            category: 'settings',
             icon: 'symbol:settings',
-            fontSize: 14,
-            tone: '#445740',
-            ink: '#ffffff'
+            fontSize: 14
           });
           settings.name = 'hud-settings';
           this.stageNeighbors = [];
           [-1, 1].forEach(function (offset, i) {
-            var n = _this6.nodeAt(hud, 'nearby-stage', i ? 48 : -48, 450, 22, 32);
-            _this6.stageNeighbors.push(_this6.label(n, String(Math.max(1, _this6.game.s.run.stage + offset)), 0, 0, 22, 30, 14, C.muted));
+            var n = _this8.nodeAt(hud, 'nearby-stage', i ? 48 : -48, 450, 22, 32);
+            _this8.stageNeighbors.push(_this8.label(n, String(Math.max(1, _this8.game.s.run.stage + offset)), 0, 0, 22, 30, 14, C.muted));
           });
           var stage = this.polygon(hud, 0, 450, 45, 45, [[0, -.5], [.5, 0], [0, .5], [-.5, 0]], C.paper);
           this.stageLabel = this.label(stage, '', 0, 0, 38, 36, 21, C.ink);
           this.bossButton = this.button(hud, this.tr('battle.fight'), -92, 350, 116, 36, function () {
-            return _this6.game.toggleBoss();
+            return _this8.game.toggleBoss();
           }, false, {
             style: 'danger',
             fontSize: 14
@@ -41548,6 +41864,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.enemyLabel = this.label(hud, '', 82, 347, 130, 18, 14, C.text, Label.HorizontalAlign.LEFT);
           this.hpLabel = this.label(hud, '', 193, 347, 62, 18, 14, C.text, Label.HorizontalAlign.RIGHT);
           this.progressLabel = this.label(hud, '', -196, 367, 75, 22, 12, C.text);
+          for (var _i = 0, _arr = [this.progressLabel, this.enemyLabel, this.hpLabel]; _i < _arr.length; _i++) {
+            var label = _arr[_i];
+            label.enableOutline = true;
+            label.outlineWidth = 2;
+            label.outlineColor = this.color('#101710');
+          }
           var coins = this.nodeAt(hud, 'coin-counter-plate', -116, 398, 212, 38);
           this.ui.surface(coins, C.panel);
           this.goldLabel = this.label(coins, '', 16, 0, 160, 30, 21, UI.brightGold, Label.HorizontalAlign.RIGHT);
@@ -41556,9 +41878,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.ui.surface(diamonds, C.panel);
           this.ui.face(this.nodeAt(diamonds, 'gems-icon', -84, 0, 26, 26), 'gems');
           this.gemsLabel = this.label(diamonds, '', 16, 0, 160, 30, 21, '#8be8ff', Label.HorizontalAlign.RIGHT);
+          this.touchAction(coins, function () {
+            return _this8.tooltip(coins, _this8.tr('ui.help.coin') + '\n' + _this8.tr('ui.help.value', {
+              value: _this8.format(_this8.game.s.run.gold)
+            }));
+          });
           this.touchAction(diamonds, function () {
-            return _this6.toast(_this6.tr('money.balance', {
-              count: _this6.game.s.gems
+            return _this8.tooltip(diamonds, _this8.tr('ui.help.diamond') + '\n' + _this8.tr('money.balance', {
+              count: _this8.game.s.gems
             }));
           });
           this.battleCast = this.nodeAt(this.root, 'battle-cast', 0, battlefieldOffset(this.folded, this.heightExtra, this.safeBottom, this.safeTop), 480, 600);
@@ -41576,7 +41903,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.allies = this.nodeAt(this.battleCast, 'allies', 0, 0, 480, 500);
           this.syncAllies();
           var captain = allyPosition(0);
-          this.actor = this.nodeAt(this.battleCast, 'guardian', captain.x, captain.y, SOLDIER_SIZE, SOLDIER_SIZE);
+          this.actor = this.nodeAt(this.nodeAt(this.battleCast, 'captain-projection', 0, 0, 480, 500), 'guardian', captain.x, captain.y, SOLDIER_SIZE, SOLDIER_SIZE);
           this.guardian(this.actor);
           this.actor.getComponent(UITransform).setAnchorPoint(.5, 6 / 192);
           this.actor.setScale(1, 1, 1);
@@ -41585,17 +41912,23 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var battleBottom = (this.folded ? -337 : -39) - this.heightExtra + this.safeBottom + 16;
           var target = this.nodeAt(this.root, 'battle-input', 0, (this.designH / 2 - 184 + battleBottom) / 2, 470, this.designH / 2 - battleBottom - 184);
           target.on(Node.EventType.TOUCH_END, function () {
-            if (!_this6.modal) _this6.attack();
+            if (!_this8.modal) _this8.attack();
           });
           this.fairy = this.button(hud, this.tr('action.claimReady'), -162, 306, 120, 34, function () {
-            return _this6.payments.fairy();
+            return _this8.payments.fairy();
           }, true, {
             fontSize: 14,
-            tone: C.gold
+            tone: C.gold,
+            unavailable: function unavailable() {
+              return _this8.fairyClaimReady() ? null : _this8.tr('error.timer');
+            },
+            rewardReady: function rewardReady() {
+              return _this8.fairyClaimReady();
+            }
           });
           this.fairy.name = 'hud-claim';
           this.equipmentPile = this.button(hud, '', 162, 306, 120, 34, function () {
-            return _this6.extensions.equipmentDrops();
+            return _this8.extensions.equipmentDrops();
           }, true, {
             tone: C.gold
           });
@@ -41603,65 +41936,77 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var edge = this.folded ? -337 : -39;
           this.polygon(lower, 0, edge, 480, 32, [[-.5, .15], [.2, .15], [.24, .5], [.5, .5], [.5, -.5], [-.5, -.5]], C.bg);
           var foldButton = this.button(lower, this.tr(this.folded ? 'layout.expand' : 'layout.collapse'), 171, edge, 128, 30, function () {
-            return _this6.setFolded(!_this6.folded);
+            return _this8.setFolded(!_this8.folded);
           }, false, {
             fontSize: 12,
             style: 'secondary',
-            tone: C.paper
+            category: 'back'
           });
           foldButton.name = 'tutorial-fold';
           this.rect(lower, 0, edge - 26, 480, 28, C.bg);
-          this.ui.icon(this.nodeAt(lower, 'tap-icon', -216, edge - 26, 22, 22), 'symbol:damage', C.text);
+          var tapIcon = this.nodeAt(lower, 'tap-icon', -216, edge - 26, 22, 22);
+          this.ui.icon(tapIcon, 'symbol:damage', C.text);
+          this.iconHelp(tapIcon, function () {
+            return _this8.tr('ui.help.damage') + '\n' + _this8.tr('layout.tapDamage', {
+              value: _this8.format(_this8.game.tapDamage())
+            });
+          });
           this.damageLabel = this.label(lower, '', -130, edge - 26, 139, 24, 18, C.text, Label.HorizontalAlign.LEFT);
           var energyIcon = this.nodeAt(lower, 'mana-icon', 75, edge - 26, 22, 22);
           this.ui.icon(energyIcon, 'symbol:canteen', C.text);
           energyIcon.active = this.folded;
+          this.iconHelp(energyIcon, function () {
+            return _this8.tr('ui.help.energy') + '\n' + _this8.tr('ui.help.value', {
+              value: String(Math.floor(_this8.game.s.run.mana))
+            });
+          });
           this.manaLabel = this.label(lower, '', 158, edge - 26, 142, 24, 16, C.text, Label.HorizontalAlign.RIGHT);
           this.manaLabel.node.active = this.folded;
           this.spellLabels = [];
           this.spellShown = [];
           if (this.folded) {
             var next = this.game.s.spellSlots.find(function (id) {
-                return _this6.game.s.run.master < SPELLS[id].unlock;
+                return _this8.game.s.run.master < SPELLS[id].unlock;
               }),
               shown = this.game.s.spellSlots.filter(function (id) {
-                return _this6.game.s.run.master >= SPELLS[id].unlock || id === next;
+                return _this8.game.s.run.master >= SPELLS[id].unlock || id === next;
               });
             shown.forEach(function (id, i) {
-              var ready = _this6.game.s.run.master >= SPELLS[id].unlock,
-                n = _this6.button(lower, '', (i - (shown.length - 1) / 2) * 80, -400, 73, 60, function () {
+              var ready = _this8.game.s.run.master >= SPELLS[id].unlock,
+                n = _this8.button(lower, '', (i - (shown.length - 1) / 2) * 80, -400, 73, 60, function () {
                   if (!ready) {
-                    _this6.info(_this6.tr('unlock.title'), _this6.tr('spell.detail', {
-                      level: _this6.game.s.run.spellLevels[id],
+                    _this8.info(_this8.tr('unlock.title'), _this8.tr('spell.detail', {
+                      level: _this8.game.s.run.spellLevels[id],
                       unlock: SPELLS[id].unlock,
-                      mana: _this6.game.spellMana(id)
+                      mana: _this8.game.spellMana(id)
                     }));
                     return;
                   }
-                  if (_this6.game.cast(id)) _this6.spark(0, 95, C.violet);
-                  _this6.flushNotice();
+                  if (_this8.game.cast(id)) _this8.spark(0, 95, C.violet);
+                  _this8.flushNotice();
                 }, false, {
+                  category: 'battle',
                   unavailable: function unavailable() {
-                    return _this6.spellReason(id);
+                    return _this8.spellReason(id);
                   }
                 });
-              var art = _this6.nodeAt(n, 'spell-art', 0, 9, 28, 28);
-              _this6.ui.icon(art, ['lightning', 'heart', 'adventurer', 'sword', 'flag', 'scroll'][i]);
+              var art = _this8.nodeAt(n, 'spell-art', 0, 9, 28, 28);
+              _this8.ui.icon(art, ['lightning', 'heart', 'adventurer', 'sword', 'flag', 'scroll'][i]);
               if (!ready) {
                 art.addComponent(UIOpacity).opacity = 65;
-                _this6.lockIcon(n, 24, 15);
+                _this8.lockIcon(n, 24, 15);
               }
-              _this6.spellShown.push(id);
-              _this6.spellLabels.push(_this6.label(n, '', 0, -20, 70, 22, 10));
+              _this8.spellShown.push(id);
+              _this8.spellLabels.push(_this8.label(n, '', 0, -20, 70, 22, 10));
             });
           } else {
             this.rect(lower, 0, -105, 480, 56, C.bg);
             var actions = [function () {
-              return _this6.cards();
+              return _this8.cards();
             }, function () {
-              return _this6.skills();
+              return _this8.skills();
             }, function () {
-              return _this6.achievements();
+              return _this8.achievements();
             }];
             ['menu.cards', 'master.skills', 'menu.achievements'].map(function (key, i) {
               return {
@@ -41670,20 +42015,22 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               };
             }).filter(function (_ref) {
               var i = _ref.i;
-              return _this6.game.s.maxStage >= [100, 50, 1][i];
+              return _this8.game.s.maxStage >= [100, 50, 1][i];
             }).forEach(function (_ref2, j) {
               var key = _ref2.key,
                 i = _ref2.i;
-              var n = _this6.nodeAt(lower, ['shortcut-cards', 'shortcut-skills', 'shortcut-achievements'][i], -195 + j * 80, -105, 76, 54);
-              _this6.ui.surface(n, C.panel, 'cut');
-              _this6.touchAction(n, actions[i], _this6.tr(key));
-              _this6.hudIcon(_this6.nodeAt(n, 'quick-icon', 0, 0, 40, 40), i + 6, [C.blue, C.ember, C.gold][i]);
+              var n = _this8.nodeAt(lower, ['shortcut-cards', 'shortcut-skills', 'shortcut-achievements'][i], -195 + j * 80, -105, 76, 54);
+              var tone = [BUTTON_TONES.deck, BUTTON_TONES.upgrade, BUTTON_TONES.confirm][i];
+              _this8.ui.surface(n, tone, 'cut');
+              _this8.touchAction(n, actions[i], _this8.tr(key));
+              _this8.hudIcon(_this8.nodeAt(n, 'quick-icon', 0, 0, 40, 40), i + 6, contrastInk(tone));
             });
             this.button(lower, '×' + (this.mode === -1 ? '∞' : this.mode), 164, -105, 134, 40, function () {
-              _this6.mode = [1, 10, 100, -1][([1, 10, 100, -1].indexOf(_this6.mode) + 1) % 4];
-              _this6.draw();
+              _this8.mode = [1, 10, 100, -1][([1, 10, 100, -1].indexOf(_this8.mode) + 1) % 4];
+              _this8.draw();
             }, false, {
               style: 'quiet',
+              category: 'upgrade',
               hint: this.tr('master.buyMode', {
                 count: this.mode === -1 ? this.tr('action.max') : this.mode
               })
@@ -41694,15 +42041,15 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.particles = this.nodeAt(this.root, 'effects', 0, battlefieldOffset(this.folded, this.heightExtra, this.safeBottom, this.safeTop), 480, this.designH);
           this.damageLayer = this.nodeAt(this.root, 'damage-numbers', 0, this.particles.position.y, 480, this.designH);
           this.button(this.root, this.payments.autoFireLabel(), -179, battleBottom + 28, 110, 48, function () {
-            return _this6.payments.autoFire();
+            return _this8.payments.autoFire();
           }, true, {
+            category: 'battle',
             fontSize: 15,
-            tone: C.gold,
             label: function label() {
-              return _this6.payments.autoFireLabel();
+              return _this8.payments.autoFireLabel();
             },
             unavailable: function unavailable() {
-              return _this6.payments.autoFireReason();
+              return _this8.payments.autoFireReason();
             }
           }).name = 'battle-auto';
           hud.setSiblingIndex(this.root.children.length - 1);
@@ -41715,7 +42062,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.updateHUD();
         };
         _proto.syncDrone = function syncDrone() {
-          var _this7 = this;
+          var _this9 = this;
           if (!this.battleCast || !isValid(this.battleCast, true)) return;
           var s = this.game.s,
             id = s.activePet,
@@ -41726,53 +42073,92 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return;
           }
           if (!drone) {
-            drone = this.nodeAt(this.battleCast, 'equipped-drone', -118, 330, 64, 64);
+            drone = this.nodeAt(this.battleCast, 'equipped-drone', -118, 275, 64, 64);
             this.ui.actor(drone, 'ember-fox');
             this.label(drone, '', 113, 0, 152, 22, 14, C.text).node.name = 'drone-name';
             this.touchAction(drone, function () {
-              return _this7.extensions.petDetail(_this7.game.s.activePet);
+              return _this9.extensions.petDetail(_this9.game.s.activePet);
             });
           }
           drone.active = true;
           drone.getChildByName('drone-name').getComponent(Label).string = this.tr('pet.' + id);
-          drone.setPosition(-118, 330 + (s.extra.effects ? Math.sin(this.age * 2.6) * 4 : 0));
+          drone.setPosition(-118, 275 + (s.extra.effects ? Math.sin(this.age * 2.6) * 4 : 0));
+        };
+        _proto.battleDensity = function battleDensity() {
+          return battleDensityScale(waveSize(this.game.s.run.stage, this.game.s.run.boss));
         };
         _proto.layoutBattlefield = function layoutBattlefield() {
-          var _this8 = this;
-          var layout = this.game.s.run.boss ? bossBattlefieldLayout(this.folded, this.heightExtra, this.safeBottom, this.safeTop) : {
-            scale: 1,
-            y: battlefieldOffset(this.folded, this.heightExtra, this.safeBottom, this.safeTop)
-          };
-          if (!this.game.s.run.boss) {
-            // Fit complete mixed silhouettes and their health bars on short screens.
-            // Include dead slots so a kill never moves the surviving formation.
-            var units = [].concat(this.enemy.children, this.allies.children.map(function (n) {
-              return n.getChildByName('body');
-            }), [this.actor]);
-            var bounds = units.map(function (n) {
-              return _this8.ui.spriteVisibleBounds(n, _this8.battleCast);
-            });
-            var low = Math.min.apply(Math, bounds.map(function (b) {
-                return b.y;
-              })) - 10,
-              high = Math.max.apply(Math, bounds.map(function (b) {
-                return b.y + b.height;
-              })) + 9;
-            var bottom = (this.folded ? -337 : -39) - this.heightExtra + this.safeBottom,
-              top = 290 + this.heightExtra - this.safeTop;
-            if (low + layout.y < bottom + 10 || high + layout.y > top - 10) {
-              var scale = Math.min(1, Math.max(.3, (top - bottom - 20) / (high - low)));
-              layout = {
-                scale: scale,
-                y: (bottom + top) / 2 - (low + high) / 2 * scale
-              };
+          var _this10 = this,
+            _this$combatMotion;
+          var captain = allyPosition(0),
+            captainSize = soldierSize(captain.y) * .8;
+          this.ui.resize(this.actor, captainSize, captainSize);
+          var captainShadow = this.shadowUnits.find(function (s) {
+            return s.unit === _this10.actor;
+          });
+          captainShadow == null || captainShadow.shadow.setScale(captainSize / SOLDIER_SIZE, captainSize / SOLDIER_SIZE, 1);
+          // Party projection depends only on the viewport, not hostile bodies or attack poses.
+          var _partyBattlefieldLayo = partyBattlefieldLayout(this.folded, this.heightExtra, this.safeBottom, this.safeTop),
+            scale = _partyBattlefieldLayo.scale,
+            y = _partyBattlefieldLayo.y;
+          for (var _i2 = 0, _arr2 = [this.battleCast, this.particles, this.damageLayer]; _i2 < _arr2.length; _i2++) {
+            var layer = _arr2[_i2];
+            if (layer && isValid(layer, true)) {
+              layer.setPosition(0, y);
+              layer.setScale(scale, scale, 1);
             }
           }
-          for (var _i = 0, _arr = [this.battleCast, this.particles, this.damageLayer]; _i < _arr.length; _i++) {
-            var layer = _arr[_i];
-            if (layer && isValid(layer, true)) {
-              layer.setPosition(0, layout.y);
-              layer.setScale(layout.scale, layout.scale, 1);
+          this.allies.setScale(1, 1, 1);
+          this.actor.parent.setScale(1, 1, 1);
+          (_this$combatMotion = this.combatMotion) == null || _this$combatMotion.projectCaptain(this.actor, 1);
+          // Fit only the enemy ranks; own-space pixel bounds ignore entrance animation.
+          var bounds = this.enemy.children.map(function (unit) {
+            var b = _this10.ui.spriteVisibleBounds(unit, unit),
+              fixed = _this10.game.s.run.boss && unit.name === 'hostile-0';
+            return {
+              unit: unit,
+              fixed: fixed,
+              low: {
+                a: unit.position.y + (fixed ? 0 : b.y - 10),
+                b: fixed ? b.y - 10 : 0
+              },
+              high: {
+                a: unit.position.y + (fixed ? 0 : b.y + b.height + 9),
+                b: fixed ? b.y + b.height + 9 : 0
+              }
+            };
+          });
+          if (bounds.length) {
+            var fit = 1;
+            // The large boss keeps its physical size while escorts fit around it.
+            for (var _iterator2 = _createForOfIteratorHelperLoose(bounds), _step2; !(_step2 = _iterator2()).done;) {
+              var _low = _step2.value;
+              for (var _iterator5 = _createForOfIteratorHelperLoose(bounds), _step5; !(_step5 = _iterator5()).done;) {
+                var _high = _step5.value;
+                var span = _high.high.a - _low.low.a;
+                if (span > 0) fit = Math.min(fit, (270 + _low.low.b - _high.high.b) / span);
+              }
+            }
+            fit = Math.max(.05, fit);
+            var low = Math.min.apply(Math, bounds.map(function (b) {
+                return b.low.a * fit + b.low.b;
+              })),
+              high = Math.max.apply(Math, bounds.map(function (b) {
+                return b.high.a * fit + b.high.b;
+              }));
+            this.enemy.setPosition(0, Math.max(50 - low, Math.min(0, 320 - high)));
+            this.enemy.setScale(1, fit, 1);
+            for (var _iterator3 = _createForOfIteratorHelperLoose(bounds), _step3; !(_step3 = _iterator3()).done;) {
+              var _step3$value = _step3.value,
+                unit = _step3$value.unit,
+                fixed = _step3$value.fixed;
+              unit.setScale(fixed ? 1 : fit, fixed ? 1 / fit : 1, 1);
+            }
+            for (var _iterator4 = _createForOfIteratorHelperLoose(this.shadowUnits), _step4; !(_step4 = _iterator4()).done;) {
+              var _step4$value = _step4.value,
+                _unit = _step4$value.unit,
+                shadow = _step4$value.shadow;
+              if (_unit.parent === this.enemy) shadow.setScale(fit, fit, 1);
             }
           }
         };
@@ -41784,8 +42170,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             if (isValid(old, true)) old.destroy();
           }
           var bottom = (this.folded ? -337 : -39) - this.heightExtra + this.safeBottom,
-            h = this.designH / 2 - bottom,
-            n = this.nodeAt(this.root, 'world-art', 0, (this.designH / 2 + bottom) / 2, 480, h);
+            top = 424 + this.heightExtra - this.safeTop,
+            h = top - bottom,
+            n = this.nodeAt(this.root, 'world-art', 0, (top + bottom) / 2, 480, h);
           n.setSiblingIndex(1);
           n.addComponent(Mask);
           var size = Math.max(480, h);
@@ -41818,14 +42205,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           g.fill();
         };
         _proto.pixels = function pixels(parent, rows, palette, scale) {
-          var _this9 = this;
+          var _this11 = this;
           var g = parent.addComponent(Graphics),
             w = rows[0].length,
             h = rows.length;
           rows.forEach(function (row, y) {
             return row.split('').forEach(function (c, x) {
               if (palette[c]) {
-                g.fillColor = _this9.color(palette[c]);
+                g.fillColor = _this11.color(palette[c]);
                 g.rect((x - w / 2) * scale, (h - y) * scale - h * scale / 2, scale, scale);
                 g.fill();
               }
@@ -41845,7 +42232,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
           var r = this.game.s.run,
             type = enemyType(r.stage, r.boss, index, r.kills),
-            size = r.boss && index === 0 ? bossSize(parent.position.y) : soldierSize(parent.position.y, type.male);
+            size = r.boss && index === 0 ? bossSize(parent.position.y) : soldierSize(parent.position.y, type.male) * this.battleDensity();
           this.ui.resize(parent, size, size);
           parent.getComponent(UITransform).setAnchorPoint(.5, 6 / 192);
           this.ui.actor(parent, 'enemy-' + type.id);
@@ -41863,12 +42250,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           return this.game.s.totalKills + ":" + this.game.s.run.boss + ":" + Math.floor((this.game.s.run.stage - 1) / 25);
         };
         _proto.syncEnemyDeath = function syncEnemyDeath() {
-          var _this10 = this;
+          var _this12 = this;
           if (this.game.s.totalKills === this.seenKills) return;
           this.seenKills = this.game.s.totalKills;
           this.enemyTransition = .65;
-          for (var _i2 = 0, _arr2 = [].concat(this.particles.children); _i2 < _arr2.length; _i2++) {
-            var missile = _arr2[_i2];
+          for (var _i3 = 0, _arr3 = [].concat(this.particles.children); _i3 < _arr3.length; _i3++) {
+            var missile = _arr3[_i3];
             if (missile.name === 'ally-projectile') {
               Tween.stopAllByTarget(missile);
               if (isValid(missile, true)) missile.destroy();
@@ -41887,13 +42274,13 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.enemy.children.filter(function (n) {
             return n.active;
           }).forEach(function (n) {
-            return _this10.enemyPop(n);
+            return _this12.enemyPop(n);
           });
           this.sound(95);
           this.updateHUD();
         };
         _proto.populateEnemies = function populateEnemies() {
-          var _this11 = this;
+          var _this13 = this;
           var count = waveSize(this.game.s.run.stage, this.game.s.run.boss);
           var seed = Math.imul(this.game.s.run.stage, 73856093) ^ Math.imul(this.game.s.totalKills, 19349663) ^ (this.game.s.run.boss ? 83492791 : 0);
           var positions = enemyFormation(count, seed, this.game.s.run.boss);
@@ -41908,54 +42295,57 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }).forEach(function (_ref3) {
             var pos = _ref3.pos,
               i = _ref3.i;
-            var unit = _this11.nodeAt(_this11.enemy, 'hostile-' + i, pos.x, pos.y, 40, 40);
-            _this11.sentinel(unit, i);
-            var visible = _this11.ui.spriteVisibleBounds(unit, unit),
-              centralBoss = _this11.game.s.run.boss && i === 0;
+            var unit = _this13.nodeAt(_this13.enemy, 'hostile-' + i, pos.x, pos.y, 40, 40);
+            _this13.sentinel(unit, i);
+            var visible = _this13.ui.spriteVisibleBounds(unit, unit),
+              centralBoss = _this13.game.s.run.boss && i === 0;
             unit.setPosition(centralBoss ? pos.x : Math.max(20 - visible.x, Math.min(pos.x, 210 - visible.x - visible.width)), pos.y);
-            _this11.groundShadow(unit, unit.getComponent(UITransform).height);
+            _this13.groundShadow(unit, unit.getComponent(UITransform).height);
             var width = centralBoss ? 72 : 32,
-              bar = _this11.nodeAt(unit, 'health', 0, visible.y + visible.height + 5, width, 4);
-            _this11.rect(bar, 0, 0, width, 4, '#111820');
-            var fill = _this11.nodeAt(bar, 'fill', -(width - 2) / 2, 0, width - 2, 2);
+              bar = _this13.nodeAt(unit, 'health', 0, visible.y + visible.height + 5, width, 4);
+            _this13.rect(bar, 0, 0, width, 4, '#111820');
+            var fill = _this13.nodeAt(bar, 'fill', -(width - 2) / 2, 0, width - 2, 2);
             fill.getComponent(UITransform).setAnchorPoint(0, .5);
-            _this11.rect(fill, (width - 2) / 2, 0, width - 2, 2, '#ffdb48');
+            _this13.rect(fill, (width - 2) / 2, 0, width - 2, 2, '#ffdb48');
           });
         };
         _proto.syncWave = function syncWave() {
-          var _this12 = this;
+          var _this14 = this;
           if (this.enemyTransition) return;
           var hp = this.game.enemyHealth();
           this.enemy.children.forEach(function (unit) {
             var index = Number(unit.name.split('-')[1]),
               alive = hp[index] !== ZERO;
-            if (!alive && unit.active) _this12.enemyPop(unit);
+            if (!alive && unit.active) _this14.enemyPop(unit);
             unit.active = alive;
             var bar = unit.getChildByName('health');
             if (bar) {
               var _bar$getChildByName;
               bar.active = alive;
-              (_bar$getChildByName = bar.getChildByName('fill')) == null || _bar$getChildByName.setScale(Math.max(.001, ratio(hp[index], _this12.game.enemyMaxHP(index))), 1, 1);
+              (_bar$getChildByName = bar.getChildByName('fill')) == null || _bar$getChildByName.setScale(Math.max(.001, ratio(hp[index], _this14.game.enemyMaxHP(index))), 1, 1);
             }
           });
         };
         _proto.enemyPop = function enemyPop(unit) {
-          var _this13 = this;
+          var _this15 = this;
           if (!this.game.s.extra.effects) return;
           var index = Number(unit.name.split('-')[1]) || 0,
-            x = unit.position.x,
-            y = unit.position.y + unit.getComponent(UITransform).height * .45;
-          var n = this.nodeAt(this.particles, 'enemy-pop', x, y, 94, 94),
+            t = unit.getComponent(UITransform),
+            point = this.particles.getComponent(UITransform).convertToNodeSpaceAR(t.convertToWorldSpaceAR(new Vec3(0, t.height * .45, 0))),
+            x = point.x,
+            y = point.y;
+          var size = 94 * this.enemyEffectScale(index),
+            n = this.nodeAt(this.particles, 'enemy-pop', x, y, size, size),
             variant = (index + this.seenKills) % 3;
           if (!this.ui.paint(n, "death/" + variant + "/0")) {
             n.destroy();
-            this.burst('defeat', x, y, 90, .35);
+            this.burst('defeat', x, y, size, .35);
             return;
           }
           var layer = this.particles;
           var _loop = function _loop(f) {
-            _this13.scheduleOnce(function () {
-              if (isValid(n, true) && _this13.particles === layer) _this13.ui.paint(n, "death/" + variant + "/" + f);
+            _this15.scheduleOnce(function () {
+              if (isValid(n, true) && _this15.particles === layer) _this15.ui.paint(n, "death/" + variant + "/" + f);
             }, f * .06);
           };
           for (var f = 1; f < 5; f++) {
@@ -41999,18 +42389,18 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }).start();
         };
         _proto.damageFloat = function damageFloat(target, damage, hero, hit) {
-          var _this14 = this;
+          var _this16 = this;
           if (hero === void 0) {
             hero = -1;
           }
           if (damage === ZERO || !this.damageLayer || !isValid(this.damageLayer, true)) return;
           this.damageNumbers = this.damageNumbers.filter(function (n) {
-            return isValid(n.node, true) && n.node.parent === _this14.damageLayer;
+            return isValid(n.node, true) && n.node.parent === _this16.damageLayer;
           });
           // Continuous tactics tick every frame. Sum a short interval for the same enemy, never across waves.
           var merged = (hit == null ? void 0 : hit.continuous) && this.damageNumbers.find(function (n) {
             var _n$hit;
-            return ((_n$hit = n.hit) == null ? void 0 : _n$hit.continuous) && n.hit.wave === hit.wave && n.hit.target === hit.target && _this14.damageTime - n.born < .18;
+            return ((_n$hit = n.hit) == null ? void 0 : _n$hit.continuous) && n.hit.wave === hit.wave && n.hit.target === hit.target && _this16.damageTime - n.born < .18;
           });
           if (merged) {
             merged.damage = add(merged.damage, damage);
@@ -42018,9 +42408,9 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return;
           }
           var removeOldest = function removeOldest() {
-            var old = _this14.damageNumbers.shift();
+            var old = _this16.damageNumbers.shift();
             if (old) {
-              _this14.stopTweens(old.node);
+              _this16.stopTweens(old.node);
               old.node.removeFromParent();
               old.node.destroy();
             }
@@ -42036,17 +42426,19 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var text = this.format(damage),
             font = hit != null && hit.critical ? 27 : hit != null && hit.special ? 23 : hero < 0 ? 22 : 20,
             width = kind === 'normal' ? Math.max(36, Math.min(106, text.length * font * .65 + 14)) : 120;
-          var top = (this.designH / 2 - 184 - this.safeTop - this.damageLayer.position.y) / this.damageLayer.scale.y - 55,
-            bottom = 24;
+          var scale = this.damageLayer.scale,
+            origin = this.damageLayer.position;
+          var top = (290 + this.heightExtra - this.safeTop - origin.y) / scale.y - 55;
+          var bottom = ((this.folded ? -337 : -39) - this.heightExtra + this.safeBottom - origin.y) / scale.y + 24;
           var candidates = [];
-          for (var row = 0; row < 6; row++) for (var _i3 = 0, _arr3 = [0, -1, 1]; _i3 < _arr3.length; _i3++) {
-            var col = _arr3[_i3];
-            var x = Math.max(18 + width / 2, Math.min(230 - width / 2, target.x + col * 32 + (Math.random() - .5) * 8));
+          for (var row = 0; row < 6; row++) for (var _i4 = 0, _arr4 = [0, -1, 1]; _i4 < _arr4.length; _i4++) {
+            var col = _arr4[_i4];
+            var x = Math.max((18 - origin.x) / scale.x + width / 2, Math.min((230 - origin.x) / scale.x - width / 2, target.x + col * 32 + (Math.random() - .5) * 8));
             var y = Math.max(bottom, Math.min(top, target.y + 22 + row * 34 + Math.random() * 5));
             candidates.push(new Vec3(x, y, 0));
           }
           var clear = function clear(point) {
-            return _this14.damageNumbers.every(function (n) {
+            return _this16.damageNumbers.every(function (n) {
               return Math.abs(n.node.position.x - point.x) > (n.width + width) / 2 + 16 || Math.abs(n.node.position.y - point.y) > 48;
             });
           };
@@ -42114,17 +42506,20 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         _proto.showDamageHits = function showDamageHits() {
           var hits = this.game.drainDamageHits();
           this.feedback.combatHits(hits);
-          for (var _iterator2 = _createForOfIteratorHelperLoose(hits), _step2; !(_step2 = _iterator2()).done;) {
+          for (var _iterator6 = _createForOfIteratorHelperLoose(hits), _step6; !(_step6 = _iterator6()).done;) {
             var _hit$hero;
-            var hit = _step2.value;
+            var hit = _step6.value;
             var target = this.shotTarget(hit.target);
             this.damageFloat(target, hit.damage, (_hit$hero = hit.hero) != null ? _hit$hero : -1, hit);
-            if (hit.source === 'hero') this.weaponImpact(hit.hero, target);else this.bulletImpact(target.x, target.y);
+            if (hit.source === 'hero') this.weaponImpact(hit.hero, target, hit.target);else this.bulletImpact(target.x, target.y, hit.target);
             this.hitEnemy(hit.target);
           }
           return hits.length > 0;
         };
         _proto.spawnEnemy = function spawnEnemy() {
+          this.clear(this.particles);
+          this.clear(this.damageLayer);
+          this.damageNumbers = [];
           Tween.stopAllByTarget(this.enemy);
           this.clear(this.enemy);
           this.enemy.active = true;
@@ -42135,6 +42530,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.populateEnemies();
           this.enemyLook = this.enemyKey();
           this.enemy.setScale(1, 1, 1);
+          this.syncAllies();
           this.layoutBattlefield();
           if (this.game.s.extra.effects) this.enemy.children.forEach(function (unit, i) {
             var rest = unit.position.clone();
@@ -42147,8 +42543,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           });
         };
         _proto.syncAllies = function syncAllies() {
-          var _this15 = this;
+          var _this17 = this,
+            _this$actor$parent;
           var ids = this.game.activeMercenaries(),
+            density = .8,
             key = ids.join(',');
           if (this.allySignature === key) return;
           this.allySignature = key;
@@ -42161,28 +42559,28 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               index: index
             };
           }).reverse().forEach(function (_ref4) {
-            var _this15$combatMotion;
+            var _this17$combatMotion;
             var id = _ref4.id,
               index = _ref4.index;
             var _allyPosition = allyPosition(index + 1, ids.length),
               x = _allyPosition.x,
               y = _allyPosition.y,
-              actor = _this15.nodeAt(_this15.allies, "hero-" + id, x, y, SOLDIER_SIZE, SOLDIER_SIZE),
-              body = _this15.nodeAt(actor, 'body', 0, 0, SOLDIER_SIZE, SOLDIER_SIZE);
-            actor.setPosition(Math.max(x, -190 + MOTION_LEFT[mercenaryArt(id)] * soldierSize(y) / 192), y);
-            body.setScale(soldierSize(y) / SOLDIER_SIZE, soldierSize(y) / SOLDIER_SIZE, 1);
+              actor = _this17.nodeAt(_this17.allies, "hero-" + id, x, y, SOLDIER_SIZE, SOLDIER_SIZE),
+              body = _this17.nodeAt(actor, 'body', 0, 0, SOLDIER_SIZE, SOLDIER_SIZE);
+            actor.setPosition(Math.max(x, -190 + MOTION_LEFT[mercenaryArt(id)] * soldierSize(y) * density / 192), y);
+            body.setScale(soldierSize(y) * density / SOLDIER_SIZE, soldierSize(y) * density / SOLDIER_SIZE, 1);
             body.getComponent(UITransform).setAnchorPoint(.5, 6 / 192);
-            _this15.ui.actor(body, 'merc-' + mercenaryArt(id));
-            (_this15$combatMotion = _this15.combatMotion) == null || _this15$combatMotion.bind(body, mercenaryArt(id));
-            _this15.groundShadow(actor, soldierSize(y));
+            _this17.ui.actor(body, 'merc-' + mercenaryArt(id));
+            (_this17$combatMotion = _this17.combatMotion) == null || _this17$combatMotion.bind(body, mercenaryArt(id));
+            _this17.groundShadow(actor, soldierSize(y) * density);
             if (attackSeconds(id) > .3) {
-              var width = 36 * soldierSize(y) / SOLDIER_SIZE,
-                bar = _this15.nodeAt(actor, 'attack-cooldown', 0, -7, width + 2, 4);
-              _this15.rect(bar, 0, 0, width + 2, 4, '#111820');
-              var fill = _this15.nodeAt(bar, 'fill', -width / 2, 0, width, 2);
+              var width = 36 * soldierSize(y) * density / SOLDIER_SIZE,
+                bar = _this17.nodeAt(actor, 'attack-cooldown', 0, -7, width + 2, 4);
+              _this17.rect(bar, 0, 0, width + 2, 4, '#111820');
+              var fill = _this17.nodeAt(bar, 'fill', -width / 2, 0, width, 2);
               fill.getComponent(UITransform).setAnchorPoint(0, .5);
-              _this15.rect(fill, width / 2, 0, width, 2, '#46b4ff');
-              _this15.cooldownBars.push({
+              _this17.rect(fill, width / 2, 0, width, 2, '#46b4ff');
+              _this17.cooldownBars.push({
                 hero: id,
                 bar: bar,
                 fill: fill
@@ -42190,32 +42588,32 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }
           });
           this.syncAttackCooldowns();
-          if (this.actor && isValid(this.actor, true) && this.actor.parent === this.battleCast) this.layoutBattlefield();
+          if (this.actor && isValid(this.actor, true) && ((_this$actor$parent = this.actor.parent) == null ? void 0 : _this$actor$parent.parent) === this.battleCast) this.layoutBattlefield();
         };
         _proto.syncAttackCooldowns = function syncAttackCooldowns() {
           this.cooldownBars = this.cooldownBars.filter(function (_ref5) {
             var bar = _ref5.bar;
             return isValid(bar, true);
           });
-          for (var _iterator3 = _createForOfIteratorHelperLoose(this.cooldownBars), _step3; !(_step3 = _iterator3()).done;) {
-            var _step3$value = _step3.value,
-              hero = _step3$value.hero,
-              bar = _step3$value.bar,
-              fill = _step3$value.fill;
+          for (var _iterator7 = _createForOfIteratorHelperLoose(this.cooldownBars), _step7; !(_step7 = _iterator7()).done;) {
+            var _step7$value = _step7.value,
+              hero = _step7$value.hero,
+              bar = _step7$value.bar,
+              fill = _step7$value.fill;
             var cooldown = this.game.mercenaryCooldown(hero);
             bar.active = cooldown.duration > .3;
             fill.setScale(cooldown.progress, 1, 1);
           }
         };
         _proto.groundShadow = function groundShadow(unit, size) {
-          var _this16 = this;
+          var _this18 = this;
           var w = size * .8,
             h = size * .17,
             n = this.nodeAt(this.groundShadows, 'shadow-' + unit.name, unit.position.x, unit.position.y - 2, w, h),
             g = n.addComponent(Graphics);
           // Stepped bands match the pixel sprites; a broad soft edge and dark contact core.
           var ellipse = function ellipse(width, height, alpha) {
-            g.fillColor = _this16.color('#101710', alpha);
+            g.fillColor = _this18.color('#101710', alpha);
             var step = Math.max(1, Math.round(size / 48));
             for (var y = -height / 2; y < height / 2; y += step) {
               var center = Math.min(height / 2, y + step / 2),
@@ -42236,7 +42634,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           });
         };
         _proto.syncGroundShadows = function syncGroundShadows() {
-          var _this17 = this;
+          var _this19 = this;
           if (!this.groundShadows || !isValid(this.groundShadows, true)) return;
           var space = this.groundShadows.getComponent(UITransform);
           this.shadowUnits = this.shadowUnits.filter(function (_ref6) {
@@ -42252,7 +42650,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             if (shadow.active) {
               var feet = space.convertToNodeSpaceAR(unit.worldPosition);
               shadow.setPosition(feet.x, feet.y - 2);
-              shadow.getComponent(UIOpacity).opacity = unit.parent === _this17.enemy ? _this17.enemy.getComponent(UIOpacity).opacity : 255;
+              var fixed = _this19.game.s.run.boss && unit.name === 'hostile-0',
+                factor = unit.parent === _this19.enemy && !fixed ? _this19.enemy.scale.y : 1;
+              shadow.setScale(factor, factor, 1);
+              shadow.getComponent(UIOpacity).opacity = unit.parent === _this19.enemy ? _this19.enemy.getComponent(UIOpacity).opacity : 255;
             }
             return true;
           });
@@ -42267,26 +42668,34 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             if (isValid(muzzle, true)) muzzle.destroy();
           }).start();
         };
-        _proto.bulletImpact = function bulletImpact(x, y) {
-          var _this18 = this;
+        _proto.enemyEffectScale = function enemyEffectScale(index) {
+          var unit = this.enemy.getChildByName('hostile-' + index);
+          return unit ? unit.getComponent(UITransform).height / SOLDIER_SIZE * unit.worldScale.y / this.particles.worldScale.y : 1;
+        };
+        _proto.bulletImpact = function bulletImpact(x, y, index) {
+          var _this20 = this;
+          if (index === void 0) {
+            index = this.game.lastHit;
+          }
           if (!this.game.s.extra.effects || !isValid(this.particles, true)) return;
-          var random = function random(min, max) {
+          var factor = this.enemyEffectScale(index),
+            random = function random(min, max) {
               return min + Math.random() * (max - min);
             },
-            size = random(26, 40);
+            size = random(26, 40) * factor;
           var flash = this.combatSprite('impact', 'hit-flash', x, y, size);
           if (!flash) return;
           this.ui.paint(flash, 'death/0/1');
           var layer = this.particles;
           var _loop2 = function _loop2() {
-            var _arr4$_i = _arr4[_i4],
-              frame = _arr4$_i[0],
-              delay = _arr4$_i[1];
-            _this18.scheduleOnce(function () {
-              if (isValid(flash, true) && _this18.particles === layer) _this18.ui.paint(flash, 'death/0/' + frame);
+            var _arr5$_i = _arr5[_i5],
+              frame = _arr5$_i[0],
+              delay = _arr5$_i[1];
+            _this20.scheduleOnce(function () {
+              if (isValid(flash, true) && _this20.particles === layer) _this20.ui.paint(flash, 'death/0/' + frame);
             }, delay);
           };
-          for (var _i4 = 0, _arr4 = [[2, .045], [3, .095]]; _i4 < _arr4.length; _i4++) {
+          for (var _i5 = 0, _arr5 = [[2, .045], [3, .095]]; _i5 < _arr5.length; _i5++) {
             _loop2();
           }
           flash.angle = random(-180, 180);
@@ -42304,12 +42713,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             opacity: 0
           }).start();
           var _loop3 = function _loop3() {
-            var chip = _this18.combatSprite('sparkle', 'hit-chip', x + random(-3, 3), y + random(-3, 3), random(6, 11));
+            var chip = _this20.combatSprite('sparkle', 'hit-chip', x + random(-3, 3) * factor, y + random(-3, 3) * factor, random(6, 11) * factor);
             if (!chip) return 1; // continue
-            _this18.ui.paint(chip, 'death/0/4');
+            _this20.ui.paint(chip, 'death/0/4');
             chip.angle = random(-180, 180);
             var angle = random(0, Math.PI * 2),
-              speed = random(14, 30),
+              speed = random(14, 30) * factor,
               seconds = random(.18, .32),
               fade = chip.addComponent(UIOpacity);
             tween(chip).by(seconds, {
@@ -42345,44 +42754,61 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
         };
         _proto.fireBurst = function fireBurst(x, y) {
-          var _this19 = this;
+          var _this21 = this;
           var layer = this.particles;
           [0, .065, .13].forEach(function (delay) {
-            return _this19.scheduleOnce(function () {
-              if (_this19.particles === layer && isValid(layer, true) && !_this19.enemyTransition) _this19.gunshot(x, y);
+            return _this21.scheduleOnce(function () {
+              if (_this21.particles === layer && isValid(layer, true) && !_this21.enemyTransition) _this21.gunshot(x, y);
             }, delay);
           });
         };
         _proto.animateAlly = function animateAlly(id, duration) {
-          var _this$allies$getChild, _this$combatMotion;
+          var _this$allies$getChild, _this$combatMotion2;
           if (duration === void 0) {
             duration = .24;
           }
           var body = (_this$allies$getChild = this.allies.getChildByName('hero-' + id)) == null ? void 0 : _this$allies$getChild.getChildByName('body');
-          if (body) (_this$combatMotion = this.combatMotion) == null || _this$combatMotion.ready(body, duration);
+          if (body) (_this$combatMotion2 = this.combatMotion) == null || _this$combatMotion2.ready(body, duration);
+        };
+        _proto.allyLaunchPoint = function allyLaunchPoint(id) {
+          var _this$allies$getChild2;
+          if (id === void 0) {
+            id = -1;
+          }
+          var body = id < 0 ? this.actor : (_this$allies$getChild2 = this.allies.getChildByName('hero-' + id)) == null ? void 0 : _this$allies$getChild2.getChildByName('body');
+          if (!body) return new Vec3();
+          var t = body.getComponent(UITransform);
+          return this.particles.getComponent(UITransform).convertToNodeSpaceAR(t.convertToWorldSpaceAR(new Vec3(t.height * .375, t.height * .61, 0)));
         };
         _proto.strikeAlly = function strikeAlly(id) {
-          var _this$combatMotion2;
+          var _this$combatMotion3;
           var ally = this.allies.getChildByName('hero-' + id),
             body = ally == null ? void 0 : ally.getChildByName('body');
-          if (body) (_this$combatMotion2 = this.combatMotion) == null || _this$combatMotion2.strike(body);
-          if (ally && !MELEE.includes(mercenaryWeapon(id))) this.gunshot(ally.position.x, ally.position.y + soldierSize(ally.position.y) * .61);
+          if (body) (_this$combatMotion3 = this.combatMotion) == null || _this$combatMotion3.strike(body);
+          if (ally && !MELEE.includes(mercenaryWeapon(id))) {
+            var launch = this.allyLaunchPoint(id);
+            this.gunshot(launch.x - 36, launch.y);
+          }
         };
-        _proto.weaponImpact = function weaponImpact(id, target) {
-          this.bulletImpact(target.x, target.y);
+        _proto.weaponImpact = function weaponImpact(id, target, index) {
+          if (index === void 0) {
+            index = this.game.lastHit;
+          }
+          this.bulletImpact(target.x, target.y, index);
           if (!this.game.s.extra.effects) return;
           var weapon = mercenaryWeapon(id),
             ally = this.allies.getChildByName('hero-' + id);
           if (['laser', 'railgun'].includes(weapon) && ally) {
             var n = this.nodeAt(this.particles, 'laser-beam', 0, 0, 480, 500),
-              g = n.addComponent(Graphics);
-            for (var _i5 = 0, _arr5 = [[7, '#138aa5'], [3, '#80fff4'], [1, '#ffffff']]; _i5 < _arr5.length; _i5++) {
-              var _arr5$_i = _arr5[_i5],
-                width = _arr5$_i[0],
-                color = _arr5$_i[1];
+              g = n.addComponent(Graphics),
+              launch = this.allyLaunchPoint(id);
+            for (var _i6 = 0, _arr6 = [[7, '#138aa5'], [3, '#80fff4'], [1, '#ffffff']]; _i6 < _arr6.length; _i6++) {
+              var _arr6$_i = _arr6[_i6],
+                width = _arr6$_i[0],
+                color = _arr6$_i[1];
               g.lineWidth = width;
               g.strokeColor = this.color(color);
-              g.moveTo(ally.position.x + 25, ally.position.y + soldierSize(ally.position.y) * .61);
+              g.moveTo(launch.x, launch.y);
               g.lineTo(target.x, target.y);
               g.stroke();
             }
@@ -42406,8 +42832,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             } else {
               _g.circle(0, 0, 20);
               _g.stroke();
-              this.bulletImpact(target.x - 12, target.y + 12);
-              this.bulletImpact(target.x + 12, target.y);
+              this.bulletImpact(target.x - 12, target.y + 12, index);
+              this.bulletImpact(target.x + 12, target.y, index);
             }
             tween(_n).to(.18, {
               scale: new Vec3(1.7, 1.7, 1)
@@ -42426,7 +42852,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }).start();
             this.sound(440);
           } else if (['rocket', 'grenade', 'plasma', 'bow', 'crossbow'].includes(weapon) && ally) {
-            var start = new Vec3(ally.position.x + 25, ally.position.y + soldierSize(ally.position.y) * .6, 0),
+            var start = this.allyLaunchPoint(id),
               _n3 = this.nodeAt(this.particles, 'weapon-trail', 0, 0, 480, 500),
               _g2 = _n3.addComponent(Graphics);
             _g2.lineWidth = weapon === 'plasma' ? 6 : 2;
@@ -42557,7 +42983,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
         };
         _proto.drawNav = function drawNav() {
-          var _this20 = this;
+          var _this22 = this;
           var old = this.root.getChildByName('navigation');
           if (old) {
             old.removeFromParent();
@@ -42567,29 +42993,34 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.rect(nav, 0, 0, 480, 56, C.bg);
           this.rect(nav, 0, 27, 480, 2, '#9da3af');
           var _loop4 = function _loop4(i) {
-            var unlocked = tabUnlocked(_this20.game.s, i),
-              n = _this20.nodeAt(nav, 'tab-' + i, -200 + i * 80, 0, 80, 56),
-              title = _this20.tr(['nav.master', 'nav.heroes', 'nav.equipment', 'nav.pets', 'nav.artifacts', 'nav.shop'][i]);
-            if (i > 0) _this20.rect(n, -40, 0, 1, 40, '#626978');
-            if (i === _this20.tab) {
-              var selected = _this20.nodeAt(n, 'selected-tab', 0, 3, 76, 62);
-              _this20.ui.surface(selected, _this20.tabTone, 'slant', 255, true);
-            }
-            _this20.touchAction(n, function () {
-              return _this20.tutorial.tab(i);
+            var unlocked = tabUnlocked(_this22.game.s, i),
+              n = _this22.nodeAt(nav, 'tab-' + i, -200 + i * 80, 0, 80, 56),
+              title = _this22.tr(['nav.master', 'nav.heroes', 'nav.equipment', 'nav.pets', 'nav.artifacts', 'nav.shop'][i]);
+            if (i > 0) _this22.rect(n, -40, 0, 1, 40, '#626978');
+            var tone = [BUTTON_TONES.upgrade, BUTTON_TONES.deck, BUTTON_TONES.codex, BUTTON_TONES.synergy, BUTTON_TONES.ascend, BUTTON_TONES.shop][i],
+              selected = i === _this22.tab;
+            var tint = _this22.color(tone),
+              fill = unlocked ? selected ? tone : '#' + [tint.r, tint.g, tint.b].map(function (v) {
+                return Math.round(v * .48).toString(16).padStart(2, '0');
+              }).join('') : '#444852';
+            var plate = _this22.nodeAt(n, selected ? 'selected-tab' : 'category-tab', 0, selected ? 3 : 0, 76, selected ? 62 : 52);
+            _this22.ui.surface(plate, fill, selected ? 'slant' : 'cut', 255, true);
+            _this22.touchAction(n, function () {
+              return _this22.tutorial.tab(i);
             }, title);
-            var icon = _this20.nodeAt(n, 'tab-icon', 0, i === _this20.tab ? 5 : 1, i === _this20.tab ? 44 : 37, i === _this20.tab ? 44 : 37);
-            _this20.hudIcon(icon, i, C.text);
-            if (i !== _this20.tab) icon.addComponent(UIOpacity).opacity = unlocked ? 210 : 60;
-            if (!unlocked) _this20.lockIcon(n, 23, 12);
-            if (i === 3 && unlocked && Date.now() >= _this20.game.s.eggAt) _this20.rect(n, 25, 18, 6, 6, C.danger);
+            var icon = _this22.nodeAt(n, 'tab-icon', 0, selected ? 10 : 9, selected ? 32 : 30, selected ? 32 : 30);
+            _this22.hudIcon(icon, i, selected ? contrastInk(tone) : C.text);
+            _this22.label(n, title, 0, -17, 74, 18, 14, unlocked ? selected ? contrastInk(tone) : C.text : '#b5b8c0').node.name = 'tab-caption';
+            if (i !== _this22.tab) icon.addComponent(UIOpacity).opacity = unlocked ? 210 : 60;
+            if (!unlocked) _this22.lockIcon(n, 23, 12);
+            if (i === 3 && unlocked && Date.now() >= _this22.game.s.eggAt) _this22.rect(n, 25, 18, 6, 6, C.danger);
           };
           for (var i = 0; i < 6; i++) {
             _loop4(i);
           }
         };
         _proto.scroll = function scroll(parent, x, y, w, h, rows) {
-          var _this21 = this;
+          var _this23 = this;
           var viewport = this.nodeAt(parent, 'scroll', x, y, w, h);
           viewport.addComponent(Mask);
           var sv = viewport.addComponent(ScrollView);
@@ -42607,57 +43038,70 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             var rowHeight = r.height || (r.members ? 134 : 77),
               yy = -rowHeight / 2 - offset;
             offset += rowHeight;
-            var card = _this21.nodeAt(content, 'list-row', 0, yy, w - 8, rowHeight - 7);
-            _this21.ui.surface(card, r.background || (_this21.ui.inPopup(card) ? '#2b3028' : C.paper), 'cut');
-            if (r.action === _this21.tr('action.claim')) {
-              var marker = _this21.rect(card, -w / 2 + 9, 0, 4, 54, C.gold),
+            var card = _this23.nodeAt(content, 'list-row', 0, yy, w - 8, rowHeight - 7);
+            var shopStyle = r.shopCategory ? SHOP_STYLE[r.shopCategory] : null;
+            _this23.ui.surface(card, r.background || (shopStyle ? _this23.ui.inPopup(card) ? shopStyle.dark : shopStyle.light : _this23.ui.inPopup(card) ? '#2b3028' : C.paper), 'cut');
+            if (shopStyle) _this23.rect(card, -w / 2 + 8, 0, 4, rowHeight - 21, shopStyle.accent).name = 'shop-category-' + r.shopCategory;
+            if (r.action === _this23.tr('action.claim')) {
+              var marker = _this23.rect(card, -w / 2 + 9, 0, 4, 54, C.gold),
                 refresh = function refresh() {
                   marker.active = !r.locked && !(r.unavailable != null && r.unavailable());
                 };
-              _this21.buttonStates.push({
+              _this23.buttonStates.push({
                 node: marker,
                 refresh: refresh
               });
               refresh();
             }
             if (r.locked) {
-              _this21.lockIcon(card, -w / 2 + 35, 0);
+              _this23.lockIcon(card, -w / 2 + 35, 0);
             }
-            if (r.tint && !r.locked) _this21.polygon(card, -w / 2 + 33, 0, 48, 48, [[0, -.5], [.5, 0], [0, .5], [-.5, 0]], r.tint, 90);
-            if (r.icon !== undefined && !r.locked) _this21.glyph(card, -w / 2 + 35, 0, r.icon, r.tint || C.gold, r.art);
+            if (r.tint && !r.locked) _this23.polygon(card, -w / 2 + 33, 0, 48, 48, [[0, -.5], [.5, 0], [0, .5], [-.5, 0]], r.tint, 90);
+            if (r.icon !== undefined && !r.locked) {
+              if (shopStyle) {
+                var art = _this23.nodeAt(card, 'item-art', -w / 2 + 39, 0, 56, 56);
+                _this23.ui.surface(art, shopStyle.accent, 'cut');
+                _this23.ui.icon(_this23.nodeAt(art, 'glyph', 0, 0, 50, 50), r.art);
+              } else _this23.glyph(card, -w / 2 + 35, 0, r.icon, r.tint || C.gold, r.art);
+            }
             if (r.badge) {
-              var badge = _this21.nodeAt(card, 'role-badge', -w / 2 + 65, 0, 22, 22);
-              _this21.ui.surface(badge, r.badge.tone, 'cut');
-              _this21.ui.icon(_this21.nodeAt(badge, 'role-icon', 0, 0, 16, 16), r.badge.icon, contrastInk(r.badge.tone));
-              _this21.touchAction(badge, r.badge.click || function () {
-                return _this21.toast(r.badge.hint);
+              var badge = _this23.nodeAt(card, 'role-badge', -w / 2 + 65, 0, 22, 22);
+              _this23.ui.surface(badge, r.badge.tone, 'cut');
+              _this23.ui.icon(_this23.nodeAt(badge, 'role-icon', 0, 0, 16, 16), r.badge.icon, contrastInk(r.badge.tone));
+              _this23.touchAction(badge, function () {
+                return _this23.tooltip(badge, r.badge.hint);
               }, r.badge.hint);
             }
             var hasIcon = r.icon !== undefined,
               hasAction = !!r.action;
-            var left = -w / 2 + (hasIcon ? r.badge ? 82 : 66 : 16),
+            var left = -w / 2 + (hasIcon ? shopStyle ? 78 : r.badge ? 82 : 66 : 16),
               right = w / 2 - (hasAction ? 106 : 16),
               width = right - left;
-            _this21.label(card, r.title, left + width / 2, r.members ? 43 : r.height ? rowHeight / 2 - 22 : r.sub || r.metrics ? 15 : 0, width, 28, 17, C.text, Label.HorizontalAlign.LEFT);
+            var rowInk = shopStyle && !_this23.ui.inPopup(card) ? C.ink : C.text,
+              rowMuted = shopStyle && !_this23.ui.inPopup(card) ? '#474b43' : C.muted;
+            _this23.label(card, r.title, left + width / 2, shopStyle ? r.sub || r.metrics ? rowHeight < 84 ? 15 : 19 : 0 : r.members ? 43 : r.height ? rowHeight / 2 - 22 : r.sub || r.metrics ? 15 : 0, width, 28, 17, rowInk, Label.HorizontalAlign.LEFT);
             if (r.members) r.members.forEach(function (member, j) {
               var x = left + (j + .5) * width / r.members.length,
                 style = SQUAD_ROLE_STYLE[squadRole(member.id)],
-                tile = _this21.nodeAt(card, 'combo-member-' + member.id, x, 3, width / r.members.length - 5, 64);
-              _this21.ui.surface(tile, style.background, 'cut');
-              _this21.ui.face(_this21.nodeAt(tile, 'combo-portrait', 0, 10, 32, 34), 'merc-' + mercenaryArt(member.id));
-              _this21.label(tile, _this21.tr('hero.' + member.id), 0, -19, width / r.members.length - 9, 22, 14, member.active ? C.text : C.muted);
-              var badge = _this21.nodeAt(tile, 'role-badge', 29, 20, 18, 18);
-              _this21.ui.surface(badge, style.color, 'cut');
-              _this21.ui.icon(_this21.nodeAt(badge, 'role-icon', 0, 0, 14, 14), style.icon, C.ink);
-              if (member.active) _this21.ui.icon(_this21.nodeAt(tile, 'combo-active', -25, 20, 14, 14), 'symbol:check', C.gold);else tile.addComponent(UIOpacity).opacity = 170;
-              _this21.touchAction(tile, member.click, _this21.tr('hero.' + member.id));
+                tile = _this23.nodeAt(card, 'combo-member-' + member.id, x, 3, width / r.members.length - 5, 64);
+              _this23.ui.surface(tile, style.background, 'cut');
+              _this23.ui.face(_this23.nodeAt(tile, 'combo-portrait', 0, 10, 32, 34), 'merc-' + mercenaryArt(member.id));
+              _this23.label(tile, _this23.tr('hero.' + member.id), 0, -19, width / r.members.length - 9, 22, 14, member.active ? C.text : C.muted);
+              var badge = _this23.nodeAt(tile, 'role-badge', 29, 20, 18, 18);
+              _this23.ui.surface(badge, style.color, 'cut');
+              _this23.ui.icon(_this23.nodeAt(badge, 'role-icon', 0, 0, 14, 14), style.icon, C.ink);
+              _this23.touchAction(badge, function () {
+                return _this23.tooltip(badge, _this23.tr('squad.role.' + squadRole(member.id)) + '\n' + _this23.tr('squad.roleDesc.' + squadRole(member.id)));
+              });
+              if (member.active) _this23.ui.icon(_this23.nodeAt(tile, 'combo-active', -25, 20, 14, 14), 'symbol:check', C.gold);else tile.addComponent(UIOpacity).opacity = 170;
+              _this23.touchAction(tile, member.click, _this23.tr('hero.' + member.id));
             });
             if (r.metrics) r.metrics.forEach(function (m, j) {
-              return _this21.metric(card, m.icon, m.value, left + (j + .5) * width / r.metrics.length, -16, width / r.metrics.length - 5, m.hint);
+              return _this23.metric(card, m.icon, m.value, left + (j + .5) * width / r.metrics.length, -16, width / r.metrics.length - 5, m.hint);
             });else if (r.sub) {
               var sub = r.sub,
-                l = _this21.label(card, typeof sub === 'function' ? sub() : sub, left + width / 2, r.members ? -47 : r.height ? -12 : -16, width, r.members ? 26 : r.height ? 46 : 31, 14, C.muted, Label.HorizontalAlign.LEFT);
-              if (typeof sub === 'function') _this21.buttonStates.push({
+                l = _this23.label(card, typeof sub === 'function' ? sub() : sub, left + width / 2, r.members ? -47 : r.height ? -12 : -16, width, r.members ? 26 : shopStyle && rowHeight < 84 ? 32 : r.height ? 46 : 31, 14, rowMuted, Label.HorizontalAlign.LEFT);
+              if (typeof sub === 'function') _this23.buttonStates.push({
                 node: l.node,
                 refresh: function refresh() {
                   l.string = sub();
@@ -42665,30 +43109,32 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               });
             }
             if (r.detail) {
-              var target = _this21.nodeAt(card, 'details', left + width / 2, 0, width, 65);
-              _this21.touchAction(target, r.detail, r.title);
+              var target = _this23.nodeAt(card, 'details', left + width / 2, 0, width, 65);
+              target.setSiblingIndex(1);
+              _this23.touchAction(target, r.detail, r.title);
               var portrait = card.getChildByName('item-art');
-              if (portrait) _this21.touchAction(portrait, r.detail, r.title);
+              if (portrait) _this23.touchAction(portrait, r.detail, r.title);
             }
             if (r.action) {
-              var settled = [_this21.tr('action.equipped'), _this21.tr('action.claimed'), _this21.tr('action.selected')].includes(r.action);
+              var settled = [_this23.tr('action.equipped'), _this23.tr('action.claimed'), _this23.tr('action.selected')].includes(r.action);
               var browse = ['action.details', 'action.open', 'action.back'].some(function (key) {
-                return r.action === _this21.tr(key);
+                return r.action === _this23.tr(key);
               });
-              var actionButton = _this21.button(card, r.action, w / 2 - 54, 0, 90, 50, r.click || function () {}, !settled && (!_this21.ui.inPopup(card) || !browse), {
+              var actionButton = _this23.button(card, r.action, w / 2 - 54, 0, 90, 50, r.click || function () {}, !settled && (!_this23.ui.inPopup(card) || !browse), {
                 style: r.buttonStyle || (r.locked ? 'disabled' : settled ? 'selected' : browse ? 'secondary' : 'primary'),
+                category: r.actionCategory,
                 fontSize: 18,
                 icon: r.actionIcon,
                 iconOnly: false,
                 hint: r.actionHint,
                 label: r.actionLabel,
-                unavailable: r.unavailable || (r.action === _this21.tr('action.claimed') ? function () {
-                  return _this21.tr('action.alreadyClaimed');
+                unavailable: r.unavailable || (r.action === _this23.tr('action.claimed') ? function () {
+                  return _this23.tr('action.alreadyClaimed');
                 } : r.locked ? function () {
                   var _r$metrics;
                   return (typeof r.sub === 'function' ? r.sub() : r.sub) || ((_r$metrics = r.metrics) == null || (_r$metrics = _r$metrics.find(function (m) {
                     return m.hint;
-                  })) == null ? void 0 : _r$metrics.hint) || _this21.tr('error.locked');
+                  })) == null ? void 0 : _r$metrics.hint) || _this23.tr('error.locked');
                 } : undefined)
               });
               if (r.tutorialId) actionButton.name = r.tutorialId;
@@ -42718,14 +43164,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           g.fill();
         };
         _proto.clear = function clear(n) {
-          for (var _i6 = 0, _arr6 = [].concat(n.children); _i6 < _arr6.length; _i6++) {
-            var c = _arr6[_i6];
+          for (var _i7 = 0, _arr7 = [].concat(n.children); _i7 < _arr7.length; _i7++) {
+            var c = _arr7[_i7];
             c.removeFromParent();
             c.destroy();
           }
         };
         _proto.drawPanel = function drawPanel() {
-          var _this22 = this;
+          var _this24 = this;
           this.syncDrone();
           this.clear(this.panel);
           if (!tabUnlocked(this.game.s, this.tab)) {
@@ -42752,15 +43198,16 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               value: this.format(g.tapDamage())
             }));
             var captainUpgrade = this.button(this.panel, this.format(g.upgradeCost(-1, this.mode === -1 ? 1 : this.mode)), 164, 112, 135, 60, function () {
-              g.buy(-1, _this22.mode);
-              _this22.drawPanel();
-              _this22.flushNotice();
+              g.buy(-1, _this24.mode);
+              _this24.drawPanel();
+              _this24.flushNotice();
             }, true, {
+              category: 'upgrade',
               icon: 'symbol:plus',
               iconOnly: false,
               hint: this.tr('layout.upgrade'),
               unavailable: function unavailable() {
-                return _this22.levelReason(-1);
+                return _this24.levelReason(-1);
               }
             });
             captainUpgrade.name = 'tutorial-captain-upgrade';
@@ -42775,12 +43222,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               this.button(this.panel, r.stage >= 60 ? this.tr('intel.redeployButton', {
                 reward: this.format(g.prestigeReward())
               }) : this.tr('intel.redeployLocked'), 164, 13, 135, 60, function () {
-                return _this22.prestige();
+                return _this24.prestige();
               }, r.stage >= 60, {
                 fontSize: 17,
                 hint: this.tr('prestige.title'),
                 unavailable: function unavailable() {
-                  return _this22.game.s.run.stage < 60 ? _this22.tr('prestige.locked') : null;
+                  return _this24.game.s.run.stage < 60 ? _this24.tr('prestige.locked') : null;
                 }
               }).name = 'tutorial-redeploy';
             }
@@ -42794,28 +43241,28 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }).map(function (sp) {
               return {
                 locked: r.master < sp.unlock,
-                title: _this22.tr("spell." + sp.id),
+                title: _this24.tr("spell." + sp.id),
                 metrics: [{
                   icon: r.master < sp.unlock ? 'lock' : 'symbol:up',
                   value: String(r.master < sp.unlock ? sp.unlock : r.spellLevels[sp.id]),
-                  hint: _this22.tr('spell.detail', {
+                  hint: _this24.tr('spell.detail', {
                     level: r.spellLevels[sp.id],
                     unlock: sp.unlock,
-                    mana: _this22.game.spellMana(sp.id)
+                    mana: _this24.game.spellMana(sp.id)
                   })
                 }, {
                   icon: 'symbol:canteen',
-                  value: String(_this22.game.spellMana(sp.id)),
-                  hint: _this22.tr('spell.energyCost', {
-                    cost: _this22.game.spellMana(sp.id)
+                  value: String(_this24.game.spellMana(sp.id)),
+                  hint: _this24.tr('spell.energyCost', {
+                    cost: _this24.game.spellMana(sp.id)
                   })
                 }],
                 icon: sp.id,
-                action: _this22.tr(r.master < sp.unlock ? 'action.level' : 'action.details', {
+                action: _this24.tr(r.master < sp.unlock ? 'action.level' : 'action.details', {
                   level: sp.unlock
                 }),
                 click: function click() {
-                  return _this22.spells(_this22.game.s.spellSlots.indexOf(sp.id) < 0 ? 0 : _this22.game.s.spellSlots.indexOf(sp.id));
+                  return _this24.spells(_this24.game.s.spellSlots.indexOf(sp.id) < 0 ? 0 : _this24.game.s.spellSlots.indexOf(sp.id));
                 }
               };
             }));
@@ -42824,18 +43271,23 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               count: g.activeMercenaries().length,
               limit: SQUAD_LIMIT
             }), -157, 127, 160, 38, function () {
-              return _this22.squadUI.deck();
+              return _this24.squadUI.deck();
             }, false, {
               fontSize: 15
             }).name = 'squad-deck-open';
             this.button(this.panel, this.tr('squad.codex'), -15, 127, 112, 38, function () {
-              return _this22.squadUI.codex();
+              return _this24.squadUI.codex();
             }, false, {
               fontSize: 14
             }).name = 'squad-codex-open';
             this.button(this.panel, '×' + (this.mode === -1 ? '∞' : this.mode), 148, 127, 168, 38, function () {
-              _this22.mode = [1, 10, 100, -1][([1, 10, 100, -1].indexOf(_this22.mode) + 1) % 4];
-              _this22.drawPanel();
+              _this24.mode = [1, 10, 100, -1][([1, 10, 100, -1].indexOf(_this24.mode) + 1) % 4];
+              _this24.drawPanel();
+            }, false, {
+              category: 'upgrade',
+              hint: this.tr('master.buyMode', {
+                count: this.mode === -1 ? this.tr('action.max') : this.mode
+              })
             });
             this.scroll(this.panel, 0, -24, 458, 244, HEROES.filter(function (h) {
               var _HEROES$find;
@@ -42845,62 +43297,63 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }).map(function (h) {
               return {
                 tutorialId: 'tutorial-recruit-' + h.id,
+                actionCategory: 'upgrade',
                 locked: s.maxStage < h.unlock,
                 unavailable: function unavailable() {
-                  return _this22.levelReason(h.id);
+                  return _this24.levelReason(h.id);
                 },
-                title: _this22.tr(h.name),
-                sub: s.maxStage < h.unlock ? _this22.tr('hero.locked', {
+                title: _this24.tr(h.name),
+                sub: s.maxStage < h.unlock ? _this24.tr('hero.locked', {
                   stage: h.unlock
                 }) : undefined,
                 metrics: s.maxStage < h.unlock ? [{
                   icon: 'flag',
                   value: String(h.unlock),
-                  hint: _this22.tr('hero.locked', {
+                  hint: _this24.tr('hero.locked', {
                     stage: h.unlock
                   })
                 }] : [{
                   icon: 'symbol:up',
                   value: String(r.heroes[h.id]),
-                  hint: _this22.tr('action.level', {
+                  hint: _this24.tr('action.level', {
                     level: r.heroes[h.id]
                   })
                 }, {
                   icon: 'symbol:damage',
-                  value: _this22.format(g.heroDamage(h.id)),
-                  hint: _this22.tr('hero.stats', {
+                  value: _this24.format(g.heroDamage(h.id)),
+                  hint: _this24.tr('hero.stats', {
                     level: r.heroes[h.id],
-                    damage: _this22.format(g.heroDamage(h.id))
+                    damage: _this24.format(g.heroDamage(h.id))
                   })
                 }],
                 detail: function detail() {
-                  return _this22.extensions.hero(h.id);
+                  return _this24.extensions.hero(h.id);
                 },
                 icon: h.id,
                 art: 'face:merc-' + mercenaryArt(h.id),
                 badge: {
                   icon: SQUAD_ROLE_STYLE[squadRole(h.id)].icon,
                   tone: SQUAD_ROLE_STYLE[squadRole(h.id)].color,
-                  hint: _this22.tr('squad.roleDesc.' + squadRole(h.id)),
+                  hint: _this24.tr('squad.roleDesc.' + squadRole(h.id)),
                   click: function click() {
-                    return _this22.squadUI.roles();
+                    return _this24.squadUI.roles();
                   }
                 },
                 tint: [C.ember, C.mint, C.blue, C.violet][h.id % 4],
-                action: s.maxStage < h.unlock ? _this22.tr('action.locked') : r.heroes[h.id] === 0 ? _this22.tr('action.recruitCost', {
-                  cost: _this22.format(g.upgradeCost(h.id, 1))
-                }) : _this22.format(g.upgradeCost(h.id, _this22.mode === -1 ? 1 : _this22.mode)),
+                action: s.maxStage < h.unlock ? _this24.tr('action.locked') : r.heroes[h.id] === 0 ? _this24.tr('action.recruitCost', {
+                  cost: _this24.format(g.upgradeCost(h.id, 1))
+                }) : _this24.format(g.upgradeCost(h.id, _this24.mode === -1 ? 1 : _this24.mode)),
                 click: function click() {
                   if (s.maxStage < h.unlock) {
-                    _this22.info(_this22.tr('unlock.title'), _this22.tr('hero.locked', {
+                    _this24.info(_this24.tr('unlock.title'), _this24.tr('hero.locked', {
                       stage: h.unlock
                     }));
                     return;
                   }
-                  g.buy(h.id, _this22.mode);
-                  _this22.drawPanel();
-                  _this22.tutorial.event('progress');
-                  _this22.flushNotice();
+                  g.buy(h.id, _this24.mode);
+                  _this24.drawPanel();
+                  _this24.tutorial.event('progress');
+                  _this24.flushNotice();
                 }
               };
             }));
@@ -42908,31 +43361,34 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             this.metric(this.panel, 'face:compass', String(s.shards), -158, 127, 130, this.tr('equipment.craft'));
             this.metric(this.panel, 'symbol:bag', s.equipment.length + '/100', -25, 127, 120, this.tr('equipment.title'));
             this.button(this.panel, '⋯', 73, 127, 40, 34, function () {
-              return _this22.equipmentTools();
+              return _this24.equipmentTools();
             });
             this.button(this.panel, this.tr('equipment.craft'), 172, 127, 110, 34, function () {
-              return _this22.craft();
+              return _this24.craft();
             }, false, {
               unavailable: function unavailable() {
-                return s.equipment.length >= 100 ? _this22.tr('error.full') : _this22.costReason('shards', g.craftCost());
+                return s.equipment.length >= 100 ? _this24.tr('error.full') : _this24.costReason('shards', g.craftCost());
               }
             });
             var _loop5 = function _loop5(i) {
-              _this22.button(_this22.panel, _this22.tr("slot." + i), -180 + i * 90, 80, 84, 40, function () {
-                _this22.filter = _this22.filter === i ? -1 : i;
-                _this22.drawPanel();
-              }, _this22.filter === i, {
-                style: _this22.filter === i ? 'selected' : 'quiet',
-                tone: _this22.filter === i ? C.violet : C.paperMuted,
+              var tone = [BUTTON_TONES.battle, BUTTON_TONES.shop, BUTTON_TONES.upgrade, BUTTON_TONES.ascend, BUTTON_TONES.confirm][i];
+              _this24.button(_this24.panel, _this24.tr("slot." + i), -180 + i * 90, 80, 84, 40, function () {
+                _this24.filter = _this24.filter === i ? -1 : i;
+                _this24.drawPanel();
+              }, _this24.filter === i, {
+                style: _this24.filter === i ? 'selected' : 'quiet',
+                category: 'codex',
+                tone: tone,
                 icon: 'face:' + ['blade', 'helmet', 'breastplate', 'aura', 'compass'][i],
-                iconOnly: true
-              });
+                iconOnly: true,
+                iconSize: 26
+              }).name = 'equipment-filter-' + i;
             };
             for (var i = 0; i < 5; i++) {
               _loop5(i);
             }
             var items = s.equipment.filter(function (e) {
-              return _this22.filter < 0 || e.slot === _this22.filter;
+              return _this24.filter < 0 || e.slot === _this24.filter;
             }).sort(function (a, b) {
               return b.power - a.power;
             });
@@ -42942,22 +43398,22 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                 metrics: [{
                   icon: 'symbol:damage',
                   value: '×' + e.power.toFixed(2),
-                  hint: _this22.tr('equipment.power', {
+                  hint: _this24.tr('equipment.power', {
                     power: e.power.toFixed(2)
                   })
                 }],
-                actionHint: _this22.itemName(e),
+                actionHint: _this24.itemName(e),
                 detail: function detail() {
-                  return _this22.item(e);
+                  return _this24.item(e);
                 },
-                action: s.equipped.includes(e.id) ? _this22.tr('action.equipped') : _this22.tr('action.equip'),
+                action: s.equipped.includes(e.id) ? _this24.tr('action.equipped') : _this24.tr('action.equip'),
                 icon: e.slot,
                 art: 'face:' + ['blade', 'helmet', 'breastplate', 'aura', 'compass'][e.slot],
                 tint: e.rarity > 1 ? C.gold : C.blue,
                 click: function click() {
-                  if (s.equipped.includes(e.id)) _this22.item(e);else {
+                  if (s.equipped.includes(e.id)) _this24.item(e);else {
                     g.equip(e.id);
-                    _this22.drawPanel();
+                    _this24.drawPanel();
                   }
                 }
               };
@@ -42968,58 +43424,58 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             this.button(this.panel, Date.now() >= s.eggAt ? this.tr('pet.hatch') : this.tr('action.remaining', {
               seconds: Math.ceil((s.eggAt - Date.now()) / 1000)
             }), 143, 127, 164, 36, function () {
-              return _this22.act(function () {
-                return g.hatch(_this22.id('egg'));
+              return _this24.act(function () {
+                return g.hatch(_this24.id('egg'));
               }, function () {
-                return _this22.drawPanel();
+                return _this24.drawPanel();
               });
             }, false, {
               label: function label() {
-                return _this22.game.now() >= _this22.game.s.eggAt ? _this22.tr('pet.hatch') : _this22.tr('action.remaining', {
-                  seconds: Math.ceil((_this22.game.s.eggAt - _this22.game.now()) / 1000)
+                return _this24.game.now() >= _this24.game.s.eggAt ? _this24.tr('pet.hatch') : _this24.tr('action.remaining', {
+                  seconds: Math.ceil((_this24.game.s.eggAt - _this24.game.now()) / 1000)
                 });
               },
               unavailable: function unavailable() {
-                return _this22.game.now() < _this22.game.s.eggAt ? _this22.tr('action.waitSeconds', {
-                  seconds: Math.ceil((_this22.game.s.eggAt - _this22.game.now()) / 1000)
+                return _this24.game.now() < _this24.game.s.eggAt ? _this24.tr('action.waitSeconds', {
+                  seconds: Math.ceil((_this24.game.s.eggAt - _this24.game.now()) / 1000)
                 }) : null;
               }
             });
             this.scroll(this.panel, 0, -24, 458, 244, PETS.map(function (p) {
               return {
                 locked: s.pets[p.id] === 0,
-                title: _this22.tr(p.name),
+                title: _this24.tr(p.name),
                 metrics: [{
                   icon: 'symbol:up',
                   value: String(s.pets[p.id]),
-                  hint: _this22.tr('action.level', {
+                  hint: _this24.tr('action.level', {
                     level: s.pets[p.id]
                   })
                 }, {
                   icon: ['symbol:damage', 'symbol:damage', 'adventurer'][p.effect],
                   value: '×' + (1 + s.pets[p.id] * .025).toFixed(2),
-                  hint: _this22.tr('effect.' + p.effect)
+                  hint: _this24.tr('effect.' + p.effect)
                 }],
                 detail: function detail() {
-                  return _this22.extensions.petDetail(p.id);
+                  return _this24.extensions.petDetail(p.id);
                 },
                 icon: p.id,
                 art: 'face:' + ['ember-fox', 'stone-hawk', 'shade-wolf'][p.id % 3],
                 tint: C.mint,
-                action: !s.pets[p.id] ? _this22.tr('action.locked') : s.activePet === p.id ? _this22.tr('action.equipped') : _this22.tr('action.equip'),
+                action: !s.pets[p.id] ? _this24.tr('action.locked') : s.activePet === p.id ? _this24.tr('action.equipped') : _this24.tr('action.equip'),
                 click: function click() {
-                  if (!s.pets[p.id]) _this22.toast(_this22.tr('error.locked'));else {
+                  if (!s.pets[p.id]) _this24.toast(_this24.tr('error.locked'));else {
                     if (s.activePet === p.id) {
-                      _this22.toast(_this22.tr('action.alreadyEquipped'));
+                      _this24.toast(_this24.tr('action.alreadyEquipped'));
                       return;
                     }
                     if (!g.equipPet(p.id)) {
-                      _this22.flushNotice();
+                      _this24.flushNotice();
                       return;
                     }
-                    _this22.tutorial.complete('first:pet');
+                    _this24.tutorial.complete('first:pet');
                     g.persist();
-                    _this22.drawPanel();
+                    _this24.drawPanel();
                   }
                 }
               };
@@ -43027,18 +43483,18 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           } else if (this.tab === 4) {
             this.metric(this.panel, 'scroll', this.tr('artifact.balance', {
               value: this.formatIntel(s.relics)
-            }), -94, 127, 260, this.tr('artifact.balance', {
+            }), -94, 127, 260, this.tr('ui.help.intel') + '\n' + this.tr('artifact.balance', {
               value: this.formatIntel(s.relics)
             }));
             this.button(this.panel, this.tr('artifact.discover', {
               cost: this.formatIntel(g.discoverCost())
             }), 149, 127, 154, 36, function () {
-              return _this22.act(function () {
-                return g.discover(_this22.id('discover'));
+              return _this24.act(function () {
+                return g.discover(_this24.id('discover'));
               }, function () {
-                _this22.tutorial.complete('first:discover');
-                _this22.drawPanel();
-                _this22.tutorial.draw();
+                _this24.tutorial.complete('first:discover');
+                _this24.drawPanel();
+                _this24.tutorial.draw();
               });
             }, true, {
               fontSize: 15,
@@ -43048,19 +43504,19 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               unavailable: function unavailable() {
                 return s.artifacts.every(function (v, i) {
                   return v > 0 || s.salvaged.includes(i);
-                }) ? _this22.tr('error.complete') : _this22.costReason('relics', g.discoverCost());
+                }) ? _this24.tr('error.complete') : _this24.costReason('relics', g.discoverCost());
               }
             }).name = 'tutorial-intel-discover';
             var owned = ARTIFACTS.filter(function (a) {
               return s.artifacts[a.id];
             });
             this.button(this.panel, '⋯', -208, 89, 40, 26, function () {
-              return _this22.salvaged();
+              return _this24.salvaged();
             });
             this.button(this.panel, this.tr('learn.open'), -118, 89, 122, 28, function () {
-              return _this22.tutorial.explain('intel', function () {
-                _this22.close();
-                _this22.tutorial.tab(4, true);
+              return _this24.tutorial.explain('intel', function () {
+                _this24.close();
+                _this24.tutorial.tab(4, true);
               }, true);
             }, false, {
               fontSize: 14,
@@ -43068,20 +43524,20 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }).name = 'intel-tab-help';
             this.scroll(this.panel, 0, -37, 458, 221, owned.map(function (a, index) {
               return {
-                title: _this22.tr(a.name),
+                title: _this24.tr(a.name),
                 height: 86,
-                sub: _this22.tr('intel.row', {
+                sub: _this24.tr('intel.row', {
                   level: s.artifacts[a.id],
-                  effect: _this22.tr('intel.effect.' + a.effect),
-                  value: _this22.artifactMultiplier(a.id)
+                  effect: _this24.tr('intel.effect.' + a.effect),
+                  value: _this24.artifactMultiplier(a.id)
                 }),
                 icon: a.id,
                 art: 'scroll',
                 tint: C.violet,
-                action: _this22.tr('action.details'),
+                action: _this24.tr('action.details'),
                 tutorialId: index === 0 ? 'tutorial-intel-detail' : undefined,
                 click: function click() {
-                  return _this22.artifactDetail(a.id);
+                  return _this24.artifactDetail(a.id);
                 }
               };
             }));
@@ -43090,133 +43546,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               this.label(this.panel, this.tr('artifact.empty'), 0, -45, 365, 70, 17, C.muted);
             }
           } else {
-            [0, 1, 2].forEach(function (i) {
-              return _this22.button(_this22.panel, _this22.tr(['shop.regular', 'shop.progression', 'shop.limited'][i]), -151 + i * 151, 127, 142, 38, function () {
-                _this22.shopTab = i;
-                _this22.drawPanel();
-              }, _this22.shopTab === i, {
-                style: _this22.shopTab === i ? 'selected' : 'quiet',
-                tone: _this22.shopTab === i ? C.gold : C.paperMuted,
-                icon: ['chest', 'symbol:up', 'symbol:clock'][i],
-                iconOnly: true
-              });
-            });
-            var rows = this.shopTab === 0 ? [{
-              title: this.tr('shop.free'),
-              unavailable: function unavailable() {
-                return _this22.rewardReason(_this22.tr('shop.free'), 1, 1, _this22.game.s.claims.includes('daily.0'));
-              },
-              metrics: [{
-                icon: 'face:gems',
-                value: '+25',
-                hint: this.tr('daily.reward', {
-                  gems: 25
-                })
-              }],
-              action: this.tr('action.claim'),
-              click: function click() {
-                return _this22.act(function () {
-                  return g.claimDaily(0);
-                }, function () {
-                  return _this22.drawPanel();
-                }, 'reward.done');
-              }
-            }].concat([0, 1, 2].map(function (i) {
-              return {
-                unavailable: function unavailable() {
-                  return _this22.costReason('gems', [30, 60, 100][i]) || (i === 2 && s.equipment.length >= 100 ? _this22.tr('error.full') : null);
-                },
-                title: _this22.tr(['shop.pet', 'shop.shards', 'shop.chest'][i]),
-                metrics: [{
-                  icon: 'face:gems',
-                  value: String([30, 60, 100][i]),
-                  hint: _this22.tr('action.cost', {
-                    cost: [30, 60, 100][i]
-                  })
-                }],
-                icon: i,
-                tint: C.gold,
-                action: _this22.tr('action.buy'),
-                click: function click() {
-                  return _this22.confirm(_this22.tr(['shop.pet', 'shop.shards', 'shop.chest'][i]), _this22.tr('shop.confirm', {
-                    cost: [30, 60, 100][i]
-                  }) + (i === 2 ? '\n' + _this22.tr('shop.chestInfo') : ''), function () {
-                    return _this22.act(function () {
-                      return g.buyDeal(i, _this22.id('deal'));
-                    }, function () {
-                      _this22.close();
-                      _this22.drawPanel();
-                    });
-                  });
-                }
-              };
-            })) : this.shopTab === 1 ? [60, 100, 500, 1000].filter(function (stage) {
-              return s.maxStage >= stage || stage === [60, 100, 500, 1000].find(function (next) {
-                return s.maxStage < next;
-              });
-            }).map(function (stage) {
-              return {
-                unavailable: function unavailable() {
-                  return _this22.rewardReason(_this22.tr('achievement.2'), _this22.game.s.maxStage, stage, _this22.game.s.claims.includes("milestone." + stage));
-                },
-                title: _this22.tr('milestone.row', {
-                  stage: stage
-                }),
-                action: _this22.tr('action.claim'),
-                click: function click() {
-                  return _this22.act(function () {
-                    return g.claimMilestone(stage);
-                  }, function () {
-                    return _this22.drawPanel();
-                  }, 'reward.done');
-                }
-              };
-            }) : [{
-              title: this.tr('extra.limitedOffer'),
-              sub: this.tr('extra.limitedInfo'),
-              action: this.tr('action.open'),
-              click: function click() {
-                return _this22.extensions.limited();
-              }
-            }];
-            rows.unshift({
-              title: this.tr('money.store'),
-              metrics: [{
-                icon: 'face:gems',
-                value: String(s.gems),
-                hint: this.tr('money.balance', {
-                  count: s.gems
-                })
-              }],
-              action: this.tr('action.open'),
-              click: function click() {
-                return _this22.payments.store();
-              }
-            });
-            if (this.shopTab === 0) rows.splice(1, 0, {
-              title: this.tr('money.ad.shop_chest'),
-              metrics: [{
-                icon: 'armor',
-                value: '1',
-                hint: this.tr('money.adReward.shop_chest')
-              }, {
-                icon: 'symbol:clock',
-                value: '12×3',
-                hint: this.tr('money.adReward.shop_chest')
-              }],
-              action: this.tr('money.watch'),
-              click: function click() {
-                return _this22.payments.ads('shop');
-              }
-            });
-            if (this.shopTab === 2) rows.unshift({
-              title: this.tr('money.pass'),
-              action: this.payments.price('season_pass'),
-              click: function click() {
-                return _this22.payments.product('season_pass');
-              }
-            });
-            this.scroll(this.panel, 0, -24, 458, 244, rows);
+            this.shopUI.draw();
           }
         };
         _proto.itemName = function itemName(e) {
@@ -43228,7 +43558,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         };
         _proto.open = function open(title, height, closable, surface, guided, back) {
           var _this$tutorial3,
-            _this23 = this;
+            _this25 = this;
           if (height === void 0) {
             height = 600;
           }
@@ -43255,10 +43585,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.rect(box, 0, height / 2 - 70, 388, 1, C.line);
           if (!guided || !((_this$tutorial3 = this.tutorial) != null && _this$tutorial3.popup(title, heading))) this.label(heading, title, 0, 0, 280, 44, 23, C.ink);
           if (closable) this.button(box, '×', 176, height / 2 - 38, 56, 56, function () {
-            return _this23.dismissModal();
+            return _this25.dismissModal();
           }, false, {
             style: 'quiet',
-            tone: panelAccent,
+            category: 'back',
             fontSize: 21,
             hint: this.tr('action.close')
           }).name = 'modal-close';
@@ -43272,6 +43602,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         _proto.close = function close() {
           var _this$liveOps2;
           if ((_this$liveOps2 = this.liveOps) != null && _this$liveOps2.blocked) return;
+          this.hideTooltip();
           this.modalBack = null;
           this.modalRefresh = null;
           if (this.modal) {
@@ -43283,23 +43614,23 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
         };
         _proto.confirm = function confirm(title, body, yes, options) {
-          var _this24 = this;
+          var _this26 = this;
           if (options === void 0) {
             options = {};
           }
           var p = this.open(title, 370);
           this.label(p, body, 0, 10, 372, 195, 19, C.text);
           this.button(p, this.tr('action.cancel'), -103, -132, 178, 48, function () {
-            return _this24.close();
+            return _this26.close();
           });
           this.button(p, this.tr('action.confirm'), 103, -132, 178, 48, yes, true, options);
         };
         _proto.info = function info(title, body) {
-          var _this25 = this;
+          var _this27 = this;
           var p = this.open(title, 390);
           this.label(p, body, 0, 0, 375, 245, 18, C.text);
           this.button(p, this.tr('action.close'), 0, -145, 260, 45, function () {
-            return _this25.close();
+            return _this27.close();
           });
         };
         _proto.act = function act(action, done, successKey) {
@@ -43314,49 +43645,49 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           } else this.flushNotice();
         };
         _proto.menu = function menu(operations) {
-          var _this26 = this;
+          var _this28 = this;
           if (operations === void 0) {
             operations = false;
           }
           var p = this.open(this.tr(operations ? 'hud.operations' : 'hud.menu'), 706);
           var actions = operations ? [['daily', function () {
-            return _this26.daily();
+            return _this28.daily();
           }], ['milestones', function () {
-            return _this26.milestones();
+            return _this28.milestones();
           }], ['raid', function () {
-            return _this26.raidLobby();
+            return _this28.raidLobby();
           }], ['cards', function () {
-            return _this26.cards();
+            return _this28.cards();
           }], ['event', function () {
-            return _this26.events();
+            return _this28.events();
           }], ['meta', function () {
-            return _this26.meta();
+            return _this28.meta();
           }], ['clan', function () {
-            return _this26.guild();
+            return _this28.guild();
           }], ['tournament', function () {
-            return _this26.competition();
+            return _this28.competition();
           }]] : [['hud.operations', function () {
-            return _this26.menu(true);
+            return _this28.menu(true);
           }], ['learn.library', function () {
-            return _this26.tutorial.lessons(function () {
-              return _this26.menu();
+            return _this28.tutorial.lessons(function () {
+              return _this28.menu();
             });
           }], ['squad.deck', function () {
-            return _this26.squadUI.deck();
+            return _this28.squadUI.deck();
           }], ['squad.codex', function () {
-            return _this26.squadUI.codex();
+            return _this28.squadUI.codex();
           }], ['registry.title', function () {
-            return _this26.squadUI.registry();
+            return _this28.squadUI.registry();
           }], ['profile', function () {
-            return _this26.profile();
+            return _this28.profile();
           }], ['achievements', function () {
-            return _this26.achievements();
+            return _this28.achievements();
           }], ['inbox', function () {
-            return _this26.extensions.inbox();
+            return _this28.extensions.inbox();
           }], ['settings', function () {
-            return _this26.settings();
+            return _this28.settings();
           }], ['cheat.short', function () {
-            return _this26.cheats.open();
+            return _this28.cheats.open();
           }]];
           var icons = {
             daily: 'chest',
@@ -43386,13 +43717,13 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           };
           actions.filter(function (_ref7) {
             var key = _ref7[0];
-            return featureUnlocked(_this26.game.s, 'menu.' + key);
+            return featureUnlocked(_this28.game.s, 'menu.' + key);
           }).forEach(function (_ref8, i) {
             var key = _ref8[0],
               f = _ref8[1];
-            return _this26.button(p, _this26.tr(key.includes('.') ? key : "menu." + key), i % 2 ? 101 : -101, 245 - Math.floor(i / 2) * 91, 184, 70, function () {
-              if (!lessons[key] || !_this26.tutorial.explain(lessons[key], f, false, function () {
-                return _this26.menu(operations);
+            return _this28.button(p, _this28.tr(key.includes('.') ? key : "menu." + key), i % 2 ? 101 : -101, 245 - Math.floor(i / 2) * 91, 184, 70, function () {
+              if (!lessons[key] || !_this28.tutorial.explain(lessons[key], f, false, function () {
+                return _this28.menu(operations);
               })) f();
             }, false, {
               style: 'secondary',
@@ -43402,15 +43733,15 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             });
           });
           if (operations) this.button(p, this.tr('extra.hub'), 0, -304, 380, 44, function () {
-            return _this26.extensions.hub();
+            return _this28.extensions.hub();
           }, false, {
             style: 'quiet'
           });
         };
         _proto.prestige = function prestige() {
-          var _this27 = this;
+          var _this29 = this;
           if (this.tutorial.explain('redeploy', function () {
-            return _this27.prestige();
+            return _this29.prestige();
           })) return;
           this.tutorial.finishPractice('redeploy');
           var g = this.game;
@@ -43419,18 +43750,18 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }) + '\n' + this.tr('prestige.start', {
             stage: Math.max(1, Math.floor(g.s.maxStage * .05))
           }), function () {
-            if (g.prestige(_this27.id('prestige'))) {
-              _this27.close();
-              _this27.drawPanel();
-              _this27.toast(_this27.tr('prestige.done'));
-            } else _this27.flushNotice();
+            if (g.prestige(_this29.id('prestige'))) {
+              _this29.close();
+              _this29.drawPanel();
+              _this29.toast(_this29.tr('prestige.done'));
+            } else _this29.flushNotice();
           });
         };
         _proto.item = function item(e) {
-          var _this28 = this;
+          var _this30 = this;
           this.tutorial.complete('first:gear');
           var current = this.game.s.equipment.find(function (x) {
-              return x.id === _this28.game.s.equipped[e.slot];
+              return x.id === _this30.game.s.equipped[e.slot];
             }),
             equipped = (current == null ? void 0 : current.id) === e.id,
             p = this.open(this.tr("slot." + e.slot), 480, true, 'slate');
@@ -43441,7 +43772,13 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             current: ((current == null ? void 0 : current.power) || 1).toFixed(2),
             next: e.power.toFixed(2)
           }));
-          this.ui.icon(this.nodeAt(p, 'compare-arrow', 0, -10, 28, 28), 'symbol:next');
+          var arrow = this.nodeAt(p, 'compare-arrow', 0, -10, 28, 28);
+          this.ui.icon(arrow, 'symbol:next');
+          this.iconHelp(arrow, function () {
+            return _this30.tr('ui.help.compare', {
+              gain: (e.power / ((current == null ? void 0 : current.power) || 1) * 100 - 100).toFixed(1)
+            });
+          });
           this.metric(p, 'symbol:damage', '×' + e.power.toFixed(2), 110, -10, 162, this.tr('equipment.power', {
             power: e.power.toFixed(2)
           }));
@@ -43449,32 +43786,32 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.label(p, (gain >= 0 ? '+' : '') + gain.toFixed(1) + '%', 0, -47, 230, 26, 20, gain >= 0 ? C.mint : C.danger);
           this.button(p, this.tr(equipped ? 'action.equipped' : 'action.equip'), -128, -103, 112, 58, function () {
             if (equipped) {
-              _this28.toast(_this28.tr('action.alreadyEquipped'));
+              _this30.toast(_this30.tr('action.alreadyEquipped'));
               return;
             }
-            _this28.game.equip(e.id);
-            _this28.close();
-            _this28.drawPanel();
+            _this30.game.equip(e.id);
+            _this30.close();
+            _this30.drawPanel();
           }, true, {
             style: equipped ? 'selected' : 'primary'
           });
           this.button(p, this.tr('action.lock'), 0, -103, 112, 58, function () {
-            _this28.game.lock(e.id);
-            _this28.item(e);
+            _this30.game.lock(e.id);
+            _this30.item(e);
           }, false, {
             style: e.locked ? 'selected' : 'secondary'
           });
           this.button(p, this.tr('action.sell'), 128, -103, 112, 58, function () {
             if (e.locked || equipped) {
-              _this28.toast(_this28.tr('equipment.protected'));
+              _this30.toast(_this30.tr('equipment.protected'));
               return;
             }
-            _this28.confirm(_this28.itemName(e), _this28.tr('equipment.sellConfirm'), function () {
-              return _this28.act(function () {
-                return _this28.game.sell([e.id], _this28.id('sell'));
+            _this30.confirm(_this30.itemName(e), _this30.tr('equipment.sellConfirm'), function () {
+              return _this30.act(function () {
+                return _this30.game.sell([e.id], _this30.id('sell'));
               }, function () {
-                _this28.close();
-                _this28.drawPanel();
+                _this30.close();
+                _this30.drawPanel();
               });
             });
           }, false, {
@@ -43482,38 +43819,38 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             hint: this.tr('action.sell') + ' · ' + (e.rarity + 1)
           });
           this.button(p, this.tr(this.squadUI.itemRegistered(e) ? 'registry.registered' : 'registry.register'), -98, -186, 174, 44, function () {
-            return _this28.squadUI.registerItem(e, function () {
-              return _this28.item(e);
+            return _this30.squadUI.registerItem(e, function () {
+              return _this30.item(e);
             });
           }, false, {
             unavailable: function unavailable() {
-              return _this28.squadUI.itemRegistered(e) ? _this28.tr('registry.registered') : null;
+              return _this30.squadUI.itemRegistered(e) ? _this30.tr('registry.registered') : null;
             }
           });
-          this.button(p, this.tr('ui.iconHelp'), 98, -186, 174, 44, function () {
-            return _this28.info(_this28.itemName(e), _this28.tr('ui.equipmentHelp'));
+          var guide = this.button(p, this.tr('ui.iconHelp'), 98, -186, 174, 44, function () {
+            return _this30.tooltip(guide, _this30.tr('ui.equipmentHelp'));
           }, false, {
             icon: 'symbol:info',
-            iconOnly: true
+            category: 'details'
           });
         };
         _proto.craft = function craft() {
-          var _this29 = this;
+          var _this31 = this;
           this.confirm(this.tr('equipment.craft'), this.tr('equipment.craftDesc', {
             cost: this.game.craftCost(),
             shards: this.game.s.shards
           }), function () {
-            return _this29.act(function () {
-              return _this29.game.craft(_this29.id('craft'));
+            return _this31.act(function () {
+              return _this31.game.craft(_this31.id('craft'));
             }, function () {
-              _this29.close();
-              _this29.drawPanel();
-              var last = _this29.game.s.equipment[_this29.game.s.equipment.length - 1];
-              _this29.item(last);
+              _this31.close();
+              _this31.drawPanel();
+              var last = _this31.game.s.equipment[_this31.game.s.equipment.length - 1];
+              _this31.item(last);
             });
           }, {
             unavailable: function unavailable() {
-              return _this29.game.s.equipment.length >= 100 ? _this29.tr('error.full') : _this29.costReason('shards', _this29.game.craftCost());
+              return _this31.game.s.equipment.length >= 100 ? _this31.tr('error.full') : _this31.costReason('shards', _this31.game.craftCost());
             }
           });
         };
@@ -43529,12 +43866,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.skills = function skills(fresh) {
-          var _this30 = this;
+          var _this32 = this;
           if (fresh === void 0) {
             fresh = true;
           }
           if (fresh && this.tutorial.explain('skills', function () {
-            return _this30.skills();
+            return _this32.skills();
           })) return;
           if (fresh) this.draft = [].concat(this.game.s.skills);
           var s = this.game.s,
@@ -43558,18 +43895,19 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             this.label(group, this.tr("branch." + branch), 0, 69, 114, 24, 16, '#175960');
             var _loop6 = function _loop6(tier) {
               var i = branch * 3 + tier;
-              if (tier < 2) _this30.rect(group, 0, 14 - tier * 45, 2, 14, '#8fbfb5');
-              var unlocked = tier === 0 || _this30.draft[i - 1] >= 3;
-              _this30.button(group, _this30.tr('action.level', {
-                level: _this30.draft[i]
+              if (tier < 2) _this32.rect(group, 0, 14 - tier * 45, 2, 14, '#8fbfb5');
+              var unlocked = tier === 0 || _this32.draft[i - 1] >= 3;
+              _this32.button(group, _this32.tr('action.level', {
+                level: _this32.draft[i]
               }), 0, 36 - tier * 45, 112, 38, function () {
-                return _this30.skillNode(i);
+                return _this32.skillNode(i);
               }, false, {
-                style: _this30.draft[i] > 0 ? 'selected' : unlocked ? 'secondary' : 'disabled',
+                style: _this32.draft[i] > 0 ? 'selected' : unlocked ? 'secondary' : 'disabled',
+                category: 'upgrade',
                 icon: icons[branch],
                 fontSize: 13,
                 unavailable: function unavailable() {
-                  return tier > 0 && _this30.draft[i - 1] < 3 ? _this30.tr('action.previousLevel', {
+                  return tier > 0 && _this32.draft[i - 1] < 3 ? _this32.tr('action.previousLevel', {
                     level: 3
                   }) : null;
                 }
@@ -43580,51 +43918,51 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }
           }
           this.button(p, this.tr('action.revert'), -137, -285, 124, 46, function () {
-            return _this30.skills();
+            return _this32.skills();
           });
           this.button(p, this.tr('action.reset'), 0, -285, 124, 46, function () {
-            _this30.draft = Array(18).fill(0);
-            _this30.skills(false);
+            _this32.draft = Array(18).fill(0);
+            _this32.skills(false);
           });
           this.button(p, this.tr('action.apply'), 137, -285, 124, 46, function () {
-            return _this30.act(function () {
-              return _this30.game.applySkills(_this30.draft, _this30.id('skills'));
+            return _this32.act(function () {
+              return _this32.game.applySkills(_this32.draft, _this32.id('skills'));
             }, function () {
-              return _this30.skills();
+              return _this32.skills();
             });
           }, true, {
             unavailable: function unavailable() {
-              return _this30.skillDraftReason() || (_this30.draft.every(function (l, i) {
-                return l === _this30.game.s.skills[i];
-              }) ? _this30.tr('action.alreadyApplied') : null);
+              return _this32.skillDraftReason() || (_this32.draft.every(function (l, i) {
+                return l === _this32.game.s.skills[i];
+              }) ? _this32.tr('action.alreadyApplied') : null);
             }
           });
         };
         _proto.perks = function perks() {
-          var _this31 = this;
+          var _this33 = this;
           var p = this.open(this.tr('perks.title'), 650);
           this.label(p, this.tr('perks.info'), 0, 242, 370, 50, 16, C.muted);
           this.scroll(p, 0, -25, 400, 450, Array.from({
             length: 6
           }, function (_, i) {
             return {
-              title: _this31.tr('perks.row', {
-                name: _this31.tr("branch." + i),
-                count: _this31.game.s.perks[i]
+              title: _this33.tr('perks.row', {
+                name: _this33.tr("branch." + i),
+                count: _this33.game.s.perks[i]
               }),
-              sub: Date.now() < _this31.game.s.perkUntil[i] ? _this31.tr('action.remaining', {
-                seconds: Math.ceil((_this31.game.s.perkUntil[i] - Date.now()) / 1000)
+              sub: Date.now() < _this33.game.s.perkUntil[i] ? _this33.tr('action.remaining', {
+                seconds: Math.ceil((_this33.game.s.perkUntil[i] - Date.now()) / 1000)
               }) : '',
               unavailable: function unavailable() {
-                return _this31.needReason(_this31.tr("branch." + i), _this31.game.s.perks[i], 1);
+                return _this33.needReason(_this33.tr("branch." + i), _this33.game.s.perks[i], 1);
               },
               icon: i,
-              action: _this31.tr('action.apply'),
+              action: _this33.tr('action.apply'),
               click: function click() {
-                return _this31.act(function () {
-                  return _this31.game.usePerk(i, _this31.id('perk'));
+                return _this33.act(function () {
+                  return _this33.game.usePerk(i, _this33.id('perk'));
                 }, function () {
-                  return _this31.extensions.perks();
+                  return _this33.extensions.perks();
                 });
               }
             };
@@ -43645,74 +43983,74 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.daily = function daily() {
-          var _this32 = this;
+          var _this34 = this;
           var p = this.open(this.tr('daily.title'), 570);
           this.scroll(p, 0, -24, 400, 450, [0, 1, 2, 3].map(function (i) {
             return {
-              title: _this32.tr("daily." + i),
+              title: _this34.tr("daily." + i),
               sub: function sub() {
-                return _this32.tr('daily.progress', {
-                  current: _this32.game.dailyProgress(i),
-                  goal: _this32.game.dailyGoal(i)
+                return _this34.tr('daily.progress', {
+                  current: _this34.game.dailyProgress(i),
+                  goal: _this34.game.dailyGoal(i)
                 });
               },
               unavailable: function unavailable() {
-                return _this32.rewardReason(_this32.tr("daily." + i), _this32.game.dailyProgress(i), _this32.game.dailyGoal(i), _this32.game.s.claims.includes("daily." + i));
+                return _this34.rewardReason(_this34.tr("daily." + i), _this34.game.dailyProgress(i), _this34.game.dailyGoal(i), _this34.game.s.claims.includes("daily." + i));
               },
               icon: i,
               tint: C.mint,
-              action: _this32.tr('action.claim'),
+              action: _this34.tr('action.claim'),
               click: function click() {
-                return _this32.act(function () {
-                  return _this32.game.claimDaily(i);
+                return _this34.act(function () {
+                  return _this34.game.claimDaily(i);
                 }, function () {
-                  return _this32.daily();
+                  return _this34.daily();
                 }, 'reward.done');
               }
             };
           }));
         };
         _proto.milestones = function milestones() {
-          var _this33 = this;
+          var _this35 = this;
           var p = this.open(this.tr('milestone.title'), 630);
           this.scroll(p, 0, -28, 400, 514, [8, 15, 60, 100, 500, 1000, 100000, 180000].map(function (stage) {
             return {
-              title: _this33.tr('hud.stage', {
+              title: _this35.tr('hud.stage', {
                 stage: stage
               }),
-              sub: _this33.tr('milestone.row', {
+              sub: _this35.tr('milestone.row', {
                 stage: stage
               }),
               unavailable: function unavailable() {
-                return _this33.rewardReason(_this33.tr('achievement.2'), _this33.game.s.maxStage, stage, _this33.game.s.claims.includes("milestone." + stage));
+                return _this35.rewardReason(_this35.tr('achievement.2'), _this35.game.s.maxStage, stage, _this35.game.s.claims.includes("milestone." + stage));
               },
-              action: _this33.tr('action.claim'),
+              action: _this35.tr('action.claim'),
               click: function click() {
-                return _this33.act(function () {
-                  return _this33.game.claimMilestone(stage);
+                return _this35.act(function () {
+                  return _this35.game.claimMilestone(stage);
                 }, function () {
-                  return _this33.milestones();
+                  return _this35.milestones();
                 }, 'reward.done');
               }
             };
           }));
         };
         _proto.offline = function offline() {
-          var _this34 = this;
+          var _this36 = this;
           var p = this.open(this.tr('offline.title'), 380);
           this.label(p, this.tr('offline.reward', {
             gold: this.format(this.game.s.offline)
           }), 0, 40, 370, 65, 24, C.gold);
           this.label(p, this.tr('offline.info'), 0, -26, 370, 56, 17, C.muted);
           this.button(p, this.tr('action.claim'), 0, -126, 310, 50, function () {
-            return _this34.act(function () {
-              return _this34.game.collectOffline(_this34.id('offline'));
+            return _this36.act(function () {
+              return _this36.game.collectOffline(_this36.id('offline'));
             }, function () {
-              return _this34.close();
+              return _this36.close();
             }, 'reward.done');
           }, true, {
             unavailable: function unavailable() {
-              return _this34.game.s.offline <= ZERO ? _this34.tr('action.alreadyClaimed') : null;
+              return _this36.game.s.offline <= ZERO ? _this36.tr('action.alreadyClaimed') : null;
             }
           });
         };
@@ -43733,18 +44071,18 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.settings = function settings() {
-          var _this35 = this;
+          var _this37 = this;
           var p = this.open(this.tr('menu.settings'), 700);
           this.label(p, this.tr('settings.language'), 0, 239, 340, 30, 16, '#38696b');
           var language = function language(locale) {
-            _this35.game.s.locale = locale;
-            _this35.game.persist();
-            if (_this35.liveOps.push.supported && _this35.liveOps.push.choice === 'on') void _this35.liveOps.push.set(true, locale)["catch"](function (e) {
-              return _this35.operations.report('push.locale', e);
+            _this37.game.s.locale = locale;
+            _this37.game.persist();
+            if (_this37.liveOps.push.supported && _this37.liveOps.push.choice === 'on') void _this37.liveOps.push.set(true, locale)["catch"](function (e) {
+              return _this37.operations.report('push.locale', e);
             });
-            _this35.close();
-            _this35.draw();
-            _this35.settings();
+            _this37.close();
+            _this37.draw();
+            _this37.settings();
           };
           this.button(p, this.tr('locale.ko'), -94, 192, 175, 46, function () {
             return language('ko');
@@ -43759,54 +44097,54 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.button(p, this.tr('settings.audio', {
             state: this.tr(this.game.s.audio ? 'settings.on' : 'settings.off')
           }), 0, 120, 365, 48, function () {
-            _this35.game.s.audio = !_this35.game.s.audio;
-            _this35.game.persist();
-            _this35.settings();
+            _this37.game.s.audio = !_this37.game.s.audio;
+            _this37.game.persist();
+            _this37.settings();
           }, false, {
             icon: 'heart'
           });
           this.button(p, this.tr('settings.saveButton'), 0, 57, 365, 48, function () {
-            if (_this35.game.persist()) void _this35.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
+            if (_this37.game.persist()) void _this37.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
               return _regeneratorRuntime().wrap(function _callee2$(_context2) {
                 while (1) switch (_context2.prev = _context2.next) {
                   case 0:
                     _context2.next = 2;
-                    return _this35.operations.save();
+                    return _this37.operations.save();
                   case 2:
-                    _this35.toast(_this35.tr('settings.save'));
+                    _this37.toast(_this37.tr('settings.save'));
                   case 3:
                   case "end":
                     return _context2.stop();
                 }
               }, _callee2);
-            })));else _this35.flushNotice();
+            })));else _this37.flushNotice();
           }, true, {
             icon: 'scroll'
           });
           this.button(p, this.tr('live.17'), 0, -6, 365, 46, function () {
-            return _this35.liveOps.hub();
+            return _this37.liveOps.hub();
           }, false, {
             icon: 'mail'
           });
           this.button(p, this.tr('tutorial.replay'), 0, -66, 365, 38, function () {
-            return _this35.confirm(_this35.tr('tutorial.replay'), _this35.tr('tutorial.replayBody'), function () {
-              replayTutorial(_this35.game.s);
-              _this35.tutorial.resetSessionGuides();
-              _this35.game.revision++;
-              _this35.game.persist();
-              void _this35.operations.save()["catch"](function (e) {
-                return _this35.operations.report('tutorial.replay', e);
+            return _this37.confirm(_this37.tr('tutorial.replay'), _this37.tr('tutorial.replayBody'), function () {
+              replayTutorial(_this37.game.s);
+              _this37.tutorial.resetSessionGuides();
+              _this37.game.revision++;
+              _this37.game.persist();
+              void _this37.operations.save()["catch"](function (e) {
+                return _this37.operations.report('tutorial.replay', e);
               });
-              _this35.tab = 0;
-              _this35.folded = false;
-              _this35.draw();
+              _this37.tab = 0;
+              _this37.folded = false;
+              _this37.draw();
             });
           }, false, {
             style: 'quiet',
             fontSize: 14
           });
           this.button(p, this.tr('cheat.title'), 0, -120, 365, 38, function () {
-            return _this35.cheats.open();
+            return _this37.cheats.open();
           }, false, {
             style: 'quiet',
             icon: 'settings',
@@ -43814,7 +44152,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           });
           resources.load('branding/tt-softs-ci/texture', Texture2D, function (err, texture) {
             if (err || !p.isValid) return;
-            var n = _this35.nodeAt(p, 'company-ci', 0, -188, 120, 120 * texture.height / texture.width),
+            var n = _this37.nodeAt(p, 'company-ci', 0, -188, 120, 120 * texture.height / texture.width),
               sp = n.addComponent(Sprite),
               frame = new SpriteFrame();
             frame.texture = texture;
@@ -43823,26 +44161,26 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             n.getComponent(UITransform).setContentSize(120, 120 * texture.height / texture.width);
           });
           this.button(p, this.tr('complete.display'), -124, -270, 116, 68, function () {
-            return _this35.extensions.displaySettings();
+            return _this37.extensions.displaySettings();
           }, false, {
             style: 'quiet',
             icon: 'settings'
           });
           this.button(p, this.tr('complete.account'), 0, -270, 116, 68, function () {
-            return _this35.extensions.account();
+            return _this37.extensions.account();
           }, false, {
             style: 'quiet',
             icon: 'adventurer'
           });
           this.button(p, this.tr('complete.support'), 124, -270, 116, 68, function () {
-            return _this35.extensions.support();
+            return _this37.extensions.support();
           }, false, {
             style: 'quiet',
             icon: 'mail'
           });
         };
         _proto.cards = function cards() {
-          var _this36 = this;
+          var _this38 = this;
           var s = this.game.s,
             p = this.open(this.tr('menu.cards'), 720);
           this.label(p, this.tr('raid.deck', {
@@ -43855,28 +44193,28 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }), 0, 225, 385, 26, 15, C.gold);
           this.scroll(p, 0, -25, 400, 450, CARDS.map(function (c) {
             return {
-              title: _this36.tr(c.name),
-              sub: _this36.tr('raid.card', {
+              title: _this38.tr(c.name),
+              sub: _this38.tr('raid.card', {
                 level: s.cards[c.id],
                 fragments: s.fragments[c.id]
               }),
               icon: c.id,
               tint: [C.ember, C.violet, C.mint][c.type],
-              action: _this36.tr('action.details'),
+              action: _this38.tr('action.details'),
               click: function click() {
-                return _this36.cardDetail(c.id);
+                return _this38.cardDetail(c.id);
               }
             };
           }));
           this.button(p, this.tr('extra.dustShop'), -101, -306, 190, 44, function () {
-            return _this36.extensions.dustShop();
+            return _this38.extensions.dustShop();
           });
           this.button(p, this.tr('extra.crystal'), 101, -306, 190, 44, function () {
-            return _this36.extensions.crystal();
+            return _this38.extensions.crystal();
           });
         };
         _proto.cardDetail = function cardDetail(i) {
-          var _this37 = this;
+          var _this39 = this;
           var s = this.game.s,
             p = this.open(this.tr("card." + i), 570);
           this.label(p, this.tr('complete.cardProc.' + i % 3), 0, 170, 370, 85, 18);
@@ -43885,30 +44223,30 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             fragments: s.fragments[i]
           }), 0, 70, 360, 60, 22);
           this.button(p, this.tr(s.deck.includes(i) ? 'action.selected' : 'action.select'), 0, 0, 360, 48, function () {
-            _this37.game.setDeck(i);
-            _this37.cards();
+            _this39.game.setDeck(i);
+            _this39.cards();
           }, true, {
             unavailable: function unavailable() {
-              return _this37.raidChangeReason() || (_this37.game.s.deck.includes(i) ? _this37.tr('action.alreadyApplied') : null);
+              return _this39.raidChangeReason() || (_this39.game.s.deck.includes(i) ? _this39.tr('action.alreadyApplied') : null);
             }
           });
           this.button(p, this.tr('raid.upgrade', {
             cost: s.cards[i] * 10
           }), 0, -73, 360, 48, function () {
-            return _this37.act(function () {
-              return _this37.game.upgradeCard(i, _this37.id('card'));
+            return _this39.act(function () {
+              return _this39.game.upgradeCard(i, _this39.id('card'));
             }, function () {
-              return _this37.cardDetail(i);
+              return _this39.cardDetail(i);
             });
           }, true, {
             unavailable: function unavailable() {
-              return _this37.raidChangeReason() || _this37.costReason('dust', s.cards[i] * 10) || _this37.needReason(_this37.tr('feedback.fragments', {
+              return _this39.raidChangeReason() || _this39.costReason('dust', s.cards[i] * 10) || _this39.needReason(_this39.tr('feedback.fragments', {
                 index: i + 1
               }), s.fragments[i], s.cards[i]);
             }
           });
           this.button(p, this.tr('action.back'), 0, -192, 360, 44, function () {
-            return _this37.cards();
+            return _this39.cards();
           });
         };
         _proto.format = function format(value) {
@@ -43918,7 +44256,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.extensions.solo();
         };
         _proto.raidView = function raidView() {
-          var _this38 = this;
+          var _this40 = this;
           var p = this.open(this.tr('raid.title'), 700),
             r = this.game.raid;
           var status = this.label(p, '', 0, 266, 375, 32, 20, C.gold);
@@ -43926,41 +44264,41 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var _loop7 = function _loop7(i) {
             var x = i % 2 ? -94 : 94,
               y = 178 - Math.floor(i / 2) * 88;
-            var b = _this38.button(p, '', x, y, 170, 70, function () {
-              _this38.game.raidTap(i);
-              _this38.sound(170 + i * 30);
+            var b = _this40.button(p, '', x, y, 170, 70, function () {
+              _this40.game.raidTap(i);
+              _this40.sound(170 + i * 30);
             }, false, {
               unavailable: function unavailable() {
-                return r.ended ? _this38.tr('action.battleEnded') : r.hp[i] <= 0 ? _this38.tr('action.targetDefeated') : null;
+                return r.ended ? _this40.tr('action.battleEnded') : r.hp[i] <= 0 ? _this40.tr('action.targetDefeated') : null;
               }
             });
-            parts.push(_this38.label(b, '', 0, 0, 156, 61, 16, C.text));
+            parts.push(_this40.label(b, '', 0, 0, 156, 61, 16, C.text));
           };
           for (var i = 0; i < 8; i++) {
             _loop7(i);
           }
           var done = this.button(p, this.tr('action.claim'), 0, -243, 365, 51, function () {
             if (!r.ended) return;
-            _this38.act(function () {
-              return _this38.game.claimRaid(_this38.id('raid'));
+            _this40.act(function () {
+              return _this40.game.claimRaid(_this40.id('raid'));
             }, function () {
-              return _this38.info(_this38.tr('raid.result'), _this38.tr('raid.reward', {
+              return _this40.info(_this40.tr('raid.result'), _this40.tr('raid.reward', {
                 damage: display(r.damage),
                 dust: Math.floor(r.damage / 100)
               }));
             });
           }, true, {
             unavailable: function unavailable() {
-              return r.claimed ? _this38.tr('action.alreadyClaimed') : !r.ended ? _this38.tr('action.battleRunning') : null;
+              return r.claimed ? _this40.tr('action.alreadyClaimed') : !r.ended ? _this40.tr('action.battleRunning') : null;
             }
           });
           this.modalRefresh = function () {
-            status.string = _this38.tr('raid.damage', {
+            status.string = _this40.tr('raid.damage', {
               damage: display(r.damage),
               seconds: Math.ceil(r.seconds)
             });
             parts.forEach(function (l, i) {
-              return l.string = _this38.tr('raid.part', {
+              return l.string = _this40.tr('raid.part', {
                 part: i + 1
               }) + '\n' + display(r.hp[i] + r.armor[i]);
             });
@@ -43969,60 +44307,60 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.modalRefresh();
         };
         _proto.events = function events() {
-          var _this39 = this;
+          var _this41 = this;
           var p = this.open(this.tr('event.title'), 670);
           this.label(p, this.tr('event.balance', {
             tokens: this.game.s.eventTokens
           }), 0, 246, 380, 35, 22, C.gold);
           this.label(p, this.tr('event.rule'), 0, 158, 380, 116, 17, C.muted);
           this.button(p, this.tr('event.board'), -99, 57, 182, 50, function () {
-            return _this39.board();
+            return _this41.board();
           });
           this.button(p, this.tr('extra.eventModes'), 99, 57, 182, 50, function () {
-            return _this39.extensions.eventHub();
+            return _this41.extensions.eventHub();
           });
           this.scroll(p, 0, -140, 400, 270, Array.from({
             length: 10
           }, function (_, i) {
             return {
-              title: _this39.tr('event.reward', {
+              title: _this41.tr('event.reward', {
                 tokens: (i + 1) * 100
               }),
               unavailable: function unavailable() {
-                return _this39.rewardReason(_this39.tr('feedback.eventTokens'), Math.max(_this39.game.s.extra.eventEarned, _this39.game.s.eventTokens), (i + 1) * 100, _this39.game.s.claims.includes("event." + i));
+                return _this41.rewardReason(_this41.tr('feedback.eventTokens'), Math.max(_this41.game.s.extra.eventEarned, _this41.game.s.eventTokens), (i + 1) * 100, _this41.game.s.claims.includes("event." + i));
               },
-              action: _this39.tr('action.claim'),
+              action: _this41.tr('action.claim'),
               click: function click() {
-                return _this39.act(function () {
-                  return _this39.game.claimEvent(i);
+                return _this41.act(function () {
+                  return _this41.game.claimEvent(i);
                 }, function () {
-                  return _this39.events();
+                  return _this41.events();
                 }, 'reward.done');
               }
             };
           }));
         };
         _proto.board = function board() {
-          var _this40 = this;
+          var _this42 = this;
           var p = this.open(this.tr('event.board'), 610);
           this.label(p, this.tr('event.balance', {
             tokens: this.game.s.eventTokens
           }), 0, 215, 375, 40, 20, C.gold);
           var _loop8 = function _loop8(i) {
-            var v = _this40.game.s.board[i];
-            _this40.button(p, v ? _this40.tr('event.found', {
+            var v = _this42.game.s.board[i];
+            _this42.button(p, v ? _this42.tr('event.found', {
               gems: v * 5
-            }) : _this40.tr('event.tile', {
+            }) : _this42.tr('event.tile', {
               index: i + 1
             }), -147 + i % 4 * 98, 123 - Math.floor(i / 4) * 85, 88, 70, function () {
-              return _this40.act(function () {
-                return _this40.game.revealTile(i, _this40.id('tile'));
+              return _this42.act(function () {
+                return _this42.game.revealTile(i, _this42.id('tile'));
               }, function () {
-                return _this40.board();
+                return _this42.board();
               });
             }, !!v, {
               unavailable: function unavailable() {
-                return _this40.game.s.board[i] ? _this40.tr('action.alreadyClaimed') : _this40.costReason('eventTokens', 20);
+                return _this42.game.s.board[i] ? _this42.tr('action.alreadyClaimed') : _this42.costReason('eventTokens', 20);
               }
             });
           };
@@ -44030,26 +44368,26 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             _loop8(i);
           }
           this.button(p, this.tr('action.back'), 0, -244, 365, 43, function () {
-            return _this40.events();
+            return _this42.events();
           });
         };
         _proto.meta = function meta() {
-          var _this41 = this;
+          var _this43 = this;
           var p = this.open(this.tr('meta.title'), 540);
           [['meta.souls', function () {
-            return _this41.extensions.souls();
+            return _this43.extensions.souls();
           }], ['meta.gems', function () {
-            return _this41.extensions.gems();
+            return _this43.extensions.gems();
           }], ['meta.research', function () {
-            return _this41.research();
+            return _this43.research();
           }], ['meta.monuments', function () {
-            return _this41.extensions.monuments();
+            return _this43.extensions.monuments();
           }]].forEach(function (v, i) {
-            return _this41.button(p, _this41.tr(v[0]), 0, 139 - i * 91, 372, 70, v[1]);
+            return _this43.button(p, _this43.tr(v[0]), 0, 139 - i * 91, 372, 70, v[1]);
           });
         };
         _proto.souls = function souls() {
-          var _this42 = this;
+          var _this44 = this;
           var s = this.game.s,
             p = this.open(this.tr('meta.souls'), 440);
           this.label(p, this.tr('meta.soulInfo', {
@@ -44057,19 +44395,19 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             count: s.titans.filter(Boolean).length
           }), 0, 60, 380, 160, 20);
           this.button(p, this.tr('meta.summon'), 0, -105, 370, 55, function () {
-            return _this42.act(function () {
-              return _this42.game.summon(_this42.id('summon'));
+            return _this44.act(function () {
+              return _this44.game.summon(_this44.id('summon'));
             }, function () {
-              return _this42.souls();
+              return _this44.souls();
             });
           }, true, {
             unavailable: function unavailable() {
-              return _this42.extensions.summonReason(1);
+              return _this44.extensions.summonReason(1);
             }
           });
         };
         _proto.stones = function stones() {
-          var _this43 = this;
+          var _this45 = this;
           var s = this.game.s,
             p = this.open(this.tr('meta.gems'), 680);
           this.label(p, this.tr('meta.gemInfo', {
@@ -44077,19 +44415,19 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             count: s.stones.filter(Boolean).length
           }), 0, 251, 375, 42, 19, C.gold);
           this.button(p, this.tr('meta.crack'), 0, 190, 375, 46, function () {
-            return _this43.act(function () {
-              return _this43.game.crack(_this43.id('geode'));
+            return _this45.act(function () {
+              return _this45.game.crack(_this45.id('geode'));
             }, function () {
-              return _this43.stones();
+              return _this45.stones();
             });
           }, true, {
             unavailable: function unavailable() {
-              return _this43.costReason('geodes', 1);
+              return _this45.costReason('geodes', 1);
             }
           });
           this.scroll(p, 0, -74, 400, 440, s.stones.map(function (level, i) {
             return {
-              title: _this43.tr('meta.stone', {
+              title: _this45.tr('meta.stone', {
                 index: i + 1,
                 level: level
               }),
@@ -44099,35 +44437,35 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.research = function research() {
-          var _this44 = this;
+          var _this46 = this;
           var s = this.game.s,
             p = this.open(this.tr('meta.research'), 650);
           this.scroll(p, 0, -25, 400, 520, s.research.map(function (level, i) {
             return {
-              title: _this44.tr('meta.researchNode', {
+              title: _this46.tr('meta.researchNode', {
                 index: i + 1,
                 level: level
               }),
               unavailable: function unavailable() {
-                return i % 3 && _this44.game.s.research[i - 1] < 3 ? _this44.tr('action.previousLevel', {
+                return i % 3 && _this46.game.s.research[i - 1] < 3 ? _this46.tr('action.previousLevel', {
                   level: 3
-                }) : _this44.needReason(_this44.tr('extra.researchCurrency'), Math.floor(_this44.game.s.extra.summonCount / 5) - _this44.game.s.research.reduce(function (a, b) {
+                }) : _this46.needReason(_this46.tr('extra.researchCurrency'), Math.floor(_this46.game.s.extra.summonCount / 5) - _this46.game.s.research.reduce(function (a, b) {
                   return a + b;
                 }, 0), 1);
               },
-              action: _this44.tr('action.upgrade'),
+              action: _this46.tr('action.upgrade'),
               click: function click() {
-                return _this44.act(function () {
-                  return _this44.game.upgradeResearch(i, _this44.id('research'));
+                return _this46.act(function () {
+                  return _this46.game.upgradeResearch(i, _this46.id('research'));
                 }, function () {
-                  return _this44.research();
+                  return _this46.research();
                 });
               }
             };
           }));
         };
         _proto.monuments = function monuments() {
-          var _this45 = this;
+          var _this47 = this;
           var s = this.game.s,
             p = this.open(this.tr('meta.monuments'), 670);
           this.label(p, this.tr('meta.monumentInfo', {
@@ -44135,22 +44473,22 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }), 0, 225, 380, 80, 19, C.gold);
           this.scroll(p, 0, -66, 400, 460, s.monuments.map(function (level, i) {
             return {
-              title: _this45.tr('meta.monument', {
+              title: _this47.tr('meta.monument', {
                 index: i + 1,
                 level: level
               }),
               unavailable: function unavailable() {
-                return _this45.game.s.maxStage < 180000 ? _this45.tr('hero.locked', {
+                return _this47.game.s.maxStage < 180000 ? _this47.tr('hero.locked', {
                   stage: 180000
-                }) : _this45.costReason('mementos', Math.log10(Math.pow(2, i) * (_this45.game.s.monuments[i] + 1)));
+                }) : _this47.costReason('mementos', Math.log10(Math.pow(2, i) * (_this47.game.s.monuments[i] + 1)));
               },
-              action: _this45.tr('action.upgrade'),
+              action: _this47.tr('action.upgrade'),
               icon: i,
               click: function click() {
-                return _this45.act(function () {
-                  return _this45.game.monument(i, _this45.id('monument'));
+                return _this47.act(function () {
+                  return _this47.game.monument(i, _this47.id('monument'));
                 }, function () {
-                  return _this45.monuments();
+                  return _this47.monuments();
                 });
               }
             };
@@ -44159,7 +44497,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         _proto.remote = /*#__PURE__*/function () {
           var _remote = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(work) {
             var _this$tutorial5,
-              _this46 = this;
+              _this48 = this;
             var firstUseKey, before, _this$operations3, key;
             return _regeneratorRuntime().wrap(function _callee3$(_context3) {
               while (1) switch (_context3.prev = _context3.next) {
@@ -44187,7 +44525,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                   key = _context3.t0.message;
                   if (key === 'online.unreachable') {
                     this.confirm(this.tr('extra.retry'), this.tr(key), function () {
-                      void _this46.remote(work);
+                      void _this48.remote(work);
                     });
                   } else this.toast(this.tr(key.startsWith('online.') || key.startsWith('error.') || key.startsWith('extra.') ? key : 'online.serverError'));
                 case 16:
@@ -44223,14 +44561,14 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           return field;
         };
         _proto.guild = function guild() {
-          var _this47 = this;
+          var _this49 = this;
           void this.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
             var boot, guilds, _p, name, data, p, message;
             return _regeneratorRuntime().wrap(function _callee7$(_context7) {
               while (1) switch (_context7.prev = _context7.next) {
                 case 0:
                   _context7.next = 2;
-                  return _this47.onlineService.connect(_this47.tr('online.defaultName'));
+                  return _this49.onlineService.connect(_this49.tr('online.defaultName'));
                 case 2:
                   boot = _context7.sent;
                   if (boot.membership) {
@@ -44238,25 +44576,25 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                     break;
                   }
                   _context7.next = 6;
-                  return _this47.onlineService.request('/guilds');
+                  return _this49.onlineService.request('/guilds');
                 case 6:
                   guilds = _context7.sent;
-                  _p = _this47.open(_this47.tr('menu.clan'), 690);
-                  name = _this47.edit(_p, 0, 230, 375, 48, _this47.tr('online.guildName'));
+                  _p = _this49.open(_this49.tr('menu.clan'), 690);
+                  name = _this49.edit(_p, 0, 230, 375, 48, _this49.tr('online.guildName'));
                   name.maxLength = 24;
-                  _this47.button(_p, _this47.tr('online.create'), 0, 163, 375, 46, function () {
+                  _this49.button(_p, _this49.tr('online.create'), 0, 163, 375, 46, function () {
                     var value = name.string;
-                    void _this47.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+                    void _this49.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
                       return _regeneratorRuntime().wrap(function _callee4$(_context4) {
                         while (1) switch (_context4.prev = _context4.next) {
                           case 0:
                             _context4.next = 2;
-                            return _this47.onlineService.command('/guild/create', {
+                            return _this49.onlineService.command('/guild/create', {
                               name: value
                             });
                           case 2:
-                            _this47.remoteBusy = false;
-                            _this47.guild();
+                            _this49.remoteBusy = false;
+                            _this49.guild();
                           case 4:
                           case "end":
                             return _context4.stop();
@@ -44265,63 +44603,63 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                     })));
                   }, true, {
                     unavailable: function unavailable() {
-                      return _this47.textReason(name.string, 2, 24);
+                      return _this49.textReason(name.string, 2, 24);
                     }
                   });
-                  _this47.scroll(_p, 0, -80, 400, 400, guilds.map(function (g) {
+                  _this49.scroll(_p, 0, -80, 400, 400, guilds.map(function (g) {
                     return {
                       title: g.name,
-                      sub: _this47.tr('online.members', {
+                      sub: _this49.tr('online.members', {
                         count: g.members
                       }),
                       unavailable: function unavailable() {
-                        return g.members >= 50 ? _this47.tr('online.full') : null;
+                        return g.members >= 50 ? _this49.tr('online.full') : null;
                       },
-                      action: _this47.tr('online.join'),
+                      action: _this49.tr('online.join'),
                       click: function click() {
-                        return _this47.extensions.joinGuild(g.id, g.name);
+                        return _this49.extensions.joinGuild(g.id, g.name);
                       }
                     };
                   }));
                   return _context7.abrupt("return");
                 case 13:
                   _context7.next = 15;
-                  return _this47.onlineService.request('/guild');
+                  return _this49.onlineService.request('/guild');
                 case 15:
                   data = _context7.sent;
-                  p = _this47.open(data.guild.name, 710);
-                  _this47.label(p, _this47.tr('online.members', {
+                  p = _this49.open(data.guild.name, 710);
+                  _this49.label(p, _this49.tr('online.members', {
                     count: data.members.length
                   }), -60, 271, 250, 30, 18, C.gold);
-                  _this47.button(p, '⋯', 164, 271, 55, 34, function () {
-                    return _this47.extensions.guildTools();
+                  _this49.button(p, '⋯', 164, 271, 55, 34, function () {
+                    return _this49.extensions.guildTools();
                   });
-                  _this47.button(p, _this47.tr('online.roster'), -101, 221, 185, 43, function () {
-                    return _this47.guildMembers(data);
+                  _this49.button(p, _this49.tr('online.roster'), -101, 221, 185, 43, function () {
+                    return _this49.guildMembers(data);
                   });
-                  _this47.button(p, _this47.tr('online.guildRaid'), 101, 221, 185, 43, function () {
-                    return _this47.guildRaid(data);
+                  _this49.button(p, _this49.tr('online.guildRaid'), 101, 221, 185, 43, function () {
+                    return _this49.guildRaid(data);
                   });
-                  _this47.scroll(p, 0, 10, 400, 355, data.messages.map(function (m) {
+                  _this49.scroll(p, 0, 10, 400, 355, data.messages.map(function (m) {
                     return {
                       title: m.name,
-                      sub: /^\[sticker:[0-5]\]$/.test(m.body) ? _this47.tr('extra.sticker.' + m.body[9]) : m.body
+                      sub: /^\[sticker:[0-5]\]$/.test(m.body) ? _this49.tr('extra.sticker.' + m.body[9]) : m.body
                     };
                   }));
-                  message = _this47.edit(p, -35, -216, 303, 46, _this47.tr('online.message'));
-                  _this47.button(p, _this47.tr('online.send'), 161, -216, 70, 46, function () {
+                  message = _this49.edit(p, -35, -216, 303, 46, _this49.tr('online.message'));
+                  _this49.button(p, _this49.tr('online.send'), 161, -216, 70, 46, function () {
                     var value = message.string;
-                    void _this47.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+                    void _this49.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
                       return _regeneratorRuntime().wrap(function _callee5$(_context5) {
                         while (1) switch (_context5.prev = _context5.next) {
                           case 0:
                             _context5.next = 2;
-                            return _this47.onlineService.command('/guild/chat', {
+                            return _this49.onlineService.command('/guild/chat', {
                               body: value
                             });
                           case 2:
-                            _this47.remoteBusy = false;
-                            _this47.guild();
+                            _this49.remoteBusy = false;
+                            _this49.guild();
                           case 4:
                           case "end":
                             return _context5.stop();
@@ -44330,23 +44668,23 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                     })));
                   }, true, {
                     unavailable: function unavailable() {
-                      return _this47.textReason(message.string, 1, 240);
+                      return _this49.textReason(message.string, 1, 240);
                     }
                   });
-                  _this47.button(p, _this47.tr('online.refresh'), -101, -281, 185, 44, function () {
-                    return _this47.guild();
+                  _this49.button(p, _this49.tr('online.refresh'), -101, -281, 185, 44, function () {
+                    return _this49.guild();
                   });
-                  _this47.button(p, _this47.tr('online.leave'), 101, -281, 185, 44, function () {
-                    return _this47.confirm(_this47.tr('online.leave'), _this47.tr('online.leaveConfirm'), function () {
-                      void _this47.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+                  _this49.button(p, _this49.tr('online.leave'), 101, -281, 185, 44, function () {
+                    return _this49.confirm(_this49.tr('online.leave'), _this49.tr('online.leaveConfirm'), function () {
+                      void _this49.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
                         return _regeneratorRuntime().wrap(function _callee6$(_context6) {
                           while (1) switch (_context6.prev = _context6.next) {
                             case 0:
                               _context6.next = 2;
-                              return _this47.onlineService.command('/guild/leave');
+                              return _this49.onlineService.command('/guild/leave');
                             case 2:
-                              _this47.remoteBusy = false;
-                              _this47.guild();
+                              _this49.remoteBusy = false;
+                              _this49.guild();
                             case 4:
                             case "end":
                               return _context6.stop();
@@ -44356,7 +44694,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                     });
                   }, false, {
                     unavailable: function unavailable() {
-                      return data.role === 'leader' && data.members.length > 1 ? _this47.tr('online.transferFirst') : null;
+                      return data.role === 'leader' && data.members.length > 1 ? _this49.tr('online.transferFirst') : null;
                     }
                   });
                 case 26:
@@ -44367,34 +44705,34 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           })));
         };
         _proto.guildMembers = function guildMembers(data) {
-          var _this48 = this;
+          var _this50 = this;
           var p = this.open(this.tr('online.roster'), 650);
           this.scroll(p, 0, -28, 400, 520, data.members.map(function (m) {
             return {
               title: m.name,
               detail: function detail() {
-                return _this48.extensions.member(m.id);
+                return _this50.extensions.member(m.id);
               },
-              sub: _this48.tr(m.role === 'leader' ? 'online.leader' : 'online.member'),
-              action: data.role === 'leader' && m.id !== _this48.onlineService.accountId ? _this48.tr('action.details') : undefined,
+              sub: _this50.tr(m.role === 'leader' ? 'online.leader' : 'online.member'),
+              action: data.role === 'leader' && m.id !== _this50.onlineService.accountId ? _this50.tr('action.details') : undefined,
               click: function click() {
-                if (data.role !== 'leader' || m.id === _this48.onlineService.accountId) return;
-                var box = _this48.open(m.name, 350);
+                if (data.role !== 'leader' || m.id === _this50.onlineService.accountId) return;
+                var box = _this50.open(m.name, 350);
                 ['transfer', 'kick'].forEach(function (action, i) {
-                  return _this48.button(box, _this48.tr("online." + action), 0, 30 - i * 86, 360, 55, function () {
-                    return _this48.confirm(_this48.tr("online." + action), m.name, function () {
-                      void _this48.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
+                  return _this50.button(box, _this50.tr("online." + action), 0, 30 - i * 86, 360, 55, function () {
+                    return _this50.confirm(_this50.tr("online." + action), m.name, function () {
+                      void _this50.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
                         return _regeneratorRuntime().wrap(function _callee8$(_context8) {
                           while (1) switch (_context8.prev = _context8.next) {
                             case 0:
                               _context8.next = 2;
-                              return _this48.onlineService.command('/guild/role', {
+                              return _this50.onlineService.command('/guild/role', {
                                 target: m.id,
                                 action: action
                               });
                             case 2:
-                              _this48.remoteBusy = false;
-                              _this48.guild();
+                              _this50.remoteBusy = false;
+                              _this50.guild();
                             case 4:
                             case "end":
                               return _context8.stop();
@@ -44409,17 +44747,17 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }));
         };
         _proto.guildRaid = function guildRaid(data) {
-          var _this49 = this;
+          var _this51 = this;
           var p = this.open(this.tr('online.guildRaid'), 440);
           this.label(p, this.tr('online.guildHP', {
             hp: display(data.guild.raid_hp)
           }), 0, 90, 380, 60, 24, C.ember);
           this.label(p, this.tr('online.guildRaidInfo'), 0, 9, 380, 90, 18, C.muted);
           this.button(p, this.tr('action.attack'), 0, -124, 370, 55, function () {
-            _this49.extensions.guildBattle();
+            _this51.extensions.guildBattle();
           }, true, {
             unavailable: function unavailable() {
-              return data.guild.raid_hp <= 0 ? _this49.tr('online.raidComplete') : null;
+              return data.guild.raid_hp <= 0 ? _this51.tr('online.raidComplete') : null;
             }
           });
         };
@@ -44427,7 +44765,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.extensions.tournaments();
         };
         _proto.competitionBattle = function competitionBattle(state) {
-          var _this50 = this;
+          var _this52 = this;
           var p = this.open(this.tr(this.competitionId < 0 ? 'complete.regular' : 'online.abyss'), 680);
           this.label(p, this.tr('hud.stage', {
             stage: state.run.stage
@@ -44440,20 +44778,20 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             if (hero === void 0) {
               hero = -1;
             }
-            void _this50.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
+            void _this52.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
               var result;
               return _regeneratorRuntime().wrap(function _callee9$(_context9) {
                 while (1) switch (_context9.prev = _context9.next) {
                   case 0:
                     _context9.next = 2;
-                    return _this50.onlineService.command('/competition/action', {
-                      id: _this50.competitionId,
+                    return _this52.onlineService.command('/competition/action', {
+                      id: _this52.competitionId,
                       action: action,
                       hero: hero
                     });
                   case 2:
                     result = _context9.sent;
-                    _this50.competitionBattle(result.state);
+                    _this52.competitionBattle(result.state);
                   case 4:
                   case "end":
                     return _context9.stop();
@@ -44465,26 +44803,26 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return command('tap');
           }, true, {
             unavailable: function unavailable() {
-              return _this50.competitionReason(state);
+              return _this52.competitionReason(state);
             }
           });
           this.button(p, this.tr('competition.chest', {
             currency: this.tr('feedback.gems')
           }), 0, -203, 375, 44, function () {
-            return _this50.confirm(_this50.tr('competition.chest', {
-              currency: _this50.tr('feedback.gems')
-            }), _this50.tr('shop.confirm', {
+            return _this52.confirm(_this52.tr('competition.chest', {
+              currency: _this52.tr('feedback.gems')
+            }), _this52.tr('shop.confirm', {
               cost: 100
             }), function () {
               return command('shop');
             }, {
               unavailable: function unavailable() {
-                return _this50.competitionReason(state, undefined, true);
+                return _this52.competitionReason(state, undefined, true);
               }
             });
           }, false, {
             unavailable: function unavailable() {
-              return _this50.competitionReason(state, undefined, true);
+              return _this52.competitionReason(state, undefined, true);
             }
           });
           this.button(p, this.tr('online.upgradeMaster', {
@@ -44493,38 +44831,38 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return command('upgrade');
           }, false, {
             unavailable: function unavailable() {
-              return _this50.competitionReason(state, -1);
+              return _this52.competitionReason(state, -1);
             }
           });
           this.button(p, this.tr('nav.heroes'), -100, -140, 180, 50, function () {
             return command('upgrade', 0);
           }, false, {
             unavailable: function unavailable() {
-              return _this50.competitionReason(state, 0);
+              return _this52.competitionReason(state, 0);
             }
           });
           this.button(p, this.tr(state.run.boss ? 'battle.leave' : 'battle.fight'), 100, -140, 180, 50, function () {
             return command('boss');
           }, false, {
             unavailable: function unavailable() {
-              return _this50.competitionReason(state);
+              return _this52.competitionReason(state);
             }
           });
           this.button(p, this.tr('online.backMain'), 0, -270, 375, 50, function () {
-            _this50.close();
-            _this50.drawPanel();
+            _this52.close();
+            _this52.drawPanel();
           });
         };
         _proto.spells = function spells(slot) {
-          var _this51 = this;
+          var _this53 = this;
           if (slot === void 0) {
             slot = 0;
           }
           var s = this.game.s,
             p = this.open(this.tr('spell.title'), 715);
           var _loop9 = function _loop9(j) {
-            _this51.button(p, String(j + 1), -165 + j * 66, 260, 60, 40, function () {
-              return _this51.spells(j);
+            _this53.button(p, String(j + 1), -165 + j * 66, 260, 60, 40, function () {
+              return _this53.spells(j);
             }, j === slot);
           };
           for (var j = 0; j < 6; j++) {
@@ -44538,50 +44876,50 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }).map(function (c) {
             return {
               locked: s.run.master < c.unlock,
-              title: _this51.tr("spell." + c.id),
-              sub: _this51.tr('spell.detail', {
+              title: _this53.tr("spell." + c.id),
+              sub: _this53.tr('spell.detail', {
                 level: s.run.spellLevels[c.id],
                 unlock: c.unlock,
-                mana: _this51.game.spellMana(c.id)
+                mana: _this53.game.spellMana(c.id)
               }),
               icon: c.id,
               tint: C.violet,
-              action: _this51.tr(s.spellSlots.includes(c.id) ? 'action.details' : 'action.select'),
+              action: _this53.tr(s.spellSlots.includes(c.id) ? 'action.details' : 'action.select'),
               click: function click() {
                 if (s.spellSlots.includes(c.id)) {
-                  var box = _this51.open(_this51.tr("spell." + c.id), 400);
-                  _this51.label(box, _this51.tr('spell.detail', {
+                  var box = _this53.open(_this53.tr("spell." + c.id), 400);
+                  _this53.label(box, _this53.tr('spell.detail', {
                     level: s.run.spellLevels[c.id],
                     unlock: c.unlock,
-                    mana: _this51.game.spellMana(c.id)
+                    mana: _this53.game.spellMana(c.id)
                   }), 0, 70, 375, 70, 20);
-                  _this51.label(box, _this51.tr('spell.multicast'), 0, 0, 375, 60, 16, C.muted);
-                  _this51.button(box, _this51.tr('action.upgrade'), 0, -106, 360, 50, function () {
-                    if (_this51.game.upgradeSpell(c.id)) {
-                      _this51.close();
-                      _this51.drawPanel();
-                      _this51.spells(slot);
-                    } else _this51.flushNotice();
+                  _this53.label(box, _this53.tr('spell.multicast'), 0, 0, 375, 60, 16, C.muted);
+                  _this53.button(box, _this53.tr('action.upgrade'), 0, -106, 360, 50, function () {
+                    if (_this53.game.upgradeSpell(c.id)) {
+                      _this53.close();
+                      _this53.drawPanel();
+                      _this53.spells(slot);
+                    } else _this53.flushNotice();
                   }, true, {
                     unavailable: function unavailable() {
-                      return s.run.spellLevels[c.id] >= c.cap ? _this51.tr('action.maxReached') : s.run.master < c.unlock ? _this51.tr('action.needLevel', {
+                      return s.run.spellLevels[c.id] >= c.cap ? _this53.tr('action.maxReached') : s.run.master < c.unlock ? _this53.tr('action.needLevel', {
                         level: c.unlock
-                      }) : _this51.costReason('gold', _this51.game.spellUpgradeCost(c.id));
+                      }) : _this53.costReason('gold', _this53.game.spellUpgradeCost(c.id));
                     }
                   });
-                } else _this51.confirm(_this51.tr('spell.title'), _this51.tr('spell.swap'), function () {
-                  if (_this51.game.selectSpell(slot, c.id)) {
-                    _this51.close();
-                    _this51.draw();
-                    _this51.spells(slot);
-                  } else _this51.flushNotice();
+                } else _this53.confirm(_this53.tr('spell.title'), _this53.tr('spell.swap'), function () {
+                  if (_this53.game.selectSpell(slot, c.id)) {
+                    _this53.close();
+                    _this53.draw();
+                    _this53.spells(slot);
+                  } else _this53.flushNotice();
                 });
               }
             };
           }));
         };
         _proto.skillNode = function skillNode(i) {
-          var _this52 = this;
+          var _this54 = this;
           var branch = Math.floor(i / 3),
             p = this.open(this.tr('skills.node', {
               branch: this.tr("branch." + branch),
@@ -44592,38 +44930,38 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.ui.icon(this.nodeAt(card, 'skill-art', -136, 0, 64, 64), ['sword', 'fox', 'flag', 'lightning', 'adventurer', 'scroll'][branch]);
           this.label(card, this.tr('skills.info'), 39, 0, 254, 100, 14, '#38696b');
           this.button(p, '−', -90, -57, 160, 54, function () {
-            _this52.draft[i] = Math.max(0, _this52.draft[i] - 1);
-            _this52.skillNode(i);
+            _this54.draft[i] = Math.max(0, _this54.draft[i] - 1);
+            _this54.skillNode(i);
           }, false, {
             style: 'quiet',
             fontSize: 23,
             unavailable: function unavailable() {
-              return _this52.draft[i] <= 0 ? _this52.tr('action.minReached') : null;
+              return _this54.draft[i] <= 0 ? _this54.tr('action.minReached') : null;
             }
           });
           this.button(p, '+', 90, -57, 160, 54, function () {
-            _this52.draft[i] = Math.min(SKILLS[i].max, _this52.draft[i] + 1);
-            _this52.skillNode(i);
+            _this54.draft[i] = Math.min(SKILLS[i].max, _this54.draft[i] + 1);
+            _this54.skillNode(i);
           }, true, {
             fontSize: 23,
             unavailable: function unavailable() {
-              return _this52.draft[i] >= SKILLS[i].max ? _this52.tr('action.maxReached') : SKILLS[i].prerequisite >= 0 && _this52.draft[SKILLS[i].prerequisite] < 3 ? _this52.tr('action.previousLevel', {
+              return _this54.draft[i] >= SKILLS[i].max ? _this54.tr('action.maxReached') : SKILLS[i].prerequisite >= 0 && _this54.draft[SKILLS[i].prerequisite] < 3 ? _this54.tr('action.previousLevel', {
                 level: 3
-              }) : _this52.needReason(_this52.tr('feedback.sp'), _this52.game.s.sp + _this52.game.s.skills.reduce(function (a, l) {
+              }) : _this54.needReason(_this54.tr('feedback.sp'), _this54.game.s.sp + _this54.game.s.skills.reduce(function (a, l) {
                 return a + l * (l + 1) / 2;
-              }, 0) - _this52.draft.reduce(function (a, l) {
+              }, 0) - _this54.draft.reduce(function (a, l) {
                 return a + l * (l + 1) / 2;
-              }, 0), _this52.draft[i] + 1);
+              }, 0), _this54.draft[i] + 1);
             }
           });
           this.button(p, this.tr('action.back'), 0, -157, 350, 44, function () {
-            return _this52.skills(false);
+            return _this54.skills(false);
           });
         };
         _proto.artifactDetail = function artifactDetail(i) {
-          var _this53 = this;
+          var _this55 = this;
           if (this.tutorial.explain('intel', function () {
-            return _this53.artifactDetail(i);
+            return _this55.artifactDetail(i);
           })) return;
           this.tutorial.finishPractice('intel');
           this.tutorial.complete('first:artifact');
@@ -44644,190 +44982,190 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.button(p, this.tr('intel.upgrade', {
             cost: this.formatIntel(this.game.artifactCost(i))
           }), 0, -49, 370, 54, function () {
-            return _this53.act(function () {
-              return _this53.game.upgradeArtifact(i, _this53.id('artifact'));
+            return _this55.act(function () {
+              return _this55.game.upgradeArtifact(i, _this55.id('artifact'));
             }, function () {
-              _this53.drawPanel();
-              _this53.artifactDetail(i);
+              _this55.drawPanel();
+              _this55.artifactDetail(i);
             });
           }, true, {
             fontSize: 18,
             unavailable: function unavailable() {
-              return _this53.costReason('relics', _this53.game.artifactCost(i));
+              return _this55.costReason('relics', _this55.game.artifactCost(i));
             }
           }).name = 'intel-upgrade';
           this.button(p, this.tr('artifact.salvage'), -96, -129, 178, 54, function () {
-            return _this53.confirm(_this53.tr('artifact.salvage'), _this53.tr('artifact.salvageInfo'), function () {
-              return _this53.act(function () {
-                return _this53.game.salvageArtifact(i, _this53.id('salvage'));
+            return _this55.confirm(_this55.tr('artifact.salvage'), _this55.tr('artifact.salvageInfo'), function () {
+              return _this55.act(function () {
+                return _this55.game.salvageArtifact(i, _this55.id('salvage'));
               }, function () {
-                _this53.close();
-                _this53.drawPanel();
+                _this55.close();
+                _this55.drawPanel();
               });
             });
           }, false, {
             style: 'danger',
             unavailable: function unavailable() {
-              return s.enchanted[i] ? _this53.tr('error.protected') : _this53.costReason('gems', 20);
+              return s.enchanted[i] ? _this55.tr('error.protected') : _this55.costReason('gems', 20);
             }
           });
           this.button(p, this.tr('intel.enchantButton'), 96, -129, 178, 54, function () {
-            return _this53.act(function () {
-              return _this53.game.enchantArtifact(i, _this53.id('enchant'));
+            return _this55.act(function () {
+              return _this55.game.enchantArtifact(i, _this55.id('enchant'));
             }, function () {
-              return _this53.artifactDetail(i);
+              return _this55.artifactDetail(i);
             });
           }, false, {
             hint: this.tr('artifact.enchantInfo'),
             unavailable: function unavailable() {
-              return s.enchanted[i] ? _this53.tr('action.alreadyApplied') : !s.artifacts.every(function (v) {
+              return s.enchanted[i] ? _this55.tr('action.alreadyApplied') : !s.artifacts.every(function (v) {
                 return v > 0;
-              }) ? _this53.tr('artifact.enchantInfo') : _this53.costReason('relics', 3);
+              }) ? _this55.tr('artifact.enchantInfo') : _this55.costReason('relics', 3);
             }
           });
           this.button(p, this.tr('learn.open'), -96, -226, 178, 44, function () {
-            return _this53.tutorial.explain('intel', function () {
-              return _this53.artifactDetail(i);
+            return _this55.tutorial.explain('intel', function () {
+              return _this55.artifactDetail(i);
             }, true);
           }, false).name = 'intel-detail-help';
           this.button(p, this.tr('intel.details'), 96, -226, 178, 44, function () {
-            var body = _this53.tr('intel.detailBody', {
-              name: _this53.tr('artifact.' + i),
+            var body = _this55.tr('intel.detailBody', {
+              name: _this55.tr('artifact.' + i),
               effect: effect,
-              current: _this53.artifactMultiplier(i),
-              next: _this53.artifactMultiplier(i, 1),
-              cost: _this53.formatIntel(_this53.game.artifactCost(i)),
-              points: _this53.formatIntel(s.relics)
+              current: _this55.artifactMultiplier(i),
+              next: _this55.artifactMultiplier(i, 1),
+              cost: _this55.formatIntel(_this55.game.artifactCost(i)),
+              points: _this55.formatIntel(s.relics)
             });
-            var detail = _this53.open(_this53.tr('intel.details'), 550, true, 'teal', false, function () {
-              return _this53.artifactDetail(i);
+            var detail = _this55.open(_this55.tr('intel.details'), 550, true, 'teal', false, function () {
+              return _this55.artifactDetail(i);
             });
-            _this53.label(detail, body, 0, 5, 374, 340, 17, C.text);
-            _this53.button(detail, _this53.tr('action.back'), 0, -211, 370, 44, function () {
-              return _this53.artifactDetail(i);
+            _this55.label(detail, body, 0, 5, 374, 340, 17, C.text);
+            _this55.button(detail, _this55.tr('action.back'), 0, -211, 370, 44, function () {
+              return _this55.artifactDetail(i);
             });
           }, false);
         };
         _proto.salvaged = function salvaged() {
-          var _this54 = this;
+          var _this56 = this;
           var p = this.open(this.tr('artifact.salvaged'), 600);
           this.scroll(p, 0, -24, 400, 480, this.game.s.salvaged.map(function (i) {
             return {
-              title: _this54.tr("artifact." + i),
-              sub: _this54.tr('artifact.rebuyInfo'),
+              title: _this56.tr("artifact." + i),
+              sub: _this56.tr('artifact.rebuyInfo'),
               unavailable: function unavailable() {
-                return _this54.costReason('gems', 25);
+                return _this56.costReason('gems', 25);
               },
               icon: i,
-              action: _this54.tr('action.buy'),
+              action: _this56.tr('action.buy'),
               click: function click() {
-                return _this54.act(function () {
-                  return _this54.game.rebuyArtifact(i, _this54.id('rebuy'));
+                return _this56.act(function () {
+                  return _this56.game.rebuyArtifact(i, _this56.id('rebuy'));
                 }, function () {
-                  _this54.drawPanel();
-                  _this54.salvaged();
+                  _this56.drawPanel();
+                  _this56.salvaged();
                 });
               }
             };
           }));
         };
         _proto.equipmentTools = function equipmentTools() {
-          var _this55 = this;
+          var _this57 = this;
           var p = this.open(this.tr('nav.equipment'), 460);
           [['registry.title', function () {
-            return _this55.squadUI.registry();
+            return _this57.squadUI.registry();
           }], ['equipment.sets', function () {
-            return _this55.sets();
+            return _this57.sets();
           }], ['equipment.bulk', function () {
-            return _this55.confirm(_this55.tr('equipment.bulk'), _this55.tr('equipment.bulkInfo'), function () {
-              return _this55.act(function () {
-                return _this55.game.sell(_this55.game.s.equipment.filter(function (e) {
-                  return !e.locked && !_this55.game.s.equipped.includes(e.id);
+            return _this57.confirm(_this57.tr('equipment.bulk'), _this57.tr('equipment.bulkInfo'), function () {
+              return _this57.act(function () {
+                return _this57.game.sell(_this57.game.s.equipment.filter(function (e) {
+                  return !e.locked && !_this57.game.s.equipped.includes(e.id);
                 }).map(function (e) {
                   return e.id;
-                }), _this55.id('bulk'));
+                }), _this57.id('bulk'));
               }, function () {
-                _this55.close();
-                _this55.drawPanel();
+                _this57.close();
+                _this57.drawPanel();
               });
             });
           }], ['equipment.transmog', function () {
-            return _this55.transmog();
+            return _this57.transmog();
           }]].forEach(function (v, i) {
-            return _this55.button(p, _this55.tr(v[0]), 0, 114 - i * 96, 375, 60, v[1], false, {
+            return _this57.button(p, _this57.tr(v[0]), 0, 114 - i * 96, 375, 60, v[1], false, {
               unavailable: i === 2 ? function () {
-                return _this55.game.s.equipment.some(function (e) {
-                  return !e.locked && !_this55.game.s.equipped.includes(e.id);
-                }) ? null : _this55.tr('extra.noSellable');
+                return _this57.game.s.equipment.some(function (e) {
+                  return !e.locked && !_this57.game.s.equipped.includes(e.id);
+                }) ? null : _this57.tr('extra.noSellable');
               } : undefined
             });
           });
         };
         _proto.transmog = function transmog() {
-          var _this56 = this;
+          var _this58 = this;
           var p = this.open(this.tr('equipment.transmog'), 650);
           this.scroll(p, 0, -24, 400, 520, this.game.s.equipment.map(function (e) {
             return {
-              title: _this56.itemName(e),
+              title: _this58.itemName(e),
               icon: e.slot,
               unavailable: function unavailable() {
-                return _this56.game.s.appearance[e.slot] === e.id ? _this56.tr('action.alreadyApplied') : null;
+                return _this58.game.s.appearance[e.slot] === e.id ? _this58.tr('action.alreadyApplied') : null;
               },
-              action: _this56.tr(_this56.game.s.appearance[e.slot] === e.id ? 'action.selected' : 'action.apply'),
+              action: _this58.tr(_this58.game.s.appearance[e.slot] === e.id ? 'action.selected' : 'action.apply'),
               click: function click() {
-                return _this56.act(function () {
-                  return _this56.game.transmog(e.slot, e.id, _this56.id('transmog'));
+                return _this58.act(function () {
+                  return _this58.game.transmog(e.slot, e.id, _this58.id('transmog'));
                 }, function () {
-                  _this56.close();
-                  _this56.draw();
+                  _this58.close();
+                  _this58.draw();
                 });
               }
             };
           }));
         };
         _proto.achievements = function achievements() {
-          var _this57 = this;
+          var _this59 = this;
           var p = this.open(this.tr('achievement.title'), 570);
           this.scroll(p, 0, -24, 400, 450, [0, 1, 2, 3].map(function (i) {
             return {
-              title: _this57.tr("achievement." + i),
+              title: _this59.tr("achievement." + i),
               sub: function sub() {
-                return _this57.tr('daily.progress', {
-                  current: _this57.game.achievementProgress(i),
-                  goal: _this57.game.achievementGoal(i)
+                return _this59.tr('daily.progress', {
+                  current: _this59.game.achievementProgress(i),
+                  goal: _this59.game.achievementGoal(i)
                 });
               },
               unavailable: function unavailable() {
-                return _this57.rewardReason(_this57.tr("achievement." + i), _this57.game.achievementProgress(i), _this57.game.achievementGoal(i));
+                return _this59.rewardReason(_this59.tr("achievement." + i), _this59.game.achievementProgress(i), _this59.game.achievementGoal(i));
               },
               icon: i,
               tint: C.gold,
-              action: _this57.tr('action.claim'),
+              action: _this59.tr('action.claim'),
               click: function click() {
-                return _this57.act(function () {
-                  return _this57.game.claimAchievement(i, _this57.id('achievement'));
+                return _this59.act(function () {
+                  return _this59.game.claimAchievement(i, _this59.id('achievement'));
                 }, function () {
-                  return _this57.achievements();
+                  return _this59.achievements();
                 }, 'reward.done');
               }
             };
           }));
         };
         _proto.globalRaid = function globalRaid() {
-          var _this58 = this;
+          var _this60 = this;
           void this.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10() {
             var data;
             return _regeneratorRuntime().wrap(function _callee10$(_context10) {
               while (1) switch (_context10.prev = _context10.next) {
                 case 0:
                   _context10.next = 2;
-                  return _this58.onlineService.connect(_this58.tr('online.defaultName'));
+                  return _this60.onlineService.connect(_this60.tr('online.defaultName'));
                 case 2:
                   _context10.next = 4;
-                  return _this58.onlineService.request('/global');
+                  return _this60.onlineService.request('/global');
                 case 4:
                   data = _context10.sent;
-                  _this58.globalRaidPanel(data);
+                  _this60.globalRaidPanel(data);
                 case 6:
                 case "end":
                   return _context10.stop();
@@ -44836,22 +45174,22 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           })));
         };
         _proto.globalRaidPanel = function globalRaidPanel(data) {
-          var _this59 = this;
+          var _this61 = this;
           var p = this.open(this.tr('extra.globalRaid'), 450);
           this.label(p, this.tr('online.guildHP', {
             hp: display(data.hp)
           }), 0, 90, 375, 70, 24);
           this.button(p, this.tr('action.attack'), 0, -65, 375, 60, function () {
-            void _this59.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
+            void _this61.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
               var next;
               return _regeneratorRuntime().wrap(function _callee11$(_context11) {
                 while (1) switch (_context11.prev = _context11.next) {
                   case 0:
                     _context11.next = 2;
-                    return _this59.onlineService.command('/global/attack');
+                    return _this61.onlineService.command('/global/attack');
                   case 2:
                     next = _context11.sent;
-                    _this59.globalRaidPanel(next);
+                    _this61.globalRaidPanel(next);
                   case 4:
                   case "end":
                     return _context11.stop();
@@ -44860,32 +45198,32 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             })));
           }, true, {
             unavailable: function unavailable() {
-              return data.hp <= 0 ? _this59.tr('online.raidComplete') : null;
+              return data.hp <= 0 ? _this61.tr('online.raidComplete') : null;
             }
           });
         };
         _proto.eventRanks = function eventRanks() {
-          var _this60 = this;
+          var _this62 = this;
           void this.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12() {
             var rows, p;
             return _regeneratorRuntime().wrap(function _callee12$(_context12) {
               while (1) switch (_context12.prev = _context12.next) {
                 case 0:
                   _context12.next = 2;
-                  return _this60.onlineService.connect(_this60.tr('online.defaultName'));
+                  return _this62.onlineService.connect(_this62.tr('online.defaultName'));
                 case 2:
                   _context12.next = 4;
-                  return _this60.onlineService.request('/global/ranks');
+                  return _this62.onlineService.request('/global/ranks');
                 case 4:
                   rows = _context12.sent;
-                  p = _this60.open(_this60.tr('extra.eventRanks'), 660);
-                  _this60.scroll(p, 0, -25, 400, 530, rows.map(function (r, i) {
+                  p = _this62.open(_this62.tr('extra.eventRanks'), 660);
+                  _this62.scroll(p, 0, -25, 400, 530, rows.map(function (r, i) {
                     return {
-                      title: _this60.tr('online.rank', {
+                      title: _this62.tr('online.rank', {
                         rank: i + 1,
                         name: r.name
                       }),
-                      sub: _this60.tr('extra.contribution', {
+                      sub: _this62.tr('extra.contribution', {
                         value: r.damage
                       })
                     };
@@ -44905,15 +45243,19 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return b.refresh();
           });
         };
+        _proto.fairyClaimReady = function fairyClaimReady() {
+          var _this$entry;
+          return !!this.game && !!((_this$entry = this.entry) != null && _this$entry.playing) && this.game.s.maxStage >= 3 && this.game.fairyReady() && this.operations.ready && !this.operations.busy && !this.operations.conflict && !this.remoteBusy && !this.feedback.asyncPending && !this.liveOps.blocked;
+        };
         _proto.updateHUD = function updateHUD() {
-          var _this61 = this;
+          var _this63 = this;
           var g = this.game,
             r = g.s.run;
           this.equipmentPile.active = g.s.extra.unseenEquipment.length > 0;
           this.equipmentPile.getComponentInChildren(Label).string = this.tr('complete.pile', {
             count: g.s.extra.unseenEquipment.length
           });
-          this.fairy.active = g.s.maxStage >= 3 && Date.now() >= g.s.fairyAt;
+          this.fairy.active = this.fairyClaimReady();
           this.stageLabel.string = String(r.stage);
           this.stageNeighbors.forEach(function (l, i) {
             return l.string = String(Math.max(1, r.stage + (i ? 1 : -1)));
@@ -44945,7 +45287,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var l = this.bossButton.getComponentInChildren(Label);
           if (l) l.string = this.tr(r.boss ? 'battle.leave' : 'battle.fight');
           this.spellLabels.forEach(function (l, slot) {
-            var i = _this61.spellShown[slot];
+            var i = _this63.spellShown[slot];
             l.string = r.master < SPELLS[i].unlock ? String(SPELLS[i].unlock) : r.cooldowns[i] > 0 ? String(Math.ceil(r.cooldowns[i])) : '✓';
           });
         };
@@ -44976,7 +45318,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
         };
         _proto.attack = function attack(automatic) {
-          var _this$combatMotion3;
+          var _this$combatMotion4;
           if (automatic === void 0) {
             automatic = false;
           }
@@ -44985,17 +45327,17 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             delay: .12,
             automatic: automatic
           });
-          (_this$combatMotion3 = this.combatMotion) == null || _this$combatMotion3.ready(this.actor, .12);
+          (_this$combatMotion4 = this.combatMotion) == null || _this$combatMotion4.ready(this.actor, .12);
         };
         _proto.resolveTap = function resolveTap(automatic) {
-          var _this$combatMotion4;
+          var _this$combatMotion5;
           if (automatic === void 0) {
             automatic = false;
           }
-          (_this$combatMotion4 = this.combatMotion) == null || _this$combatMotion4.strike(this.actor);
+          (_this$combatMotion5 = this.combatMotion) == null || _this$combatMotion5.strike(this.actor);
           this.game.tap(automatic);
-          var captain = allyPosition(0);
-          this.gunshot(captain.x, captain.y + SOLDIER_SIZE * .61);
+          var launch = this.allyLaunchPoint();
+          this.gunshot(launch.x - 36, launch.y);
           this.sound(175 + Math.random() * 35);
           this.showDamageHits();
           this.syncEnemyDeath();
@@ -45039,11 +45381,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }).start();
         };
         _proto.spark = function spark(x, y, color) {
-          var _this62 = this;
+          var _this64 = this;
           var magic = color === C.violet;
           this.burst(magic ? 'ring' : 'impact', x, y, magic ? 92 : 66, magic ? .3 : .2);
           var _loop10 = function _loop10() {
-            var n = _this62.combatSprite(magic ? 'shard' : 'sparkle', 'hit-particle', x, y, 12 + i % 3 * 3);
+            var n = _this64.combatSprite(magic ? 'shard' : 'sparkle', 'hit-particle', x, y, 12 + i % 3 * 3);
             if (!n) return 1; // continue
             var angle = i * Math.PI / 3 + Math.random() * .3,
               opacity = n.addComponent(UIOpacity);
@@ -45083,7 +45425,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           } catch (_unused) {}
         };
         _proto.toast = function toast(text) {
-          var _this63 = this;
+          var _this65 = this;
           if (this.toastNode && isValid(this.toastNode, true)) {
             this.toastNode.removeFromParent();
             this.toastNode.destroy();
@@ -45093,7 +45435,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.label(n, text, 0, 0, 404, 72, 16, C.text);
           tween(n).delay(3.2).call(function () {
             if (isValid(n, true)) n.destroy();
-            if (_this63.toastNode === n) _this63.toastNode = null;
+            if (_this65.toastNode === n) _this65.toastNode = null;
           }).start();
         };
         _proto.flushNotice = function flushNotice() {
@@ -45119,9 +45461,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
         };
         _proto.update = function update(dt) {
-          var _this$entry, _this$combatMotion5;
+          var _this$entry2, _this$combatMotion6;
           this.refreshButtons();
-          if (!this.game || !((_this$entry = this.entry) != null && _this$entry.playing)) return;
+          if (this.game && this.fairy && isValid(this.fairy, true)) this.fairy.active = this.fairyClaimReady();
+          this.rewardGlow.tick(dt);
+          if (!this.game || !((_this$entry2 = this.entry) != null && _this$entry2.playing)) return;
           this.damageTime += dt;
           if (this.showDamageHits()) this.syncEnemyDeath();
           this.syncGroundShadows();
@@ -45132,7 +45476,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.feedback.chatterTick(dt);
           if (!this.canAutoFire()) this.stopAutoFire();
           if (this.liveOps.blocked || !this.operations.ready || this.operations.busy || this.operations.conflict || this.remoteBusy || this.feedback.asyncPending || this.feedback.showing) return;
-          (_this$combatMotion5 = this.combatMotion) == null || _this$combatMotion5.tick(dt, this.game.s.extra.effects);
+          (_this$combatMotion6 = this.combatMotion) == null || _this$combatMotion6.tick(dt, this.game.s.extra.effects);
           var due = this.pendingTaps.filter(function (t) {
             return t.delay <= dt;
           });
@@ -45143,8 +45487,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               delay: t.delay - dt
             });
           });
-          for (var _iterator4 = _createForOfIteratorHelperLoose(due), _step4; !(_step4 = _iterator4()).done;) {
-            var shot = _step4.value;
+          for (var _iterator8 = _createForOfIteratorHelperLoose(due), _step8; !(_step8 = _iterator8()).done;) {
+            var shot = _step8.value;
             if (this.enemyTransition) break;
             if (!shot.automatic || this.canAutoFire()) this.resolveTap(shot.automatic);
           }
@@ -45161,8 +45505,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           } else {
             this.syncAllies();
             this.game.tick(dt);
-            for (var _iterator5 = _createForOfIteratorHelperLoose(this.game.heroEvents), _step5; !(_step5 = _iterator5()).done;) {
-              var event = _step5.value;
+            for (var _iterator9 = _createForOfIteratorHelperLoose(this.game.heroEvents), _step9; !(_step9 = _iterator9()).done;) {
+              var event = _step9.value;
               if (event.phase === 'attack') this.animateAlly(event.hero, event.windup);else this.strikeAlly(event.hero);
             }
             this.showDamageHits();
@@ -45200,7 +45544,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         }, {
           key: "tabTone",
           get: function get() {
-            return [C.ember, C.blue, C.violet, C.mint, C.violet, C.gold][this.tab];
+            return [BUTTON_TONES.upgrade, BUTTON_TONES.deck, BUTTON_TONES.codex, BUTTON_TONES.synergy, BUTTON_TONES.ascend, BUTTON_TONES.shop][this.tab];
           }
         }]);
         return GameApp;
@@ -45229,7 +45573,10 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureL
       applyMilitaryTheme = module.applyMilitaryTheme;
     }],
     execute: function () {
-      exports('t', t);
+      exports({
+        matchesTranslation: matchesTranslation,
+        t: t
+      });
       cclegacy._RF.push({}, "9c118ZtT3FGL5qHjAdIxvn+", "I18n", undefined);
       var translations = exports('translations', {
         ko: {
@@ -46451,6 +46798,15 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureL
           return String(args[k]);
         });
       }
+      /** Match localized captions with formatted counts/costs, without guessing from words. */
+      function matchesTranslation(locale, key, text) {
+        var template = translations[locale][key];
+        if (!template) return false;
+        var pattern = template.split(/\{\w+\}/g).map(function (part) {
+          return part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }).join('.+');
+        return new RegExp('^' + pattern + '$').test(text);
+      }
       Object.assign(translations.ko, {
         "balance.title": "성장 효과 분석",
         "balance.scope": "보석·영혼·연구·기념물",
@@ -46802,7 +47158,7 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureL
 
       // Compact first-use captions; all actionable instructions remain localized.
       Object.assign(translations.ko, {
-        'guide.inspect': '아이콘을 길게 누르면 설명을 볼 수 있어요.',
+        'guide.inspect': '수치 아이콘을 누르면 뜻과 효과를 볼 수 있어요.',
         'guide.action': '첫 사용 · {action}',
         'guide.later': '나중에 보기',
         'guide.boss': '첫 보스! 시간 안에 처치하세요. 실패하면 강화 후 ↻ 재도전.',
@@ -46821,7 +47177,7 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureL
         'guide.spell': '스킬을 열어 ▶ 사용하세요. 마나와 재사용 시간을 확인하세요.'
       });
       Object.assign(translations.en, {
-        'guide.inspect': 'Hold an icon to read what it does.',
+        'guide.inspect': 'Tap a stat icon to see its meaning and effect.',
         'guide.action': 'First use · {action}',
         'guide.later': 'Show later',
         'guide.boss': 'First boss! Beat the timer. If you lose, upgrade and retry with ↻.',
@@ -47284,6 +47640,92 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureL
         'battle.bossExposed': 'Boss · Exposed',
         'battle.eliteExposed': 'Elite Boss · Exposed',
         'tutorial.boss': 'The first boss has no escorts. In later boss battles, defeat every escort before attacking the boss. Clear the entire troop before time runs out.'
+      });
+      Object.assign(translations.ko, {
+        'ui.help.value': '현재 표시: {value}',
+        'ui.help.level': '레벨 · 위쪽 화살표\n대상 능력의 현재 성장 단계입니다.',
+        'ui.help.upgrade': '강화 · 더하기\n재화를 사용해 대상의 레벨이나 능력을 높입니다.',
+        'ui.help.damage': '피해량 · 겹친 타격 파열\n공격 피해 또는 피해 배율을 나타냅니다.',
+        'ui.help.weapon': '무기 · 검\n대상의 무기 보유 수나 무기 성장 효과입니다.',
+        'ui.help.ascend': '승천 · 순환 화살표\n용병의 레벨을 되돌리고 더 높은 피해 보너스를 얻습니다.',
+        'ui.help.skill': '스킬 · 번개\n대상의 스킬 단계나 공격 강화 효과입니다.',
+        'ui.help.manual': '훈련 교범 · 문서\n용병 성장에 적용하는 훈련 기록과 보너스입니다.',
+        'ui.help.energy': '전술 에너지 · 수통\n전술 사용에 필요한 에너지입니다. 비용과 보유량을 확인하세요.',
+        'ui.help.attempts': '정비 시도 · 수통\n정비 카드 두 장을 열 때마다 시도 1회를 사용합니다.',
+        'ui.help.drone': '지원 드론\n정비 중인 드론과 완성한 부품 쌍을 나타냅니다.',
+        'ui.help.health': '체력 / 지원 효과 · 하트\n대상의 생존 수치나 회복·지원 보너스입니다.',
+        'ui.help.time': '시간 · 시계\n대기 시간이나 보상의 적용 시간을 나타냅니다.',
+        'ui.help.stage': '구역 조건 · 깃발\n해금이나 보상에 필요한 작전 구역입니다.',
+        'ui.help.lock': '잠금 · 자물쇠\n미해금 상태 또는 판매 보호입니다. 아래 조건을 확인하세요.',
+        'ui.help.gear': '장비 · 방어구\n획득 장비나 장비 보상을 나타냅니다.',
+        'ui.help.inventory': '장비 보관함 · 가방\n현재 보관 수 / 최대 보관 수를 표시합니다.',
+        'ui.help.parts': '장비 조각 · 부품\n새 장비를 제작할 때 사용하는 재료입니다.',
+        'ui.help.coin': '코인\n고용과 강화에 사용하는 일반 재화입니다.',
+        'ui.help.diamond': '다이아\n보급소와 특별 구매에 사용하는 고급 재화입니다.',
+        'ui.help.squad': '용병 피해 / 분대 효과\n용병의 자동 공격이나 분대 성장에 적용합니다.',
+        'ui.help.heroLevel': '용병 레벨 {level}\n코인으로 강화하면 이 용병의 자동 공격 피해가 증가합니다.',
+        'ui.help.heroAscend': '승천 {count}회\n레벨 1000부터 가능하며 레벨이 1로 돌아갑니다.\n1회마다 기본 피해 ×10^16. 재배치 시 초기화됩니다.',
+        'ui.help.heroSkill': '스킬 강화 {count}/7단계\n단계마다 피해 ×1.5. 다음 조건: {next}\n재배치 시 초기화됩니다.',
+        'ui.help.heroWeapon': '용병 무기 {count}개\n훈련 교범과 합산한 피해 보너스 ×{boost}.\n획득 기록은 재배치 후에도 유지됩니다.',
+        'ui.help.heroManual': '훈련 교범 {count}개\n교범 1개는 무기 0.5개만큼 반영됩니다.\n무기와 합산한 피해 보너스 ×{boost}. 영구 유지됩니다.',
+        'ui.help.heroDPS': '자동 공격 초당 피해 {damage}\n무기 공격 간격에 맞춰 1회 타격 피해로 환산됩니다.\n이 용병을 전투 덱에 배치해야 자동 공격합니다.',
+        'ui.help.heroGuide': '↑ 레벨: 코인 강화\n↻ 승천: 레벨 1000부터 / 레벨 초기화\n번개: 스킬 강화 / 단계마다 피해 ×1.5\n검: 영구 무기 획득 수\n문서: 영구 훈련 교범 획득 수\n타격 파열: 자동 공격 초당 피해\n각 수치 아이콘을 누르면 상세 효과를 볼 수 있습니다.',
+        'ui.help.compare': '장비 비교 · 오른쪽 화살표\n왼쪽은 현재 장비, 오른쪽은 선택한 장비입니다.\n장착 시 피해 변화: {gain}%',
+        'ui.equipmentHelp': '타격 파열: 피해 배율\n오른쪽 화살표: 현재 장비 → 선택 장비\n초록/빨강 수치: 장착 시 피해 변화\n자물쇠: 판매 보호\n각 수치 아이콘을 누르면 뜻과 효과를 볼 수 있습니다.'
+      });
+      Object.assign(translations.en, {
+        'ui.help.value': 'Current display: {value}',
+        'ui.help.level': 'Level · Up arrow\nThe current growth level of this stat.',
+        'ui.help.upgrade': 'Upgrade · Plus\nSpend resources to improve a level or ability.',
+        'ui.help.damage': 'Damage · Impact bursts\nAttack damage or a damage multiplier.',
+        'ui.help.weapon': 'Weapon · Sword\nOwned weapons or a weapon growth effect.',
+        'ui.help.ascend': 'Ascension · Circular arrow\nReset a soldier’s level for a higher damage bonus.',
+        'ui.help.skill': 'Skill · Lightning\nA skill tier or an attack enhancement.',
+        'ui.help.manual': 'Training manual · Document\nTraining records and soldier growth bonuses.',
+        'ui.help.energy': 'Tactic energy · Canteen\nEnergy needed to use tactics. Check its cost and your balance.',
+        'ui.help.attempts': 'Maintenance attempts · Canteen\nOpening two maintenance cards costs one attempt.',
+        'ui.help.drone': 'Support drone\nThe drone being trained and completed part pairs.',
+        'ui.help.health': 'Health / Support · Heart\nHealth, recovery, or a support bonus.',
+        'ui.help.time': 'Time · Clock\nA waiting period or a reward duration.',
+        'ui.help.stage': 'Stage requirement · Flag\nAn operation stage needed for an unlock or reward.',
+        'ui.help.lock': 'Lock\nAn unlock requirement or sale protection. Check the condition below.',
+        'ui.help.gear': 'Equipment · Armor\nOwned equipment or an equipment reward.',
+        'ui.help.inventory': 'Equipment inventory · Bag\nCurrent storage / maximum storage.',
+        'ui.help.parts': 'Equipment parts\nMaterials used to craft new equipment.',
+        'ui.help.coin': 'Coins\nThe standard currency for recruitment and upgrades.',
+        'ui.help.diamond': 'Diamonds\nPremium currency for the supply store and special purchases.',
+        'ui.help.squad': 'Soldier damage / Squad effect\nAffects soldier auto attacks or squad growth.',
+        'ui.help.heroLevel': 'Soldier level {level}\nUse coins to upgrade this soldier’s automatic attack damage.',
+        'ui.help.heroAscend': 'Ascensions: {count}\nAvailable at level 1000; returns the soldier to level 1.\nBase damage ×10^16 per ascension. Resets on redeployment.',
+        'ui.help.heroSkill': 'Skill tier {count}/7\n×1.5 damage per tier. Next requirement: {next}\nResets on redeployment.',
+        'ui.help.heroWeapon': 'Soldier weapons: {count}\nCombined damage bonus with manuals: ×{boost}.\nOwned weapons persist after redeployment.',
+        'ui.help.heroManual': 'Training manuals: {count}\nEach manual counts as half a weapon.\nCombined damage bonus: ×{boost}. Permanently retained.',
+        'ui.help.heroDPS': 'Auto attack damage per second: {damage}\nConverted to damage per hit using the weapon’s attack interval.\nDeploy this soldier in the battle deck to enable auto attacks.',
+        'ui.help.heroGuide': 'Up arrow: level / coin upgrades\nCircular arrow: ascension / level 1000 / level reset\nLightning: skill tier / ×1.5 damage per tier\nSword: permanent weapon count\nDocument: permanent training manual count\nImpact bursts: auto attack damage per second\nTap each stat icon to read its detailed effect.',
+        'ui.help.compare': 'Equipment comparison · Right arrow\nLeft: equipped gear. Right: selected gear.\nDamage change on equip: {gain}%',
+        'ui.equipmentHelp': 'Impact bursts: damage multiplier\nRight arrow: equipped → selected gear\nGreen/red value: damage change on equip\nLock: sale protection\nTap each stat icon to see its meaning and effect.'
+      });
+      Object.assign(translations.ko, {
+        'ui.help.cards': '전술 카드\n레이드 덱에 편성하거나 강화하는 카드입니다.',
+        'ui.help.assembly': '드론 조립 캡슐\n조립하면 지원 드론을 획득하거나 성장시킵니다.',
+        'ui.help.reward': '보상 · 트로피\n달성 기록과 수령 가능한 보상을 나타냅니다.',
+        'ui.help.mail': '우편\n작전 안내와 계정에 전달된 보상입니다.',
+        'ui.help.settings': '설정\n언어·소리·효과 등의 사용 환경을 조절합니다.',
+        'ui.help.applied': '적용 완료 · 체크\n현재 장착·선택·등록된 상태입니다.'
+      });
+      Object.assign(translations.en, {
+        'ui.help.cards': 'Tactic cards\nCards used and upgraded in the raid deck.',
+        'ui.help.assembly': 'Drone assembly capsule\nAssemble it to obtain or level up a support drone.',
+        'ui.help.reward': 'Reward · Trophy\nAchievements and rewards available to claim.',
+        'ui.help.mail': 'Mail\nOperation notices and rewards sent to your account.',
+        'ui.help.settings': 'Settings\nAdjust language, audio, effects, and other preferences.',
+        'ui.help.applied': 'Applied · Check\nCurrently equipped, selected, or registered.'
+      });
+      Object.assign(translations.ko, {
+        'ui.help.intel': '작전 기록 · 문서\n재배치로 얻는 재화입니다. 작전 기록의 발견·강화에 사용해 영구 성장 효과를 얻습니다.'
+      });
+      Object.assign(translations.en, {
+        'ui.help.intel': 'Intel · Document\nEarned through redeployment. Spend it to discover and upgrade intel for permanent growth effects.'
       });
       cclegacy._RF.pop();
     }
@@ -47835,9 +48277,9 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/main", ['./CheatUI.ts', './CombatMotion.ts', './EntryUI.ts', './ExpansionUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './SquadUI.ts', './TutorialUI.ts', './UITheme.ts', './Amount.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './Dialogue.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './Squad.ts', './SquadName.ts', './firebase-sdk.js'], function () {
+System.register("chunks:///_virtual/main", ['./CheatUI.ts', './CombatMotion.ts', './EntryUI.ts', './ExpansionUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SquadUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './Dialogue.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './Squad.ts', './SquadName.ts', './firebase-sdk.js'], function () {
   return {
-    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     execute: function () {}
   };
 });
@@ -47874,22 +48316,6 @@ System.register("chunks:///_virtual/Mercenaries.ts", ['cc'], function (exports) 
       function attackWindup(id) {
         return Math.min(attackSeconds(id) * .45, MELEE.includes(mercenaryWeapon(id)) ? .38 : .24);
       }
-      /** Every successful request advances quiet-period clock, even if suppressed. */
-      var GrowthGate = exports('GrowthGate', /*#__PURE__*/function () {
-        function GrowthGate() {
-          this.last = -Infinity;
-          this.until = -Infinity;
-        }
-        var _proto = GrowthGate.prototype;
-        _proto.request = function request(now) {
-          var quiet = now - this.last >= 1000;
-          this.last = now;
-          if (!quiet || now < this.until) return false;
-          this.until = now + 2000;
-          return true;
-        };
-        return GrowthGate;
-      }());
       function applyMercenaryText(t) {
         var names = [['레아', '블레어', '루비', '제트', '스칼렛', '네온', '브릭', '레이븐', '실바', '쉐이드', '사라', '프레야', '아이언', '발레리', '츠키', '카게', '파이퍼', '노바', '신더', '벌칸', '제로', '아이리스', '아스트라', '볼트', '베스퍼', '록시', '타이탄', '달리아', '렌', '힐다'], ['Rhea', 'Blair', 'Ruby', 'Jett', 'Scarlet', 'Neon', 'Brick', 'Raven', 'Sylva', 'Shade', 'Sara', 'Freya', 'Iron', 'Valerie', 'Tsuki', 'Kage', 'Piper', 'Nova', 'Cinder', 'Vulcan', 'Zero', 'Iris', 'Astra', 'Volt', 'Vesper', 'Roxy', 'Titan', 'Dahlia', 'Ren', 'Hilda']];
         var weapons = [['돌격소총', '저격총', '펌프 산탄총', '쌍권총', '리볼버', '기관단총', '경기관총', '석궁', '장궁', '쌍단검', '장창', '양손 도끼', '전투 망치', '검·방패', '긴 카타나', '사슬낫', '유탄발사기', '로켓발사기', '화염방사기', '미니건', '레일건', '레이저 캐논', '플라즈마 런처', '전격 건틀릿', '장거리 저격총', '전격 글러브', '중형 미니건', '헤비 리볼버', '발도 카타나', '대형 전투 망치'], ['Assault Rifle', 'Sniper Rifle', 'Pump Shotgun', 'Dual Pistols', 'Revolver', 'SMG', 'Light Machine Gun', 'Crossbow', 'Longbow', 'Twin Daggers', 'Spear', 'Battle Axe', 'War Hammer', 'Sword & Shield', 'Long Katana', 'Chain Sickle', 'Grenade Launcher', 'Rocket Launcher', 'Flamethrower', 'Minigun', 'Railgun', 'Laser Cannon', 'Plasma Launcher', 'Shock Gauntlets', 'Long-range Rifle', 'Shock Gloves', 'Heavy Minigun', 'Heavy Revolver', 'Quickdraw Katana', 'Great War Hammer']];
@@ -48063,6 +48489,7 @@ System.register("chunks:///_virtual/MilitaryTheme.ts", ['./rollupPluginModLoBabe
           'extra.puzzleComplete': 'Maintenance complete! All 8 pairs found.\nEquipment shards +5 delivered · Train again tomorrow.'
         });
         Object.assign(t.ko, {
+          'money.fairyPreview': '수령할 코인 +{coins}',
           'extra.puzzleHelp': '훈련 설명',
           'extra.puzzleHelpTitle': '드론 정비 훈련 설명',
           'extra.puzzleHelpReturn': '훈련으로 돌아가기',
@@ -48077,6 +48504,7 @@ System.register("chunks:///_virtual/MilitaryTheme.ts", ['./rollupPluginModLoBabe
           'extra.puzzleHelp.reset.body': '매일 오전 9시(한국시간)에 카드와 시도가 초기화됩니다.\n받은 드론 레벨과 장비 조각은 유지됩니다.\n닫고 돌아와도 당일 진행과 열린 카드는 유지됩니다.'
         });
         Object.assign(t.en, {
+          'money.fairyPreview': 'Claim coins +{coins}',
           'extra.puzzleHelp': 'Training guide',
           'extra.puzzleHelpTitle': 'Drone Training Guide',
           'extra.puzzleHelpReturn': 'Return to training',
@@ -48091,6 +48519,24 @@ System.register("chunks:///_virtual/MilitaryTheme.ts", ['./rollupPluginModLoBabe
           'extra.puzzleHelp.reset.body': 'Cards and attempts reset daily at 00:00 UTC (09:00 KST).\nEarned drone levels and shards remain yours.\nClosing keeps today\'s progress and face-up cards.'
         });
         var parts = [['프로펠러', '제어 칩', '배터리', '카메라', '안테나', '모터', '렌치', '장갑판'], ['Rotor', 'Chip', 'Battery', 'Camera', 'Antenna', 'Motor', 'Wrench', 'Armor']];
+        Object.assign(t.ko, {
+          'shop.dronePackInfo': '랜덤 드론 1기의 레벨을 3 높입니다.',
+          'shop.shardPackInfo': '장비 제작에 사용하는 장비 조각 10개를 받습니다.',
+          'shop.milestoneTitle': '구역 {stage} 달성 보급',
+          'shop.milestoneInfo': '현재 최고 구역 {current}\n목표 구역 {stage}',
+          'shop.productSummary': '{contents}\n표시 가격 {price}',
+          'shop.passSummary': '시즌 광고 건너뛰기\n표시 가격 {price}',
+          'shop.bundleSummary': '구성 확인 필요\n표시 가격 {price}'
+        });
+        Object.assign(t.en, {
+          'shop.dronePackInfo': 'Add 3 levels to one random drone.',
+          'shop.shardPackInfo': 'Receive 10 equipment shards for crafting.',
+          'shop.milestoneTitle': 'Sector {stage} supply',
+          'shop.milestoneInfo': 'Highest sector: {current}\nTarget sector: {stage}',
+          'shop.productSummary': '{contents}\nShown price: {price}',
+          'shop.passSummary': 'Skip season ads\nShown price: {price}',
+          'shop.bundleSummary': 'Contents need confirmation\nShown price: {price}'
+        });
         Object.assign(t.ko, {
           'extra.petMilestoneShort': '목표 보상',
           'extra.petEffects': '드론 효과 설명'
@@ -48764,12 +49210,11 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
           if (this.model.autoFireRemaining()) {
             if (this.model.toggleAutoFire(this.a.id('auto-fire'))) {
               this.a.stopAutoFire();
-              this.a.toast(this.tr(this.model.autoFireActive() ? 'battle.autoStarted' : 'battle.autoStopped'));
               this.a.refreshButtons();
             } else this.a.flushNotice();
             return;
           }
-          var p = this.a.open(this.tr('battle.autoTitle'), 460);
+          var p = this.a.open(this.tr('battle.autoTitle'), 460, true, 'teal', false);
           p.name = 'auto-fire-panel';
           this.a.label(p, this.tr('battle.autoInfo'), 0, 43, 370, 190, 19);
           this.a.button(p, this.tr('money.watch'), 0, -112, 370, 54, function () {
@@ -48783,20 +49228,19 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
                   case 2:
                     result = _context.sent;
                     if (!(result === 'completed' && _this.model.autoFireActive())) {
-                      _context.next = 11;
+                      _context.next = 10;
                       break;
                     }
                     _context.next = 6;
                     return _this.a.operations.save();
                   case 6:
                     _this.a.close();
-                    _this.a.toast(_this.tr('battle.autoStarted'));
                     _this.a.refreshButtons();
-                    _context.next = 12;
+                    _context.next = 11;
                     break;
-                  case 11:
+                  case 10:
                     _this.result(result === 'completed' ? 'battle.autoExpired' : 'money.adStatus.' + result);
-                  case 12:
+                  case 11:
                   case "end":
                     return _context.stop();
                 }
@@ -48901,22 +49345,22 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
           return PRODUCTS.filter(function (p) {
             return p.kind === 'consumable';
           }).map(function (p) {
-            return {
+            return _this2.a.shopUI.row('diamond', {
               title: _this2.tr(p.name, {
                 count: p.gems
               }),
-              sub: _this2.tr('money.packInfo', {
-                count: p.gems
+              sub: _this2.tr('shop.productSummary', {
+                contents: _this2.tr('money.packInfo', {
+                  count: p.gems
+                }),
+                price: _this2.price(p.id)
               }),
-              unavailable: function unavailable() {
-                return _this2.purchaseReason(p.id);
-              },
-              action: _this2.price(p.id),
+              height: 100,
+              action: _this2.tr('action.details'),
               click: function click() {
                 return _this2.product(p.id);
-              },
-              icon: 4
-            };
+              }
+            });
           });
         };
         _proto.store = function store() {
@@ -48954,26 +49398,27 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
                   };
                 case 11:
                   status = _context5.t0;
-                  _this3.a.extensions.list('money.store', [{
+                  _this3.a.extensions.list('money.store', [_this3.a.shopUI.row('diamond', {
                     title: _this3.tr('money.balance', {
                       count: _this3.a.game.s.gems
                     }),
-                    sub: _this3.tr('money.priceRegion')
-                  }].concat(_this3.rows(), PRODUCTS.filter(function (p) {
+                    sub: _this3.tr('money.priceRegion'),
+                    height: 112
+                  })].concat(_this3.rows(), PRODUCTS.filter(function (p) {
                     return p.kind !== 'consumable';
                   }).map(function (p) {
-                    return {
+                    return _this3.a.shopUI.row(p.kind === 'season' ? 'pass' : 'bundle', {
                       title: _this3.tr(p.name),
-                      sub: _this3.tr(p.configured ? 'money.passInfo' : 'money.bundleUnknown'),
-                      unavailable: function unavailable() {
-                        return _this3.purchaseReason(p.id);
-                      },
-                      action: _this3.price(p.id),
+                      sub: _this3.tr(p.kind === 'season' ? 'shop.passSummary' : 'shop.bundleSummary', {
+                        price: _this3.price(p.id)
+                      }),
+                      height: 100,
+                      action: _this3.tr('action.details'),
                       click: function click() {
                         return _this3.product(p.id);
                       }
-                    };
-                  }), [{
+                    });
+                  }), [_this3.a.shopUI.row('vip', {
                     title: _this3.tr('money.vip'),
                     sub: _this3.tr('money.vipStatus', {
                       tier: status.tier,
@@ -48983,7 +49428,7 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
                     click: function click() {
                       return _this3.vip();
                     }
-                  }, {
+                  }), _this3.a.shopUI.row('restore', {
                     title: _this3.tr('money.restore'),
                     unavailable: function unavailable() {
                       return !_this3.model.billing ? _this3.tr('money.storeUnavailable') : _this3.model.busy ? _this3.tr('money.busy') : null;
@@ -49005,7 +49450,7 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
                         }, _callee3);
                       })));
                     }
-                  }, {
+                  }), _this3.a.shopUI.row('restore', {
                     title: _this3.tr('money.retry'),
                     action: _this3.tr('action.apply'),
                     click: function click() {
@@ -49024,7 +49469,7 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
                         }, _callee4);
                       })));
                     }
-                  }]));
+                  })]));
                 case 13:
                 case "end":
                   return _context5.stop();
@@ -49035,20 +49480,21 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
         _proto.product = function product(id) {
           var _this4 = this;
           var product = PRODUCTS.find(function (p) {
-            return p.id === id;
-          });
-          var p = this.a.open(this.tr(product.name, {
+              return p.id === id;
+            }),
+            p = this.a.open(this.tr(product.name, {
               count: product.gems
-            }), 580),
+            }), 640),
             quote = this.quotes.find(function (q) {
               return q.id === id;
             });
-          this.a.label(p, this.price(id), 0, 165, 370, 60, 34, '#ecc071');
+          var category = product.kind === 'consumable' ? 'diamond' : product.kind === 'season' ? 'pass' : 'bundle';
+          this.a.shopUI.identity(p, category, this.price(id), 178, 104, 28);
           this.a.label(p, this.tr(product.kind === 'consumable' ? 'money.packInfo' : product.configured ? 'money.passInfo' : 'money.bundleUnknown', {
             count: product.gems
-          }), 0, 70, 370, 110, 20);
-          this.a.label(p, this.tr(quote ? 'money.actualPrice' : 'money.priceRegion'), 0, -40, 370, 75, 15);
-          this.a.button(p, this.tr('action.buy'), 0, -140, 370, 55, function () {
+          }), 0, 53, 370, 116, 19);
+          this.a.label(p, this.tr(quote ? 'money.actualPrice' : 'money.priceRegion'), 0, -73, 370, 78, 15);
+          this.a.button(p, this.tr('action.buy'), 0, -172, 370, 55, function () {
             if (!product.configured) {
               _this4.result('money.bundleUnknown');
               return;
@@ -49084,8 +49530,8 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
             label: function label() {
               return _this4.tr(_this4.purchaseReason(id) ? 'action.unavailable' : 'action.buy');
             }
-          });
-          this.a.button(p, this.tr('money.vip'), 0, -220, 370, 42, function () {
+          }).name = 'shop-product-buy';
+          this.a.button(p, this.tr('money.vip'), 0, -251, 370, 44, function () {
             return _this4.vip();
           });
         };
@@ -49133,7 +49579,11 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
                       },
                       action: _this5.tr(s.tier > i ? 'action.selected' : 'action.locked')
                     };
-                  })));
+                  })).map(function (row) {
+                    return _this5.a.shopUI.row('vip', _extends({}, row, {
+                      height: 100
+                    }));
+                  }));
                 case 4:
                 case "end":
                   return _context7.stop();
@@ -49144,7 +49594,15 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
         _proto.fairy = function fairy() {
           var _this6 = this;
           var p = this.a.open(this.tr('money.fairy'), 500);
-          this.a.label(p, this.tr('money.fairyInfo'), 0, 120, 370, 130, 20);
+          this.a.label(p, this.tr('money.fairyInfo'), 0, 135, 370, 80, 19);
+          var reward = this.a.label(p, this.tr('money.fairyPreview', {
+            coins: this.a.format(this.a.game.fairyReward())
+          }), 0, 70, 370, 34, 20);
+          this.a.modalRefresh = function () {
+            reward.string = _this6.tr('money.fairyPreview', {
+              coins: _this6.a.format(_this6.a.game.fairyReward())
+            });
+          };
           this.a.button(p, this.tr('action.claim'), 0, 10, 370, 55, function () {
             return _this6.a.act(function () {
               return _this6.a.game.claimFairy(_this6.a.id('fairy'));
@@ -49153,14 +49611,17 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
             });
           }, true, {
             unavailable: function unavailable() {
-              return _this6.a.game.now() < _this6.a.game.s.fairyAt ? _this6.tr('action.waitSeconds', {
-                seconds: Math.ceil((_this6.a.game.s.fairyAt - _this6.a.game.now()) / 1000)
-              }) : null;
+              return _this6.a.game.fairyReady() ? null : _this6.tr('action.waitSeconds', {
+                seconds: Math.max(0, Math.ceil((_this6.a.game.s.fairyAt - _this6.a.game.now()) / 1000))
+              });
             },
             label: function label() {
-              return _this6.tr(_this6.a.game.now() < _this6.a.game.s.fairyAt ? 'action.waiting' : 'action.claimReady');
+              return _this6.tr(_this6.a.game.fairyReady() ? 'action.claimReady' : 'action.waiting');
+            },
+            rewardReady: function rewardReady() {
+              return _this6.a.game.fairyReady();
             }
-          });
+          }).name = 'supply-reward-claim';
           this.a.button(p, this.tr('money.fairyBonus'), 0, -75, 370, 55, function () {
             return _this6.ads('fairy');
           });
@@ -49169,6 +49630,9 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
             _this6.a.game.persist();
             _this6.fairy();
           });
+        };
+        _proto.adCategory = function adCategory(id) {
+          return id === 'shop_chest' ? 'ad' : id === 'fairy_diamond' ? 'diamond' : id === 'fairy_equipment' ? 'equipment' : id === 'fairy_gold' || id === 'fairy_gold_spree' ? 'free' : 'boost';
         };
         _proto.ads = function ads(group) {
           var _this7 = this;
@@ -49208,20 +49672,15 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
                   _this7.a.extensions.list('money.adPoints', s.placements.filter(function (p) {
                     return !group || p.group === group;
                   }).map(function (p) {
-                    return {
+                    return _this7.a.shopUI.row(_this7.adCategory(p.id), {
                       title: _this7.tr('money.ad.' + p.id),
                       sub: _this7.adReward(p.id),
-                      unavailable: function unavailable() {
-                        return _this7.adReason(p.id, p);
-                      },
-                      action: _this7.tr(p.skip ? 'action.claim' : 'money.watch'),
-                      actionLabel: function actionLabel() {
-                        return _this7.adLabel(p.id, p);
-                      },
+                      height: 112,
+                      action: _this7.tr('action.details'),
                       click: function click() {
                         return _this7.ad(p.id, p);
                       }
-                    };
+                    });
                   }));
                 case 9:
                 case "end":
@@ -49232,18 +49691,18 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
         };
         _proto.ad = function ad(id, status) {
           var _this8 = this;
-          var p = this.a.open(this.tr('money.ad.' + id), 550),
+          var p = this.a.open(this.tr('money.ad.' + id), 630),
             rule = AD_PLACEMENTS.find(function (p) {
               return p.id === id;
             });
-          this.a.label(p, this.adReward(id), 0, 150, 370, 110, 21);
+          this.a.shopUI.identity(p, this.adCategory(id), this.adReward(id), 174, 114, 18);
           this.a.label(p, this.tr('money.adRule', {
             used: (status == null ? void 0 : status.used) || 0,
             limit: rule.limit || '∞',
             seconds: Math.max(0, Math.ceil((((status == null ? void 0 : status.readyAt) || 0) - Date.now()) / 1000))
-          }), 0, 35, 370, 80, 17);
-          this.a.label(p, this.tr('money.optIn'), 0, -50, 370, 65, 15);
-          this.a.button(p, this.tr(status != null && status.skip ? 'action.claim' : 'money.watch'), 0, -146, 370, 55, function () {
+          }), 0, 45, 370, 80, 17);
+          this.a.label(p, this.tr('money.optIn'), 0, -60, 370, 88, 16);
+          this.a.button(p, this.tr(status != null && status.skip ? 'action.claim' : 'money.watch'), 0, -177, 370, 55, function () {
             if ((id === 'shop_chest' || id === 'fairy_equipment') && _this8.a.game.s.equipment.length >= 100) {
               _this8.result('error.full');
               return;
@@ -49271,9 +49730,12 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
             },
             label: function label() {
               return _this8.adLabel(id, status);
+            },
+            rewardReady: function rewardReady() {
+              return !!(status != null && status.skip) && !_this8.adReason(id, status);
             }
-          });
-          this.a.button(p, this.tr('action.cancel'), 0, -218, 370, 43, function () {
+          }).name = 'shop-ad-watch';
+          this.a.button(p, this.tr('action.cancel'), 0, -254, 370, 44, function () {
             return _this8.a.close();
           });
         };
@@ -49294,6 +49756,9 @@ System.register("chunks:///_virtual/MotionBounds.ts", ['cc'], function (exports)
       cclegacy._RF.push({}, "e0389H8Pe5F9obywu1LaGUC", "MotionBounds", undefined);
       // Generated by scripts/import-combat-motion.py; pixels from foot origin.
       var MOTION_LEFT = exports('MOTION_LEFT', [68, 107, 76, 77, 74, 81, 86, 121, 98, 94, 134, 129, 136, 123, 117, 109, 89, 76, 74, 79, 82, 77, 84, 81, 65, 56, 80, 56, 77, 82]);
+
+      /** Union of every idle, ready and firing frame: left/right/top/bottom from the foot. */
+      var MOTION_BOUNDS = exports('MOTION_BOUNDS', [[68, 165, 178, 0], [107, 250, 172, 0], [76, 188, 178, 0], [77, 162, 178, 0], [74, 141, 178, 0], [81, 90, 178, 0], [86, 181, 178, 0], [121, 111, 178, 0], [98, 105, 178, 0], [94, 167, 174, 0], [134, 211, 178, 0], [129, 143, 178, 0], [136, 145, 178, 0], [123, 199, 178, 0], [117, 250, 168, 0], [109, 250, 176, 0], [89, 179, 126, 0], [76, 92, 178, 0], [74, 100, 178, 0], [79, 88, 178, 0], [82, 117, 178, 0], [77, 250, 155, 0], [84, 108, 178, 0], [81, 103, 174, 0], [65, 117, 174, 0], [56, 85, 131, 0], [80, 94, 178, 0], [56, 98, 155, 0], [77, 123, 169, 0], [82, 80, 182, 0]]);
       cclegacy._RF.pop();
     }
   };
@@ -50901,6 +51366,490 @@ System.register("chunks:///_virtual/ReferenceRules.ts", ['cc'], function (export
   };
 });
 
+System.register("chunks:///_virtual/RewardGlowUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc'], function (exports) {
+  var _createForOfIteratorHelperLoose, cclegacy, UITransform, Graphics, isValid;
+  return {
+    setters: [function (module) {
+      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+      UITransform = module.UITransform;
+      Graphics = module.Graphics;
+      isValid = module.isValid;
+    }],
+    execute: function () {
+      cclegacy._RF.push({}, "41e7b8wrXxKCbK/M2RZ5H2E", "RewardGlowUI", undefined);
+      /** Read-only reward cues; every highlight uses the button's actual cut-corner contour. */
+      var RewardGlowUI = exports('RewardGlowUI', /*#__PURE__*/function () {
+        function RewardGlowUI(a) {
+          this.entries = [];
+          this.time = 0;
+          this.a = a;
+        }
+        var _proto = RewardGlowUI.prototype;
+        _proto.register = function register(node, ready) {
+          var _contentSize = node.getComponent(UITransform).contentSize,
+            width = _contentSize.width,
+            height = _contentSize.height;
+          var trail = this.a.nodeAt(node, 'reward-border-trail', 0, 0, width, height).addComponent(Graphics);
+          var glint = this.a.nodeAt(node, 'reward-border-glint', 0, 0, 12, 12),
+            star = glint.addComponent(Graphics);
+          this.entries.push({
+            node: node,
+            ready: ready,
+            trail: trail,
+            glint: glint,
+            star: star
+          });
+          trail.node.active = glint.active = false;
+        };
+        _proto.tick = function tick(dt) {
+          var _this = this;
+          this.time += Math.max(0, Math.min(dt, .1));
+          this.entries = this.entries.filter(function (entry) {
+            return isValid(entry.node, true) && !!entry.node.parent;
+          });
+          var _loop = function _loop() {
+              var entry = _step.value;
+              var node = entry.node,
+                trail = entry.trail,
+                glint = entry.glint,
+                star = entry.star,
+                active = !!_this.a.game && node.activeInHierarchy && entry.ready() && _this.a.game.s.extra.effects;
+              trail.node.active = glint.active = active;
+              if (!active) return 0; // continue
+              var points = _this.a.ui.contours.get(node);
+              if (!points || points.length < 3) return 0; // continue
+              var lengths = points.map(function (p, i) {
+                  return Math.hypot(points[(i + 1) % points.length][0] - p[0], points[(i + 1) % points.length][1] - p[1]);
+                }),
+                total = lengths.reduce(function (sum, n) {
+                  return sum + n;
+                }, 0);
+              if (!total) return 0; // continue
+              var locate = function locate(distance) {
+                var d = (distance % total + total) % total,
+                  index = 0;
+                while (index < lengths.length - 1 && d >= lengths[index]) d -= lengths[index++];
+                var p = points[index],
+                  next = points[(index + 1) % points.length],
+                  t = lengths[index] ? d / lengths[index] : 0;
+                return {
+                  index: index,
+                  left: lengths[index] - d,
+                  x: p[0] + (next[0] - p[0]) * t,
+                  y: p[1] + (next[1] - p[1]) * t
+                };
+              };
+              var trace = function trace(start, span) {
+                var first = locate(start);
+                trail.moveTo(first.x, first.y);
+                var distance = start,
+                  remaining = span,
+                  index = first.index,
+                  left = first.left;
+                while (remaining > left + .001) {
+                  var next = points[(index + 1) % points.length];
+                  trail.lineTo(next[0], next[1]);
+                  distance += left;
+                  remaining -= left;
+                  index = (index + 1) % points.length;
+                  left = lengths[index];
+                }
+                var end = locate(distance + remaining);
+                trail.lineTo(end.x, end.y);
+                trail.stroke();
+              };
+              var head = _this.time / 2.4 * total,
+                pulse = (Math.sin(_this.time * 8) + 1) / 2;
+              trail.clear();
+              for (var i = 3; i >= 0; i--) {
+                trail.strokeColor = _this.a.color(i ? '#ffd83d' : '#ffffff', Math.round((i ? 80 : 210) + (1 - i / 4) * 40));
+                trail.lineWidth = i ? 3.2 : 2.2;
+                trace(head - total * (i + 1) * .055, total * .055);
+              }
+              var p = locate(head);
+              glint.setPosition(p.x, p.y);
+              star.clear();
+              star.fillColor = _this.a.color('#ffd83d', Math.round(100 + pulse * 100));
+              star.rect(-1, -6, 2, 12);
+              star.rect(-6, -1, 12, 2);
+              star.fill();
+              star.fillColor = _this.a.color('#ffffff', Math.round(170 + pulse * 85));
+              star.rect(-2, -2, 4, 4);
+              star.fill();
+            },
+            _ret;
+          for (var _iterator = _createForOfIteratorHelperLoose(this.entries), _step; !(_step = _iterator()).done;) {
+            _ret = _loop();
+            if (_ret === 0) continue;
+          }
+        };
+        return RewardGlowUI;
+      }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/ShopTheme.ts", ['cc'], function (exports) {
+  var cclegacy;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+    }],
+    execute: function () {
+      cclegacy._RF.push({}, "a4e7aLyEFlIEo8tg+dXQkqL", "ShopTheme", undefined);
+      /** Supply-shop presentation only; prices, rewards and saved IDs stay in their existing models. */
+      var SHOP_ICONS = exports('SHOP_ICONS', ['regular', 'growth', 'limited', 'pass', 'diamond', 'equipment', 'ad', 'free', 'drone', 'shards', 'expedition', 'milestone', 'vip', 'restore', 'bundle', 'boost']);
+      var SHOP_STYLE = exports('SHOP_STYLE', {
+        regular: {
+          accent: '#b2bf61',
+          light: '#e5ead3',
+          dark: '#343d25'
+        },
+        growth: {
+          accent: '#6bc598',
+          light: '#d7eddf',
+          dark: '#253e31'
+        },
+        limited: {
+          accent: '#ecaa5d',
+          light: '#f2e2c9',
+          dark: '#4a3825'
+        },
+        pass: {
+          accent: '#be91df',
+          light: '#e8dcf1',
+          dark: '#40324f'
+        },
+        diamond: {
+          accent: '#64c4e6',
+          light: '#d5eaf3',
+          dark: '#263e4b'
+        },
+        equipment: {
+          accent: '#ed9970',
+          light: '#f1dfd2',
+          dark: '#4a3529'
+        },
+        ad: {
+          accent: '#6ccbb5',
+          light: '#d4ebe5',
+          dark: '#244039'
+        },
+        free: {
+          accent: '#e7c65e',
+          light: '#f1e9ce',
+          dark: '#454024'
+        },
+        drone: {
+          accent: '#75becb',
+          light: '#d8e9ed',
+          dark: '#2b3e45'
+        },
+        shards: {
+          accent: '#d5a56e',
+          light: '#ede0d0',
+          dark: '#44372b'
+        },
+        expedition: {
+          accent: '#b2bf61',
+          light: '#e5ead3',
+          dark: '#343d25'
+        },
+        milestone: {
+          accent: '#6bc598',
+          light: '#d7eddf',
+          dark: '#253e31'
+        },
+        vip: {
+          accent: '#be91df',
+          light: '#e8dcf1',
+          dark: '#40324f'
+        },
+        restore: {
+          accent: '#a3b4cc',
+          light: '#e0e6ef',
+          dark: '#303c4d'
+        },
+        bundle: {
+          accent: '#df8b86',
+          light: '#eedad8',
+          dark: '#49312f'
+        },
+        boost: {
+          accent: '#7abbd8',
+          light: '#dceaf1',
+          dark: '#2d3d49'
+        }
+      });
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/ShopUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './ShopTheme.ts', './UITheme.ts'], function (exports) {
+  var _extends, cclegacy, Label, SHOP_STYLE, UI;
+  return {
+    setters: [function (module) {
+      _extends = module.extends;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+      Label = module.Label;
+    }, function (module) {
+      SHOP_STYLE = module.SHOP_STYLE;
+    }, function (module) {
+      UI = module.UI;
+    }],
+    execute: function () {
+      cclegacy._RF.push({}, "e8370yCM29P5qoMeYo30anQ", "ShopUI", undefined);
+      var ShopUI = exports('ShopUI', /*#__PURE__*/function () {
+        function ShopUI(a) {
+          this.a = a;
+        }
+        var _proto = ShopUI.prototype;
+        _proto.row = function row(category, _row) {
+          return _extends({}, _row, {
+            shopCategory: category,
+            icon: 0,
+            art: 'shop:' + category,
+            height: _row.height || 90
+          });
+        };
+        _proto.identity = function identity(panel, category, text, y, height, fontSize) {
+          if (height === void 0) {
+            height = 104;
+          }
+          if (fontSize === void 0) {
+            fontSize = 19;
+          }
+          var a = this.a,
+            style = SHOP_STYLE[category],
+            plate = a.nodeAt(panel, 'shop-detail-identity', 0, y, 376, height);
+          a.ui.surface(plate, style.dark, 'cut');
+          a.rect(plate, -182, 0, 4, height - 18, style.accent);
+          a.ui.icon(a.nodeAt(plate, 'shop-detail-icon', -140, 0, 72, 72), 'shop:' + category);
+          a.label(plate, text, 43, 0, 266, height - 18, fontSize, UI.text, Label.HorizontalAlign.LEFT);
+        };
+        _proto.draw = function draw() {
+          var _this = this;
+          var a = this.a,
+            g = a.game,
+            s = g.s;
+          var categories = ['regular', 'growth', 'limited'];
+          categories.forEach(function (category, i) {
+            var selected = a.shopTab === i,
+              style = SHOP_STYLE[category];
+            var tab = a.button(a.panel, a.tr(['shop.regular', 'shop.progression', 'shop.limited'][i]), -151 + i * 151, 114, 142, 60, function () {
+              a.shopTab = i;
+              a.drawPanel();
+            }, selected, {
+              style: selected ? 'selected' : 'quiet',
+              tone: selected ? style.accent : style.light,
+              icon: 'shop:' + category,
+              iconOnly: false,
+              iconSize: 42,
+              fontSize: 16
+            });
+            tab.name = 'shop-tab-' + i;
+            if (selected) a.rect(tab, 0, -25, 110, 3, UI.ink).name = 'shop-tab-selection';
+          });
+          var rows = a.shopTab === 0 ? [this.row('free', {
+            title: a.tr('shop.free'),
+            unavailable: function unavailable() {
+              return a.rewardReason(a.tr('shop.free'), 1, 1, g.s.claims.includes('daily.0'));
+            },
+            metrics: [{
+              icon: 'face:gems',
+              value: '+25',
+              hint: a.tr('daily.reward', {
+                gems: 25
+              })
+            }],
+            action: a.tr('action.claim'),
+            click: function click() {
+              return a.act(function () {
+                return g.claimDaily(0);
+              }, function () {
+                return a.drawPanel();
+              }, 'reward.done');
+            }
+          })].concat([0, 1, 2].map(function (i) {
+            return _this.row(['drone', 'shards', 'expedition'][i], {
+              title: a.tr(['shop.pet', 'shop.shards', 'shop.chest'][i]),
+              metrics: [{
+                icon: 'face:gems',
+                value: String([30, 60, 100][i]),
+                hint: a.tr('action.cost', {
+                  cost: [30, 60, 100][i]
+                })
+              }],
+              unavailable: function unavailable() {
+                return _this.dealReason(i);
+              },
+              action: a.tr('action.buy'),
+              click: function click() {
+                return _this.deal(i);
+              },
+              detail: function detail() {
+                return _this.deal(i);
+              }
+            });
+          })) : a.shopTab === 1 ? [60, 100, 500, 1000].filter(function (stage) {
+            return s.maxStage >= stage || stage === [60, 100, 500, 1000].find(function (next) {
+              return s.maxStage < next;
+            });
+          }).map(function (stage) {
+            return _this.row('milestone', {
+              title: a.tr('shop.milestoneTitle', {
+                stage: stage
+              }),
+              metrics: [{
+                icon: 'face:gems',
+                value: '+25'
+              }, {
+                icon: 'shop:shards',
+                value: '+5'
+              }],
+              unavailable: function unavailable() {
+                return a.rewardReason(a.tr('achievement.2'), g.s.maxStage, stage, g.s.claims.includes("milestone." + stage));
+              },
+              action: a.tr('action.claim'),
+              click: function click() {
+                return a.act(function () {
+                  return g.claimMilestone(stage);
+                }, function () {
+                  return a.drawPanel();
+                }, 'reward.done');
+              },
+              detail: function detail() {
+                return _this.milestone(stage);
+              }
+            });
+          }) : [this.row('equipment', {
+            title: a.tr('extra.limitedOffer'),
+            metrics: [{
+              icon: 'face:gems',
+              value: '100',
+              hint: a.tr('extra.limitedInfo')
+            }, {
+              icon: 'shop:shards',
+              value: '+20',
+              hint: a.tr('extra.limitedInfo')
+            }, {
+              icon: 'cards',
+              value: '+10',
+              hint: a.tr('extra.limitedInfo')
+            }],
+            action: a.tr('action.open'),
+            click: function click() {
+              return a.extensions.limited();
+            }
+          })];
+          rows.unshift(this.row('diamond', {
+            title: a.tr('money.store'),
+            metrics: [{
+              icon: 'face:gems',
+              value: String(s.gems),
+              hint: a.tr('money.balance', {
+                count: s.gems
+              })
+            }],
+            action: a.tr('action.open'),
+            click: function click() {
+              return a.payments.store();
+            }
+          }));
+          if (a.shopTab === 0) rows.splice(1, 0, this.row('ad', {
+            title: a.tr('money.ad.shop_chest'),
+            metrics: [{
+              icon: 'armor',
+              value: '1',
+              hint: a.tr('money.adReward.shop_chest')
+            }, {
+              icon: 'symbol:clock',
+              value: '12×3',
+              hint: a.tr('money.adReward.shop_chest')
+            }],
+            action: a.tr('money.watch'),
+            click: function click() {
+              return a.payments.ads('shop');
+            }
+          }));
+          if (a.shopTab === 2) rows.unshift(this.row('pass', {
+            title: a.tr('money.pass'),
+            action: a.payments.price('season_pass'),
+            click: function click() {
+              return a.payments.product('season_pass');
+            }
+          }));
+          a.scroll(a.panel, 0, -35, 458, 230, rows.map(function (row) {
+            return _extends({}, row, {
+              height: 76
+            });
+          }));
+        };
+        _proto.dealReason = function dealReason(i) {
+          return this.a.costReason('gems', [30, 60, 100][i]) || (i === 2 && this.a.game.s.equipment.length >= 100 ? this.a.tr('error.full') : null);
+        };
+        _proto.deal = function deal(i) {
+          var _this2 = this;
+          var a = this.a,
+            category = ['drone', 'shards', 'expedition'][i],
+            p = a.open(a.tr(['shop.pet', 'shop.shards', 'shop.chest'][i]), 540, true, 'teal', false);
+          this.identity(p, category, a.tr(['shop.pet', 'shop.shards', 'shop.chest'][i]), 133);
+          a.metric(p, 'face:gems', String([30, 60, 100][i]), 0, 39, 270, a.tr('shop.confirm', {
+            cost: [30, 60, 100][i]
+          }));
+          a.label(p, a.tr(i === 2 ? 'shop.chestInfo' : i === 0 ? 'shop.dronePackInfo' : 'shop.shardPackInfo'), 0, -55, 370, 105, 18);
+          a.button(p, a.tr('action.cancel'), -101, -192, 178, 50, function () {
+            return a.close();
+          });
+          a.button(p, a.tr('action.confirm'), 101, -192, 178, 50, function () {
+            return a.act(function () {
+              return a.game.buyDeal(i, a.id('deal'));
+            }, function () {
+              a.close();
+              a.drawPanel();
+            });
+          }, true, {
+            unavailable: function unavailable() {
+              return _this2.dealReason(i);
+            }
+          }).name = 'shop-deal-confirm';
+        };
+        _proto.milestone = function milestone(stage) {
+          var a = this.a,
+            p = a.open(a.tr('shop.milestoneTitle', {
+              stage: stage
+            }), 470, true, 'teal', false);
+          this.identity(p, 'milestone', a.tr('shop.milestoneInfo', {
+            current: a.game.s.maxStage,
+            stage: stage
+          }), 88);
+          a.metric(p, 'face:gems', '+25', -94, -10, 172);
+          a.metric(p, 'shop:shards', '+5', 94, -10, 172);
+          a.button(p, a.tr('action.claim'), 0, -144, 370, 54, function () {
+            return a.act(function () {
+              return a.game.claimMilestone(stage);
+            }, function () {
+              a.close();
+              a.drawPanel();
+            }, 'reward.done');
+          }, true, {
+            unavailable: function unavailable() {
+              return a.rewardReason(a.tr('achievement.2'), a.game.s.maxStage, stage, a.game.s.claims.includes("milestone." + stage));
+            }
+          });
+        };
+        return ShopUI;
+      }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
 System.register("chunks:///_virtual/Squad.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Mercenaries.ts'], function (exports) {
   var _createForOfIteratorHelperLoose, cclegacy, MELEE, MERCENARY_COUNT, mercenaryWeapon;
   return {
@@ -51463,7 +52412,7 @@ System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpe
               a.ui.surface(badge, style.color, 'cut');
               a.ui.icon(a.nodeAt(badge, 'role-icon', 0, 0, 16, 16), style.icon, UI.ink);
               a.touchAction(badge, function () {
-                return _this7.roles();
+                return a.tooltip(badge, _this7.tr('squad.role.' + squadRole(id)) + '\n' + _this7.tr('squad.roleDesc.' + squadRole(id)));
               }, _this7.tr('squad.roleDesc.' + squadRole(id)));
               a.label(cell, _this7.tr('hero.' + id), 0, -17, 84, 25, 14);
               a.touchAction(cell, function () {
@@ -51566,7 +52515,7 @@ System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpe
           a.ui.surface(badge, style.color, 'cut');
           a.ui.icon(a.nodeAt(badge, 'role-icon', 0, 0, 24, 24), style.icon, UI.ink);
           a.touchAction(badge, function () {
-            return _this9.roles();
+            return a.tooltip(badge, _this9.tr('squad.role.' + role) + '\n' + _this9.tr('squad.roleDesc.' + role));
           }, this.tr('squad.roleDesc.' + role));
           a.label(p, this.tr('squad.role.' + role), 78, 120, 90, 25, 14, style.color);
           a.label(p, this.tr('squad.heroInfo', {
@@ -52231,7 +53180,10 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             if (kind === 'begin') this.a.mode = 1;
             this.a.game.revision++;
             this.a.game.persist();
-            this.a.draw();
+            if (kind === 'progress') {
+              this.a.drawPanel();
+              this.redraw();
+            } else this.a.draw();
             void this.a.operations.save()["catch"](function (e) {
               return _this5.a.operations.report('tutorial.save', e);
             });
@@ -52251,7 +53203,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
               return _this6.a.operations.report('tutorial.save', e);
             });
           }
-          if ((this.shown !== this.signature || this.inputTarget && !isValid(this.inputTarget, true)) && !this.a.modal) this.a.draw();
+          if ((this.shown !== this.signature || this.inputTarget && !isValid(this.inputTarget, true)) && !this.a.modal) this.redraw();
         };
         _proto.skip = function skip() {
           var a = this.a;
@@ -52273,6 +53225,30 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           this.drawGuide();
           this.bindInputGate();
           this.spotlightTick();
+        };
+        _proto.redraw = function redraw() {
+          var a = this.a;
+          this.clearSpotlight();
+          for (var _iterator2 = _createForOfIteratorHelperLoose(new Set([this.gameFocus, this.extraFocus])), _step2; !(_step2 = _iterator2()).done;) {
+            var focus = _step2.value;
+            if (focus && isValid(focus, true)) {
+              a.stopTweens(focus);
+              focus.removeFromParent();
+              focus.destroy();
+            }
+          }
+          for (var _i2 = 0, _arr = [].concat(a.root.children); _i2 < _arr.length; _i2++) {
+            var node = _arr[_i2];
+            if (node.name === 'tutorial-guide-root' || node.name === 'tutorial-battle-area') {
+              a.stopTweens(node);
+              node.removeFromParent();
+              node.destroy();
+            }
+          }
+          this.focusTargets.clear();
+          this.gestures.clear();
+          this.draw();
+          a.updateHUD();
         };
         _proto.drawGuide = function drawGuide() {
           var _this7 = this;
@@ -52370,8 +53346,8 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             parent = this.a.root;
           }
           if (parent.name === name) return parent;
-          for (var _iterator2 = _createForOfIteratorHelperLoose(parent.children), _step2; !(_step2 = _iterator2()).done;) {
-            var child = _step2.value;
+          for (var _iterator3 = _createForOfIteratorHelperLoose(parent.children), _step3; !(_step3 = _iterator3()).done;) {
+            var child = _step3.value;
             var found = this.find(name, child);
             if (found) return found;
           }
@@ -52487,6 +53463,13 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             var loc = e.getUILocation(),
               point = new Vec3(loc.x, loc.y, 0),
               allowed = [];
+            // Reading a stat never performs a game action or advances the guided step.
+            var info = function info(n) {
+              var _n$getChildByName;
+              if (n.getChildByName('metric-icon') || ['icon-help-target', 'icon-tooltip', 'role-badge', 'coin-counter-plate', 'diamond-counter-plate'].includes(n.name) || ((_n$getChildByName = n.getChildByName('button-label')) == null || (_n$getChildByName = _n$getChildByName.getComponent(Label)) == null ? void 0 : _n$getChildByName.string) === a.tr('ui.iconHelp')) allowed.push(n);
+              n.children.forEach(info);
+            };
+            info(a.modal || a.root);
             var controls = function controls(n) {
               if (n.getChildByName('button-label')) allowed.push(n);else n.children.forEach(controls);
             };
@@ -52494,8 +53477,8 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
               if (_this9.active) controls(a.modal);else {
                 if (_this9.popupTarget) allowed.push(_this9.popupTarget);
                 var close = function close(n) {
-                  var _n$getChildByName;
-                  var l = (_n$getChildByName = n.getChildByName('button-label')) == null ? void 0 : _n$getChildByName.getComponent(Label);
+                  var _n$getChildByName2;
+                  var l = (_n$getChildByName2 = n.getChildByName('button-label')) == null ? void 0 : _n$getChildByName2.getComponent(Label);
                   if (l && (n.name === 'modal-close' || !!a.buttonReason(n) || !l.string || [a.tr('action.close'), a.tr('action.back'), a.tr('action.cancel')].includes(l.string))) allowed.push(n);
                   n.children.forEach(close);
                 };
@@ -52520,8 +53503,8 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
               e.propagationImmediateStopped = true;
             }
           };
-          for (var _i2 = 0, _arr = [Node.EventType.TOUCH_START, Node.EventType.TOUCH_MOVE, Node.EventType.TOUCH_END, Node.EventType.TOUCH_CANCEL]; _i2 < _arr.length; _i2++) {
-            var type = _arr[_i2];
+          for (var _i3 = 0, _arr2 = [Node.EventType.TOUCH_START, Node.EventType.TOUCH_MOVE, Node.EventType.TOUCH_END, Node.EventType.TOUCH_CANCEL]; _i3 < _arr2.length; _i3++) {
+            var type = _arr2[_i3];
             this.a.root.on(type, gate, this, true);
           }
         };
@@ -52532,8 +53515,8 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           var target = null,
             best = Infinity;
           var search = function search(parent) {
-            for (var _iterator3 = _createForOfIteratorHelperLoose(parent.children), _step3; !(_step3 = _iterator3()).done;) {
-              var child = _step3.value;
+            for (var _iterator4 = _createForOfIteratorHelperLoose(parent.children), _step4; !(_step4 = _iterator4()).done;) {
+              var child = _step4.value;
               if (!child.activeInHierarchy || child.name.startsWith('guide-') || child.name === 'tutorial-guide-root') continue;
               if (child.name === 'ui-button' || /^tab-\d+$/.test(child.name)) {
                 var pos = rootTransform.convertToNodeSpaceAR(child.worldPosition),
@@ -52719,7 +53702,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             }
             hole(guide);
             var _loop = function _loop() {
-              var focus = _arr2[_i3];
+              var focus = _arr3[_i4];
               if (focus && isValid(focus, true) && focus.activeInHierarchy) {
                 hole(focus, _this10.focusContours.get(focus));
                 var arrow = focus.getChildByName('guide-moving-arrow');
@@ -52729,10 +53712,11 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
                 }), 0);
               }
             };
-            for (var _i3 = 0, _arr2 = [this.gameFocus, this.extraFocus]; _i3 < _arr2.length; _i3++) {
+            for (var _i4 = 0, _arr3 = [this.gameFocus, this.extraFocus]; _i4 < _arr3.length; _i4++) {
               _loop();
             }
           }
+          if (a.tooltipNode && isValid(a.tooltipNode, true)) hole(a.tooltipNode);
           var signature = JSON.stringify({
             area: area,
             holes: holes
@@ -52746,8 +53730,8 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           mask.inverted = true;
           var g = mask.subComp;
           g.clear();
-          for (var _i4 = 0, _holes = holes; _i4 < _holes.length; _i4++) {
-            var points = _holes[_i4];
+          for (var _i5 = 0, _holes = holes; _i5 < _holes.length; _i5++) {
+            var points = _holes[_i5];
             g.moveTo(points[0][0], points[0][1]);
             points.slice(1).forEach(function (p) {
               return g.lineTo(p[0], p[1]);
@@ -52895,8 +53879,8 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
   };
 });
 
-System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts', './EnemyArtBounds.ts', './Mercenaries.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, Color, resources, Texture2D, SpriteFrame, Graphics, UITransform, Node, Mask, Sprite, Vec3, Font, ENEMY_TYPES, BOSS_TYPES, ENEMY_ALPHA_BOUNDS, MERCENARY_COUNT;
+System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts', './EnemyArtBounds.ts', './Mercenaries.ts', './ShopTheme.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, Color, resources, Texture2D, SpriteFrame, Graphics, UITransform, Node, Mask, Sprite, Vec3, Font, ENEMY_TYPES, BOSS_TYPES, ENEMY_ALPHA_BOUNDS, MERCENARY_COUNT, SHOP_ICONS;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -52922,6 +53906,8 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
       ENEMY_ALPHA_BOUNDS = module.ENEMY_ALPHA_BOUNDS;
     }, function (module) {
       MERCENARY_COUNT = module.MERCENARY_COUNT;
+    }, function (module) {
+      SHOP_ICONS = module.SHOP_ICONS;
     }],
     execute: function () {
       exports('contrastInk', contrastInk);
@@ -52951,9 +53937,60 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
         confirm: '#ffd83d',
         details: '#f29a49',
         codex: '#ee91bf',
+        upgrade: '#94cf76',
+        ascend: '#c395ee',
         deck: '#77c5b6',
         synergy: '#b79be8',
-        back: '#aeb6c2'
+        battle: '#ef8792',
+        shop: '#79cbed',
+        settings: '#9caece',
+        back: '#aeb6c2',
+        danger: '#ef2144'
+      });
+      /** Shared meanings, independent of primary/secondary and enabled/disabled states. */
+      var BUTTON_CATEGORY_KEYS = exports('BUTTON_CATEGORY_KEYS', {
+        confirm: ['action.confirm', 'action.apply', 'action.equip', 'action.equipped', 'action.select', 'action.selected', 'action.claim', 'action.claimReady', 'action.claimed', 'registry.register', 'registry.registered', 'registry.registerAll', 'settings.saveButton', 'entry.nameConfirm', 'entry.start', 'entry.agree', 'ops.pushAllow'],
+        details: ['action.details', 'action.open', 'ui.iconHelp', 'merc.preview', 'extra.petEffects', 'extra.puzzleHelp', 'extra.puzzleHelpReturn', 'intel.details', 'extra.serviceStatus', 'complete.support', 'menu.profile', 'online.roster', 'money.vip'],
+        codex: ['squad.codex', 'squad.collections', 'registry.title', 'registry.combos', 'hero.mastery', 'merc.gallery', 'equipment.sets', 'equipment.transmog', 'extra.mastery', 'extra.masterySets', 'extra.petMilestones', 'extra.petMilestoneShort'],
+        upgrade: ['action.upgrade', 'layout.upgrade', 'master.buyMode', 'extra.heroSkill', 'equipment.craft', 'artifact.discover', 'intel.upgrade', 'intel.enchantButton', 'pet.hatch', 'master.skills', 'extra.maintenanceShort', 'extra.weapons', 'extra.search', 'extra.ingredient', 'meta.crack', 'meta.summon', 'raid.upgrade'],
+        ascend: ['extra.ascend', 'prestige.title', 'intel.redeployButton', 'intel.redeployLocked', 'action.rebirth'],
+        deck: ['squad.deck', 'squad.count', 'squad.deploy', 'squad.remove', 'nav.heroes', 'menu.cards', 'complete.saveDeck', 'complete.presets'],
+        synergy: ['squad.synergies', 'squad.roles'],
+        battle: ['action.attack', 'battle.fight', 'hud.operations', 'menu.raid', 'menu.expeditions', 'menu.tournaments', 'online.enter', 'online.join', 'online.guildRaid', 'extra.door', 'battle.autoAd', 'battle.autoTime'],
+        shop: ['action.buy', 'money.store', 'money.watch', 'money.fairyBonus', 'extra.dustShop', 'extra.dustOffer', 'shop.regular', 'shop.progression', 'shop.limited', 'money.restore', 'money.retry'],
+        settings: ['hud.menu', 'hud.settings', 'menu.settings', 'menu.inbox', 'action.lock', 'settings.audio', 'locale.ko', 'locale.en', 'complete.account', 'complete.display', 'extra.hub', 'live.17', 'extra.notifications', 'extra.export', 'complete.import', 'complete.restoreBackup', 'tutorial.replay', 'cheat.title', 'cheat.restore', 'settings.on', 'settings.off', 'ops.osSettings'],
+        back: ['action.cancel', 'action.back', 'action.close', 'action.next', 'action.previous', 'layout.collapse', 'layout.expand', 'guide.later', 'learn.previous', 'tutorial.skip', 'entry.backLogin', 'ops.pushDecline'],
+        danger: ['action.sell', 'action.reset', 'action.revert', 'extra.delete', 'cheat.reset', 'artifact.salvage', 'online.leave', 'ops.block']
+      });
+      var ICON_HELP_KEYS = exports('ICON_HELP_KEYS', {
+        'symbol:up': 'ui.help.level',
+        'symbol:plus': 'ui.help.upgrade',
+        'symbol:damage': 'ui.help.damage',
+        'sword': 'ui.help.weapon',
+        'rebirth': 'ui.help.ascend',
+        'lightning': 'ui.help.skill',
+        'scroll': 'ui.help.manual',
+        'symbol:canteen': 'ui.help.energy',
+        'interface:energy': 'ui.help.attempts',
+        'interface:drone': 'ui.help.drone',
+        'heart': 'ui.help.health',
+        'symbol:clock': 'ui.help.time',
+        'flag': 'ui.help.stage',
+        'lock': 'ui.help.lock',
+        'armor': 'ui.help.gear',
+        'symbol:bag': 'ui.help.inventory',
+        'face:compass': 'ui.help.parts',
+        'shop:shards': 'ui.help.parts',
+        'symbol:coin': 'ui.help.coin',
+        'face:gems': 'ui.help.diamond',
+        'adventurer': 'ui.help.squad',
+        'cards': 'ui.help.cards',
+        'egg': 'ui.help.assembly',
+        'trophy': 'ui.help.reward',
+        'mail': 'ui.help.mail',
+        'settings': 'ui.help.settings',
+        'fox': 'ui.help.drone',
+        'symbol:check': 'ui.help.applied'
       });
       var SQUAD_ROLE_STYLE = exports('SQUAD_ROLE_STYLE', {
         assault: {
@@ -53164,6 +54201,8 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
                   _context.next = 9;
                   return Promise.all([this.loadFrame('icons/coin', 0, false, 'military/currency/coin'), this.loadFrame('faces/gems', 0, false, 'military/currency/diamond')].concat(MILITARY_UI_ART.map(function (key) {
                     return _this.loadFrame('interface/' + key, 0, false, 'military/interface/' + key);
+                  }), SHOP_ICONS.map(function (key) {
+                    return _this.loadFrame('shop/' + key, 0, false, 'military/shop/' + key);
                   })));
                 case 9:
                   if (this.missing.length) console.warn('[UIArt] Missing assets:', this.missing.join(', '));
@@ -53327,7 +54366,7 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
           return true;
         }
         /** Flat vector silhouettes retain crisp edges at every device ratio. */;
-        _proto.surface = function surface(node, fill, kind, alpha, gradient) {
+        _proto.surface = function surface(node, fill, kind, alpha, gradient, border) {
           if (kind === void 0) {
             kind = 'cut';
           }
@@ -53336,6 +54375,9 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
           }
           if (gradient === void 0) {
             gradient = false;
+          }
+          if (border === void 0) {
+            border = true;
           }
           var _contentSize2 = node.getComponent(UITransform).contentSize,
             w = _contentSize2.width,
@@ -53363,6 +54405,7 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
             return Math.round(v * .84).toString(16).padStart(2, '0');
           }).join('') : undefined;
           this.polygon(face, points, fill, alpha, end);
+          if (!border) return;
           var edge = face.getComponent(Graphics);
           edge.lineWidth = 1.5;
           var ink = new Color();
@@ -53555,6 +54598,7 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
           if (color === void 0) {
             color = UI.text;
           }
+          if (key.startsWith('shop:')) return this.paint(node, 'shop/' + key.slice(5));
           if (key === 'symbol:damage') return this.damageIcon(node, color);
           if (key.startsWith('interface:')) return this.paint(node, 'interface/' + key.slice(10));
           if (key === 'symbol:coin') return this.paint(node, 'icons/coin');
