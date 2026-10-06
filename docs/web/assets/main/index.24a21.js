@@ -1849,6 +1849,175 @@ System.register("chunks:///_virtual/Dialogue.ts", ['./rollupPluginModLoBabelHelp
   };
 });
 
+System.register("chunks:///_virtual/DroneEffects.ts", ['cc'], function (exports) {
+  var cclegacy;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+    }],
+    execute: function () {
+      exports('activeDroneEffect', activeDroneEffect);
+      cclegacy._RF.push({}, "f8e71VZR4lOFrO7isG8X9nc", "DroneEffects", undefined);
+      /** Presentation-only cues. They never change the saved drone bonuses or combat rules. */
+      function activeDroneEffect(state, effect) {
+        var id = state.activePet,
+          level = state.pets[id];
+        return state.maxStage >= 8 && id >= 0 && level > 0 && id % 3 === effect ? {
+          id: id,
+          effect: effect,
+          percent: level * 2.5
+        } : null;
+      }
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/DroneFeedbackUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc'], function (exports) {
+  var _createForOfIteratorHelperLoose, cclegacy, UITransform, isValid, UIOpacity, tween, Vec3, Graphics;
+  return {
+    setters: [function (module) {
+      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+      UITransform = module.UITransform;
+      isValid = module.isValid;
+      UIOpacity = module.UIOpacity;
+      tween = module.tween;
+      Vec3 = module.Vec3;
+      Graphics = module.Graphics;
+    }],
+    execute: function () {
+      cclegacy._RF.push({}, "6af75SQy8JDspx7qaHEF9FU", "DroneFeedbackUI", undefined);
+      var DroneFeedbackUI = exports('DroneFeedbackUI', /*#__PURE__*/function () {
+        function DroneFeedbackUI(a) {
+          this.pending = [];
+          this.elapsed = 1;
+          this.run = null;
+          this.lastId = -1;
+          this.a = a;
+        }
+        var _proto = DroneFeedbackUI.prototype;
+        _proto.tick = function tick(dt) {
+          var _a$entry, _this$pending, _a$battleCast;
+          var a = this.a,
+            events = a.game.drainDroneEffects();
+          this.elapsed += dt;
+          if (this.run !== a.game.s.run || this.lastId !== a.game.s.activePet) {
+            this.pending = [];
+            this.elapsed = 1;
+            this.run = a.game.s.run;
+            this.lastId = a.game.s.activePet;
+          }
+          // Do not replay cues from a hidden battlefield or a previous equipped drone.
+          if (!((_a$entry = a.entry) != null && _a$entry.playing) || a.modal || a.feedback.showing || a.tutorial.active || a.zoneTransition.active) {
+            this.pending = [];
+            return;
+          }
+          (_this$pending = this.pending).push.apply(_this$pending, events.filter(function (e) {
+            return e.id === a.game.s.activePet;
+          }));
+          if (!this.pending.length || this.elapsed < .16) return;
+          var drone = (_a$battleCast = a.battleCast) == null ? void 0 : _a$battleCast.getChildByName('equipped-drone');
+          if (!(drone != null && drone.activeInHierarchy)) {
+            this.pending = [];
+            return;
+          }
+          var cue = this.pending[this.pending.length - 1],
+            count = this.pending.length;
+          this.pending = [];
+          this.elapsed = 0;
+          var origin = a.root.getComponent(UITransform).convertToNodeSpaceAR(drone.worldPosition);
+          // Bias the compact caption right of the drone so it clears the supply control.
+          var n = a.nodeAt(a.root, 'drone-support-pop', Math.min(151, origin.x + 72), origin.y + 35, 158, 28);
+          var tone = ['#ffe187', '#ff9288', '#9cebdd'][cue.effect];
+          var text = a.tr('drone.proc.' + cue.effect, {
+            percent: Number(cue.percent.toFixed(1))
+          }) + (count > 1 ? a.tr('drone.procCount', {
+            count: count
+          }) : '');
+          var label = a.label(n, text, 0, 0, 158, 28, 16, tone);
+          label.node.name = 'drone-support-value';
+          label.enableOutline = true;
+          label.outlineWidth = 3;
+          label.outlineColor = a.color('#121b20');
+          // Keep concurrent bursts bounded. Every queued application contributes to the count.
+          var older = a.root.children.filter(function (c) {
+            return c.name === 'drone-support-pop' && c !== n;
+          });
+          for (var _iterator = _createForOfIteratorHelperLoose(older), _step; !(_step = _iterator()).done;) {
+            var prior = _step.value;
+            prior.removeFromParent();
+            prior.destroy();
+          }
+          if (!a.game.s.extra.effects) {
+            a.scheduleOnce(function () {
+              if (isValid(n, true)) {
+                n.removeFromParent();
+                n.destroy();
+              }
+            }, .55);
+            return;
+          }
+          n.setScale(.55, .55, 1);
+          var opacity = n.addComponent(UIOpacity);
+          tween(n).to(.11, {
+            scale: new Vec3(1.18, 1.18, 1)
+          }, {
+            easing: 'backOut'
+          }).to(.12, {
+            scale: new Vec3(1, 1, 1)
+          }).start();
+          tween(n).by(.62, {
+            position: new Vec3(0, 8, 0)
+          }).call(function () {
+            if (isValid(n, true)) {
+              n.removeFromParent();
+              n.destroy();
+            }
+          }).start();
+          tween(opacity).delay(.36).to(.26, {
+            opacity: 0
+          }).start();
+          var _loop = function _loop() {
+            var particle = a.nodeAt(n, 'drone-support-particle', 0, 0, 8, 8),
+              g = particle.addComponent(Graphics),
+              angle = (i + .2 * Math.random()) * Math.PI * 2 / 9;
+            g.fillColor = a.color(i % 3 ? '#ffffff' : tone);
+            var size = 1.5 + Math.random() * 1.5;
+            if (i % 2) {
+              g.rect(-size, -size, size * 2, size * 2);
+            } else {
+              g.moveTo(0, size * 2);
+              g.lineTo(size, 0);
+              g.lineTo(0, -size * 2);
+              g.lineTo(-size, 0);
+              g.close();
+            }
+            g.fill();
+            particle.setSiblingIndex(0);
+            var fade = particle.addComponent(UIOpacity),
+              life = .24 + Math.random() * .15;
+            tween(particle).by(life, {
+              position: new Vec3(Math.cos(angle) * (26 + Math.random() * 13), Math.sin(angle) * 14, 0)
+            }).call(function () {
+              if (isValid(particle, true)) particle.destroy();
+            }).start();
+            tween(fade).to(life, {
+              opacity: 0
+            }).start();
+          };
+          for (var i = 0; i < 9; i++) {
+            _loop();
+          }
+        };
+        return DroneFeedbackUI;
+      }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
 System.register("chunks:///_virtual/Enemies.ts", ['cc'], function (exports) {
   var cclegacy;
   return {
@@ -3637,10 +3806,11 @@ System.register("chunks:///_virtual/Expansion.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Mercenaries.ts', './EntryPolicy.ts', './LiveOps.ts', './Balance.ts', './UITheme.ts', './Expansion.ts', './Amount.ts', './I18n.ts'], function (exports) {
-  var _asyncToGenerator, _regeneratorRuntime, _createClass, _createForOfIteratorHelperLoose, cclegacy, UITransform, tween, Vec3, attackSeconds, featureUnlocked, mailExpiry, GROWTH_STATS, gemstoneSlots, gemstoneBonus, UI, Expansion, display, t;
+System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './RewardClaims.ts', './Mercenaries.ts', './EntryPolicy.ts', './LiveOps.ts', './Balance.ts', './UITheme.ts', './Expansion.ts', './Amount.ts', './I18n.ts'], function (exports) {
+  var _extends, _asyncToGenerator, _regeneratorRuntime, _createClass, _createForOfIteratorHelperLoose, cclegacy, UITransform, tween, Vec3, rewardDelta, attackSeconds, featureUnlocked, mailExpiry, GROWTH_STATS, gemstoneSlots, gemstoneBonus, UI, Expansion, display, t;
   return {
     setters: [function (module) {
+      _extends = module.extends;
       _asyncToGenerator = module.asyncToGenerator;
       _regeneratorRuntime = module.regeneratorRuntime;
       _createClass = module.createClass;
@@ -3650,6 +3820,8 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
       UITransform = module.UITransform;
       tween = module.tween;
       Vec3 = module.Vec3;
+    }, function (module) {
+      rewardDelta = module.rewardDelta;
     }, function (module) {
       attackSeconds = module.attackSeconds;
     }, function (module) {
@@ -3787,11 +3959,16 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
               }),
               action: _this2.tr('action.details'),
               click: function click() {
-                _this2.x.unseenEquipment = _this2.x.unseenEquipment.filter(function (id) {
-                  return id !== item.id;
-                });
-                _this2.g.persist();
-                _this2.a.item(item);
+                var done = function done() {
+                  _this2.x.unseenEquipment = _this2.x.unseenEquipment.filter(function (id) {
+                    return id !== item.id;
+                  });
+                  _this2.g.persist();
+                  _this2.a.item(item);
+                };
+                if (_this2.g.s.claims.includes('reward-choice:' + item.id)) done();else _this2.a.rewards.received(_this2.a.itemName(item), 'equipment:' + item.id, {
+                  equipment: [_extends({}, item)]
+                }, done);
               }
             };
           }));
@@ -3849,15 +4026,15 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
         };
         _proto.tournament = function tournament(id, mode) {
           var _this4 = this;
-          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
             var data, loadedAt, ended, p;
-            return _regeneratorRuntime().wrap(function _callee3$(_context3) {
-              while (1) switch (_context3.prev = _context3.next) {
+            return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+              while (1) switch (_context4.prev = _context4.next) {
                 case 0:
-                  _context3.next = 2;
+                  _context4.next = 2;
                   return _this4.a.onlineService.request('/competition?id=' + id);
                 case 2:
-                  data = _context3.sent;
+                  data = _context4.sent;
                   loadedAt = Date.now();
                   ended = data.serverNow >= data.tournament.end;
                   _this4.a.competitionId = id;
@@ -3888,43 +4065,75 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                     };
                   }));
                   _this4.a.button(p, _this4.tr(ended ? data.claimed ? 'action.claimed' : 'action.claim' : data.state ? 'online.enter' : 'online.join'), 0, -277, 375, 50, function () {
-                    void _this4.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
+                    void _this4.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
                       var result;
-                      return _regeneratorRuntime().wrap(function _callee2$(_context2) {
-                        while (1) switch (_context2.prev = _context2.next) {
+                      return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+                        while (1) switch (_context3.prev = _context3.next) {
                           case 0:
                             if (!ended) {
-                              _context2.next = 11;
+                              _context3.next = 5;
                               break;
                             }
-                            _context2.next = 3;
-                            return _this4.a.onlineService.command('/competition/claim', {
-                              id: id
-                            }, "tournament-claim-" + id + "-" + _this4.a.onlineService.accountId);
-                          case 3:
-                            _context2.sent;
-                            _context2.next = 6;
-                            return _this4.deliverRewards();
-                          case 6:
-                            _this4.a.toast(_this4.tr('reward.done'));
                             _this4.a.remoteBusy = false;
-                            _this4.tournament(id, mode);
-                            _context2.next = 16;
+                            _this4.a.rewards.remote(_this4.tr(mode === 'regular' ? 'complete.regular' : 'online.abyss'), 'tournament:' + id + ':' + _this4.a.onlineService.accountId, function () {
+                              return {
+                                currencies: {
+                                  gems: Math.max(25, 200 - Math.max(0, data.leaderboard.findIndex(function (row) {
+                                    return row.id === _this4.a.onlineService.accountId;
+                                  })) * 10),
+                                  shards: 10
+                                }
+                              };
+                            }, /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(multiplier, credit) {
+                              var reward;
+                              return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+                                while (1) switch (_context2.prev = _context2.next) {
+                                  case 0:
+                                    _context2.next = 2;
+                                    return _this4.a.onlineService.command('/competition/claim', {
+                                      id: id,
+                                      multiplier: multiplier,
+                                      credit: credit,
+                                      previewDouble: _this4.a.payments.model.previewAds
+                                    }, "tournament-claim-" + id + "-" + _this4.a.onlineService.accountId);
+                                  case 2:
+                                    reward = _context2.sent;
+                                    if (!(!_this4.g.s.claims.includes(reward.claimId) && !_this4.applyServerReward(reward))) {
+                                      _context2.next = 5;
+                                      break;
+                                    }
+                                    throw Error(_this4.g.notice);
+                                  case 5:
+                                    _context2.next = 7;
+                                    return _this4.a.onlineService.command('/rewards/ack', {
+                                      id: reward.claimId
+                                    });
+                                  case 7:
+                                    return _context2.abrupt("return", true);
+                                  case 8:
+                                  case "end":
+                                    return _context2.stop();
+                                }
+                              }, _callee2);
+                            })), function () {
+                              return _this4.tournament(id, mode);
+                            });
+                            _context3.next = 10;
                             break;
-                          case 11:
-                            _context2.next = 13;
+                          case 5:
+                            _context3.next = 7;
                             return _this4.a.onlineService.command('/competition/join', {
                               mode: mode
                             });
-                          case 13:
-                            result = _context2.sent;
+                          case 7:
+                            result = _context3.sent;
                             _this4.a.competitionId = result.id;
                             _this4.a.competitionBattle(result.state);
-                          case 16:
+                          case 10:
                           case "end":
-                            return _context2.stop();
+                            return _context3.stop();
                         }
-                      }, _callee2);
+                      }, _callee3);
                     })));
                   }, true, {
                     unavailable: function unavailable() {
@@ -3939,25 +4148,25 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                   };
                 case 14:
                 case "end":
-                  return _context3.stop();
+                  return _context4.stop();
               }
-            }, _callee3);
+            }, _callee4);
           })));
         };
         _proto.serverCards = function serverCards() {
           var _this5 = this;
-          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
             var w, p, cycle, offers;
-            return _regeneratorRuntime().wrap(function _callee6$(_context6) {
-              while (1) switch (_context6.prev = _context6.next) {
+            return _regeneratorRuntime().wrap(function _callee7$(_context7) {
+              while (1) switch (_context7.prev = _context7.next) {
                 case 0:
-                  _context6.next = 2;
+                  _context7.next = 2;
                   return _this5.a.onlineService.connect(_this5.tr('online.defaultName'));
                 case 2:
-                  _context6.next = 4;
+                  _context7.next = 4;
                   return _this5.a.onlineService.request('/raid/cards');
                 case 4:
-                  w = _context6.sent;
+                  w = _context7.sent;
                   p = _this5.a.open(_this5.tr('complete.serverCards'), 720);
                   _this5.a.label(p, _this5.tr('complete.serverCardInfo', {
                     dust: w.dust
@@ -3977,11 +4186,11 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                         _this5.a.button(box, _this5.tr('raid.upgrade', {
                           cost: level * 10
                         }), 0, 30, 375, 50, function () {
-                          void _this5.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
-                            return _regeneratorRuntime().wrap(function _callee4$(_context4) {
-                              while (1) switch (_context4.prev = _context4.next) {
+                          void _this5.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+                            return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+                              while (1) switch (_context5.prev = _context5.next) {
                                 case 0:
-                                  _context4.next = 2;
+                                  _context5.next = 2;
                                   return _this5.a.onlineService.command('/raid/cards/upgrade', {
                                     card: i
                                   });
@@ -3990,9 +4199,9 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                                   _this5.serverCards();
                                 case 4:
                                 case "end":
-                                  return _context4.stop();
+                                  return _context5.stop();
                               }
-                            }, _callee4);
+                            }, _callee5);
                           })));
                         }, true, {
                           unavailable: function unavailable() {
@@ -4004,11 +4213,11 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                         if (offers.includes(i)) _this5.a.button(box, _this5.tr('extra.dustOffer', {
                           dust: w.dust
                         }), 0, -60, 375, 50, function () {
-                          void _this5.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
-                            return _regeneratorRuntime().wrap(function _callee5$(_context5) {
-                              while (1) switch (_context5.prev = _context5.next) {
+                          void _this5.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+                            return _regeneratorRuntime().wrap(function _callee6$(_context6) {
+                              while (1) switch (_context6.prev = _context6.next) {
                                 case 0:
-                                  _context5.next = 2;
+                                  _context6.next = 2;
                                   return _this5.a.onlineService.command('/raid/cards/buy', {
                                     card: i
                                   });
@@ -4017,9 +4226,9 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                                   _this5.serverCards();
                                 case 4:
                                 case "end":
-                                  return _context5.stop();
+                                  return _context6.stop();
                               }
-                            }, _callee5);
+                            }, _callee6);
                           })));
                         }, false, {
                           unavailable: function unavailable() {
@@ -4034,9 +4243,9 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                   }));
                 case 9:
                 case "end":
-                  return _context6.stop();
+                  return _context7.stop();
               }
-            }, _callee6);
+            }, _callee7);
           })));
         };
         _proto.solo = function solo() {
@@ -4088,11 +4297,11 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             },
             action: this.tr('action.claim'),
             click: function click() {
-              return _this6.action(function () {
-                return _this6.e.dailyPortal(_this6.id('solo-daily'));
+              return _this6.a.rewards.local(_this6.tr('complete.dailyPortal'), 'solo-daily:' + _this6.x.day, function (g) {
+                return new Expansion(g).dailyPortal(_this6.id('solo-daily'));
               }, function () {
                 return _this6.solo();
-              }, 'reward.done');
+              });
             }
           }]);
         };
@@ -4320,20 +4529,20 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             }),
             action: this.tr('settings.saveButton'),
             click: function click() {
-              return void a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
-                return _regeneratorRuntime().wrap(function _callee7$(_context7) {
-                  while (1) switch (_context7.prev = _context7.next) {
+              return void a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
+                return _regeneratorRuntime().wrap(function _callee8$(_context8) {
+                  while (1) switch (_context8.prev = _context8.next) {
                     case 0:
-                      _context7.next = 2;
+                      _context8.next = 2;
                       return o.save();
                     case 2:
                       a.remoteBusy = false;
                       _this13.account();
                     case 4:
                     case "end":
-                      return _context7.stop();
+                      return _context8.stop();
                   }
-                }, _callee7);
+                }, _callee8);
               })));
             }
           }, {
@@ -4341,19 +4550,19 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             action: this.tr('action.apply'),
             click: function click() {
               return a.confirm(_this13.tr('complete.cloudLoad'), _this13.tr('complete.replaceSave'), function () {
-                return void a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
-                  return _regeneratorRuntime().wrap(function _callee8$(_context8) {
-                    while (1) switch (_context8.prev = _context8.next) {
+                return void a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
+                  return _regeneratorRuntime().wrap(function _callee9$(_context9) {
+                    while (1) switch (_context9.prev = _context9.next) {
                       case 0:
-                        _context8.next = 2;
+                        _context9.next = 2;
                         return o.start();
                       case 2:
                         a.close();
                       case 3:
                       case "end":
-                        return _context8.stop();
+                        return _context9.stop();
                     }
-                  }, _callee8);
+                  }, _callee9);
                 })));
               });
             }
@@ -4361,21 +4570,21 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             title: this.tr('ops.recoverRewards'),
             action: this.tr('action.checkRewards'),
             click: function click() {
-              return void a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
+              return void a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10() {
                 var count;
-                return _regeneratorRuntime().wrap(function _callee9$(_context9) {
-                  while (1) switch (_context9.prev = _context9.next) {
+                return _regeneratorRuntime().wrap(function _callee10$(_context10) {
+                  while (1) switch (_context10.prev = _context10.next) {
                     case 0:
-                      _context9.next = 2;
+                      _context10.next = 2;
                       return _this13.deliverRewards();
                     case 2:
-                      count = _context9.sent;
+                      count = _context10.sent;
                       a.toast(_this13.tr(count ? 'reward.done' : 'reward.none'));
                     case 4:
                     case "end":
-                      return _context9.stop();
+                      return _context10.stop();
                   }
-                }, _callee9);
+                }, _callee10);
               })));
             }
           }, {
@@ -4395,19 +4604,19 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             title: this.tr('ops.googleLink'),
             action: this.tr('action.apply'),
             click: function click() {
-              return void a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10() {
-                return _regeneratorRuntime().wrap(function _callee10$(_context10) {
-                  while (1) switch (_context10.prev = _context10.next) {
+              return void a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
+                return _regeneratorRuntime().wrap(function _callee11$(_context11) {
+                  while (1) switch (_context11.prev = _context11.next) {
                     case 0:
-                      _context10.next = 2;
+                      _context11.next = 2;
                       return a.cloud.linkGoogle();
                     case 2:
                       a.toast(_this13.tr('ops.googleLinked'));
                     case 3:
                     case "end":
-                      return _context10.stop();
+                      return _context11.stop();
                   }
-                }, _callee10);
+                }, _callee11);
               })));
             }
           }], [{
@@ -4437,20 +4646,20 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           field.string = this.g.s.squadName;
           this.a.label(p, this.tr('entry.nameRules'), 0, 113, 370, 60, 14);
           this.a.button(p, this.tr('action.apply'), 0, -70, 370, 50, function () {
-            void _this14.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
-              return _regeneratorRuntime().wrap(function _callee11$(_context11) {
-                while (1) switch (_context11.prev = _context11.next) {
+            void _this14.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12() {
+              return _regeneratorRuntime().wrap(function _callee12$(_context12) {
+                while (1) switch (_context12.prev = _context12.next) {
                   case 0:
-                    _context11.next = 2;
+                    _context12.next = 2;
                     return _this14.a.operations.setSquadName(field.string);
                   case 2:
                     _this14.a.remoteBusy = false;
                     _this14.account();
                   case 4:
                   case "end":
-                    return _context11.stop();
+                    return _context12.stop();
                 }
-              }, _callee11);
+              }, _callee12);
             })));
           }, true);
         };
@@ -4493,23 +4702,23 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                 return;
               }
               _this15.a.confirm(_this15.tr('complete.recoveryImport'), _this15.tr('complete.switchAccount'), function () {
-                void _this15.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12() {
-                  return _regeneratorRuntime().wrap(function _callee12$(_context12) {
-                    while (1) switch (_context12.prev = _context12.next) {
+                void _this15.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee13() {
+                  return _regeneratorRuntime().wrap(function _callee13$(_context13) {
+                    while (1) switch (_context13.prev = _context13.next) {
                       case 0:
-                        _context12.next = 2;
+                        _context13.next = 2;
                         return _this15.a.onlineService.recover(data.token, data.accountId);
                       case 2:
-                        _context12.next = 4;
+                        _context13.next = 4;
                         return _this15.a.operations.start();
                       case 4:
                         _this15.a.remoteBusy = false;
                         _this15.account();
                       case 6:
                       case "end":
-                        return _context12.stop();
+                        return _context13.stop();
                     }
-                  }, _callee12);
+                  }, _callee13);
                 })));
               });
             });
@@ -4732,7 +4941,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             active = (1 + level * .025).toFixed(2),
             passive = (1 + level * .025 * Math.min(1, level / 100)).toFixed(2),
             p = a.open(this.tr("pet." + i), 500);
-          a.ui.paint(a.nodeAt(p, 'pet-art', -133, 114, 88, 88), 'interface/drone');
+          a.ui.paint(a.nodeAt(p, 'pet-art', -133, 114, 88, 88), 'drones/' + i);
           a.label(p, this.tr('pet.effectType', {
             effect: effect
           }), 54, 114, 242, 76, 18).node.name = 'drone-effect-kind';
@@ -4807,13 +5016,13 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
               visible = matched || _this22.x.petFace.includes(i),
               part = _this22.x.petBoard[i];
             var card = a.button(p, '', -147 + i % 4 * 98, 103 - Math.floor(i / 4) * 83, 88, 76, function () {
-              if (!_this22.e.petTile(i, _this22.id('pet-tile'))) {
-                a.flushNotice();
-                return;
-              }
               a.sound(400);
-              _this22.petPuzzle();
-              a.updateHUD();
+              a.rewards.earned(_this22.tr('extra.petPuzzle'), 'maintenance:' + _this22.x.day + ':' + _this22.id('pair'), function (g) {
+                return new Expansion(g).petTile(i, _this22.id('pet-tile'));
+              }, function () {
+                _this22.petPuzzle();
+                a.updateHUD();
+              });
             }, visible, {
               hint: _this22.tr(visible ? 'extra.part.' + part : 'extra.puzzleFlip'),
               unavailable: function unavailable() {
@@ -4900,11 +5109,11 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
               },
               action: _this24.tr('action.claim'),
               click: function click() {
-                return _this24.action(function () {
-                  return _this24.e.petMilestone(target, _this24.id('pet-milestone'));
+                return _this24.a.rewards.local(_this24.tr('extra.petMilestones'), 'pet-milestone:' + target, function (g) {
+                  return new Expansion(g).petMilestone(target, _this24.id('pet-milestone'));
                 }, function () {
                   return _this24.petMilestones();
-                }, 'reward.done');
+                });
               }
             };
           }));
@@ -5143,11 +5352,14 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
               },
               action: _this30.tr('action.claim'),
               click: function click() {
-                return _this30.action(function () {
-                  return _this30.e.gemMilestone(i, level, _this30.id('gem-milestone'));
+                return _this30.a.rewards.local(_this30.tr('meta.stone', {
+                  index: i + 1,
+                  level: _this30.g.s.stones[i]
+                }), 'gem-milestone:' + i + ':' + level, function (g) {
+                  return new Expansion(g).gemMilestone(i, level, _this30.id('gem-milestone'));
                 }, function () {
                   return _this30.gem(i);
-                }, 'reward.done');
+                });
               }
             };
           })));
@@ -5300,11 +5512,11 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
               },
               action: _this34.tr('action.claim'),
               click: function click() {
-                return _this34.action(function () {
-                  return _this34.e.collectible(i, _this34.id('collectible'));
+                return _this34.a.rewards.local(_this34.tr('extra.collectible.' + i), 'collectible:' + _this34.x.day + ':' + i, function (g) {
+                  return new Expansion(g).collectible(i, _this34.id('collectible'));
                 }, function () {
                   return _this34.collectibles();
-                }, 'reward.done');
+                });
               }
             };
           }));
@@ -5369,15 +5581,15 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             shards: m.shards
           }) + '\n' + new Date(mailExpiry(m)).toLocaleString(this.g.s.locale));
           if (!m.claimed) a.button(p, this.tr(m.gems || m.shards ? 'action.claim' : 'action.confirm'), 0, -255, 370, 46, function () {
-            if (_this36.e.claimMail(id, _this36.id('mail'))) {
-              a.info(_this36.tr('reward.done'), _this36.tr('extra.mailReward', {
-                gems: m.gems,
-                shards: m.shards
-              }));
-            } else {
-              a.flushNotice();
-              _this36.localInbox(confirmed);
-            }
+            if (m.gems || m.shards) a.rewards.local(_this36.tr(m.title), 'local-mail:' + id, function (g) {
+              return new Expansion(g).claimMail(id, _this36.id('mail'));
+            }, function () {
+              return _this36.localInbox(true);
+            });else _this36.action(function () {
+              return _this36.e.claimMail(id, _this36.id('mail'));
+            }, function () {
+              return _this36.localInbox(true);
+            });
           }, true);else a.button(p, this.tr('extra.delete'), 0, -255, 370, 46, function () {
             return a.confirm(_this36.tr('extra.delete'), _this36.a.tr('live.15'), function () {
               return _this36.action(function () {
@@ -5501,9 +5713,9 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             return _this39.a.globalRaid();
           }], ['extra.eventRanks', function () {
             return _this39.a.eventRanks();
-          }]].map(function (_ref15) {
-            var key = _ref15[0],
-              fn = _ref15[1];
+          }]].map(function (_ref16) {
+            var key = _ref16[0],
+              fn = _ref16[1];
             return {
               title: _this39.tr(key),
               action: _this39.tr('action.open'),
@@ -5557,8 +5769,8 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             return _this41.alchemy(a, (b + 1) % 4);
           });
           this.a.button(p, this.tr('extra.combine'), 0, -100, 375, 50, function () {
-            return _this41.action(function () {
-              return _this41.e.alchemy(a, b, _this41.id('alchemy'));
+            return _this41.a.rewards.earned(_this41.tr('extra.alchemy'), _this41.id('alchemy-reward'), function (g) {
+              return new Expansion(g).alchemy(a, b, _this41.id('alchemy'));
             }, function () {
               return _this41.alchemy(a, b);
             });
@@ -5576,6 +5788,7 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           }), 0, 250, 375, 40, 19);
           for (var row = 0; row < 8; row++) for (var col = 0; col <= row; col++) this.a.rect(p, (col - row / 2) * 35, 175 - row * 40, 5, 5, '#a3b7bb');
           this.a.button(p, this.tr('extra.dropBall'), 0, -250, 375, 50, function () {
+            var before = JSON.parse(JSON.stringify(_this42.g.s));
             if (_this42.e.drop(_this42.id('drop'))) {
               var ball = _this42.a.rect(p, 0, 207, 12, 12, '#ecc071');
               var right = 0,
@@ -5587,7 +5800,9 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                 });
               });
               anim.call(function () {
-                return _this42.a.toast(_this42.tr('reward.done'));
+                return _this42.a.rewards.received(_this42.tr('extra.drop'), _this42.id('drop-reward'), rewardDelta(before, _this42.g.s), function () {
+                  return _this42.drop();
+                });
               }).start();
             } else _this42.a.flushNotice();
           }, true, {
@@ -5607,8 +5822,8 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             _this43.a.button(p, _this43.tr('extra.door', {
               id: i + 1
             }), -132 + i * 132, -5, 120, 150, function () {
-              return _this43.action(function () {
-                return _this43.e.tower(i, _this43.id('tower'));
+              return _this43.a.rewards.earned(_this43.tr('extra.tower'), _this43.id('tower-reward'), function (g) {
+                return new Expansion(g).tower(i, _this43.id('tower'));
               }, function () {
                 return _this43.tower();
               });
@@ -5788,53 +6003,53 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
         };
         _proto.serviceStatus = function serviceStatus() {
           var _this51 = this;
-          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee13() {
+          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee14() {
             var health;
-            return _regeneratorRuntime().wrap(function _callee13$(_context13) {
-              while (1) switch (_context13.prev = _context13.next) {
+            return _regeneratorRuntime().wrap(function _callee14$(_context14) {
+              while (1) switch (_context14.prev = _context14.next) {
                 case 0:
-                  _context13.next = 2;
+                  _context14.next = 2;
                   return _this51.a.onlineService.request('/health');
                 case 2:
-                  health = _context13.sent;
+                  health = _context14.sent;
                   _this51.a.info(_this51.tr('extra.serviceStatus'), _this51.tr(health.maintenance ? 'extra.maintenance' : 'extra.serviceReady', {
                     version: health.version || '0.2.0'
                   }));
                 case 4:
                 case "end":
-                  return _context13.stop();
+                  return _context14.stop();
               }
-            }, _callee13);
+            }, _callee14);
           })));
         };
         _proto.guildBattle = function guildBattle() {
           var _this52 = this;
-          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee14() {
+          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee15() {
             var r;
-            return _regeneratorRuntime().wrap(function _callee14$(_context14) {
-              while (1) switch (_context14.prev = _context14.next) {
+            return _regeneratorRuntime().wrap(function _callee15$(_context15) {
+              while (1) switch (_context15.prev = _context15.next) {
                 case 0:
-                  _context14.next = 2;
+                  _context15.next = 2;
                   return _this52.a.onlineService.request('/guild/raid');
                 case 2:
-                  r = _context14.sent;
+                  r = _context15.sent;
                   if (r) {
-                    _context14.next = 7;
+                    _context15.next = 7;
                     break;
                   }
-                  _context14.next = 6;
+                  _context15.next = 6;
                   return _this52.a.onlineService.command('/guild/raid/start', {
                     deck: _this52.g.s.deck
                   });
                 case 6:
-                  r = _context14.sent;
+                  r = _context15.sent;
                 case 7:
                   _this52.guildBattlePanel(r);
                 case 8:
                 case "end":
-                  return _context14.stop();
+                  return _context15.stop();
               }
-            }, _callee14);
+            }, _callee15);
           })));
         };
         _proto.guildBattlePanel = function guildBattlePanel(data) {
@@ -5847,24 +6062,24 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             _this53.a.button(p, _this53.tr('raid.part', {
               part: i + 1
             }) + '\n' + display(r.hp[i]), i % 2 ? 94 : -94, 160 - Math.floor(i / 2) * 80, 175, 65, function () {
-              void _this53.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee16() {
+              void _this53.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee18() {
                 var next;
-                return _regeneratorRuntime().wrap(function _callee16$(_context16) {
-                  while (1) switch (_context16.prev = _context16.next) {
+                return _regeneratorRuntime().wrap(function _callee18$(_context18) {
+                  while (1) switch (_context18.prev = _context18.next) {
                     case 0:
-                      _context16.next = 2;
+                      _context18.next = 2;
                       return _this53.a.onlineService.command('/guild/raid/hit', {
                         id: data.id,
                         part: i
                       });
                     case 2:
-                      next = _context16.sent;
+                      next = _context18.sent;
                       _this53.guildBattlePanel(next);
                     case 4:
                     case "end":
-                      return _context16.stop();
+                      return _context18.stop();
                   }
-                }, _callee16);
+                }, _callee18);
               })));
             }, false, {
               unavailable: function unavailable() {
@@ -5877,29 +6092,56 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           }
           this.a.label(p, this.tr('extra.guildDeckInfo'), 0, -172, 375, 64, 14);
           this.a.button(p, this.tr('extra.raidSubmit'), 0, -260, 375, 52, function () {
-            void _this53.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee15() {
+            void _this53.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee17() {
               var result;
-              return _regeneratorRuntime().wrap(function _callee15$(_context15) {
-                while (1) switch (_context15.prev = _context15.next) {
+              return _regeneratorRuntime().wrap(function _callee17$(_context17) {
+                while (1) switch (_context17.prev = _context17.next) {
                   case 0:
-                    _context15.next = 2;
-                    return _this53.a.onlineService.command('/guild/raid/finish', {
-                      id: data.id
-                    }, 'raid-finish-' + data.id);
+                    _this53.a.remoteBusy = false;
+                    _this53.a.rewards.remote(_this53.tr('raid.result'), 'guild-raid:' + data.id, function () {
+                      return {
+                        currencies: {
+                          dust: Math.max(1, Math.floor(r.damage / 100))
+                        },
+                        collections: {
+                          fragments: _this53.g.s.fragments.map(function (_, i) {
+                            return r.deck.includes(i) ? 1 : 0;
+                          })
+                        }
+                      };
+                    }, /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee16(multiplier, credit) {
+                      return _regeneratorRuntime().wrap(function _callee16$(_context16) {
+                        while (1) switch (_context16.prev = _context16.next) {
+                          case 0:
+                            _context16.next = 2;
+                            return _this53.a.onlineService.command('/guild/raid/finish', {
+                              id: data.id,
+                              multiplier: multiplier,
+                              credit: credit,
+                              previewDouble: _this53.a.payments.model.previewAds
+                            }, 'raid-finish-' + data.id);
+                          case 2:
+                            result = _context16.sent;
+                            return _context16.abrupt("return", true);
+                          case 4:
+                          case "end":
+                            return _context16.stop();
+                        }
+                      }, _callee16);
+                    })), function () {
+                      if (result) _this53.a.info(_this53.tr('raid.result'), _this53.tr('extra.raidSummary', {
+                        damage: result.damage,
+                        hp: result.hp,
+                        cards: result.cardDamage.map(function (n) {
+                          return display(n);
+                        }).join(' / ')
+                      }));else _this53.guildBattlePanel(data);
+                    });
                   case 2:
-                    result = _context15.sent;
-                    _this53.a.info(_this53.tr('raid.result'), _this53.tr('extra.raidSummary', {
-                      damage: result.damage,
-                      hp: result.hp,
-                      cards: result.cardDamage.map(function (n) {
-                        return display(n);
-                      }).join(' / ')
-                    }));
-                  case 4:
                   case "end":
-                    return _context15.stop();
+                    return _context17.stop();
                 }
-              }, _callee15);
+              }, _callee17);
             })));
           }, true, {
             unavailable: function unavailable() {
@@ -5915,50 +6157,50 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           this.a.modalRefresh();
         };
         _proto.deliverRewards = /*#__PURE__*/function () {
-          var _deliverRewards = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee17() {
+          var _deliverRewards = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee19() {
             var o, rows, count, _iterator, _step, row;
-            return _regeneratorRuntime().wrap(function _callee17$(_context17) {
-              while (1) switch (_context17.prev = _context17.next) {
+            return _regeneratorRuntime().wrap(function _callee19$(_context19) {
+              while (1) switch (_context19.prev = _context19.next) {
                 case 0:
                   o = this.a.onlineService;
-                  _context17.next = 3;
+                  _context19.next = 3;
                   return o.request('/rewards');
                 case 3:
-                  rows = _context17.sent;
+                  rows = _context19.sent;
                   count = 0;
                   _iterator = _createForOfIteratorHelperLoose(rows);
                 case 6:
                   if ((_step = _iterator()).done) {
-                    _context17.next = 16;
+                    _context19.next = 16;
                     break;
                   }
                   row = _step.value;
                   if (this.g.s.claims.includes(row.claimId)) {
-                    _context17.next = 12;
+                    _context19.next = 12;
                     break;
                   }
                   if (this.applyServerReward(row)) {
-                    _context17.next = 11;
+                    _context19.next = 11;
                     break;
                   }
                   throw Error(this.g.notice || 'error.storage');
                 case 11:
                   count++;
                 case 12:
-                  _context17.next = 14;
+                  _context19.next = 14;
                   return o.command('/rewards/ack', {
                     id: row.claimId
                   });
                 case 14:
-                  _context17.next = 6;
+                  _context19.next = 6;
                   break;
                 case 16:
-                  return _context17.abrupt("return", count);
+                  return _context19.abrupt("return", count);
                 case 17:
                 case "end":
-                  return _context17.stop();
+                  return _context19.stop();
               }
-            }, _callee17, this);
+            }, _callee19, this);
           }));
           function deliverRewards() {
             return _deliverRewards.apply(this, arguments);
@@ -5967,15 +6209,15 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
         }();
         _proto.moderation = function moderation() {
           var _this54 = this;
-          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee20() {
+          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee22() {
             var data;
-            return _regeneratorRuntime().wrap(function _callee20$(_context20) {
-              while (1) switch (_context20.prev = _context20.next) {
+            return _regeneratorRuntime().wrap(function _callee22$(_context22) {
+              while (1) switch (_context22.prev = _context22.next) {
                 case 0:
-                  _context20.next = 2;
+                  _context22.next = 2;
                   return _this54.a.onlineService.request('/guild');
                 case 2:
-                  data = _context20.sent;
+                  data = _context22.sent;
                   _this54.list('ops.moderation', data.messages.filter(function (m) {
                     return m.account !== _this54.a.onlineService.accountId;
                   }).map(function (m) {
@@ -5987,11 +6229,11 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                         var p = _this54.a.open(m.name, 480);
                         _this54.a.label(p, m.body, 0, 100, 370, 150, 18);
                         _this54.a.button(p, _this54.tr('ops.block'), 0, -35, 370, 50, function () {
-                          void _this54.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee18() {
-                            return _regeneratorRuntime().wrap(function _callee18$(_context18) {
-                              while (1) switch (_context18.prev = _context18.next) {
+                          void _this54.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee20() {
+                            return _regeneratorRuntime().wrap(function _callee20$(_context20) {
+                              while (1) switch (_context20.prev = _context20.next) {
                                 case 0:
-                                  _context18.next = 2;
+                                  _context20.next = 2;
                                   return _this54.a.onlineService.command('/player/block', {
                                     target: m.account,
                                     enabled: true
@@ -6000,18 +6242,18 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                                   _this54.a.close();
                                 case 3:
                                 case "end":
-                                  return _context18.stop();
+                                  return _context20.stop();
                               }
-                            }, _callee18);
+                            }, _callee20);
                           })));
                         });
                         _this54.a.button(p, _this54.tr('ops.report'), 0, -110, 370, 50, function () {
                           _this54.a.confirm(_this54.tr('ops.report'), _this54.tr('ops.reportConfirm'), function () {
-                            void _this54.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee19() {
-                              return _regeneratorRuntime().wrap(function _callee19$(_context19) {
-                                while (1) switch (_context19.prev = _context19.next) {
+                            void _this54.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee21() {
+                              return _regeneratorRuntime().wrap(function _callee21$(_context21) {
+                                while (1) switch (_context21.prev = _context21.next) {
                                   case 0:
-                                    _context19.next = 2;
+                                    _context21.next = 2;
                                     return _this54.a.onlineService.command('/player/report', {
                                       message: m.id,
                                       reason: 'Inappropriate guild chat'
@@ -6021,9 +6263,9 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                                     _this54.a.close();
                                   case 4:
                                   case "end":
-                                    return _context19.stop();
+                                    return _context21.stop();
                                 }
-                              }, _callee19);
+                              }, _callee21);
                             })));
                           });
                         });
@@ -6032,32 +6274,32 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                   }));
                 case 4:
                 case "end":
-                  return _context20.stop();
+                  return _context22.stop();
               }
-            }, _callee20);
+            }, _callee22);
           })));
         };
         _proto.blocked = function blocked() {
           var _this55 = this;
-          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee22() {
+          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee24() {
             var rows;
-            return _regeneratorRuntime().wrap(function _callee22$(_context22) {
-              while (1) switch (_context22.prev = _context22.next) {
+            return _regeneratorRuntime().wrap(function _callee24$(_context24) {
+              while (1) switch (_context24.prev = _context24.next) {
                 case 0:
-                  _context22.next = 2;
+                  _context24.next = 2;
                   return _this55.a.onlineService.request('/blocks');
                 case 2:
-                  rows = _context22.sent;
+                  rows = _context24.sent;
                   _this55.list('ops.blocks', rows.map(function (r) {
                     return {
                       title: r.name,
                       action: _this55.tr('ops.unblock'),
                       click: function click() {
-                        void _this55.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee21() {
-                          return _regeneratorRuntime().wrap(function _callee21$(_context21) {
-                            while (1) switch (_context21.prev = _context21.next) {
+                        void _this55.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee23() {
+                          return _regeneratorRuntime().wrap(function _callee23$(_context23) {
+                            while (1) switch (_context23.prev = _context23.next) {
                               case 0:
-                                _context21.next = 2;
+                                _context23.next = 2;
                                 return _this55.a.onlineService.command('/player/block', {
                                   target: r.id,
                                   enabled: false
@@ -6067,18 +6309,18 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                                 _this55.blocked();
                               case 4:
                               case "end":
-                                return _context21.stop();
+                                return _context23.stop();
                             }
-                          }, _callee21);
+                          }, _callee23);
                         })));
                       }
                     };
                   }));
                 case 4:
                 case "end":
-                  return _context22.stop();
+                  return _context24.stop();
               }
-            }, _callee22);
+            }, _callee24);
           })));
         };
         _proto.guildTools = function guildTools() {
@@ -6101,9 +6343,9 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             return _this56.vault();
           }], ['extra.retire', function () {
             return _this56.retire();
-          }]].map(function (_ref25) {
-            var key = _ref25[0],
-              fn = _ref25[1];
+          }]].map(function (_ref27) {
+            var key = _ref27[0],
+              fn = _ref27[1];
             return {
               title: _this56.tr(key),
               action: _this56.tr('action.open'),
@@ -6116,11 +6358,11 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           this.a.confirm(this.tr('online.join'), this.tr('complete.joinGuild', {
             name: name
           }), function () {
-            void _this57.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee23() {
-              return _regeneratorRuntime().wrap(function _callee23$(_context23) {
-                while (1) switch (_context23.prev = _context23.next) {
+            void _this57.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee25() {
+              return _regeneratorRuntime().wrap(function _callee25$(_context25) {
+                while (1) switch (_context25.prev = _context25.next) {
                   case 0:
-                    _context23.next = 2;
+                    _context25.next = 2;
                     return _this57.a.onlineService.command('/guild/join', {
                       guild: id
                     });
@@ -6129,27 +6371,27 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                     _this57.a.guild();
                   case 4:
                   case "end":
-                    return _context23.stop();
+                    return _context25.stop();
                 }
-              }, _callee23);
+              }, _callee25);
             })));
           });
         };
         _proto.guildInfo = function guildInfo() {
           var _this58 = this;
-          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee24() {
+          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee26() {
             var data, info;
-            return _regeneratorRuntime().wrap(function _callee24$(_context24) {
-              while (1) switch (_context24.prev = _context24.next) {
+            return _regeneratorRuntime().wrap(function _callee26$(_context26) {
+              while (1) switch (_context26.prev = _context26.next) {
                 case 0:
-                  _context24.next = 2;
+                  _context26.next = 2;
                   return _this58.a.onlineService.request('/guild');
                 case 2:
-                  data = _context24.sent;
-                  _context24.next = 5;
+                  data = _context26.sent;
+                  _context26.next = 5;
                   return _this58.a.onlineService.request('/guild/info');
                 case 5:
-                  info = _context24.sent;
+                  info = _context26.sent;
                   _this58.a.info(data.guild.name, _this58.tr('complete.guildInfoBody', {
                     count: data.members.length,
                     description: info.settings.description || _this58.tr('complete.noDescription'),
@@ -6157,9 +6399,9 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                   }));
                 case 7:
                 case "end":
-                  return _context24.stop();
+                  return _context26.stop();
               }
-            }, _callee24);
+            }, _callee26);
           })));
         };
         _proto.guildSearch = function guildSearch() {
@@ -6168,18 +6410,18 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             field = this.a.edit(p, 0, 225, 375, 48, this.tr('online.guildName'));
           this.a.button(p, this.tr('extra.search'), 0, 150, 375, 48, function () {
             var q = field.string;
-            void _this59.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee25() {
+            void _this59.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee27() {
               var rows;
-              return _regeneratorRuntime().wrap(function _callee25$(_context25) {
-                while (1) switch (_context25.prev = _context25.next) {
+              return _regeneratorRuntime().wrap(function _callee27$(_context27) {
+                while (1) switch (_context27.prev = _context27.next) {
                   case 0:
-                    _context25.next = 2;
+                    _context27.next = 2;
                     return _this59.a.onlineService.connect(_this59.tr('online.defaultName'));
                   case 2:
-                    _context25.next = 4;
+                    _context27.next = 4;
                     return _this59.a.onlineService.request('/guilds?q=' + encodeURIComponent(q));
                   case 4:
-                    rows = _context25.sent;
+                    rows = _context27.sent;
                     _this59.list('extra.guildSearch', rows.map(function (r) {
                       return {
                         title: r.name,
@@ -6197,38 +6439,38 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                     }));
                   case 6:
                   case "end":
-                    return _context25.stop();
+                    return _context27.stop();
                 }
-              }, _callee25);
+              }, _callee27);
             })));
           });
         };
         _proto.guildEdit = function guildEdit() {
           var _this60 = this;
-          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee27() {
+          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee29() {
             var data, info, p, name, desc;
-            return _regeneratorRuntime().wrap(function _callee27$(_context27) {
-              while (1) switch (_context27.prev = _context27.next) {
+            return _regeneratorRuntime().wrap(function _callee29$(_context29) {
+              while (1) switch (_context29.prev = _context29.next) {
                 case 0:
-                  _context27.next = 2;
+                  _context29.next = 2;
                   return _this60.a.onlineService.request('/guild');
                 case 2:
-                  data = _context27.sent;
-                  _context27.next = 5;
+                  data = _context29.sent;
+                  _context29.next = 5;
                   return _this60.a.onlineService.request('/guild/info');
                 case 5:
-                  info = _context27.sent;
+                  info = _context29.sent;
                   p = _this60.a.open(_this60.tr('extra.guildEdit'), 590);
                   name = _this60.a.edit(p, 0, 170, 375, 48, _this60.tr('online.guildName'));
                   desc = _this60.a.edit(p, 0, 60, 375, 70, _this60.tr('extra.description'));
                   name.string = data.guild.name;
                   desc.string = info.settings.description;
                   _this60.a.button(p, _this60.tr('action.apply'), 0, -130, 375, 50, function () {
-                    void _this60.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee26() {
-                      return _regeneratorRuntime().wrap(function _callee26$(_context26) {
-                        while (1) switch (_context26.prev = _context26.next) {
+                    void _this60.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee28() {
+                      return _regeneratorRuntime().wrap(function _callee28$(_context28) {
+                        while (1) switch (_context28.prev = _context28.next) {
                           case 0:
-                            _context26.next = 2;
+                            _context28.next = 2;
                             return _this60.a.onlineService.command('/guild/edit', {
                               name: name.string,
                               description: desc.string,
@@ -6239,9 +6481,9 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                             _this60.a.guild();
                           case 4:
                           case "end":
-                            return _context26.stop();
+                            return _context28.stop();
                         }
-                      }, _callee26);
+                      }, _callee28);
                     })));
                   }, true, {
                     unavailable: function unavailable() {
@@ -6253,9 +6495,9 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                   });
                 case 12:
                 case "end":
-                  return _context27.stop();
+                  return _context29.stop();
               }
-            }, _callee27);
+            }, _callee29);
           })));
         };
         _proto.stickers = function stickers() {
@@ -6267,11 +6509,11 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
               title: _this61.tr("extra.sticker." + i),
               action: _this61.tr('online.send'),
               click: function click() {
-                void _this61.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee28() {
-                  return _regeneratorRuntime().wrap(function _callee28$(_context28) {
-                    while (1) switch (_context28.prev = _context28.next) {
+                void _this61.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee30() {
+                  return _regeneratorRuntime().wrap(function _callee30$(_context30) {
+                    while (1) switch (_context30.prev = _context30.next) {
                       case 0:
-                        _context28.next = 2;
+                        _context30.next = 2;
                         return _this61.a.onlineService.command('/guild/chat', {
                           body: "[sticker:" + i + "]"
                         });
@@ -6280,9 +6522,9 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                         _this61.a.guild();
                       case 4:
                       case "end":
-                        return _context28.stop();
+                        return _context30.stop();
                     }
-                  }, _callee28);
+                  }, _callee30);
                 })));
               }
             };
@@ -6290,15 +6532,15 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
         };
         _proto.guildLogs = function guildLogs() {
           var _this62 = this;
-          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee29() {
+          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee31() {
             var info;
-            return _regeneratorRuntime().wrap(function _callee29$(_context29) {
-              while (1) switch (_context29.prev = _context29.next) {
+            return _regeneratorRuntime().wrap(function _callee31$(_context31) {
+              while (1) switch (_context31.prev = _context31.next) {
                 case 0:
-                  _context29.next = 2;
+                  _context31.next = 2;
                   return _this62.a.onlineService.request('/guild/info');
                 case 2:
-                  info = _context29.sent;
+                  info = _context31.sent;
                   _this62.list('extra.guildLogs', info.logs.map(function (r) {
                     return {
                       title: r.name,
@@ -6309,46 +6551,78 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                   }));
                 case 4:
                 case "end":
-                  return _context29.stop();
+                  return _context31.stop();
               }
-            }, _callee29);
+            }, _callee31);
           })));
         };
         _proto.vault = function vault() {
           var _this63 = this;
-          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee31() {
+          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee34() {
             var _info$vaultCycleDamag;
             var info, p;
-            return _regeneratorRuntime().wrap(function _callee31$(_context31) {
-              while (1) switch (_context31.prev = _context31.next) {
+            return _regeneratorRuntime().wrap(function _callee34$(_context34) {
+              while (1) switch (_context34.prev = _context34.next) {
                 case 0:
-                  _context31.next = 2;
+                  _context34.next = 2;
                   return _this63.a.onlineService.request('/guild/info');
                 case 2:
-                  info = _context31.sent;
+                  info = _context34.sent;
                   p = _this63.a.open(_this63.tr('extra.guildVault'), 440);
                   _this63.a.label(p, _this63.tr('extra.vaultProgress', {
                     damage: (_info$vaultCycleDamag = info.vaultCycleDamage) != null ? _info$vaultCycleDamag : 0
                   }), 0, 70, 375, 140, 19);
                   _this63.a.button(p, _this63.tr('action.claim'), 0, -100, 375, 50, function () {
-                    void _this63.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee30() {
-                      return _regeneratorRuntime().wrap(function _callee30$(_context30) {
-                        while (1) switch (_context30.prev = _context30.next) {
+                    void _this63.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee33() {
+                      return _regeneratorRuntime().wrap(function _callee33$(_context33) {
+                        while (1) switch (_context33.prev = _context33.next) {
                           case 0:
-                            _context30.next = 2;
-                            return _this63.a.onlineService.command('/guild/vault', {}, "vault-" + Math.floor(Date.now() / 43200000) + "-" + _this63.a.onlineService.accountId);
-                          case 2:
-                            _context30.sent;
-                            _context30.next = 5;
-                            return _this63.deliverRewards();
-                          case 5:
                             _this63.a.remoteBusy = false;
-                            _this63.vault();
-                          case 7:
+                            _this63.a.rewards.remote(_this63.tr('extra.guildVault'), 'vault:' + Math.floor(_this63.g.now() / 43200000) + ':' + _this63.a.onlineService.accountId, function () {
+                              return {
+                                currencies: {
+                                  gems: 20,
+                                  shards: 5
+                                }
+                              };
+                            }, /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee32(multiplier, credit) {
+                              var r;
+                              return _regeneratorRuntime().wrap(function _callee32$(_context32) {
+                                while (1) switch (_context32.prev = _context32.next) {
+                                  case 0:
+                                    _context32.next = 2;
+                                    return _this63.a.onlineService.command('/guild/vault', {
+                                      multiplier: multiplier,
+                                      credit: credit,
+                                      previewDouble: _this63.a.payments.model.previewAds
+                                    }, "vault-" + Math.floor(_this63.g.now() / 43200000) + "-" + _this63.a.onlineService.accountId);
+                                  case 2:
+                                    r = _context32.sent;
+                                    if (!(!_this63.g.s.claims.includes(r.claimId) && !_this63.applyServerReward(r))) {
+                                      _context32.next = 5;
+                                      break;
+                                    }
+                                    throw Error(_this63.g.notice);
+                                  case 5:
+                                    _context32.next = 7;
+                                    return _this63.a.onlineService.command('/rewards/ack', {
+                                      id: r.claimId
+                                    });
+                                  case 7:
+                                    return _context32.abrupt("return", true);
+                                  case 8:
+                                  case "end":
+                                    return _context32.stop();
+                                }
+                              }, _callee32);
+                            })), function () {
+                              return _this63.vault();
+                            });
+                          case 2:
                           case "end":
-                            return _context30.stop();
+                            return _context33.stop();
                         }
-                      }, _callee30);
+                      }, _callee33);
                     })));
                   }, true, {
                     unavailable: function unavailable() {
@@ -6363,42 +6637,42 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                   };
                 case 7:
                 case "end":
-                  return _context31.stop();
+                  return _context34.stop();
               }
-            }, _callee31);
+            }, _callee34);
           })));
         };
         _proto.retire = function retire() {
           var _this64 = this;
           this.a.confirm(this.tr('extra.retire'), this.tr('extra.retireInfo'), function () {
-            void _this64.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee32() {
-              return _regeneratorRuntime().wrap(function _callee32$(_context32) {
-                while (1) switch (_context32.prev = _context32.next) {
+            void _this64.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee35() {
+              return _regeneratorRuntime().wrap(function _callee35$(_context35) {
+                while (1) switch (_context35.prev = _context35.next) {
                   case 0:
-                    _context32.next = 2;
+                    _context35.next = 2;
                     return _this64.a.onlineService.command('/guild/retire');
                   case 2:
                     _this64.a.remoteBusy = false;
                     _this64.a.guild();
                   case 4:
                   case "end":
-                    return _context32.stop();
+                    return _context35.stop();
                 }
-              }, _callee32);
+              }, _callee35);
             })));
           });
         };
         _proto.member = function member(id) {
           var _this65 = this;
-          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee33() {
+          void this.a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee36() {
             var r, p;
-            return _regeneratorRuntime().wrap(function _callee33$(_context33) {
-              while (1) switch (_context33.prev = _context33.next) {
+            return _regeneratorRuntime().wrap(function _callee36$(_context36) {
+              while (1) switch (_context36.prev = _context36.next) {
                 case 0:
-                  _context33.next = 2;
+                  _context36.next = 2;
                   return _this65.a.onlineService.request('/guild/member?id=' + encodeURIComponent(id));
                 case 2:
-                  r = _context33.sent;
+                  r = _context36.sent;
                   p = _this65.a.open(r.name, 420);
                   _this65.a.label(p, _this65.tr('extra.contribution', {
                     value: r.damage
@@ -6406,9 +6680,9 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
                   _this65.a.label(p, _this65.tr(r.role === 'leader' ? 'online.leader' : 'online.member'), 0, -50, 375, 50, 20);
                 case 6:
                 case "end":
-                  return _context33.stop();
+                  return _context36.stop();
               }
-            }, _callee33);
+            }, _callee36);
           })));
         };
         _proto.limited = function limited() {
@@ -6459,6 +6733,142 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
         }]);
         return ExpansionUI;
       }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/ExplorationUI.ts", ['cc', './UITheme.ts', './Expansion.ts'], function (exports) {
+  var cclegacy, UITransform, Label, UI, seasonAt;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+      UITransform = module.UITransform;
+      Label = module.Label;
+    }, function (module) {
+      UI = module.UI;
+    }, function (module) {
+      seasonAt = module.seasonAt;
+    }],
+    execute: function () {
+      exports({
+        explorationBoard: explorationBoard,
+        explorationEntry: explorationEntry
+      });
+      cclegacy._RF.push({}, "5060517rnNJCYLICINh49UL", "ExplorationUI", undefined);
+      function explorationEntry(a, parent) {
+        var n = a.button(parent, a.tr('event.board'), -99, 57, 182, 50, function () {
+          return a.board();
+        }, false, {
+          category: 'details',
+          fontSize: 16
+        });
+        n.name = 'exploration-entry';
+        a.ui.icon(a.nodeAt(n, 'exploration-entry-art', -65, 0, 36, 36), 'talent-7');
+        var label = n.getChildByName('button-label');
+        label.setPosition(20, 0);
+        label.getComponent(UITransform).setContentSize(130, 40);
+      }
+      function explorationBoard(a) {
+        var g = a.game,
+          p = a.open(a.tr('event.board'), 700, true, 'teal', false, function () {
+            return a.events();
+          });
+        p.name = 'exploration-panel';
+        var summary = a.nodeAt(p, 'exploration-summary', 0, 238, 378, 86);
+        a.ui.surface(summary, '#253641', 'cut');
+        a.ui.icon(a.nodeAt(summary, 'exploration-map', -145, 0, 62, 62), 'talent-7');
+        a.label(summary, a.tr('explore.tokens'), 39, 25, 230, 22, 16, UI.gold);
+        var balance = a.metric(summary, 'flag', String(g.s.eventTokens), 39, 0, 230, a.tr('explore.tokenHelp'));
+        var progress = a.label(summary, '', 39, -27, 238, 20, 14, UI.text);
+        progress.node.name = 'exploration-progress';
+        a.label(p, a.tr('explore.costReward'), 0, 177, 382, 38, 16, UI.text);
+        var tiles = [];
+        var _loop = function _loop(i) {
+          var n = a.button(p, '', -147 + i % 4 * 98, 104 - Math.floor(i / 4) * 82, 88, 76, function () {
+            var found = g.s.board[i];
+            if (found) {
+              a.tooltip(n, a.tr('explore.openedHelp', {
+                index: i + 1,
+                gems: found * 5
+              }));
+              return;
+            }
+            a.rewards.earned(a.tr('event.board'), a.id('tile-reward'), function (game) {
+              return game.revealTile(i, a.id('tile'));
+            }, function () {
+              return a.board(false);
+            });
+          }, false, {
+            category: 'shop',
+            completed: function completed() {
+              return g.s.board[i] > 0;
+            },
+            unavailable: function unavailable() {
+              return g.s.board[i] ? null : a.costReason('eventTokens', 20);
+            }
+          });
+          n.name = 'exploration-tile-' + i;
+          a.label(n, String(i + 1), -29, 26, 22, 18, 14, UI.ink).node.name = 'exploration-tile-index';
+          var art = a.nodeAt(n, 'exploration-tile-art', 0, 9, 38, 38),
+            label = a.label(n, '', 0, -24, 80, 20, 14, UI.ink);
+          label.node.name = 'exploration-tile-value';
+          tiles.push({
+            node: n,
+            art: art,
+            label: label,
+            value: '',
+            index: i
+          });
+        };
+        for (var i = 0; i < 16; i++) {
+          _loop(i);
+        }
+        a.label(p, a.tr('explore.paidHint'), 0, -207, 378, 42, 14, UI.muted);
+        a.button(p, a.tr('learn.open'), -98, -285, 176, 48, function () {
+          return a.tutorial.explain('exploration', function () {
+            return a.board(false);
+          }, true, function () {
+            return a.board(false);
+          });
+        }, false, {
+          category: 'details',
+          icon: 'symbol:info'
+        }).name = 'exploration-help';
+        a.button(p, a.tr('action.back'), 98, -285, 176, 48, function () {
+          return a.events();
+        }, false, {
+          category: 'back',
+          icon: 'symbol:back'
+        }).name = 'exploration-back';
+        a.modalRefresh = function () {
+          balance.getComponentInChildren(Label).string = String(g.s.eventTokens);
+          var remaining = Math.max(0, (seasonAt(g.now()) + 1) * 28 * 86400000 - g.now()),
+            hours = Math.ceil(remaining / 3600000);
+          progress.string = a.tr('explore.progress', {
+            opened: g.s.board.filter(Boolean).length,
+            total: g.s.board.length
+          }) + ' · ' + a.tr('explore.seasonHours', {
+            hours: hours
+          });
+          for (var _i = 0, _tiles = tiles; _i < _tiles.length; _i++) {
+            var tile = _tiles[_i];
+            var value = g.s.board[tile.index],
+              status = value + ':' + (g.s.eventTokens >= 20);
+            if (status === tile.value) continue;
+            tile.value = status;
+            a.ui.icon(tile.art, value ? 'face:gems' : 'talent-0');
+            tile.label.string = a.tr(value ? 'explore.baseTile' : 'explore.costTile', {
+              gems: value * 5,
+              cost: 20
+            });
+            var ink = value || g.s.eventTokens < 20 ? UI.text : UI.ink;
+            tile.label.color = a.color(ink);
+            tile.node.getChildByName('exploration-tile-index').getComponent(Label).color = a.color(ink);
+          }
+        };
+        a.modalRefresh();
+      }
       cclegacy._RF.pop();
     }
   };
@@ -6537,7 +6947,7 @@ System.register("chunks:///_virtual/FeatureLessons.ts", ['cc'], function (export
         id: 'skills',
         title: 'skills.title',
         stage: 50,
-        icon: 'symbol:up'
+        icon: 'talent-15'
       }, {
         id: 'cards',
         title: 'menu.cards',
@@ -6554,21 +6964,37 @@ System.register("chunks:///_virtual/FeatureLessons.ts", ['cc'], function (export
         stage: 15,
         icon: 'trophy'
       }, {
+        id: 'exploration',
+        title: 'event.board',
+        stage: 15,
+        icon: 'talent-7'
+      }, {
         id: 'growth',
         title: 'menu.meta',
         stage: 1000,
         icon: 'gems'
       }]);
+      var lessonSteps = exports('lessonSteps', function lessonSteps(id) {
+        return id === 'skills' || id === 'exploration' ? 4 : 3;
+      });
+      var lessonReceipt = exports('lessonReceipt', function lessonReceipt(id) {
+        return 'lesson:' + id + (id === 'skills' ? ':v2' : '');
+      });
       function lessonRead(s, id) {
         var _s$tutorial$completed;
-        return !!((_s$tutorial$completed = s.tutorial.completed) != null && _s$tutorial$completed.includes('lesson:' + id));
+        return !!((_s$tutorial$completed = s.tutorial.completed) != null && _s$tutorial$completed.includes(lessonReceipt(id)));
       }
       function lessonPage(s, id) {
-        var _find;
-        return Math.min(2, (_find = [0, 1, 2].find(function (i) {
+        var _Array$from$find;
+        var total = lessonSteps(id);
+        return (_Array$from$find = Array.from({
+          length: total
+        }, function (_, i) {
+          return i;
+        }).find(function (i) {
           var _s$tutorial$completed2;
-          return !((_s$tutorial$completed2 = s.tutorial.completed) != null && _s$tutorial$completed2.includes('lesson:' + id + ':page:' + i));
-        })) != null ? _find : 2);
+          return !((_s$tutorial$completed2 = s.tutorial.completed) != null && _s$tutorial$completed2.includes(lessonReceipt(id) + ':page:' + i));
+        })) != null ? _Array$from$find : total - 1;
       }
       function applyLessonText(t) {
         var texts = {
@@ -6624,11 +7050,17 @@ System.register("chunks:///_virtual/FeatureLessons.ts", ['cc'], function (export
           'learn.registry.1': ['메뉴 → 장비 등록 도감 → 획득한 항목을 무료 등록.\n등록 조합에서 필요한 항목과 현재 진행을 확인하세요.', 'Menu → Gear Registry → register obtained entries for free.\nReview required parts and progress in collection combinations.'],
           'learn.registry.2': ['조합 완성 시 피해·보스 피해·코인 보너스가 자동 적용됩니다.\n판매하거나 재배치해도 등록과 완성 보너스는 유지됩니다.\n항목은 자유롭게 살펴볼 수 있습니다.', 'Completed combinations automatically grant damage, boss damage, or coin bonuses.\nSelling and redeployment preserve registrations and bonuses.\nYou can freely inspect every entry.'],
           'learn.rewards.0': ['일일 임무는 그날의 행동 목표를 달성해 보상을 받는 기능입니다.\n구역 목표 보상과 우편 보상은 별도로 수령합니다.', 'Daily tasks reward completed daily actions.\nSector milestones and mail rewards are claimed separately.'],
-          'learn.rewards.1': ['작전 → 일일 임무 → 현재/목표 수치를 확인 → 노란 수령 가능 버튼.\n획득 팝업에서 실제 보상과 수량을 확인하세요.', 'Ops → Daily Tasks → review current/goal values → yellow Claim now.\nThe reward popup shows the actual items and quantities.'],
+          'learn.rewards.1': ['작전 → 일일 임무 → 현재/목표 수치를 확인 → 노란 수령 가능 버튼.\n수령 창에서 기본 보상 또는 광고 보고 2배를 선택합니다.', 'Ops → Daily Tasks → review current/goal values → yellow Claim now.\nChoose the base reward or watch an ad for 2× in the claim popup.'],
           'learn.rewards.2': ['수령은 무료이며 완료한 보상은 다시 받을 수 없습니다.\n미달성·수령 완료 버튼을 누르면 이유가 표시됩니다.\n우편은 수령 기한과 수령 완료 상태를 확인하세요.', 'Claims are free and cannot be collected twice.\nIncomplete or already claimed buttons explain why.\nCheck expiry and claim status in mail.'],
-          'learn.skills.0': ['특성은 특성 포인트로 부대의 영구 능력을 선택하는 성장 트리입니다.\n현재 최고 구역 50부터 열립니다.', 'Skills use skill points to choose lasting squad bonuses in a tree.\nThey unlock at best sector 50.'],
-          'learn.skills.1': ['대장 탭의 특성 → 가지와 단계 선택 → +/−로 배분 → 적용.\n선행 단계와 필요한 포인트를 확인하세요.', 'Captain → Skills → choose a branch and tier → allocate with +/− → Apply.\nCheck prerequisites and the points required.'],
-          'learn.skills.2': ['편집 중 배분은 적용 버튼을 눌러야 저장됩니다.\n특성 포인트는 구역 이정표 등으로 얻습니다.\n재배치 후에도 적용한 특성은 유지됩니다.', 'Allocations are saved only when you press Apply.\nSector milestones provide skill points.\nApplied skills survive redeployment.'],
+          'learn.skills.0': ['특성은 포인트로 부대의 영구 능력을 고르는 수련입니다.\n최고 구역 50부터 열립니다.\n보급·정비: 코인 획득\n사격·정밀: 대장 탭 피해\n분대·전술: 용병 자동 피해', 'Talents spend points on lasting squad bonuses.\nThey unlock at best sector 50.\nLogistics/Maintenance: coin gain\nMarksmanship/Precision: captain tap damage\nCommand/Tactics: mercenary auto damage'],
+          'learn.skills.1': ['① 18개 아이콘에서 수련을 선택합니다.\n② 상세의 현재·편집 배율을 비교합니다.\n③ +1 수련 또는 −1 반환으로 배분합니다.\n④ 돌아가서 노란 적용을 누릅니다.\n다음 단계는 앞 단계 Lv.3에서 열립니다.', '1. Choose one of the 18 talent icons.\n2. Compare Applied and Draft multipliers.\n3. Use +1 Train or −1 Refund.\n4. Return and press yellow Apply.\nThe next tier requires the previous tier at Lv.3.'],
+          'learn.skills.2': ['수련 비용은 다음 레벨만큼입니다.\nLv.0→1: 1점 · Lv.1→2: 2점\nLv.2→3: 3점 · 총 6점으로 Lv.3\n각 레벨은 해당 효과에 약 ×1.149를 곱합니다.\n포인트는 최고 구역 50단위 이정표 등에서 얻습니다.', 'Training costs the next level in points.\nLv.0→1: 1 · Lv.1→2: 2\nLv.2→3: 3 · Total 6 for Lv.3\nEach level multiplies its effect by about ×1.149.\nPoints come from best-sector milestones every 50 sectors and other progression.'],
+          'learn.skills.3': ['적용 전 배분은 편집 상태입니다.\n되돌리기: 저장된 배분으로 돌아갑니다.\n초기화: 전체 배분을 비우고 편집합니다.\n적용: 포인트와 능력 변경을 저장합니다.\n적용한 특성은 재배치 후에도 유지됩니다.\n화면의 설명 버튼으로 언제든 다시 읽을 수 있어요.', 'Allocations remain a draft until Apply.\nRevert restores the saved allocation.\nReset clears the draft allocation.\nApply saves the points and stat changes.\nApplied talents survive redeployment.\nUse the guide button to read this again anytime.'],
+          'learn.part.3': ['적용·저장과 다음 이용', 'Saving and using it again'],
+          'learn.exploration.0': ['보급품 탐색은 특별 작전의 4×4 상자 보상판입니다.\n상자는 총 16개이며 각각 한 번 열 수 있습니다.\n전장에서 적 부대를 전멸시키면 작전 토큰 1개를 얻습니다.\n모은 토큰으로 상자를 열어 다이아를 확보하세요.', 'Supply Search is a 4×4 reward board in Special Ops.\nIts 16 crates can each be opened once.\nDefeat an entire enemy wave to earn 1 Ops Token.\nSpend those tokens to open crates for diamonds.'],
+          'learn.exploration.1': ['① 아직 닫힌 보급상자를 고릅니다.\n② 누르는 즉시 토큰 20개를 소비합니다.\n③ 기본 다이아 5·10·15개 중 하나가 지급됩니다.\n④ 보상 창에서 기본 유지 또는 2배를 선택합니다.\n웹·테스트의 2배는 광고 없이 받을 수 있습니다.', '1. Choose a closed supply crate.\n2. Tapping spends 20 tokens immediately.\n3. Receive 5, 10, or 15 base diamonds.\n4. Keep the base reward or choose 2× in the reward screen.\nWeb/test builds offer 2× without an ad.'],
+          'learn.exploration.2': ['상자 1개 비용: 작전 토큰 20개\n기본 다이아: 5·10·15개 중 무작위\n2배를 선택하면: 10·20·30개\n토큰이 부족하면 회색 상자를 눌러 부족량을 봅니다.\n보상 창을 닫아도 이미 쓴 토큰과 기본 지급은 취소되지 않습니다.', 'Cost per crate: 20 Ops Tokens\nRandom base reward: 5, 10, or 15 diamonds\nWith 2×: 10, 20, or 30 diamonds\nTap a gray crate to see the shortage.\nClosing the reward screen does not undo the spent tokens or the base payout.'],
+          'learn.exploration.3': ['녹색 상자는 이미 탐색한 상자입니다.\n눌러 기본 보상을 다시 확인해도 토큰을 쓰지 않습니다.\n상자에 적힌 숫자는 기본 보상입니다.\n시즌은 28일 단위이며 새 시즌에 판과 토큰이 초기화됩니다.\n남은 토큰의 환산 보상과 미수령 목표 보상은 시즌 종료 우편에서 확인하세요.', 'Green crates have already been searched.\nTap them to review the base reward for free.\nThe number on a crate is its base reward.\nA new 28-day season resets the board and tokens.\nCheck season-end mail for converted leftover tokens and eligible unclaimed milestone rewards.'],
           'learn.cards.0': ['레이드 카드는 30초 레이드의 발동 효과를 정하는 별도 덱입니다.\n전장에 출격하는 용병 덱과 별개입니다.', 'Raid cards determine effects during 30-second raids.\nTheir deck is separate from your battlefield mercenary deck.'],
           'learn.cards.1': ['작전 → 카드 → 카드 상세의 효과 확인 → 서로 다른 카드 3장 선택.\n카드 레벨을 올리려면 카드 가루와 해당 카드 조각이 필요합니다.', 'Ops → Cards → inspect effects → select three different cards.\nUpgrading requires card dust and that card’s fragments.'],
           'learn.cards.2': ['솔로 레이드는 로컬 카드 레벨을 사용합니다.\n서버 레이드는 별도의 서버 카드 상태를 사용하므로 서버 카드 화면의 레벨을 확인하세요.\n카드 선택 자체에는 재화가 들지 않습니다.', 'Solo raids use local card levels.\nServer raids use separate server card state; check levels on the Server Cards screen.\nSelecting cards is free.'],
@@ -40263,8 +40695,8 @@ System.register("chunks:///_virtual/FirebaseConfig.ts", ['cc'], function (export
   };
 });
 
-System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Squad.ts', './SquadName.ts', './AllyPlacement.ts', './Mercenaries.ts', './Balance.ts', './BattleFormation.ts', './Amount.ts', './Expansion.ts', './Config.ts', './EntryPolicy.ts'], function (exports) {
-  var _extends, _createForOfIteratorHelperLoose, _objectWithoutPropertiesLoose, _createClass, cclegacy, SQUAD_LIMIT, equipmentKey, validEquipmentKey, formationMultiplier, squadBonuses, collectionBonuses, squadNameError, validBattlePosition, attackSeconds, attackWindup, BALANCE_VERSION, PREVIOUS_BALANCE_VERSION, troopWaves, TROOP_BALANCE, troopHP, gemstoneBonus, routedBonus, troopGold, ARTIFACT_DISCOVERY_COSTS, waveSize, previousBossWaveSize, enemyHPShare, ZERO, amount, mul, add, sub, newExpansion, Expansion, HEROES, CONFIG, SPELLS, SKILLS, migrateTutorial, tutorialComplete;
+System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Squad.ts', './SquadName.ts', './DroneEffects.ts', './AllyPlacement.ts', './Mercenaries.ts', './Balance.ts', './BattleFormation.ts', './Amount.ts', './Expansion.ts', './Config.ts', './EntryPolicy.ts'], function (exports) {
+  var _extends, _createForOfIteratorHelperLoose, _objectWithoutPropertiesLoose, _createClass, cclegacy, SQUAD_LIMIT, equipmentKey, validEquipmentKey, formationMultiplier, squadBonuses, collectionBonuses, squadNameError, activeDroneEffect, validBattlePosition, attackSeconds, attackWindup, BALANCE_VERSION, PREVIOUS_BALANCE_VERSION, troopWaves, TROOP_BALANCE, troopHP, gemstoneBonus, routedBonus, troopGold, ARTIFACT_DISCOVERY_COSTS, waveSize, previousBossWaveSize, enemyHPShare, ZERO, amount, mul, add, sub, newExpansion, Expansion, HEROES, CONFIG, SPELLS, SKILLS, migrateTutorial, tutorialComplete;
   return {
     setters: [function (module) {
       _extends = module.extends;
@@ -40282,6 +40714,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
       collectionBonuses = module.collectionBonuses;
     }, function (module) {
       squadNameError = module.squadNameError;
+    }, function (module) {
+      activeDroneEffect = module.activeDroneEffect;
     }, function (module) {
       validBattlePosition = module.validBattlePosition;
     }, function (module) {
@@ -40324,7 +40758,22 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
       cclegacy._RF.push({}, "31d28TvXSNPbZwhJGQ7Cf5M", "Game", undefined);
       var Game = exports('Game', /*#__PURE__*/function () {
         var _proto = Game.prototype;
-        /** Presentation consumes actual resolved hits once; these are never part of the save. */
+        _proto.drainDroneEffects = function drainDroneEffects() {
+          var cues = this.droneEffectRun === this.s.run ? this.droneEffects : [];
+          this.droneEffects = [];
+          return cues;
+        };
+        _proto.emitDroneEffect = function emitDroneEffect(cue) {
+          if (this.droneEffectRun !== this.s.run) {
+            this.droneEffectRun = this.s.run;
+            this.droneEffects = [];
+          }
+          if (cue) {
+            this.droneEffects.push(cue);
+            if (this.droneEffects.length > 256) this.droneEffects.shift();
+          }
+        }
+        /** Presentation consumes actual resolved hits once; these are never part of the save. */;
         _proto.drainDamageHits = function drainDamageHits() {
           var hits = this.damageRun === this.s.run ? this.damageHits : [];
           this.damageHits = [];
@@ -40341,9 +40790,11 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             this.damageRun = this.s.run;
             this.damageHits = [];
           }
-          var wave = this.waveKey();
+          var wave = this.waveKey(),
+            drone = activeDroneEffect(this.s, source === 'hero' ? 2 : 1);
           this.damage(value, preferred);
           if (this.lastHit < 0) return;
+          this.emitDroneEffect(drone);
           this.damageHits.push(_extends({
             source: source,
             damage: value,
@@ -40365,6 +40816,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           this.notice = '';
           this.revision = 0;
           this.saveError = false;
+          this.transactionDepth = 0;
           // Unverified prototype fallback; the reference document/CSV does not specify base hero intervals.
           this.heroAttackInterval = 1.15;
           this.heroAttackWindup = .24;
@@ -40373,6 +40825,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           this.combatRun = null;
           this.damageHits = [];
           this.damageRun = null;
+          this.droneEffects = [];
+          this.droneEffectRun = null;
           this.lastHit = -1;
           this.storage = storage;
           this.now = now;
@@ -40549,10 +41003,15 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             var _key2 = _Object$keys2[_i2];
             if (!(_key2 in s.extra.commerce)) s.extra.commerce[_key2] = defaults.extra.commerce[_key2];
           }
+          var doubleKeys = s.extra.commerce.doubleRewardKeys;
+          if (doubleKeys && typeof doubleKeys === 'object' && !Array.isArray(doubleKeys) && Array.isArray(s.extra.commerce.doubleRewards)) for (var _i3 = 0, _Object$keys3 = Object.keys(doubleKeys); _i3 < _Object$keys3.length; _i3++) {
+            var id = _Object$keys3[_i3];
+            if (!s.extra.commerce.doubleRewards.includes(id)) delete doubleKeys[id];
+          }
           // Append new identities without reindexing any existing hero or equipment.
-          for (var _i3 = 0, _arr = [(_s$run = s.run) == null ? void 0 : _s$run.heroes, s.weapons, s.scrolls, s.extra.ascensions, s.extra.heroSkills]; _i3 < _arr.length; _i3++) {
+          for (var _i4 = 0, _arr = [(_s$run = s.run) == null ? void 0 : _s$run.heroes, s.weapons, s.scrolls, s.extra.ascensions, s.extra.heroSkills]; _i4 < _arr.length; _i4++) {
             var _s$run;
-            var values = _arr[_i3];
+            var values = _arr[_i4];
             if (Array.isArray(values) && values.length === 24) values.push.apply(values, Array(HEROES.length - 24).fill(0));
           }
           if (s.extra.crystal.length === 3) {
@@ -40610,11 +41069,21 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           var _s$tutorial,
             _this = this;
           if (!Number.isSafeInteger(s.extra.commerce.autoFireUntil) || s.extra.commerce.autoFireUntil < 0 || typeof s.extra.commerce.autoFireEnabled !== 'boolean') throw Error('autoFire');
-          var previewAds = s.extra.commerce.previewAds;
-          if (!previewAds || typeof previewAds !== 'object' || Array.isArray(previewAds) || Object.entries(previewAds).some(function (_ref) {
+          var credits = s.extra.commerce.doubleRewards;
+          if (!Array.isArray(credits) || credits.length > 512 || new Set(credits).size !== credits.length || credits.some(function (id) {
+            return typeof id !== 'string' || id.length > 200;
+          })) throw Error('doubleRewards');
+          var bindings = s.extra.commerce.doubleRewardKeys;
+          if (!bindings || typeof bindings !== 'object' || Array.isArray(bindings) || Object.entries(bindings).some(function (_ref) {
             var id = _ref[0],
-              use = _ref[1];
-            return !/^((fairy_(diamond|mana|gold|discount|skills|gold_spree|damage_spree|equipment))|mega_boost|shop_chest|auto_fire)$/.test(id) || !use || [use.cycle, use.used, use.lastAt].some(function (n) {
+              key = _ref[1];
+            return !credits.includes(id) || typeof key !== 'string' || key.length < 1 || key.length > 200;
+          })) throw Error('doubleRewardKeys');
+          var previewAds = s.extra.commerce.previewAds;
+          if (!previewAds || typeof previewAds !== 'object' || Array.isArray(previewAds) || Object.entries(previewAds).some(function (_ref2) {
+            var id = _ref2[0],
+              use = _ref2[1];
+            return !/^((fairy_(diamond|mana|gold|discount|skills|gold_spree|damage_spree|equipment))|mega_boost|shop_chest|auto_fire|reward_double)$/.test(id) || !use || [use.cycle, use.used, use.lastAt].some(function (n) {
               return !Number.isSafeInteger(n) || n < 0;
             });
           })) throw Error('previewAds');
@@ -40627,7 +41096,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           if (s.tutorial.completed !== undefined && (!Array.isArray(s.tutorial.completed) || s.tutorial.completed.length > 1024 || new Set(s.tutorial.completed).size !== s.tutorial.completed.length || s.tutorial.completed.some(function (k) {
             return typeof k !== 'string' || !/^[a-zA-Z0-9_.:-]{1,120}$/.test(k);
           }))) throw Error('tutorial.completed');
-          for (var _i4 = 0, _Object$entries = Object.entries({
+          for (var _i5 = 0, _Object$entries = Object.entries({
               spellSlots: 6,
               artifactInvested: 30,
               enchanted: 30,
@@ -40649,8 +41118,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
               perkUntil: 6,
               weapons: HEROES.length,
               scrolls: HEROES.length
-            }); _i4 < _Object$entries.length; _i4++) {
-            var _Object$entries$_i = _Object$entries[_i4],
+            }); _i5 < _Object$entries.length; _i5++) {
+            var _Object$entries$_i = _Object$entries[_i5],
               _key4 = _Object$entries$_i[0],
               length = _Object$entries$_i[1];
             var a = s[_key4];
@@ -40658,7 +41127,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
               return typeof v !== 'number' || !Number.isFinite(v);
             })) throw Error(_key4);
           }
-          for (var _i5 = 0, _Object$entries2 = Object.entries({
+          for (var _i6 = 0, _Object$entries2 = Object.entries({
               perkSlots: 6,
               extraPerks: 4,
               ascensions: HEROES.length,
@@ -40671,8 +41140,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
               mysticResearch: 12,
               cosmetics: 3,
               notifications: 6
-            }); _i5 < _Object$entries2.length; _i5++) {
-            var _Object$entries2$_i = _Object$entries2[_i5],
+            }); _i6 < _Object$entries2.length; _i6++) {
+            var _Object$entries2$_i = _Object$entries2[_i6],
               _key5 = _Object$entries2$_i[0],
               _length = _Object$entries2$_i[1];
             if (!Array.isArray(s.extra[_key5]) || s.extra[_key5].length !== _length) throw Error('extra.' + _key5);
@@ -40704,13 +41173,13 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
           if (!validIds(s.extra.mercenaryOwned, HEROES.length) || !validIds(s.extra.mercenaryDeck, SQUAD_LIMIT) || s.extra.mercenaryDeck.some(function (id) {
             return !s.extra.mercenaryOwned.includes(id);
           })) throw Error('mercenaryDeck');
-          if (!s.extra.battlePositions || typeof s.extra.battlePositions !== 'object' || Array.isArray(s.extra.battlePositions) || Object.keys(s.extra.battlePositions).length > HEROES.length + 1 || Object.entries(s.extra.battlePositions).some(function (_ref2) {
-            var key = _ref2[0],
-              p = _ref2[1];
+          if (!s.extra.battlePositions || typeof s.extra.battlePositions !== 'object' || Array.isArray(s.extra.battlePositions) || Object.keys(s.extra.battlePositions).length > HEROES.length + 1 || Object.entries(s.extra.battlePositions).some(function (_ref3) {
+            var key = _ref3[0],
+              p = _ref3[1];
             return !(key === 'captain' || /^(0|[1-9]\d?)$/.test(key) && Number(key) < HEROES.length) || !validBattlePosition(p);
           })) throw Error('battlePositions');
-          for (var _i6 = 0, _arr2 = [s.extra.equipmentObtained, s.extra.equipmentRegistry]; _i6 < _arr2.length; _i6++) {
-            var values = _arr2[_i6];
+          for (var _i7 = 0, _arr2 = [s.extra.equipmentObtained, s.extra.equipmentRegistry]; _i7 < _arr2.length; _i7++) {
+            var values = _arr2[_i7];
             if (!Array.isArray(values) || values.length > 1015 || new Set(values).size !== values.length || values.some(function (key) {
               return !validEquipmentKey(key);
             })) throw Error('equipmentRegistry');
@@ -40724,8 +41193,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             return typeof h !== 'number' || !Number.isFinite(h) || h !== ZERO && h > mul(_this.maxHP(s.run.stage, s.run.boss), enemyHPShare(s.run.stage, s.run.boss, i, s.run.kills)) + 1e-8;
           }))) throw Error('enemyHealth');
           var scan = function scan(o) {
-            for (var _i7 = 0, _Object$values = Object.values(o); _i7 < _Object$values.length; _i7++) {
-              var v = _Object$values[_i7];
+            for (var _i8 = 0, _Object$values = Object.values(o); _i8 < _Object$values.length; _i8++) {
+              var v = _Object$values[_i8];
               if (typeof v === 'number' && !Number.isFinite(v)) throw Error('number');
               if (v && typeof v === 'object') scan(v);
             }
@@ -40748,7 +41217,10 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
         };
         _proto.transaction = function transaction(id, action) {
           if (this.s.transactions.includes(id)) return false;
-          var before = JSON.stringify(this.s);
+          var before = JSON.stringify(this.s),
+            beforeRevision = this.revision;
+          var outer = this.transactionDepth === 0;
+          this.transactionDepth++;
           try {
             action();
             this.s.transactions.push(id);
@@ -40759,8 +41231,11 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             return true;
           } catch (e) {
             this.s = JSON.parse(before);
+            this.revision = beforeRevision;
             this.notice = e.message.startsWith('error.') ? e.message : 'error.invalid';
             return false;
+          } finally {
+            this.transactionDepth--;
           }
         };
         _proto.require = function require(v, key) {
@@ -40951,38 +41426,38 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
             hits = Array(r.heroes.length).fill(0);
           var advanced = dt;
           var scheduled = [];
-          for (var _i8 = 0; _i8 < r.heroes.length; _i8++) {
-            if (!r.heroes[_i8] || !active.has(_i8)) {
-              this.heroClocks[_i8] = 0;
+          for (var _i9 = 0; _i9 < r.heroes.length; _i9++) {
+            if (!r.heroes[_i9] || !active.has(_i9)) {
+              this.heroClocks[_i9] = 0;
               continue;
             }
-            var before = this.heroClocks[_i8],
+            var before = this.heroClocks[_i9],
               after = before + dt * speed,
-              interval = attackSeconds(_i8),
-              windup = attackWindup(_i8),
+              interval = attackSeconds(_i9),
+              windup = attackWindup(_i9),
               attackAt = interval - windup;
             for (var offset = 0; offset <= after; offset += interval) {
               if (before < offset + attackAt && after + 1e-9 >= offset + attackAt) scheduled.push({
                 time: (offset + attackAt - before) / speed,
-                hero: _i8,
+                hero: _i9,
                 phase: 'attack',
                 damage: ZERO,
                 windup: windup / speed
               });
               if ((before < offset + interval || offset === 0 && before >= interval) && after + 1e-9 >= offset + interval) scheduled.push({
                 time: Math.max(0, (offset + interval - before) / speed),
-                hero: _i8,
+                hero: _i9,
                 phase: 'hit',
-                damage: mul(this.heroDPS(_i8), interval / speed)
+                damage: mul(this.heroDPS(_i9), interval / speed)
               });
             }
           }
           for (var _iterator2 = _createForOfIteratorHelperLoose(scheduled.sort(function (a, b) {
               return a.time - b.time || (a.phase === b.phase ? 0 : a.phase === 'attack' ? -1 : 1) || a.hero - b.hero;
             })), _step2; !(_step2 = _iterator2()).done;) {
-            var _ref3 = _step2.value;
-            var time = _ref3.time,
-              event = _objectWithoutPropertiesLoose(_ref3, _excluded);
+            var _ref4 = _step2.value;
+            var time = _ref4.time,
+              event = _objectWithoutPropertiesLoose(_ref4, _excluded);
             this.heroEvents.push(event);
             if (event.phase === 'hit') {
               hits[event.hero]++;
@@ -41109,6 +41584,7 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
         _proto.finishWave = function finishWave() {
           var r = this.s.run;
           r.gold = add(r.gold, this.goldReward());
+          this.emitDroneEffect(activeDroneEffect(this.s, 0));
           this.s.totalKills++;
           this.s.extra.eventEarned++;
           this.s.dayKills++;
@@ -41134,8 +41610,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
         };
         _proto.unlock = function unlock() {
           var s = this.s;
-          for (var _i9 = 0, _arr3 = [8, 15, 60, 100, 1000, 100000, 180000]; _i9 < _arr3.length; _i9++) {
-            var stage = _arr3[_i9];
+          for (var _i10 = 0, _arr3 = [8, 15, 60, 100, 1000, 100000, 180000]; _i10 < _arr3.length; _i10++) {
+            var stage = _arr3[_i10];
             if (s.maxStage >= stage && !s.extra.unlocked.includes(stage)) {
               s.extra.unlocked.push(stage);
               s.extra.unlockNotices.push(stage);
@@ -41945,8 +42421,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
   };
 });
 
-System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SkillTrainingUI.ts', './EquipmentUI.ts', './Enemies.ts', './env', './EnemyArtBounds.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, ScrollView, BlockInputEvents, resources, Texture2D, Sprite, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, skillTree, skillDetail, equipmentIdentity, equipmentStats, equipmentHelp, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, SquadUI, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
+System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SkillTrainingUI.ts', './EquipmentUI.ts', './Enemies.ts', './env', './EnemyArtBounds.ts', './RewardClaimUI.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './DroneFeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
+  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, Sprite, ScrollView, BlockInputEvents, resources, Texture2D, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, skillTree, skillDetail, equipmentIdentity, equipmentStats, equipmentHelp, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, RewardClaimUI, SquadUI, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, DroneFeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
@@ -41975,11 +42451,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       Vec3 = module.Vec3;
       UIOpacity = module.UIOpacity;
       Mask = module.Mask;
+      Sprite = module.Sprite;
       ScrollView = module.ScrollView;
       BlockInputEvents = module.BlockInputEvents;
       resources = module.resources;
       Texture2D = module.Texture2D;
-      Sprite = module.Sprite;
       SpriteFrame = module.SpriteFrame;
       EditBox = module.EditBox;
       screen = module.screen;
@@ -42001,6 +42477,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       DEBUG = module.DEBUG;
     }, function (module) {
       ENEMY_HIT_POINTS = module.ENEMY_HIT_POINTS;
+    }, function (module) {
+      RewardClaimUI = module.RewardClaimUI;
     }, function (module) {
       SquadUI = module.SquadUI;
     }, function (module) {
@@ -42044,6 +42522,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       CheatUI = module.CheatUI;
     }, function (module) {
       FeedbackUI = module.FeedbackUI;
+    }, function (module) {
+      DroneFeedbackUI = module.DroneFeedbackUI;
     }, function (module) {
       Game = module.Game;
     }, function (module) {
@@ -42120,6 +42600,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           _this.tooltipNode = null;
           _this.ui = new UITheme();
           _this.feedback = new FeedbackUI(_assertThisInitialized(_this));
+          _this.droneFeedback = new DroneFeedbackUI(_assertThisInitialized(_this));
           _this.buttonStates = [];
           _this.buttonReasons = new WeakMap();
           _this.cloud = new FirebaseCloud();
@@ -42168,6 +42649,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           _this.placement = new BattlePlacementUI(_assertThisInitialized(_this));
           _this.zoneTransition = new BattleTransitionUI(_assertThisInitialized(_this));
           _this.bossTimer = new BossTimerUI(_assertThisInitialized(_this));
+          _this.rewards = new RewardClaimUI(_assertThisInitialized(_this));
           _this.game = void 0;
           _this.root = void 0;
           _this.panel = void 0;
@@ -43086,7 +43568,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               var tone = [BUTTON_TONES.deck, BUTTON_TONES.upgrade, BUTTON_TONES.confirm][i];
               _this8.ui.surface(n, tone, 'cut');
               _this8.touchAction(n, actions[i], _this8.tr(key));
-              _this8.hudIcon(_this8.nodeAt(n, 'quick-icon', 0, 0, 40, 40), i + 6, contrastInk(tone));
+              if (i === 1) {
+                _this8.ui.icon(_this8.nodeAt(n, 'quick-icon', 0, 7, 34, 34), 'talent-15');
+                _this8.label(n, _this8.tr(key), 0, -17, 70, 20, 14, contrastInk(tone));
+              } else _this8.hudIcon(_this8.nodeAt(n, 'quick-icon', 0, 0, 40, 40), i + 6, contrastInk(tone));
             });
             this.button(lower, '×' + (this.mode === -1 ? '∞' : this.mode), 164, -105, 134, 40, function () {
               _this8.mode = [1, 10, 100, -1][([1, 10, 100, -1].indexOf(_this8.mode) + 1) % 4];
@@ -43126,7 +43611,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.updateHUD();
         };
         _proto.syncDrone = function syncDrone() {
-          var _this9 = this;
+          var _drone$getComponent,
+            _this9 = this;
           if (!this.battleCast || !isValid(this.battleCast, true)) return;
           var s = this.game.s,
             id = s.activePet,
@@ -43144,10 +43630,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
           if (!drone) {
             drone = this.nodeAt(this.battleCast, 'equipped-drone', -66, y, 64, 64);
-            this.ui.actor(drone, 'ember-fox');
             this.label(drone, '', 113, 0, 152, 22, 14, C.text).node.name = 'drone-name';
           }
           drone.active = true;
+          if (((_drone$getComponent = drone.getComponent(Sprite)) == null ? void 0 : _drone$getComponent.spriteFrame) !== this.ui.frames.get('drones/' + id)) this.ui.paint(drone, 'drones/' + id);
           drone.getChildByName('drone-name').getComponent(Label).string = this.tr('pet.' + id);
           drone.setPosition(-66, y + (s.extra.effects ? Math.sin(this.age * 2.6) * 4 : 0));
           // Keep the body and caption separately touchable without covering the supply button.
@@ -43622,6 +44108,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         _proto.showDamageHits = function showDamageHits() {
           var hits = this.game.drainDamageHits();
           this.feedback.combatHits(hits);
+          this.droneFeedback.tick(0);
           for (var _iterator7 = _createForOfIteratorHelperLoose(hits), _step7; !(_step7 = _iterator7()).done;) {
             var _hit$hero;
             var hit = _step7.value;
@@ -44569,7 +45056,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             this.button(this.panel, Date.now() >= s.eggAt ? this.tr('pet.hatch') : this.tr('action.remaining', {
               seconds: Math.ceil((s.eggAt - Date.now()) / 1000)
             }), 143, 127, 164, 36, function () {
-              return _this24.act(function () {
+              return _this24.rewards.local(_this24.tr('pet.hatch'), 'hatch:' + _this24.game.s.eggAt, function (g) {
                 return g.hatch(_this24.id('egg'));
               }, function () {
                 return _this24.drawPanel();
@@ -44606,7 +45093,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                   return _this24.extensions.petDetail(p.id);
                 },
                 icon: p.id,
-                art: 'face:' + ['ember-fox', 'stone-hawk', 'shade-wolf'][p.id % 3],
+                art: 'drones:' + p.id,
                 tint: C.mint,
                 action: !s.pets[p.id] ? _this24.tr('action.locked') : s.activePet === p.id ? _this24.tr('action.equipped') : _this24.tr('action.equip'),
                 click: function click() {
@@ -45177,11 +45664,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               tint: C.mint,
               action: _this34.tr('action.claim'),
               click: function click() {
-                return _this34.act(function () {
-                  return _this34.game.claimDaily(i);
+                return _this34.rewards.local(_this34.tr('daily.' + i), 'daily:' + _this34.game.s.day + ':' + i, function (g) {
+                  return g.claimDaily(i);
                 }, function () {
                   return _this34.daily();
-                }, 'reward.done');
+                });
               }
             };
           }));
@@ -45202,11 +45689,13 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               },
               action: _this35.tr('action.claim'),
               click: function click() {
-                return _this35.act(function () {
-                  return _this35.game.claimMilestone(stage);
+                return _this35.rewards.local(_this35.tr('hud.stage', {
+                  stage: stage
+                }), 'milestone:' + stage, function (g) {
+                  return g.claimMilestone(stage);
                 }, function () {
                   return _this35.milestones();
-                }, 'reward.done');
+                });
               }
             };
           }));
@@ -45219,11 +45708,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }), 0, 40, 370, 65, 24, C.gold);
           this.label(p, this.tr('offline.info'), 0, -26, 370, 56, 17, C.muted);
           this.button(p, this.tr('action.claim'), 0, -126, 310, 50, function () {
-            return _this36.act(function () {
-              return _this36.game.collectOffline(_this36.id('offline'));
+            return _this36.rewards.local(_this36.tr('offline.title'), 'offline:' + _this36.id('claim'), function (g) {
+              return g.collectOffline(_this36.id('offline'));
             }, function () {
               return _this36.close();
-            }, 'reward.done');
+            });
           }, true, {
             unavailable: function unavailable() {
               return _this36.game.s.offline <= ZERO ? _this36.tr('action.alreadyClaimed') : null;
@@ -45460,12 +45949,15 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }
           var done = this.button(p, this.tr('action.claim'), 0, -243, 365, 51, function () {
             if (!r.ended) return;
-            _this40.act(function () {
-              return _this40.game.claimRaid(_this40.id('raid'));
-            }, function () {
+            _this40.rewards.local(_this40.tr('raid.result'), 'raid:' + r.portal + ':' + r.expiresAt, function (g) {
+              return g.claimRaid(_this40.id('raid'));
+            }, function (multiplier) {
+              if (multiplier === void 0) {
+                multiplier = 1;
+              }
               return _this40.info(_this40.tr('raid.result'), _this40.tr('raid.reward', {
                 damage: display(r.damage),
-                dust: Math.floor(r.damage / 100)
+                dust: Math.floor(r.damage / 100) * multiplier
               }));
             });
           }, true, {
@@ -45512,16 +46004,16 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               },
               action: _this41.tr('action.claim'),
               click: function click() {
-                return _this41.act(function () {
-                  return _this41.game.claimEvent(i);
+                return _this41.rewards.local(_this41.tr('event.title'), 'event:' + _this41.game.s.extra.eventSeason + ':' + i, function (g) {
+                  return g.claimEvent(i);
                 }, function () {
                   return _this41.events();
-                }, 'reward.done');
+                });
               }
             };
           }));
         };
-        _proto.board = function board() {
+        _proto.board = function board(_first) {
           var _this42 = this;
           var p = this.open(this.tr('event.board'), 610);
           this.label(p, this.tr('event.balance', {
@@ -45534,8 +46026,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }) : _this42.tr('event.tile', {
               index: i + 1
             }), -147 + i % 4 * 98, 123 - Math.floor(i / 4) * 85, 88, 70, function () {
-              return _this42.act(function () {
-                return _this42.game.revealTile(i, _this42.id('tile'));
+              return _this42.rewards.earned(_this42.tr('event.board'), _this42.id('tile-reward'), function (g) {
+                return g.revealTile(i, _this42.id('tile'));
               }, function () {
                 return _this42.board();
               });
@@ -46290,11 +46782,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               tint: C.gold,
               action: _this58.tr('action.claim'),
               click: function click() {
-                return _this58.act(function () {
-                  return _this58.game.claimAchievement(i, _this58.id('achievement'));
+                return _this58.rewards.local(_this58.tr('achievement.' + i), 'achievement:' + i + ':' + _this58.game.s.achievements[i], function (g) {
+                  return g.claimAchievement(i, _this58.id('achievement'));
                 }, function () {
                   return _this58.achievements();
-                }, 'reward.done');
+                });
               }
             };
           }));
@@ -46589,6 +47081,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }).start();
         };
         _proto.flushNotice = function flushNotice() {
+          var _this65 = this;
           if (!this.modal && !this.tutorial.active && this.game.s.extra.unlockNotices.length) {
             var stage = this.game.s.extra.unlockNotices.shift();
             this.game.persist();
@@ -46598,7 +47091,16 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           if (!this.modal && !this.feedback.showing && !this.tutorial.active && this.game.s.extra.rewardNotices.length) {
             var reward = this.game.s.extra.rewardNotices.shift();
             this.game.persist();
-            this.feedback.notice('complete.reward.' + reward.kind, {
+            if (reward.kind === 'milestone') this.rewards.received(this.tr('complete.reward.milestone', {
+              value: reward.value,
+              count: reward.count
+            }), 'milestone-sp:' + reward.value, {
+              currencies: {
+                sp: reward.count
+              }
+            }, function () {
+              return _this65.close();
+            });else this.feedback.notice('complete.reward.' + reward.kind, {
               value: reward.value,
               count: reward.count,
               hero: ['weapon', 'scroll'].includes(reward.kind) ? this.tr('hero.' + reward.value) : ''
@@ -46632,6 +47134,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.rewardGlow.tick(dt);
           if (!this.game || !((_this$entry2 = this.entry) != null && _this$entry2.playing)) return;
           this.bossTimer.tick();
+          this.droneFeedback.tick(dt);
           this.enemyFeedback.tick(dt, this.game.s.extra.effects);
           this.placement.tick();
           if (this.zoneTransition.observe()) {
@@ -48952,22 +49455,50 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureL
         'registry.allRegistered': 'All Registered'
       });
       Object.assign(translations.ko, {
-        'pet.effectGold': '코인 획득량',
-        'pet.effectTap': '대장 공격 피해',
-        'pet.effectHero': '용병 자동 공격 피해',
-        'pet.effectType': '지원 효과\n{effect}',
-        'pet.activeEffect': '장착 시 {effect} ×{value}',
-        'pet.passiveEffect': '미장착 시 {effect} ×{value}',
-        'pet.bonusDetail': '지원 효과: {effect}\n드론 레벨 {level}\n장착 효과 ×{active}\n미장착 효과 ×{passive}\n레벨 100부터 미장착 효율 100%'
+        'reward.choose': '{name} · 보상 수령',
+        'reward.chooseInfo': '기본 보상 또는 광고 보상 2배를 선택하세요.',
+        'reward.base': '기본 보상 ×1',
+        'reward.double': '보상 ×2',
+        'reward.amount': '{name} +{value}',
+        'reward.adInfo': '광고 완료 확인 후 2배를 한 번 지급합니다. 취소하면 보상을 받지 않습니다.',
+        'reward.previewInfo': '웹·테스트에서는 광고 없이 2배를 받습니다. 수령 기록은 저장됩니다.',
+        'reward.claimBase': '기본 보상 수령',
+        'reward.claimAdDouble': '광고 보고 2배 수령',
+        'reward.claimPreviewDouble': '광고 없이 2배 수령',
+        'reward.received': '보상 ×{multiplier} 수령 완료',
+        'reward.empty': '수령할 보상이 없습니다.',
+        'reward.type.pets': '드론 레벨',
+        'reward.type.fragments': '카드 조각',
+        'reward.type.titans': '영혼 수집',
+        'reward.type.stones': '별빛 보석',
+        'reward.type.scrolls': '훈련 교범',
+        'reward.type.weapons': '용병 무기',
+        'reward.type.perks': '전투 보조품',
+        'reward.type.equipment': '장비',
+        'reward.type.mana': '전술 에너지'
       });
       Object.assign(translations.en, {
-        'pet.effectGold': 'Coins gained',
-        'pet.effectTap': 'Captain attack damage',
-        'pet.effectHero': 'Mercenary auto attack damage',
-        'pet.effectType': 'Support effect\n{effect}',
-        'pet.activeEffect': 'Equipped: {effect} ×{value}',
-        'pet.passiveEffect': 'Unequipped: {effect} ×{value}',
-        'pet.bonusDetail': 'Support effect: {effect}\nDrone level {level}\nEquipped effect ×{active}\nUnequipped effect ×{passive}\nFull passive efficiency at level 100'
+        'reward.choose': '{name} · Claim rewards',
+        'reward.chooseInfo': 'Choose the base reward or a 2× ad reward.',
+        'reward.base': 'Base reward ×1',
+        'reward.double': 'Reward ×2',
+        'reward.amount': '{name} +{value}',
+        'reward.adInfo': 'Receive 2× once after the ad is verified. Canceling gives no reward.',
+        'reward.previewInfo': 'Web and test builds grant 2× without an ad. Your claim is saved.',
+        'reward.claimBase': 'Claim base reward',
+        'reward.claimAdDouble': 'Watch ad · Claim 2×',
+        'reward.claimPreviewDouble': 'No ad · Claim 2×',
+        'reward.received': 'Reward ×{multiplier} claimed',
+        'reward.empty': 'No reward is available.',
+        'reward.type.pets': 'Drone levels',
+        'reward.type.fragments': 'Card fragments',
+        'reward.type.titans': 'Soul collection',
+        'reward.type.stones': 'Starlight stones',
+        'reward.type.scrolls': 'Training manuals',
+        'reward.type.weapons': 'Mercenary weapons',
+        'reward.type.perks': 'Combat supplies',
+        'reward.type.equipment': 'Equipment',
+        'reward.type.mana': 'Tactical energy'
       });
       Object.assign(translations.ko, {
         'equipment.speechEquipped': '장착 · {name}',
@@ -48990,6 +49521,38 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureL
         'equipment.dialogue.2': 'Vest buckles checked. Ready to deploy!',
         'equipment.dialogue.3': 'Comms connected. Squad, follow my signal!',
         'equipment.dialogue.4': 'Rank badge on. Stay on my signal!'
+      });
+      Object.assign(translations.ko, {
+        'pet.effectGold': '코인 획득량',
+        'pet.effectTap': '대장 공격 피해',
+        'pet.effectHero': '용병 자동 공격 피해',
+        'pet.effectType': '지원 효과\n{effect}',
+        'pet.activeEffect': '장착 시 {effect} ×{value}',
+        'pet.passiveEffect': '미장착 시 {effect} ×{value}',
+        'pet.bonusDetail': '지원 효과: {effect}\n드론 레벨 {level}\n장착 효과 ×{active}\n미장착 효과 ×{passive}\n레벨 100부터 미장착 효율 100%'
+      });
+      Object.assign(translations.en, {
+        'pet.effectGold': 'Coins gained',
+        'pet.effectTap': 'Captain attack damage',
+        'pet.effectHero': 'Mercenary auto attack damage',
+        'pet.effectType': 'Support effect\n{effect}',
+        'pet.activeEffect': 'Equipped: {effect} ×{value}',
+        'pet.passiveEffect': 'Unequipped: {effect} ×{value}',
+        'pet.bonusDetail': 'Support effect: {effect}\nDrone level {level}\nEquipped effect ×{active}\nUnequipped effect ×{passive}\nFull passive efficiency at level 100'
+      });
+      Object.assign(translations.ko, {
+        'reward.receivedInfo': '기본 보상을 받았습니다. 광고로 같은 보상을 한 번 더 받을 수 있습니다.',
+        'reward.continueBase': '기본 보상으로 계속'
+      });
+      Object.assign(translations.en, {
+        'reward.receivedInfo': 'Your base reward is received. An ad grants the same reward once more.',
+        'reward.continueBase': 'Continue with base reward'
+      });
+      Object.assign(translations.ko, {
+        'reward.verifiedDouble': '광고 확인 완료 · 2배 수령'
+      });
+      Object.assign(translations.en, {
+        'reward.verifiedDouble': 'Ad verified · Claim 2×'
       });
 
       // Talent-board names are presentation labels; saved skill slots and rules stay fixed.
@@ -49090,6 +49653,14 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureL
         "training.name.17": "Tactics mastery"
       });
       Object.assign(translations.ko, {
+        'money.ad.reward_double': '보상 2배 수령',
+        'money.adReward.reward_double': '선택한 보상을 한 번 더 받습니다.'
+      });
+      Object.assign(translations.en, {
+        'money.ad.reward_double': 'Claim 2× rewards',
+        'money.adReward.reward_double': 'Receive the selected reward once more.'
+      });
+      Object.assign(translations.ko, {
         'training.effectShort.0': '코인 획득',
         'training.effectShort.1': '탭 피해',
         'training.effectShort.2': '용병 피해'
@@ -49102,6 +49673,58 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureL
       for (var _i2 = 0; _i2 < 18; _i2++) translations.ko['training.short.' + _i2] = translations.ko['training.name.' + _i2];
       ['Supplies', 'Stockpile', 'Convoy', 'Fire drill', 'Focus', 'Firepower', 'Radio', 'Orders', 'Command', 'Ammo care', 'Upkeep', 'Logistics', 'Ballistics', 'Spotter', 'Precision', 'Readiness', 'Team fire', 'Tactics'].forEach(function (name, i) {
         return translations.en['training.short.' + i] = name;
+      });
+      Object.assign(translations.ko, {
+        'event.board': '보급품 탐색',
+        'feedback.eventTokens': '작전 토큰',
+        'event.balance': '작전 토큰 {tokens}',
+        'explore.tokens': '보유 작전 토큰',
+        'explore.tokenHelp': '작전 토큰은 적 부대 전멸 1회마다 1개를 얻습니다. 보급상자 1개를 열 때 20개를 씁니다.',
+        'explore.costReward': '상자 1개 · 토큰 20 → 기본 다이아 5·10·15',
+        'explore.progress': '탐색 완료 {opened}/{total}',
+        'explore.seasonHours': '새 시즌까지 {hours}시간',
+        'explore.costTile': '토큰 {cost}',
+        'explore.baseTile': '+{gems} 기본',
+        'explore.paidHint': '상자를 누르면 토큰이 즉시 소비됩니다.\n보상 창을 닫아도 기본 보상은 유지됩니다.',
+        'explore.openedHelp': '{index}번 상자 · 탐색 완료\n기본 다이아 {gems}개를 지급했습니다.\n2배 선택 시 총 보상은 기본의 2배입니다.\n다시 확인하는 것은 무료이며 새 보상은 지급하지 않습니다.'
+      });
+      Object.assign(translations.en, {
+        'event.board': 'Supply Search',
+        'feedback.eventTokens': 'Ops Tokens',
+        'event.balance': 'Ops Tokens {tokens}',
+        'explore.tokens': 'Your Ops Tokens',
+        'explore.tokenHelp': 'Earn 1 Ops Token per defeated enemy wave. Opening one supply crate costs 20.',
+        'explore.costReward': '1 crate · 20 tokens → 5/10/15 base diamonds',
+        'explore.progress': 'Searched {opened}/{total}',
+        'explore.seasonHours': 'New season in {hours}h',
+        'explore.costTile': '{cost} tokens',
+        'explore.baseTile': '+{gems} base',
+        'explore.paidHint': 'Tapping a crate spends tokens immediately.\nClosing the reward screen keeps the base reward.',
+        'explore.openedHelp': 'Crate {index} · Searched\nPaid {gems} base diamonds.\nWith 2×, the total is twice the base.\nReviewing is free and grants no new reward.'
+      });
+      Object.assign(translations.ko, {
+        'drone.proc.0': '코인 +{percent}%',
+        'drone.proc.1': '대장 피해 +{percent}%',
+        'drone.proc.2': '용병 피해 +{percent}%',
+        'drone.procCount': ' · {count}회'
+      });
+      Object.assign(translations.en, {
+        'drone.proc.0': 'Coins +{percent}%',
+        'drone.proc.1': 'Captain +{percent}%',
+        'drone.proc.2': 'Squad +{percent}%',
+        'drone.procCount': ' · ×{count}'
+      });
+      Object.assign(translations.ko, {
+        'drone.proc.0': '코인 +{percent}%',
+        'drone.proc.1': '대장 피해 +{percent}%',
+        'drone.proc.2': '용병 피해 +{percent}%',
+        'drone.procCount': ' · {count}회'
+      });
+      Object.assign(translations.en, {
+        'drone.proc.0': 'Coins +{percent}%',
+        'drone.proc.1': 'Captain +{percent}%',
+        'drone.proc.2': 'Squad +{percent}%',
+        'drone.procCount': ' · ×{count}'
       });
       cclegacy._RF.pop();
     }
@@ -49582,21 +50205,37 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
                   }
                 }, _callee6);
               })));
-            });else void a.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
+            });else a.rewards.remote(msg.title, 'mail:' + m.id, function () {
+              return {
+                currencies: {
+                  gems: r.gems,
+                  shards: r.shards,
+                  dust: r.dust
+                },
+                collections: {
+                  pets: a.game.s.pets.map(function (_, i) {
+                    return i === r.pet ? r.petLevels : 0;
+                  })
+                }
+              };
+            }, /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7(multiplier, credit) {
               return _regeneratorRuntime().wrap(function _callee7$(_context7) {
                 while (1) switch (_context7.prev = _context7.next) {
                   case 0:
                     _context7.next = 2;
-                    return a.operations.claim(m.id);
+                    return a.operations.claim(m.id, multiplier, credit);
                   case 2:
-                    a.remoteBusy = false;
-                    _this8.inbox(true);
-                  case 4:
+                    return _context7.abrupt("return", true);
+                  case 3:
                   case "end":
                     return _context7.stop();
                 }
               }, _callee7);
-            })));
+            })), function () {
+              return _this8.inbox(true);
+            }, function () {
+              return m.claimed ? a.tr('action.alreadyClaimed') : mailExpiry(m) <= a.game.now() ? a.tr('online.notFound') : null;
+            });
           }, true);
           a.modalRefresh = function () {
             if (mailExpiry(m) <= a.game.now()) _this8.inbox(confirmed);
@@ -49653,9 +50292,9 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './CheatUI.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillTrainingUI.ts', './SquadUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './Dialogue.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './Squad.ts', './SquadName.ts', './firebase-sdk.js'], function () {
+System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './CheatUI.ts', './CombatMotion.ts', './DroneFeedbackUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardClaimUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillTrainingUI.ts', './SquadUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './Dialogue.ts', './DroneEffects.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './Squad.ts', './SquadName.ts', './firebase-sdk.js'], function () {
   return {
-    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     execute: function () {}
   };
 });
@@ -49986,15 +50625,15 @@ System.register("chunks:///_virtual/MilitaryTheme.ts", ['./rollupPluginModLoBabe
   };
 });
 
-System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Amount.ts', './Config.ts'], function (exports) {
-  var _extends, _createClass, _asyncToGenerator, _regeneratorRuntime, _createForOfIteratorHelperLoose, cclegacy, mul, add, CONFIG, SPELLS;
+System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Amount.ts', './Config.ts', './RewardClaims.ts'], function (exports) {
+  var _extends, _createForOfIteratorHelperLoose, _createClass, _asyncToGenerator, _regeneratorRuntime, cclegacy, mul, add, CONFIG, SPELLS, rewardDelta, applyRewardBundle;
   return {
     setters: [function (module) {
       _extends = module.extends;
+      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
       _createClass = module.createClass;
       _asyncToGenerator = module.asyncToGenerator;
       _regeneratorRuntime = module.regeneratorRuntime;
-      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
     }, function (module) {
       cclegacy = module.cclegacy;
     }, function (module) {
@@ -50003,6 +50642,9 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
     }, function (module) {
       CONFIG = module.CONFIG;
       SPELLS = module.SPELLS;
+    }, function (module) {
+      rewardDelta = module.rewardDelta;
+      applyRewardBundle = module.applyRewardBundle;
     }],
     execute: function () {
       exports('rewardedAdGrant', rewardedAdGrant);
@@ -50111,6 +50753,12 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
         period: 43200000,
         cooldown: 300000
       }, {
+        id: 'reward_double',
+        group: 'reward',
+        limit: 0,
+        period: 86400000,
+        cooldown: 0
+      }, {
         id: 'auto_fire',
         group: 'battle',
         limit: 0,
@@ -50135,6 +50783,8 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
           autoFireUntil: 0,
           autoFireEnabled: false,
           fairyAds: true,
+          doubleRewards: [],
+          doubleRewardKeys: {},
           previewAds: {},
           pending: []
         };
@@ -50143,11 +50793,17 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
       /** A native StoreKit/Play Billing adapter must return actual store metadata and opaque receipts. */
 
       /** The same reward contents are used after server verification and in preview builds. */
-      function rewardedAdGrant(id, placement, now) {
+      function rewardedAdGrant(id, placement, now, multiplier) {
+        if (multiplier === void 0) {
+          multiplier = 1;
+        }
         return _extends({
           id: id,
           kind: 'ad',
-          placement: placement,
+          placement: placement
+        }, multiplier === 2 ? {
+          rewardMultiplier: 2
+        } : {}, {
           gems: placement === 'fairy_diamond' ? 10 : 0,
           vipPoints: 0,
           passUntil: 0
@@ -50171,6 +50827,7 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
           this.billing = null;
           this.ads = null;
           this.busy = false;
+          this.approvedDoubles = new Set();
           this.g = g;
           this.online = online;
           this.adMode = adMode;
@@ -50195,17 +50852,20 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
             skip: true
           });
         };
-        _proto.watchPreview = function watchPreview(placement) {
+        _proto.watchPreview = function watchPreview(placement, multiplier) {
           var _this = this;
+          if (multiplier === void 0) {
+            multiplier = 1;
+          }
           var status = this.previewStatus(placement),
             g = this.g;
           if (status.group === 'fairy' && !g.s.extra.commerce.fairyAds) throw Error('money.disabled');
           if (status.limit && status.used >= status.limit) throw Error('money.limit');
           if (status.readyAt > g.now()) throw Error('error.timer');
           var now = g.now(),
-            id = "preview-ad:" + placement + ":" + now;
+            id = "preview-ad:" + placement + ":" + now + (placement === 'reward_double' ? ':' + g.revision : '');
           if (!g.transaction('commerce:' + id, function () {
-            _this.applyReward(rewardedAdGrant(id, placement, now));
+            _this.applyReward(rewardedAdGrant(id, placement, now, multiplier));
             g.s.extra.commerce.previewAds[placement] = {
               cycle: status.cycle,
               used: status.used + 1,
@@ -50243,12 +50903,20 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
           var _this5 = this;
           this.g.require(!this.g.s.claims.includes('commerce:' + grant.id), 'error.claimed');
           this.g.require(Number.isInteger(grant.gems) && grant.gems >= 0 && Number.isInteger(grant.vipPoints) && grant.vipPoints >= 0, 'error.invalid');
+          var factor = grant.rewardMultiplier === undefined ? 1 : grant.rewardMultiplier;
+          this.g.require(factor === 1 || factor === 2 && grant.kind === 'ad' && ['fairy_diamond', 'fairy_mana', 'fairy_gold', 'fairy_equipment', 'shop_chest'].includes(grant.placement), 'error.invalid');
+          if (factor === 2 && grant.placement === 'fairy_mana') this.g.require(this.g.s.run.mana + CONFIG.manaMax * .5 <= CONFIG.manaMax, 'error.full');
+          var before = factor === 2 || grant.kind === 'ad' && ['fairy_equipment', 'shop_chest'].includes(grant.placement) ? JSON.parse(JSON.stringify(this.g.s)) : null;
           var x = this.g.s.extra.commerce;
           if (grant.kind === 'ad') {
             this.g.require(AD_PLACEMENTS.some(function (p) {
               return p.id === grant.placement;
             }), 'error.invalid');
             switch (grant.placement) {
+              case 'reward_double':
+                this.g.require(x.doubleRewards.length < 512, 'error.full');
+                x.doubleRewards.push(grant.id);
+                break;
               case 'auto_fire':
                 this.g.require(Number.isSafeInteger(grant.autoFireUntil) && grant.autoFireUntil >= 0, 'error.invalid');
                 x.autoFireUntil = Math.max(x.autoFireUntil, grant.autoFireUntil);
@@ -50308,11 +50976,19 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
           this.g.s.gems += grant.gems;
           x.vipPoints += grant.vipPoints;
           x.passUntil = Math.max(x.passUntil, grant.passUntil);
+          if (before) {
+            var bundle = rewardDelta(before, this.g.s);
+            for (var _iterator = _createForOfIteratorHelperLoose(bundle.equipment || []), _step; !(_step = _iterator()).done;) {
+              var _item = _step.value;
+              this.g.s.claims.push('reward-choice:' + _item.id);
+            }
+            if (factor === 2) applyRewardBundle(this.g, bundle);
+          }
           this.g.s.claims.push('commerce:' + grant.id);
         };
         _proto.deliver = /*#__PURE__*/function () {
           var _deliver = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
-            var grants, count, _iterator, _step, grant;
+            var grants, count, _iterator2, _step2, grant;
             return _regeneratorRuntime().wrap(function _callee$(_context) {
               while (1) switch (_context.prev = _context.next) {
                 case 0:
@@ -50321,13 +50997,13 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
                 case 2:
                   grants = _context.sent;
                   count = 0;
-                  _iterator = _createForOfIteratorHelperLoose(grants);
+                  _iterator2 = _createForOfIteratorHelperLoose(grants);
                 case 5:
-                  if ((_step = _iterator()).done) {
+                  if ((_step2 = _iterator2()).done) {
                     _context.next = 15;
                     break;
                   }
-                  grant = _step.value;
+                  grant = _step2.value;
                   if (this.g.s.claims.includes('commerce:' + grant.id)) {
                     _context.next = 11;
                     break;
@@ -50394,7 +51070,7 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
         _proto.retryPending = /*#__PURE__*/function () {
           var _retryPending = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
             var _this6 = this;
-            var _loop, _iterator2, _step2;
+            var _loop, _iterator3, _step3;
             return _regeneratorRuntime().wrap(function _callee3$(_context4) {
               while (1) switch (_context4.prev = _context4.next) {
                 case 0:
@@ -50403,7 +51079,7 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
                     return _regeneratorRuntime().wrap(function _loop$(_context3) {
                       while (1) switch (_context3.prev = _context3.next) {
                         case 0:
-                          entry = _step2.value;
+                          entry = _step3.value;
                           _context3.next = 3;
                           return _this6.online.command(entry.path, entry.data);
                         case 3:
@@ -50417,9 +51093,9 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
                       }
                     }, _loop);
                   });
-                  _iterator2 = _createForOfIteratorHelperLoose(this.g.s.extra.commerce.pending.slice());
+                  _iterator3 = _createForOfIteratorHelperLoose(this.g.s.extra.commerce.pending.slice());
                 case 2:
-                  if ((_step2 = _iterator2()).done) {
+                  if ((_step3 = _iterator3()).done) {
                     _context4.next = 6;
                     break;
                   }
@@ -50508,155 +51184,242 @@ System.register("chunks:///_virtual/Monetization.ts", ['./rollupPluginModLoBabel
           return purchase;
         }();
         _proto.watch = /*#__PURE__*/function () {
-          var _watch = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(placement) {
+          var _watch = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(placement, multiplier) {
             var _ticket, result;
             return _regeneratorRuntime().wrap(function _callee5$(_context6) {
               while (1) switch (_context6.prev = _context6.next) {
                 case 0:
+                  if (multiplier === void 0) {
+                    multiplier = 1;
+                  }
                   if (!this.busy) {
-                    _context6.next = 2;
+                    _context6.next = 3;
                     break;
                   }
                   throw Error('money.busy');
-                case 2:
-                  if (AD_PLACEMENTS.some(function (p) {
+                case 3:
+                  if (!(!AD_PLACEMENTS.some(function (p) {
                     return p.id === placement;
-                  })) {
-                    _context6.next = 4;
+                  }) || ![1, 2].includes(multiplier) || multiplier === 2 && !['fairy_diamond', 'fairy_mana', 'fairy_gold', 'fairy_equipment', 'shop_chest'].includes(placement))) {
+                    _context6.next = 5;
                     break;
                   }
                   throw Error('error.invalid');
-                case 4:
+                case 5:
                   if (!(placement === 'fairy_diamond' && this.g.s.run.stage >= this.g.s.maxStage * .99)) {
-                    _context6.next = 6;
+                    _context6.next = 7;
                     break;
                   }
                   throw Error('money.diamondStage');
-                case 6:
+                case 7:
                   if (!(placement === 'fairy_equipment' && this.g.s.maxStage >= 5000)) {
-                    _context6.next = 8;
+                    _context6.next = 9;
                     break;
                   }
                   throw Error('error.locked');
-                case 8:
+                case 9:
                   this.busy = true;
-                  _context6.prev = 9;
+                  _context6.prev = 10;
                   if (!this.previewAds) {
-                    _context6.next = 12;
+                    _context6.next = 13;
                     break;
                   }
-                  return _context6.abrupt("return", this.watchPreview(placement));
-                case 12:
-                  _context6.next = 14;
+                  return _context6.abrupt("return", this.watchPreview(placement, multiplier));
+                case 13:
+                  _context6.next = 15;
                   return this.online.command('/commerce/ad/start', {
-                    placement: placement
+                    placement: placement,
+                    rewardMultiplier: multiplier
                   });
-                case 14:
+                case 15:
                   _ticket = _context6.sent;
                   if (!_ticket.skip) {
-                    _context6.next = 19;
+                    _context6.next = 20;
                     break;
                   }
-                  _context6.next = 18;
+                  _context6.next = 19;
                   return this.deliver();
-                case 18:
-                  return _context6.abrupt("return", 'completed');
                 case 19:
+                  return _context6.abrupt("return", 'completed');
+                case 20:
                   if (this.ads) {
-                    _context6.next = 21;
+                    _context6.next = 22;
                     break;
                   }
                   throw Error('money.adsUnavailable');
-                case 21:
-                  _context6.next = 23;
+                case 22:
+                  _context6.next = 24;
                   return this.ads.show(placement, _ticket.id);
-                case 23:
+                case 24:
                   result = _context6.sent;
                   if (!(result.status !== 'completed')) {
-                    _context6.next = 26;
+                    _context6.next = 27;
                     break;
                   }
                   return _context6.abrupt("return", result.status);
-                case 26:
+                case 27:
                   if (result.proof) {
-                    _context6.next = 28;
+                    _context6.next = 29;
                     break;
                   }
                   throw Error('money.verification');
-                case 28:
-                  _context6.next = 30;
+                case 29:
+                  _context6.next = 31;
                   return this.submit('/commerce/ad/complete', {
                     ticket: _ticket.id,
                     proof: result.proof
                   });
-                case 30:
-                  return _context6.abrupt("return", 'completed');
                 case 31:
-                  _context6.prev = 31;
+                  return _context6.abrupt("return", 'completed');
+                case 32:
+                  _context6.prev = 32;
                   this.busy = false;
-                  return _context6.finish(31);
-                case 34:
+                  return _context6.finish(32);
+                case 35:
                 case "end":
                   return _context6.stop();
               }
-            }, _callee5, this, [[9,, 31, 34]]);
+            }, _callee5, this, [[10,, 32, 35]]);
           }));
-          function watch(_x4) {
+          function watch(_x4, _x5) {
             return _watch.apply(this, arguments);
           }
           return watch;
         }();
-        _proto.restore = /*#__PURE__*/function () {
-          var _restore = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
-            var _iterator3, _step3, receipt;
+        _proto.availableDouble = function availableDouble(rewardKey) {
+          var _this7 = this;
+          var x = this.g.s.extra.commerce;
+          var eligible = x.doubleRewards.filter(function (id) {
+            return _this7.previewAds || /^ad-[a-f0-9]{64}$/.test(id) || /^[a-f0-9]{32}$/.test(id);
+          });
+          return eligible.find(function (id) {
+            return x.doubleRewardKeys[id] === rewardKey;
+          }) || eligible.find(function (id) {
+            return !x.doubleRewardKeys[id];
+          });
+        };
+        _proto.verifyDouble = /*#__PURE__*/function () {
+          var _verifyDouble = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6(credit, rewardKey) {
+            var _this8 = this;
+            var x, result;
             return _regeneratorRuntime().wrap(function _callee6$(_context7) {
               while (1) switch (_context7.prev = _context7.next) {
                 case 0:
+                  x = this.g.s.extra.commerce;
+                  if (!(!x.doubleRewards.includes(credit) || x.doubleRewardKeys[credit] && x.doubleRewardKeys[credit] !== rewardKey)) {
+                    _context7.next = 3;
+                    break;
+                  }
+                  throw Error('money.verification');
+                case 3:
+                  if (this.previewAds) {
+                    _context7.next = 9;
+                    break;
+                  }
+                  _context7.next = 6;
+                  return this.online.command('/commerce/reward-double/consume', {
+                    id: credit,
+                    rewardKey: rewardKey
+                  }, 'double-consume-' + credit);
+                case 6:
+                  result = _context7.sent;
+                  if (!((result == null ? void 0 : result.verified) !== true)) {
+                    _context7.next = 9;
+                    break;
+                  }
+                  throw Error('money.verification');
+                case 9:
+                  if (!(x.doubleRewardKeys[credit] !== rewardKey && !this.g.transaction('reward-bind:' + credit, function () {
+                    _this8.g.s.extra.commerce.doubleRewardKeys[credit] = rewardKey;
+                  }))) {
+                    _context7.next = 11;
+                    break;
+                  }
+                  throw Error(this.g.notice || 'error.storage');
+                case 11:
+                  this.approvedDoubles.add(credit);
+                case 12:
+                case "end":
+                  return _context7.stop();
+              }
+            }, _callee6, this);
+          }));
+          function verifyDouble(_x6, _x7) {
+            return _verifyDouble.apply(this, arguments);
+          }
+          return verifyDouble;
+        }();
+        _proto.redeemDouble = function redeemDouble(credit, claim, bundle) {
+          var _this9 = this;
+          var g = this.g;
+          return g.transaction('reward-double:' + credit, function () {
+            g.require(g.s.extra.commerce.doubleRewards.includes(credit), 'error.claimed');
+            g.require(_this9.previewAds || _this9.approvedDoubles.has(credit), 'error.invalid');
+            var before = JSON.parse(JSON.stringify(g.s));
+            g.require(claim(g), g.notice || 'error.claimed');
+            var reward = bundle || rewardDelta(before, g.s);
+            for (var _iterator4 = _createForOfIteratorHelperLoose(reward.equipment || []), _step4; !(_step4 = _iterator4()).done;) {
+              var item = _step4.value;
+              g.s.claims.push('reward-choice:' + item.id);
+            }
+            applyRewardBundle(g, reward);
+            g.s.extra.commerce.doubleRewards = g.s.extra.commerce.doubleRewards.filter(function (id) {
+              return id !== credit;
+            });
+            delete g.s.extra.commerce.doubleRewardKeys[credit];
+          });
+        };
+        _proto.restore = /*#__PURE__*/function () {
+          var _restore = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
+            var _iterator5, _step5, receipt;
+            return _regeneratorRuntime().wrap(function _callee7$(_context8) {
+              while (1) switch (_context8.prev = _context8.next) {
+                case 0:
                   if (!this.busy) {
-                    _context7.next = 2;
+                    _context8.next = 2;
                     break;
                   }
                   throw Error('money.busy');
                 case 2:
                   if (this.billing) {
-                    _context7.next = 4;
+                    _context8.next = 4;
                     break;
                   }
                   throw Error('money.storeUnavailable');
                 case 4:
                   this.busy = true;
-                  _context7.prev = 5;
-                  _context7.t0 = _createForOfIteratorHelperLoose;
-                  _context7.next = 9;
+                  _context8.prev = 5;
+                  _context8.t0 = _createForOfIteratorHelperLoose;
+                  _context8.next = 9;
                   return this.billing.restore();
                 case 9:
-                  _context7.t1 = _context7.sent;
-                  _iterator3 = (0, _context7.t0)(_context7.t1);
+                  _context8.t1 = _context8.sent;
+                  _iterator5 = (0, _context8.t0)(_context8.t1);
                 case 11:
-                  if ((_step3 = _iterator3()).done) {
-                    _context7.next = 17;
+                  if ((_step5 = _iterator5()).done) {
+                    _context8.next = 17;
                     break;
                   }
-                  receipt = _step3.value;
-                  _context7.next = 15;
+                  receipt = _step5.value;
+                  _context8.next = 15;
                   return this.submit('/commerce/restore', {
                     receipt: receipt
                   });
                 case 15:
-                  _context7.next = 11;
+                  _context8.next = 11;
                   break;
                 case 17:
-                  _context7.next = 19;
+                  _context8.next = 19;
                   return this.retryPending();
                 case 19:
-                  _context7.prev = 19;
+                  _context8.prev = 19;
                   this.busy = false;
-                  return _context7.finish(19);
+                  return _context8.finish(19);
                 case 22:
                 case "end":
-                  return _context7.stop();
+                  return _context8.stop();
               }
-            }, _callee6, this, [[5,, 19, 22]]);
+            }, _callee7, this, [[5,, 19, 22]]);
           }));
           function restore() {
             return _restore.apply(this, arguments);
@@ -51131,8 +51894,8 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
             });
           };
           this.a.button(p, this.tr('action.claim'), 0, 10, 370, 55, function () {
-            return _this6.a.act(function () {
-              return _this6.a.game.claimFairy(_this6.a.id('fairy'));
+            return _this6.a.rewards.local(_this6.tr('money.fairy'), 'fairy:' + _this6.a.game.s.fairyAt, function (g) {
+              return g.claimFairy(_this6.a.id('fairy'));
             }, function () {
               return _this6.a.close();
             });
@@ -51178,7 +51941,7 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
                   }
                   _context8.t0 = {
                     placements: AD_PLACEMENTS.filter(function (p) {
-                      return p.group !== 'legacy';
+                      return p.group !== 'legacy' && p.group !== 'reward';
                     }).map(function (p) {
                       return _this7.model.previewStatus(p.id);
                     })
@@ -51199,7 +51962,7 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
                 case 10:
                   _context8.t1 = {
                     placements: AD_PLACEMENTS.filter(function (p) {
-                      return p.group !== 'legacy';
+                      return p.group !== 'legacy' && p.group !== 'reward';
                     }).map(function (p) {
                       return _extends({}, p, {
                         used: 0,
@@ -51213,7 +51976,7 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
                 case 12:
                   s = _context8.t0;
                   _this7.a.extensions.list('money.adPoints', s.placements.filter(function (p) {
-                    return !group || p.group === group;
+                    return p.group !== 'reward' && (!group || p.group === group);
                   }).map(function (p) {
                     return _this7.a.shopUI.row(_this7.adCategory(p.id), {
                       title: _this7.tr('money.ad.' + p.id),
@@ -51234,7 +51997,7 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
         };
         _proto.ad = function ad(id, status) {
           var _this8 = this;
-          var p = this.a.open(this.tr('money.ad.' + id), 630),
+          var p = this.a.open(this.tr('money.ad.' + id), 710, true, 'teal', false),
             rule = AD_PLACEMENTS.find(function (p) {
               return p.id === id;
             });
@@ -51290,7 +52053,40 @@ System.register("chunks:///_virtual/MonetizationUI.ts", ['./rollupPluginModLoBab
               return (_this8.model.previewAds || !!(status != null && status.skip)) && !_this8.adReason(id, status);
             }
           }).name = 'shop-ad-watch';
-          this.a.button(p, this.tr('action.cancel'), 0, -254, 370, 44, function () {
+          if (['fairy_diamond', 'fairy_mana', 'fairy_gold', 'fairy_equipment', 'shop_chest'].includes(id)) this.a.button(p, this.tr(this.model.previewAds ? 'reward.claimPreviewDouble' : 'reward.claimAdDouble'), 0, -246, 370, 58, function () {
+            void _this8.runAd( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10() {
+              var result;
+              return _regeneratorRuntime().wrap(function _callee10$(_context10) {
+                while (1) switch (_context10.prev = _context10.next) {
+                  case 0:
+                    _context10.next = 2;
+                    return _this8.model.watch(id, 2);
+                  case 2:
+                    result = _context10.sent;
+                    if (!(result === 'completed' && _this8.a.operations.ready)) {
+                      _context10.next = 6;
+                      break;
+                    }
+                    _context10.next = 6;
+                    return _this8.a.operations.save();
+                  case 6:
+                    if (result === 'completed') _this8.a.info(_this8.tr('money.result'), _this8.tr('reward.received', {
+                      multiplier: 2
+                    }));else _this8.result('money.adStatus.' + result);
+                    _this8.a.drawPanel();
+                  case 8:
+                  case "end":
+                    return _context10.stop();
+                }
+              }, _callee10);
+            })));
+          }, true, {
+            category: 'shop',
+            unavailable: function unavailable() {
+              return _this8.adReason(id, status) || (!_this8.model.previewAds && !_this8.model.ads ? _this8.tr('money.adsUnavailable') : null) || ((id === 'shop_chest' || id === 'fairy_equipment') && _this8.a.game.s.equipment.length > 98 ? _this8.tr('error.full') : null) || (id === 'fairy_mana' && _this8.a.game.s.run.mana + CONFIG.manaMax * .5 > CONFIG.manaMax ? _this8.tr('error.full') : null);
+            }
+          }).name = 'shop-ad-double';
+          this.a.button(p, this.tr('action.cancel'), 0, -312, 370, 44, function () {
             return _this8.a.close();
           });
         };
@@ -52335,14 +53131,17 @@ System.register("chunks:///_virtual/OperationsClient.ts", ['./rollupPluginModLoB
           return inbox;
         }();
         _proto.claim = /*#__PURE__*/function () {
-          var _claim = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11(id) {
+          var _claim = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11(id, multiplier, credit) {
             var _this6 = this;
             return _regeneratorRuntime().wrap(function _callee11$(_context11) {
               while (1) switch (_context11.prev = _context11.next) {
                 case 0:
-                  _context11.next = 2;
+                  if (multiplier === void 0) {
+                    multiplier = 1;
+                  }
+                  _context11.next = 3;
                   return this.save();
-                case 2:
+                case 3:
                   return _context11.abrupt("return", this.serial( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10() {
                     var result;
                     return _regeneratorRuntime().wrap(function _callee10$(_context10) {
@@ -52357,11 +53156,15 @@ System.register("chunks:///_virtual/OperationsClient.ts", ['./rollupPluginModLoB
                           _this6.busy = true;
                           _context10.prev = 3;
                           _context10.next = 6;
-                          return _this6.request('/operations/mail/claim', {
+                          return _this6.request('/operations/mail/claim', _extends({
                             id: id,
                             version: _this6.version,
-                            key: 'mail-claim-' + id
-                          });
+                            key: 'mail-claim-' + id,
+                            multiplier: multiplier
+                          }, multiplier === 2 ? {
+                            credit: credit,
+                            previewDouble: _this6.a.payments.model.previewAds
+                          } : {}));
                         case 6:
                           result = _context10.sent;
                           if (_this6.a.extensions.restore(result.state)) {
@@ -52393,13 +53196,13 @@ System.register("chunks:///_virtual/OperationsClient.ts", ['./rollupPluginModLoB
                       }
                     }, _callee10, null, [[3, 16, 20, 23]]);
                   }))));
-                case 3:
+                case 4:
                 case "end":
                   return _context11.stop();
               }
             }, _callee11, this);
           }));
-          function claim(_x4) {
+          function claim(_x4, _x5, _x6) {
             return _claim.apply(this, arguments);
           }
           return claim;
@@ -52426,7 +53229,7 @@ System.register("chunks:///_virtual/OperationsClient.ts", ['./rollupPluginModLoB
               }
             }, _callee12, this);
           }));
-          function _delete(_x5) {
+          function _delete(_x7) {
             return _delete2.apply(this, arguments);
           }
           return _delete;
@@ -52924,6 +53727,513 @@ System.register("chunks:///_virtual/ReferenceRules.ts", ['cc'], function (export
   };
 });
 
+System.register("chunks:///_virtual/RewardClaims.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Game.ts', './Amount.ts', './Config.ts'], function (exports) {
+  var _extends, _createForOfIteratorHelperLoose, cclegacy, Game, sub, ZERO, add, CONFIG;
+  return {
+    setters: [function (module) {
+      _extends = module.extends;
+      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+    }, function (module) {
+      Game = module.Game;
+    }, function (module) {
+      sub = module.sub;
+      ZERO = module.ZERO;
+      add = module.add;
+    }, function (module) {
+      CONFIG = module.CONFIG;
+    }],
+    execute: function () {
+      exports({
+        applyRewardBundle: applyRewardBundle,
+        previewReward: previewReward,
+        rewardAvailable: rewardAvailable,
+        rewardDelta: rewardDelta
+      });
+      cclegacy._RF.push({}, "8e028AhYKZErqFHEX/Qgu98", "RewardClaims", undefined);
+      var REWARD_CURRENCIES = exports('REWARD_CURRENCIES', ['gems', 'shards', 'dust', 'souls', 'geodes', 'sp', 'eventTokens']);
+      var REWARD_COLLECTIONS = exports('REWARD_COLLECTIONS', ['pets', 'fragments', 'titans', 'stones', 'scrolls', 'weapons', 'perks']);
+      /** Only actual reward contents are copied; progress, claim markers and timers advance once. */
+      function rewardDelta(before, after) {
+        var result = {
+          currencies: {},
+          collections: {},
+          equipment: after.equipment.filter(function (e) {
+            return !before.equipment.some(function (old) {
+              return old.id === e.id;
+            });
+          }).map(function (e) {
+            return _extends({}, e);
+          })
+        };
+        for (var _iterator = _createForOfIteratorHelperLoose(REWARD_CURRENCIES), _step; !(_step = _iterator()).done;) {
+          var key = _step.value;
+          if (after[key] > before[key]) result.currencies[key] = after[key] - before[key];
+        }
+        var _loop = function _loop() {
+          var key = _step2.value;
+          var delta = after[key].map(function (n, i) {
+            return Math.max(0, n - before[key][i]);
+          });
+          if (delta.some(function (n) {
+            return n > 0;
+          })) result.collections[key] = delta;
+        };
+        for (var _iterator2 = _createForOfIteratorHelperLoose(REWARD_COLLECTIONS), _step2; !(_step2 = _iterator2()).done;) {
+          _loop();
+        }
+        for (var _iterator3 = _createForOfIteratorHelperLoose(['relics', 'mementos']), _step3; !(_step3 = _iterator3()).done;) {
+          var _key = _step3.value;
+          if (after[_key] > before[_key]) result[_key] = sub(after[_key], before[_key]);
+        }
+        if (after.run.gold > before.run.gold) result.gold = sub(after.run.gold, before.run.gold);
+        if (after.run.mana > before.run.mana) result.mana = after.run.mana - before.run.mana;
+        return result;
+      }
+      function rewardAvailable(bundle) {
+        var _bundle$equipment;
+        return !!(Object.values(bundle.currencies || {}).some(function (n) {
+          return n > 0;
+        }) || Object.values(bundle.collections || {}).some(function (rows) {
+          return rows.some(function (n) {
+            return n > 0;
+          });
+        }) || (_bundle$equipment = bundle.equipment) != null && _bundle$equipment.length || [bundle.gold, bundle.relics, bundle.mementos].some(function (n) {
+          return n !== undefined && n > ZERO;
+        }) || (bundle.mana || 0) > 0);
+      }
+      function applyRewardBundle(g, bundle) {
+        var _bundle$equipment2;
+        var s = g.s;
+        g.require(s.equipment.length + (((_bundle$equipment2 = bundle.equipment) == null ? void 0 : _bundle$equipment2.length) || 0) <= CONFIG.inventoryCap, 'error.full');
+        for (var _iterator4 = _createForOfIteratorHelperLoose(REWARD_CURRENCIES), _step4; !(_step4 = _iterator4()).done;) {
+          var _bundle$currencies;
+          var key = _step4.value;
+          var n = ((_bundle$currencies = bundle.currencies) == null ? void 0 : _bundle$currencies[key]) || 0;
+          g.require(Number.isSafeInteger(n) && n >= 0, 'error.invalid');
+          s[key] += n;
+        }
+        var _loop2 = function _loop2() {
+          var _bundle$collections;
+          var key = _step5.value;
+          var rows = (_bundle$collections = bundle.collections) == null ? void 0 : _bundle$collections[key];
+          if (!rows) return 1; // continue
+          g.require(rows.length === s[key].length && rows.every(function (n) {
+            return Number.isSafeInteger(n) && n >= 0;
+          }), 'error.invalid');
+          rows.forEach(function (n, i) {
+            return s[key][i] += n;
+          });
+        };
+        for (var _iterator5 = _createForOfIteratorHelperLoose(REWARD_COLLECTIONS), _step5; !(_step5 = _iterator5()).done;) {
+          if (_loop2()) continue;
+        }
+        for (var _iterator6 = _createForOfIteratorHelperLoose(['relics', 'mementos']), _step6; !(_step6 = _iterator6()).done;) {
+          var _key2 = _step6.value;
+          if (bundle[_key2] !== undefined) s[_key2] = add(s[_key2], bundle[_key2]);
+        }
+        if (bundle.gold !== undefined) s.run.gold = add(s.run.gold, bundle.gold);
+        if (bundle.mana !== undefined) s.run.mana = Math.min(CONFIG.manaMax, s.run.mana + bundle.mana);
+        for (var _iterator7 = _createForOfIteratorHelperLoose(bundle.equipment || []), _step7; !(_step7 = _iterator7()).done;) {
+          var item = _step7.value;
+          var extra = _extends({}, item, {
+            id: s.nextItem++,
+            locked: false
+          });
+          s.equipment.push(extra);
+          s.claims.push('reward-choice:' + extra.id);
+          s.extra.unseenEquipment.push(extra.id);
+          s.extra.dailyEquipment++;
+        }
+      }
+      function previewReward(g, claim) {
+        var copy = new Game(undefined, g.now);
+        copy.s = JSON.parse(JSON.stringify(g.s));
+        var before = JSON.parse(JSON.stringify(copy.s));
+        if (!claim(copy)) return {
+          reward: {},
+          reason: copy.notice || 'error.claimed'
+        };
+        return {
+          reward: rewardDelta(before, copy.s),
+          reason: null
+        };
+      }
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './RewardClaims.ts', './Amount.ts', './UITheme.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, rewardDelta, rewardAvailable, previewReward, REWARD_CURRENCIES, REWARD_COLLECTIONS, display, mul, UI;
+  return {
+    setters: [function (module) {
+      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
+      _asyncToGenerator = module.asyncToGenerator;
+      _regeneratorRuntime = module.regeneratorRuntime;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+    }, function (module) {
+      rewardDelta = module.rewardDelta;
+      rewardAvailable = module.rewardAvailable;
+      previewReward = module.previewReward;
+      REWARD_CURRENCIES = module.REWARD_CURRENCIES;
+      REWARD_COLLECTIONS = module.REWARD_COLLECTIONS;
+    }, function (module) {
+      display = module.display;
+      mul = module.mul;
+    }, function (module) {
+      UI = module.UI;
+    }],
+    execute: function () {
+      cclegacy._RF.push({}, "08507z2vBpBPLIeygl4GJyW", "RewardClaimUI", undefined);
+      var RewardClaimUI = exports('RewardClaimUI', /*#__PURE__*/function () {
+        function RewardClaimUI(a) {
+          this.busy = false;
+          this.quotes = new WeakMap();
+          this.a = a;
+        }
+        var _proto = RewardClaimUI.prototype;
+        _proto.local = function local(title, key, claim, done, reason) {
+          this.offer({
+            title: title,
+            key: key,
+            claim: claim,
+            done: done,
+            reason: reason
+          });
+        };
+        _proto.remote = function remote(title, key, bundle, claim, done, reason) {
+          this.offer({
+            title: title,
+            key: key,
+            bundle: bundle,
+            remote: claim,
+            done: done,
+            reason: reason
+          });
+        };
+        _proto.received = function received(title, key, _bundle, done) {
+          var marker = 'reward-received:' + key;
+          this.offer({
+            title: title,
+            key: key,
+            received: true,
+            bundle: function bundle() {
+              return _bundle;
+            },
+            done: done,
+            claim: function claim(g) {
+              return g.transaction(marker, function () {
+                g.require(!g.s.claims.includes(marker), 'error.claimed');
+                g.s.claims.push(marker);
+              });
+            }
+          });
+        };
+        _proto.earned = function earned(title, key, claim, done) {
+          var before = JSON.parse(JSON.stringify(this.a.game.s));
+          if (!claim(this.a.game)) {
+            this.a.flushNotice();
+            return;
+          }
+          var bundle = rewardDelta(before, this.a.game.s);
+          if (rewardAvailable(bundle)) this.received(title, key, bundle, done);else done();
+        };
+        _proto.preview = function preview(o, fresh) {
+          if (fresh === void 0) {
+            fresh = false;
+          }
+          var g = this.a.game,
+            time = Math.floor(g.now() / 200),
+            cached = this.quotes.get(o);
+          if (!fresh && cached && cached.revision === g.revision && cached.time === time && cached.state === g.s) return cached.value;
+          var value = o.received ? {
+            reward: o.bundle(),
+            reason: this.a.game.s.claims.includes('reward-received:' + o.key) ? 'error.claimed' : null
+          } : o.claim ? previewReward(this.a.game, o.claim) : {
+            reward: o.bundle(),
+            reason: null
+          };
+          this.quotes.set(o, {
+            revision: g.revision,
+            time: time,
+            state: g.s,
+            value: value
+          });
+          return value;
+        };
+        _proto.summary = function summary(bundle, multiplier) {
+          var _bundle$equipment;
+          var a = this.a,
+            lines = [];
+          for (var _iterator = _createForOfIteratorHelperLoose(REWARD_CURRENCIES), _step; !(_step = _iterator()).done;) {
+            var _bundle$currencies;
+            var key = _step.value;
+            var value = (((_bundle$currencies = bundle.currencies) == null ? void 0 : _bundle$currencies[key]) || 0) * multiplier;
+            if (value) lines.push(a.tr('reward.amount', {
+              name: a.tr('feedback.' + key),
+              value: display(value)
+            }));
+          }
+          for (var _iterator2 = _createForOfIteratorHelperLoose(['gold', 'relics', 'mementos']), _step2; !(_step2 = _iterator2()).done;) {
+            var _key = _step2.value;
+            if (bundle[_key] !== undefined) lines.push(a.tr('reward.amount', {
+              name: a.tr('feedback.' + _key),
+              value: a.format(mul(bundle[_key], multiplier))
+            }));
+          }
+          for (var _iterator3 = _createForOfIteratorHelperLoose(REWARD_COLLECTIONS), _step3; !(_step3 = _iterator3()).done;) {
+            var _bundle$collections;
+            var _key2 = _step3.value;
+            var _value = ((_bundle$collections = bundle.collections) == null || (_bundle$collections = _bundle$collections[_key2]) == null ? void 0 : _bundle$collections.reduce(function (sum, n) {
+              return sum + n;
+            }, 0)) || 0;
+            if (_value) lines.push(a.tr('reward.amount', {
+              name: a.tr('reward.type.' + _key2),
+              value: display(_value * multiplier)
+            }));
+          }
+          if ((_bundle$equipment = bundle.equipment) != null && _bundle$equipment.length) lines.push(a.tr('reward.amount', {
+            name: a.tr('reward.type.equipment'),
+            value: display(bundle.equipment.length * multiplier)
+          }));
+          if (bundle.mana) lines.push(a.tr('reward.amount', {
+            name: a.tr('reward.type.mana'),
+            value: display(bundle.mana * multiplier)
+          }));
+          return lines.join('\n') || a.tr('reward.empty');
+        };
+        _proto.offer = function offer(o) {
+          var _this = this;
+          if (this.busy) return;
+          var a = this.a;
+          var cancelled = false;
+          var leave = function leave() {
+            cancelled = true;
+            o.done();
+          };
+          var p = a.open(a.tr('reward.choose', {
+            name: o.title
+          }), 680, true, 'teal', false, leave);
+          p.name = 'reward-claim-panel';
+          a.label(p, a.tr(o.received ? 'reward.receivedInfo' : 'reward.chooseInfo'), 0, 206, 374, 52, 18, UI.text);
+          var summaries = [];
+          for (var _iterator4 = _createForOfIteratorHelperLoose([1, 2].entries()), _step4; !(_step4 = _iterator4()).done;) {
+            var _step4$value = _step4.value,
+              index = _step4$value[0],
+              _multiplier = _step4$value[1];
+            var box = a.nodeAt(p, 'reward-option-' + _multiplier, index ? 98 : -98, 69, 184, 190);
+            a.ui.surface(box, '#252b24', 'cut');
+            a.label(box, a.tr(_multiplier === 1 ? 'reward.base' : 'reward.double'), 0, 70, 174, 30, 19, _multiplier === 1 ? UI.gold : '#8be8ff');
+            summaries.push(a.label(box, '', 0, -7, 170, 121, 16, UI.text));
+          }
+          a.label(p, a.tr(a.payments.model.previewAds ? 'reward.previewInfo' : 'reward.adInfo'), 0, -70, 374, 65, 16, UI.muted);
+          var credit = a.payments.model.availableDouble(o.key) || null;
+          var reason = function reason(fresh) {
+            if (fresh === void 0) {
+              fresh = false;
+            }
+            if (_this.busy) return a.tr('money.busy');
+            var state = _this.preview(o, fresh);
+            return (o.reason == null ? void 0 : o.reason()) || (state.reason ? a.tr(state.reason) : null) || (!rewardAvailable(state.reward) ? a.tr('reward.empty') : null);
+          };
+          var doubleReason = function doubleReason(fresh) {
+            var _this$preview$reward$;
+            if (fresh === void 0) {
+              fresh = false;
+            }
+            return reason(fresh) || (!a.payments.model.previewAds && !a.payments.model.ads ? a.tr('money.adsUnavailable') : null) || (a.game.s.equipment.length + (((_this$preview$reward$ = _this.preview(o).reward.equipment) == null ? void 0 : _this$preview$reward$.length) || 0) * (o.received ? 1 : 2) > 100 ? a.tr('error.full') : null);
+          };
+          var receive = /*#__PURE__*/function () {
+            var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(multiplier) {
+              var blocked, beforeFeedback, result, current, _blocked, success, key;
+              return _regeneratorRuntime().wrap(function _callee$(_context) {
+                while (1) switch (_context.prev = _context.next) {
+                  case 0:
+                    if (!_this.busy) {
+                      _context.next = 2;
+                      break;
+                    }
+                    return _context.abrupt("return");
+                  case 2:
+                    blocked = multiplier === 2 ? doubleReason(true) : reason(true);
+                    if (!blocked) {
+                      _context.next = 6;
+                      break;
+                    }
+                    a.toast(blocked, 'blocked');
+                    return _context.abrupt("return");
+                  case 6:
+                    _this.busy = true;
+                    a.feedback.asyncPending++;
+                    beforeFeedback = a.feedback.snapshot();
+                    _context.prev = 9;
+                    if (!(multiplier === 2)) {
+                      _context.next = 28;
+                      break;
+                    }
+                    if (credit) {
+                      _context.next = 22;
+                      break;
+                    }
+                    if (a.payments.model.previewAds) {
+                      _context.next = 15;
+                      break;
+                    }
+                    _context.next = 15;
+                    return a.payments.model.online.connect(a.tr('online.defaultName'));
+                  case 15:
+                    _context.next = 17;
+                    return a.payments.model.watch('reward_double');
+                  case 17:
+                    result = _context.sent;
+                    if (!(result !== 'completed')) {
+                      _context.next = 21;
+                      break;
+                    }
+                    a.toast(a.tr('money.adStatus.' + result), 'blocked');
+                    return _context.abrupt("return");
+                  case 21:
+                    credit = a.game.s.extra.commerce.doubleRewards[a.game.s.extra.commerce.doubleRewards.length - 1] || null;
+                  case 22:
+                    if (!cancelled) {
+                      _context.next = 24;
+                      break;
+                    }
+                    return _context.abrupt("return");
+                  case 24:
+                    if (credit) {
+                      _context.next = 26;
+                      break;
+                    }
+                    throw Error('money.verification');
+                  case 26:
+                    _context.next = 28;
+                    return a.payments.model.verifyDouble(credit, o.key);
+                  case 28:
+                    if (!cancelled) {
+                      _context.next = 30;
+                      break;
+                    }
+                    return _context.abrupt("return");
+                  case 30:
+                    current = _this.preview(o, true), _blocked = (o.reason == null ? void 0 : o.reason()) || (current.reason ? a.tr(current.reason) : null);
+                    if (!_blocked) {
+                      _context.next = 34;
+                      break;
+                    }
+                    a.toast(_blocked, 'blocked');
+                    return _context.abrupt("return");
+                  case 34:
+                    if (!o.claim) {
+                      _context.next = 38;
+                      break;
+                    }
+                    success = multiplier === 2 ? a.payments.model.redeemDouble(credit, o.claim, o.received ? o.bundle() : undefined) : a.game.transaction('reward-base:' + o.key, function () {
+                      var before = JSON.parse(JSON.stringify(a.game.s));
+                      a.game.require(o.claim(a.game), a.game.notice || 'error.claimed');
+                      for (var _iterator5 = _createForOfIteratorHelperLoose(rewardDelta(before, a.game.s).equipment || []), _step5; !(_step5 = _iterator5()).done;) {
+                        var item = _step5.value;
+                        a.game.s.claims.push('reward-choice:' + item.id);
+                      }
+                      if (credit && a.game.s.extra.commerce.doubleRewardKeys[credit] === o.key) {
+                        a.game.s.extra.commerce.doubleRewards = a.game.s.extra.commerce.doubleRewards.filter(function (id) {
+                          return id !== credit;
+                        });
+                        delete a.game.s.extra.commerce.doubleRewardKeys[credit];
+                        a.game.s.claims.push('reward-double-declined:' + credit);
+                      }
+                    });
+                    _context.next = 42;
+                    break;
+                  case 38:
+                    _context.next = 40;
+                    return o.remote(multiplier, credit || undefined);
+                  case 40:
+                    success = _context.sent;
+                    if (success && multiplier === 2 && a.game.s.extra.commerce.doubleRewards.includes(credit)) success = a.payments.model.redeemDouble(credit, function () {
+                      return true;
+                    }, {});
+                  case 42:
+                    if (success) {
+                      _context.next = 44;
+                      break;
+                    }
+                    throw Error(a.game.notice || 'error.claimed');
+                  case 44:
+                    if (!a.operations.ready) {
+                      _context.next = 47;
+                      break;
+                    }
+                    _context.next = 47;
+                    return a.operations.save();
+                  case 47:
+                    o.done(multiplier);
+                    a.toast(a.tr('reward.received', {
+                      multiplier: multiplier
+                    }));
+                    a.feedback.finish(beforeFeedback);
+                    _context.next = 56;
+                    break;
+                  case 52:
+                    _context.prev = 52;
+                    _context.t0 = _context["catch"](9);
+                    key = _context.t0.message;
+                    a.info(a.tr('money.result'), a.tr(/^(money|error|online)\./.test(key) ? key : 'money.verification'), 'blocked');
+                  case 56:
+                    _context.prev = 56;
+                    a.feedback.asyncPending--;
+                    _this.busy = false;
+                    a.refreshButtons();
+                    a.updateHUD();
+                    return _context.finish(56);
+                  case 62:
+                  case "end":
+                    return _context.stop();
+                }
+              }, _callee, null, [[9, 52, 56, 62]]);
+            }));
+            return function receive(_x) {
+              return _ref.apply(this, arguments);
+            };
+          }();
+          a.button(p, a.tr(o.received ? 'reward.continueBase' : 'reward.claimBase'), 0, -145, 374, 50, function () {
+            return void receive(1);
+          }, true, {
+            category: 'confirm',
+            unavailable: reason
+          }).name = 'reward-claim-base';
+          a.button(p, a.tr(a.payments.model.previewAds ? 'reward.claimPreviewDouble' : 'reward.claimAdDouble'), 0, -208, 374, 60, function () {
+            return void receive(2);
+          }, true, {
+            category: 'shop',
+            unavailable: doubleReason,
+            label: function label() {
+              return a.tr(!a.payments.model.previewAds && credit ? 'reward.verifiedDouble' : a.payments.model.previewAds ? 'reward.claimPreviewDouble' : 'reward.claimAdDouble');
+            }
+          }).name = 'reward-claim-double';
+          a.button(p, a.tr('action.cancel'), 0, -274, 374, 44, leave, false, {
+            category: 'back'
+          }).name = 'reward-claim-cancel';
+          var refresh = function refresh() {
+            if (_this.busy) return;
+            var state = _this.preview(o);
+            summaries.forEach(function (label, i) {
+              return label.string = _this.summary(state.reward, i + 1);
+            });
+          };
+          a.modalRefresh = refresh;
+          refresh();
+        };
+        return RewardClaimUI;
+      }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
 System.register("chunks:///_virtual/RewardGlowUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc'], function (exports) {
   var _createForOfIteratorHelperLoose, cclegacy, UITransform, Graphics, isValid;
   return {
@@ -53227,11 +54537,11 @@ System.register("chunks:///_virtual/ShopUI.ts", ['./rollupPluginModLoBabelHelper
             }],
             action: a.tr('action.claim'),
             click: function click() {
-              return a.act(function () {
+              return a.rewards.local(a.tr('shop.free'), 'daily:' + g.s.day + ':0', function (g) {
                 return g.claimDaily(0);
               }, function () {
                 return a.drawPanel();
-              }, 'reward.done');
+              });
             }
           })].concat([0, 1, 2].map(function (i) {
             return _this.row(['drone', 'shards', 'expedition'][i], {
@@ -53275,11 +54585,13 @@ System.register("chunks:///_virtual/ShopUI.ts", ['./rollupPluginModLoBabelHelper
               },
               action: a.tr('action.claim'),
               click: function click() {
-                return a.act(function () {
+                return a.rewards.local(a.tr('hud.stage', {
+                  stage: stage
+                }), 'milestone:' + stage, function (g) {
                   return g.claimMilestone(stage);
                 }, function () {
                   return a.drawPanel();
-                }, 'reward.done');
+                });
               },
               detail: function detail() {
                 return _this.milestone(stage);
@@ -53389,12 +54701,14 @@ System.register("chunks:///_virtual/ShopUI.ts", ['./rollupPluginModLoBabelHelper
           a.metric(p, 'face:gems', '+25', -94, -10, 172);
           a.metric(p, 'shop:shards', '+5', 94, -10, 172);
           a.button(p, a.tr('action.claim'), 0, -144, 370, 54, function () {
-            return a.act(function () {
-              return a.game.claimMilestone(stage);
+            return a.rewards.local(a.tr('hud.stage', {
+              stage: stage
+            }), 'milestone:' + stage, function (g) {
+              return g.claimMilestone(stage);
             }, function () {
               a.close();
               a.drawPanel();
-            }, 'reward.done');
+            });
           }, true, {
             unavailable: function unavailable() {
               return a.rewardReason(a.tr('achievement.2'), a.game.s.maxStage, stage, a.game.s.claims.includes("milestone." + stage));
@@ -53523,7 +54837,20 @@ System.register("chunks:///_virtual/SkillTrainingUI.ts", ['cc', './Config.ts', '
         // A plain charcoal command-board surface keeps color on the actual choices.
         a.ui.surface(p, '#131c22', 'panel', 255, true);
         points(a, p, 251);
-        a.label(p, a.tr('training.treeHint'), 0, 202, 390, 28, 14, '#b6c6ca');
+        a.label(p, a.tr('training.treeHint'), -38, 202, 312, 28, 14, '#b6c6ca');
+        a.button(p, a.tr('learn.open'), 167, 202, 58, 32, function () {
+          return a.tutorial.explain('skills', function () {
+            return a.skills(false);
+          }, true, function () {
+            return a.skills(false);
+          });
+        }, false, {
+          category: 'details',
+          icon: 'symbol:info',
+          iconOnly: true,
+          compact: true,
+          hint: a.tr('learn.open')
+        }).name = 'skills-guide-open';
         for (var branch = 0; branch < 6; branch++) {
           var style = BRANCHES[branch],
             group = surface(a, p, 'training-branch-' + branch, -132 + branch % 3 * 132, 79 - Math.floor(branch / 3) * 212, 126, 204, '#1b262c');
@@ -54817,7 +56144,7 @@ System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpe
 });
 
 System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './EntryPolicy.ts', './UITheme.ts', './I18n.ts', './Config.ts', './FeatureLessons.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _createClass, cclegacy, isValid, Mask, UITransform, Label, Node, Vec3, Graphics, UIOpacity, tween, tutorialComplete, tutorialSeen, tutorialAdvance, TUTORIAL_DONE, tabUnlocked, TAB_STAGES, UI, translations, SPELLS, lessonRead, lessonPage, LESSONS;
+  var _createForOfIteratorHelperLoose, _createClass, cclegacy, isValid, Mask, UITransform, Label, Node, Vec3, Graphics, UIOpacity, tween, tutorialComplete, tutorialSeen, tutorialAdvance, TUTORIAL_DONE, tabUnlocked, TAB_STAGES, UI, translations, SPELLS, lessonRead, lessonReceipt, lessonPage, LESSONS, lessonSteps;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -54848,8 +56175,10 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
       SPELLS = module.SPELLS;
     }, function (module) {
       lessonRead = module.lessonRead;
+      lessonReceipt = module.lessonReceipt;
       lessonPage = module.lessonPage;
       LESSONS = module.LESSONS;
+      lessonSteps = module.lessonSteps;
     }],
     execute: function () {
       cclegacy._RF.push({}, "8c6d8ZZlZNLeKYCjDMDvIF5", "TutorialUI", undefined);
@@ -54891,9 +56220,9 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           if (back === void 0) {
             back = resume;
           }
-          if (!force && (this.active || lessonRead(this.a.game.s, id) || this.postponed.has('lesson:' + id))) return false;
+          if (!force && (this.active || lessonRead(this.a.game.s, id) || this.postponed.has(lessonReceipt(id)))) return false;
           this.lessonScreen(id, force ? 0 : lessonPage(this.a.game.s, id), resume, function () {
-            _this.postponed.add('lesson:' + id);
+            _this.postponed.add(lessonReceipt(id));
             back();
           });
           return true;
@@ -54909,9 +56238,11 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             }), 560, true, 'teal', false, back);
           this.clearSpotlight();
           p.name = 'lesson-panel';
+          var total = lessonSteps(id),
+            receipt = lessonReceipt(id);
           a.label(p, a.tr('learn.progress', {
             step: page + 1,
-            total: 3,
+            total: total,
             part: a.tr('learn.part.' + page)
           }), 0, 173, 374, 40, 19, UI.gold).node.name = 'lesson-progress';
           a.ui.icon(a.nodeAt(p, 'lesson-icon', 0, 115, 48, 48), topic.icon, UI.gold);
@@ -54925,13 +56256,13 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           }, false, {
             style: 'secondary'
           }).name = 'lesson-previous';
-          a.button(p, a.tr(page < 2 ? 'learn.next' : 'learn.practice'), page ? 98 : 0, -176, page ? 176 : 370, 44, function () {
-            _this2.complete('lesson:' + id + ':page:' + page);
-            if (page < 2) {
+          a.button(p, a.tr(page < total - 1 ? 'learn.next' : 'learn.practice'), page ? 98 : 0, -176, page ? 176 : 370, 44, function () {
+            _this2.complete(receipt + ':page:' + page);
+            if (page < total - 1) {
               _this2.lessonScreen(id, page + 1, resume, back);
               return;
             }
-            _this2.complete('lesson:' + id);
+            _this2.complete(receipt);
             var stages = id === 'equipment' || id === 'events' ? [15] : id === 'skills' ? [50] : id === 'intel' || id === 'redeploy' ? [60] : id === 'cards' || id === 'raids' ? [100] : id === 'growth' ? [1000, 100000, 180000] : [];
             for (var _i = 0, _stages = stages; _i < _stages.length; _i++) {
               var stage = _stages[_i];
@@ -55016,6 +56347,9 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             },
             events: function events() {
               return a.events();
+            },
+            exploration: function exploration() {
+              return a.board(false);
             },
             growth: function growth() {
               return a.meta();
@@ -56236,6 +57570,10 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
                     length: 18
                   }, function (_, i) {
                     return _this.loadFrame('icons/talent-' + i, 0, false, 'military/talents/' + i);
+                  }), Array.from({
+                    length: 12
+                  }, function (_, i) {
+                    return _this.loadFrame('drones/' + i, 0, false, 'military/drones/' + i);
                   })));
                 case 9:
                   if (this.missing.length) console.warn('[UIArt] Missing assets:', this.missing.join(', '));
@@ -56638,6 +57976,7 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
           if (color === void 0) {
             color = UI.text;
           }
+          if (key.startsWith('drones:')) return this.paint(node, 'drones/' + key.slice(7));
           if (key.startsWith('equipment:')) return this.equipmentIcon(node, key.slice(10));
           if (key.startsWith('shop:')) return this.paint(node, 'shop/' + key.slice(5));
           if (key === 'symbol:damage') return this.damageIcon(node, color);
