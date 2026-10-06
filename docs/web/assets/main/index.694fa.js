@@ -1967,15 +1967,15 @@ System.register("chunks:///_virtual/DroneFeedbackUI.ts", ['./rollupPluginModLoBa
           this.pending = [];
           this.elapsed = 0;
           var origin = a.root.getComponent(UITransform).convertToNodeSpaceAR(drone.worldPosition);
-          // Bias the compact caption right of the drone so it clears the supply control.
-          var n = a.nodeAt(a.root, 'drone-support-pop', Math.min(151, origin.x + 72), origin.y + 35, 158, 28);
+          // Both captions share the drone center: name below, support cue directly above.
+          var n = a.nodeAt(a.root, 'drone-support-pop', origin.x, origin.y + 35, 136, 26);
           var tone = ['#ffe187', '#ff9288', '#9cebdd'][cue.effect];
           var text = a.tr('drone.proc.' + cue.effect, {
             percent: Number(cue.percent.toFixed(1))
           }) + (count > 1 ? a.tr('drone.procCount', {
             count: count
           }) : '');
-          var label = a.label(n, text, 0, 0, 158, 28, 16, tone);
+          var label = a.label(n, text, 0, 0, 136, 26, 15, tone);
           label.node.name = 'drone-support-value';
           label.enableOutline = true;
           label.outlineWidth = 3;
@@ -2001,7 +2001,7 @@ System.register("chunks:///_virtual/DroneFeedbackUI.ts", ['./rollupPluginModLoBa
           n.setScale(.55, .55, 1);
           var opacity = n.addComponent(UIOpacity);
           tween(n).to(.11, {
-            scale: new Vec3(1.18, 1.18, 1)
+            scale: new Vec3(1.1, 1.1, 1)
           }, {
             easing: 'backOut'
           }).to(.12, {
@@ -43758,13 +43758,15 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return;
           }
           if (!drone) {
-            drone = this.nodeAt(this.battleCast, 'equipped-drone', -66, y, 64, 64);
-            this.label(drone, '', 113, 0, 152, 22, 14, C.text).node.name = 'drone-name';
+            drone = this.nodeAt(this.battleCast, 'equipped-drone', -20, y, 64, 64);
+            this.label(drone, '', 0, -43, 136, 22, 13, C.text).node.name = 'drone-name';
           }
           drone.active = true;
           if (((_drone$getComponent = drone.getComponent(Sprite)) == null ? void 0 : _drone$getComponent.spriteFrame) !== this.ui.frames.get('drones/' + id)) this.ui.paint(drone, 'drones/' + id);
-          drone.getChildByName('drone-name').getComponent(Label).string = this.tr('pet.' + id);
-          drone.setPosition(-66, y + (s.extra.effects ? Math.sin(this.age * 2.6) * 4 : 0));
+          var caption = drone.getChildByName('drone-name');
+          caption.setPosition(0, -43);
+          caption.getComponent(Label).string = this.tr('pet.' + id);
+          drone.setPosition(-20, y + (s.extra.effects ? Math.sin(this.age * 2.6) * 4 : 0));
           // Keep the body and caption separately touchable without covering the supply button.
           if (!hit) {
             hit = this.nodeAt(this.root, 'drone-hover-hit', 0, 0, 64, 64);
@@ -43773,7 +43775,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             });
           }
           if (!captionHit) {
-            captionHit = this.nodeAt(this.root, 'drone-name-hit', 0, 0, 152, 32);
+            captionHit = this.nodeAt(this.root, 'drone-name-hit', 0, 0, 136, 24);
             this.touchAction(captionHit, function () {
               return _this9.extensions.petDetail(_this9.game.s.activePet);
             });
@@ -43782,8 +43784,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           hit.active = true;
           hit.setPosition(root.convertToNodeSpaceAR(drone.worldPosition));
           captionHit.active = true;
-          captionHit.setPosition(root.convertToNodeSpaceAR(drone.getChildByName('drone-name').worldPosition));
-          captionHit.getComponent(UITransform).setContentSize(152 * this.battleCast.scale.x, 32);
+          captionHit.setPosition(root.convertToNodeSpaceAR(caption.worldPosition));
+          captionHit.getComponent(UITransform).setContentSize(136 * this.battleCast.scale.x, 24);
         };
         _proto.battleDensity = function battleDensity() {
           return battleDensityScale(waveSize(this.game.s.run.stage, this.game.s.run.boss));
