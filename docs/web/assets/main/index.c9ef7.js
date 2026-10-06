@@ -55453,7 +55453,9 @@ System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabe
             cardHeight = Math.max(120, Math.min(180, h - 474)),
             cardBottom = bottom + 225,
             cardTop = cardBottom + cardHeight;
-          a.label(p, a.tr(o.received ? 'reward.receivedInfo' : 'reward.chooseInfo'), 0, cardTop + 20, 374, 34, 16, UI.text).node.name = 'reward-choice-instruction';
+          var instruction = a.nodeAt(p, 'reward-instruction-plate', 0, cardTop + 24, 380, 42);
+          a.ui.surface(instruction, '#172018', 'cut', 220, false, false);
+          a.label(instruction, a.tr(o.received ? 'reward.receivedInfo' : 'reward.chooseInfo'), 0, 0, 370, 42, 16, UI.text).node.name = 'reward-choice-instruction';
           var summaries = [];
           for (var _iterator4 = _createForOfIteratorHelperLoose([1, 2].entries()), _step4; !(_step4 = _iterator4()).done;) {
             var _step4$value = _step4.value,
@@ -55464,7 +55466,7 @@ System.register("chunks:///_virtual/RewardClaimUI.ts", ['./rollupPluginModLoBabe
             a.label(box, a.tr(_multiplier === 1 ? 'reward.base' : 'reward.double'), 0, cardHeight / 2 - 22, 174, 28, 18, _multiplier === 1 ? UI.gold : '#8be8ff');
             summaries.push(a.label(box, '', 0, -15, 170, cardHeight - 56, 16, UI.text));
           }
-          a.label(p, a.tr(a.payments.model.previewAds ? 'reward.previewInfo' : 'reward.adInfo'), 0, bottom + 196, 374, 32, 14, UI.muted);
+          a.label(p, a.tr(a.payments.model.previewAds ? 'reward.previewInfo' : 'reward.adInfo'), 0, bottom + 200, 374, 40, 14, UI.muted);
           var credit = a.payments.model.availableDouble(o.key) || null;
           var reason = function reason(fresh) {
             if (fresh === void 0) {
