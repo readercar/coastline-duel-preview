@@ -955,6 +955,337 @@ System.register("chunks:///_virtual/BattleTransitionUI.ts", ['./rollupPluginModL
   };
 });
 
+System.register("chunks:///_virtual/BossEntrance.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Amount.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _extends, cclegacy, ZERO;
+  return {
+    setters: [function (module) {
+      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
+      _extends = module.extends;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+    }, function (module) {
+      ZERO = module.ZERO;
+    }],
+    execute: function () {
+      exports({
+        bossEntranceCursor: bossEntranceCursor,
+        bossEntrancePending: bossEntrancePending,
+        bossEntranceSteps: bossEntranceSteps
+      });
+      cclegacy._RF.push({}, "b5c521NVuBDnZyYHbudnV26", "BossEntrance", undefined);
+      var BOSS_ENTRANCE = exports('BOSS_ENTRANCE', 'boss-entrance:v1');
+      function bossEntrancePending(s) {
+        var read = s.tutorial.completed || [];
+        return s.run.stage === 1 && s.maxStage < 2 && s.run.boss && s.run.hp !== ZERO && !read.includes(BOSS_ENTRANCE) && !read.includes('first:boss');
+      }
+      /** Read real deployed positions in rows from top to bottom, and left to right within a row. */
+      function bossEntranceSteps(positions) {
+        var seen = new Set(),
+          valid = positions.filter(function (p) {
+            return Number.isInteger(p.id) && p.id >= 0 && p.id < 30 && !seen.has(p.id) && !!seen.add(p.id);
+          }).slice(0, 4).sort(function (a, b) {
+            return b.y - a.y || a.x - b.x;
+          });
+        var ordered = [];
+        var _loop = function _loop() {
+          var top = valid[0].y,
+            row = valid.filter(function (p) {
+              return top - p.y <= 18;
+            }).sort(function (a, b) {
+              return a.x - b.x || a.id - b.id;
+            });
+          for (var _iterator = _createForOfIteratorHelperLoose(row.entries()), _step; !(_step = _iterator()).done;) {
+            var _step$value = _step.value,
+              index = _step$value[0],
+              p = _step$value[1];
+            ordered.push(_extends({}, p, {
+              side: row.length > 1 ? index === 0 ? 'left' : 'right' : p.side
+            }));
+            valid.splice(valid.indexOf(p), 1);
+          }
+        };
+        while (valid.length) {
+          _loop();
+        }
+        if (!ordered.length) ordered.push({
+          id: -1,
+          x: 0,
+          y: 0,
+          side: 'left'
+        });
+        return [{
+          key: BOSS_ENTRANCE + ':alarm',
+          speaker: null
+        }].concat(ordered.map(function (speaker) {
+          return {
+            key: BOSS_ENTRANCE + ':voice:' + speaker.id,
+            speaker: speaker
+          };
+        }));
+      }
+      function bossEntranceCursor(steps, read) {
+        if (read === void 0) {
+          read = [];
+        }
+        return steps.findIndex(function (step) {
+          return !read.includes(step.key);
+        });
+      }
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/BossEntranceUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './BossEntrance.ts', './EntryPolicy.ts', './Dialogue.ts', './Enemies.ts', './Mercenaries.ts', './UITheme.ts'], function (exports) {
+  var _createClass, cclegacy, UITransform, Vec3, isValid, Sprite, tween, UIOpacity, Node, bossEntrancePending, bossEntranceSteps, bossEntranceCursor, BOSS_ENTRANCE, tutorialComplete, DialogueDeck, enemyType, mercenaryArt, UI;
+  return {
+    setters: [function (module) {
+      _createClass = module.createClass;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+      UITransform = module.UITransform;
+      Vec3 = module.Vec3;
+      isValid = module.isValid;
+      Sprite = module.Sprite;
+      tween = module.tween;
+      UIOpacity = module.UIOpacity;
+      Node = module.Node;
+    }, function (module) {
+      bossEntrancePending = module.bossEntrancePending;
+      bossEntranceSteps = module.bossEntranceSteps;
+      bossEntranceCursor = module.bossEntranceCursor;
+      BOSS_ENTRANCE = module.BOSS_ENTRANCE;
+    }, function (module) {
+      tutorialComplete = module.tutorialComplete;
+    }, function (module) {
+      DialogueDeck = module.DialogueDeck;
+    }, function (module) {
+      enemyType = module.enemyType;
+    }, function (module) {
+      mercenaryArt = module.mercenaryArt;
+    }, function (module) {
+      UI = module.UI;
+    }],
+    execute: function () {
+      cclegacy._RF.push({}, "818a0l+1AFBP6z929DdF9+K", "BossEntranceUI", undefined);
+      var BossEntranceUI = exports('BossEntranceUI', /*#__PURE__*/function () {
+        function BossEntranceUI(a) {
+          this.run = null;
+          this.steps = [];
+          this.cursor = 0;
+          this.lines = [];
+          this.boss = '';
+          this.layer = null;
+          this.generation = 0;
+          this.touches = new Map();
+          this.voices = new DialogueDeck();
+          this.a = a;
+        }
+        var _proto = BossEntranceUI.prototype;
+        _proto.tick = function tick() {
+          var _this = this;
+          var a = this.a;
+          if (!a.entry.playing || !bossEntrancePending(a.game.s)) {
+            if (this.active) this.release();
+            return false;
+          }
+          if (this.active && this.run !== a.game.s.run) this.release();
+          if (!this.active) {
+            if (a.modal || a.feedback.showing || a.zoneTransition.active || a.liveOps.blocked || !a.operations.ready || a.operations.busy || a.operations.conflict || a.remoteBusy || a.feedback.asyncPending) return true;
+            this.run = a.game.s.run;
+            this.boss = enemyType(a.game.s.run.stage, true, 0, a.game.s.run.kills).id;
+            var captain = a.root.getComponent(UITransform).convertToNodeSpaceAR(a.actor.worldPosition);
+            this.steps = bossEntranceSteps(a.game.activeMercenaries().map(function (id, index) {
+              var actor = a.allies.getChildByName('hero-' + id),
+                p = actor ? a.root.getComponent(UITransform).convertToNodeSpaceAR(actor.worldPosition) : new Vec3(index % 2, Math.floor(index / 2), 0);
+              return {
+                id: id,
+                x: p.x,
+                y: p.y,
+                side: p.x < captain.x ? 'left' : p.x > captain.x ? 'right' : index % 2 ? 'right' : 'left'
+              };
+            }));
+            this.lines = this.steps.map(function (step) {
+              return step.speaker ? _this.voices.next(step.speaker.id, 'boss') : '';
+            });
+            this.cursor = bossEntranceCursor(this.steps, a.game.s.tutorial.completed);
+            a.clearPendingShots();
+            a.stopAutoFire();
+            a.hideTooltip();
+            a.hideToast();
+            a.feedback.pauseForBossEntrance();
+            a.tutorial.pauseForBossEntrance();
+            if (this.cursor < 0) {
+              this.finishReceipt();
+              return false;
+            }
+            this.render();
+          } else if ((!this.layer || !isValid(this.layer, true)) && !a.modal && !a.liveOps.blocked) {
+            a.tutorial.pauseForBossEntrance();
+            this.render();
+          }
+          return true;
+        };
+        _proto.commit = function commit(last) {
+          var _this$steps$this$curs;
+          var a = this.a,
+            key = (_this$steps$this$curs = this.steps[this.cursor]) == null ? void 0 : _this$steps$this$curs.key;
+          var success = a.game.transaction(a.id('boss-entrance'), function () {
+            if (key) tutorialComplete(a.game.s, key);
+            if (last) tutorialComplete(a.game.s, BOSS_ENTRANCE);
+          });
+          if (!success) {
+            this.run = a.game.s.run;
+            a.flushNotice();
+            return false;
+          }
+          void a.operations.save()["catch"](function (e) {
+            return a.operations.report('boss.entrance', e);
+          });
+          return true;
+        };
+        _proto.advance = function advance() {
+          if (!this.active || this.a.liveOps.blocked) return;
+          var last = this.cursor === this.steps.length - 1;
+          if (!this.commit(last)) return;
+          this.a.clearPendingShots();
+          if (last) {
+            this.release();
+            this.a.tutorial.resumeAfterBossEntrance();
+            return;
+          }
+          this.cursor = bossEntranceCursor(this.steps, this.a.game.s.tutorial.completed);
+          this.render();
+        };
+        _proto.finishReceipt = function finishReceipt() {
+          if (this.commit(true)) this.release();
+        };
+        _proto.release = function release() {
+          if (this.layer && this.a.modal === this.layer) this.a.close();
+          this.layer = null;
+          this.run = null;
+          this.steps = [];
+          this.lines = [];
+          this.touches.clear();
+          this.generation++;
+        };
+        _proto.render = function render() {
+          var _this2 = this;
+          var a = this.a,
+            h = Math.min(770, a.designH - a.safeTop - a.safeBottom - 86),
+            alarm = this.cursor === 0;
+          var p = a.open(a.tr(alarm ? 'bossIntro.alert' : 'bossIntro.responses'), h, true, 'teal', false, function () {
+            return _this2.advance();
+          });
+          p.name = 'boss-entrance-panel';
+          this.layer = a.modal;
+          this.generation++;
+          var generation = this.generation;
+          this.touches.clear();
+          a.ui.surface(p, alarm ? '#30202a' : '#142529', 'panel', 255, true);
+          a.label(p, a.tr('bossIntro.progress', {
+            step: this.cursor + 1,
+            total: this.steps.length,
+            stage: a.game.s.run.stage
+          }), 0, h / 2 - 103, 378, 28, 17, UI.gold).node.name = 'boss-entrance-progress';
+          if (alarm) {
+            var _art$getComponent;
+            var art = a.nodeAt(p, 'boss-entrance-art', 0, 36, 348, 260);
+            a.ui.actor(art, 'enemy-' + this.boss);
+            var size = (_art$getComponent = art.getComponent(Sprite)) == null || (_art$getComponent = _art$getComponent.spriteFrame) == null ? void 0 : _art$getComponent.originalSize;
+            if (size) {
+              var fit = Math.min(348 / size.width, 260 / size.height);
+              a.ui.resize(art, size.width * fit, size.height * fit);
+            }
+            a.label(p, a.tr('enemy.' + this.boss), 0, -116, 378, 46, 31, UI.text).node.name = 'boss-entrance-name';
+            a.label(p, a.tr('bossIntro.warning'), 0, -177, 374, 65, 21, UI.gold);
+            a.ui.icon(a.nodeAt(p, 'boss-entrance-warning', 0, h / 2 - 156, 44, 44), 'symbol:damage', UI.gold);
+            if (a.game.s.extra.effects) {
+              p.setPosition(-480, p.position.y);
+              tween(p).to(.26, {
+                position: new Vec3(0, p.position.y, 0)
+              }, {
+                easing: 'cubicOut'
+              }).start();
+            }
+          } else {
+            var portraits = a.nodeAt(p, 'boss-reaction-cards', 0, 0, 410, h - 190),
+              pitch = Math.min(126, (h - 237) / 4);
+            for (var i = 1; i <= this.cursor; i++) {
+              var speaker = this.steps[i].speaker,
+                left = speaker.side === 'left',
+                x = left ? -19 : 19,
+                y = h / 2 - 175 - (i - 1) * pitch;
+              var card = a.nodeAt(portraits, 'boss-response-' + speaker.id, x, y, 374, pitch - 10);
+              a.ui.surface(card, i === this.cursor ? '#365a59' : '#253a40', 'cut');
+              card.addComponent(UIOpacity).opacity = i === this.cursor ? 255 : 205;
+              a.ui.surface(a.nodeAt(card, 'voice-stripe', left ? -181 : 181, 0, 6, pitch - 28), i === this.cursor ? UI.gold : UI.mint, 'cut');
+              var face = a.nodeAt(card, 'boss-response-portrait', left ? -143 : 143, 0, 65, 76);
+              a.ui.icon(face, speaker.id < 0 ? 'face:guardian' : 'face:merc-' + mercenaryArt(speaker.id));
+              a.label(card, a.tr(speaker.id < 0 ? 'master.title' : 'hero.' + speaker.id), left ? 37 : -37, (pitch - 10) / 2 - 20, 232, 25, 18, UI.gold).node.name = 'boss-response-speaker';
+              a.label(card, a.tr(this.lines[i]), left ? 37 : -37, -13, 232, pitch - 47, 18, UI.text).node.name = 'boss-response-line';
+              if (i === this.cursor && a.game.s.extra.effects) {
+                card.setScale(.8, .8, 1);
+                tween(card).to(.18, {
+                  scale: new Vec3(1, 1, 1)
+                }, {
+                  easing: 'backOut'
+                }).start();
+              }
+            }
+          }
+          a.label(p, a.tr('bossIntro.tapHint'), 0, -h / 2 + 105, 374, 36, 16, UI.muted).node.name = 'boss-entrance-tap-hint';
+          a.button(p, a.tr(this.cursor === this.steps.length - 1 ? 'bossIntro.fight' : 'bossIntro.next'), 0, -h / 2 + 54, 360, 54, function () {
+            return _this2.advance();
+          }, true, {
+            category: 'confirm'
+          }).name = 'boss-entrance-next';
+          // Capture the whole modal: one gesture advances one stage and never reaches combat or a child button.
+          var layer = this.layer;
+          var gate = function gate(e) {
+            var _e$getID;
+            e.propagationStopped = true;
+            e.propagationImmediateStopped = true;
+            var id = (_e$getID = e.getID()) != null ? _e$getID : 0,
+              q = e.getUILocation();
+            if (e.type === Node.EventType.TOUCH_START) _this2.touches.set(id, {
+              generation: generation,
+              x: q.x,
+              y: q.y,
+              moved: false
+            });else if (e.type === Node.EventType.TOUCH_MOVE) {
+              var g = _this2.touches.get(id);
+              if (g && (Math.abs(q.x - g.x) > 20 || Math.abs(q.y - g.y) > 20)) g.moved = true;
+            } else {
+              var _g = _this2.touches.get(id);
+              _this2.touches["delete"](id);
+              if (e.type === Node.EventType.TOUCH_END && _g && !_g.moved && _g.generation === _this2.generation && generation === _this2.generation) _this2.advance();
+            }
+          };
+          for (var _i = 0, _arr = [Node.EventType.TOUCH_START, Node.EventType.TOUCH_MOVE, Node.EventType.TOUCH_END, Node.EventType.TOUCH_CANCEL]; _i < _arr.length; _i++) {
+            var type = _arr[_i];
+            layer.on(type, gate, this, true);
+          }
+          if (a.game.s.extra.effects) a.sound(alarm ? 110 : 440 + this.cursor * 60);
+        };
+        _createClass(BossEntranceUI, [{
+          key: "active",
+          get: function get() {
+            return !!this.run;
+          }
+        }, {
+          key: "blocked",
+          get: function get() {
+            return this.active || !!this.a.game && bossEntrancePending(this.a.game.s);
+          }
+        }]);
+        return BossEntranceUI;
+      }());
+      cclegacy._RF.pop();
+    }
+  };
+});
+
 System.register("chunks:///_virtual/BossTimerUI.ts", ['cc', './Config.ts', './UITheme.ts'], function (exports) {
   var cclegacy, UITransform, isValid, CONFIG, UI;
   return {
@@ -1783,20 +2114,25 @@ System.register("chunks:///_virtual/Dialogue.ts", ['./rollupPluginModLoBabelHelp
         };
         return DialogueDeck;
       }());
-      /** One short radio line at a time; boss cues expire instead of replaying after menus. */
+      /** Short groups of distinct voices, separated by quiet stretches. Stale events expire. */
       var DialogueDirector = exports('DialogueDirector', /*#__PURE__*/function () {
-        function DialogueDirector() {
+        function DialogueDirector(random) {
+          if (random === void 0) {
+            random = function random() {
+              return Math.random();
+            };
+          }
           this.time = 0;
           this.run = null;
           this.stage = 0;
           this.boss = false;
           this.lastAttack = 0;
-          this.wasBlocked = false;
-          this.wasSpeaking = false;
+          this.nextAt = 0;
           this.attackers = new Set();
           this.spoken = new Map();
           this.sequence = 0;
           this.pending = null;
+          this.random = random;
         }
         var _proto2 = DialogueDirector.prototype;
         _proto2.recordAttack = function recordAttack(speaker) {
@@ -1807,12 +2143,12 @@ System.register("chunks:///_virtual/Dialogue.ts", ['./rollupPluginModLoBabelHelp
         ;
 
         _proto2.dismiss = function dismiss() {
-          this.wasSpeaking = false;
           this.attackers.clear();
           this.lastAttack = this.time;
         };
         _proto2.step = function step(state, dt) {
-          var _this = this;
+          var _this = this,
+            _state$capacity;
           this.time += Math.max(0, dt);
           if (this.run !== state.run) {
             this.run = state.run;
@@ -1822,8 +2158,7 @@ System.register("chunks:///_virtual/Dialogue.ts", ['./rollupPluginModLoBabelHelp
             this.spoken.clear();
             this.pending = null;
             this.lastAttack = this.time;
-            this.wasBlocked = state.blocked;
-            this.wasSpeaking = !!state.speaking;
+            this.nextAt = this.time;
             return null;
           }
           if (state.stage > this.stage) this.pending = {
@@ -1838,48 +2173,51 @@ System.register("chunks:///_virtual/Dialogue.ts", ['./rollupPluginModLoBabelHelp
           if (state.blocked) {
             this.pending = null;
             this.attackers.clear();
-            this.wasBlocked = true;
-            this.wasSpeaking = false;
             return null;
           }
           if (this.pending && this.pending.until < this.time) this.pending = null;
-          if (state.speaking) {
-            this.wasSpeaking = true;
-            return null;
-          }
-          var released = this.wasBlocked || this.wasSpeaking;
-          this.wasBlocked = false;
-          this.wasSpeaking = false;
+          if (state.speaking) return null;
           var context, candidates;
-          var roster = [-1].concat(state.roster);
+          var roster = Array.from(new Set([-1].concat(state.roster.filter(function (id) {
+            return Number.isInteger(id) && id >= 0 && id < 30;
+          }))));
           if (this.pending) {
             context = this.pending.context;
             this.pending = null;
             candidates = roster;
           } else {
             // Creator's array-spread transform does not expand Set iterators.
+            if (this.time < this.nextAt) return null;
             candidates = Array.from(this.attackers).filter(function (id) {
               return roster.includes(id);
             });
-            if (candidates.length && this.time - this.lastAttack < 3) context = 'battle';else if (released) {
-              context = this.time - this.lastAttack < 3 ? 'battle' : 'idle';
+            if (candidates.length && this.time - this.lastAttack < 3) {
+              context = 'battle';
               candidates = roster;
             } else if (this.time - this.lastAttack >= 20) {
               context = 'idle';
               candidates = roster;
             } else return null;
           }
-          var speaker = candidates.sort(function (a, b) {
+          // Mercenaries lead each group; the captain also joins as voices rotate.
+          candidates.sort(function (a, b) {
             var _this$spoken$get, _this$spoken$get2;
-            return ((_this$spoken$get = _this.spoken.get(a)) != null ? _this$spoken$get : -1) - ((_this$spoken$get2 = _this.spoken.get(b)) != null ? _this$spoken$get2 : -1);
-          })[0];
-          if (speaker === undefined) return null;
-          this.spoken.set(speaker, ++this.sequence);
+            return ((_this$spoken$get = _this.spoken.get(a)) != null ? _this$spoken$get : -1) - ((_this$spoken$get2 = _this.spoken.get(b)) != null ? _this$spoken$get2 : -1) || (a < 0 ? 1 : b < 0 ? -1 : roster.indexOf(a) - roster.indexOf(b));
+          });
+          var speakers = candidates.slice(0, Math.min(this.random() < .5 ? 2 : 3, Math.max(1, Math.min(3, (_state$capacity = state.capacity) != null ? _state$capacity : 3))));
+          if (!speakers.length) return null;
+          for (var _iterator7 = _createForOfIteratorHelperLoose(speakers), _step7; !(_step7 = _iterator7()).done;) {
+            var speaker = _step7.value;
+            this.spoken.set(speaker, ++this.sequence);
+          }
           this.attackers.clear();
-          return {
-            speaker: speaker,
-            context: context
-          };
+          this.nextAt = this.time + 12 + this.random() * 10;
+          return speakers.map(function (speaker) {
+            return {
+              speaker: speaker,
+              context: context
+            };
+          });
         };
         return DialogueDirector;
       }());
@@ -2518,8 +2856,8 @@ System.register("chunks:///_virtual/EntryPolicy.ts", ['cc'], function (exports) 
   };
 });
 
-System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './UITheme.ts', './TitleUI.ts', './EntryPolicy.ts', './FeedbackUI.ts', './TutorialUI.ts', './LiveOps.ts', './SquadName.ts'], function (exports) {
-  var _createClass, _asyncToGenerator, _regeneratorRuntime, cclegacy, sys, EditBox, UITransform, Mask, Label, ScrollView, UI, TitleUI, CONSENT_KEY, consentReceipt, parseConsent, FeedbackUI, TutorialUI, requiresUpdate, squadNameError;
+System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './UITheme.ts', './TitleUI.ts', './EntryPolicy.ts', './FeedbackUI.ts', './TutorialUI.ts', './LiveOps.ts', './SquadName.ts', './TitleCast.ts'], function (exports) {
+  var _createClass, _asyncToGenerator, _regeneratorRuntime, cclegacy, sys, EditBox, UITransform, Mask, Label, ScrollView, UI, TitleUI, CONSENT_KEY, consentReceipt, parseConsent, FeedbackUI, TutorialUI, requiresUpdate, squadNameError, TITLE_CAST_KEY, nextTitleCast;
   return {
     setters: [function (module) {
       _createClass = module.createClass;
@@ -2549,6 +2887,9 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
       requiresUpdate = module.requiresUpdate;
     }, function (module) {
       squadNameError = module.squadNameError;
+    }, function (module) {
+      TITLE_CAST_KEY = module.TITLE_CAST_KEY;
+      nextTitleCast = module.nextTitleCast;
     }],
     execute: function () {
       cclegacy._RF.push({}, "87fbbvBf4BBPLHd+6QkB3Qm", "EntryUI", undefined);
@@ -2593,6 +2934,10 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
           this.starting = false;
           this.startElapsed = 0;
           this.title = null;
+          this.titleVisit = false;
+          this.titleCastState = null;
+          this.titleCastLoaded = false;
+          this.titleLineup = null;
           this.a = a;
         }
         _proto.back = function back() {
@@ -2645,11 +2990,26 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
           var _this = this;
           var a = this.a,
             H = a.designH;
+          if (!this.titleCastLoaded) {
+            try {
+              this.titleCastState = sys.localStorage.getItem(TITLE_CAST_KEY);
+            } catch (_unused) {}
+            this.titleCastLoaded = true;
+          }
+          if (!this.titleLineup || this.screen === 'title' && !this.titleVisit) {
+            var cast = nextTitleCast(this.titleCastState);
+            this.titleLineup = cast.lineup;
+            this.titleCastState = cast.state;
+            try {
+              sys.localStorage.setItem(TITLE_CAST_KEY, cast.state);
+            } catch (_unused2) {}
+          }
+          this.titleVisit = this.screen === 'title';
           a.root = a.nodeAt(a.node, 'EmberRoot', 0, 0, 480, H);
           a.rect(a.root, 0, 0, 480, H, UI.bg);
           this.title = new TitleUI(a, this.screen === 'title', function () {
             return _this.requestStart();
-          });
+          }, this.titleLineup);
           if (this.screen === 'title') return;
           if (this.screen === 'document') {
             this.documentPanel();
@@ -2677,7 +3037,7 @@ System.register("chunks:///_virtual/EntryUI.ts", ['./rollupPluginModLoBabelHelpe
               try {
                 sys.localStorage.setItem(CONSENT_KEY, JSON.stringify(consentReceipt()));
                 _this.afterConsent();
-              } catch (_unused) {
+              } catch (_unused3) {
                 a.toast(a.tr('error.storage'), 'blocked');
               }
             }, ready, {
@@ -3850,8 +4210,8 @@ System.register("chunks:///_virtual/Expansion.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SkillCatalog.ts', './SkillUI.ts', './RewardClaims.ts', './Mercenaries.ts', './EntryPolicy.ts', './LiveOps.ts', './Balance.ts', './UITheme.ts', './Expansion.ts', './Amount.ts', './I18n.ts'], function (exports) {
-  var _extends, _asyncToGenerator, _regeneratorRuntime, _createClass, _createForOfIteratorHelperLoose, cclegacy, sys, UITransform, tween, Vec3, talentIcon, heroSkillIcon, talentHelp, rewardDelta, attackSeconds, featureUnlocked, mailExpiry, GROWTH_STATS, gemstoneSlots, gemstoneBonus, UI, Expansion, display, t;
+System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SkillCatalog.ts', './MercenaryDetailUI.ts', './SkillUI.ts', './RewardClaims.ts', './EntryPolicy.ts', './LiveOps.ts', './Balance.ts', './UITheme.ts', './Expansion.ts', './Amount.ts', './I18n.ts'], function (exports) {
+  var _extends, _asyncToGenerator, _regeneratorRuntime, _createClass, _createForOfIteratorHelperLoose, cclegacy, sys, isValid, ScrollView, Vec2, UITransform, tween, Vec3, talentIcon, MercenaryDetailUI, talentHelp, rewardDelta, featureUnlocked, mailExpiry, GROWTH_STATS, gemstoneSlots, gemstoneBonus, UI, Expansion, display, t;
   return {
     setters: [function (module) {
       _extends = module.extends;
@@ -3862,18 +4222,20 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
     }, function (module) {
       cclegacy = module.cclegacy;
       sys = module.sys;
+      isValid = module.isValid;
+      ScrollView = module.ScrollView;
+      Vec2 = module.Vec2;
       UITransform = module.UITransform;
       tween = module.tween;
       Vec3 = module.Vec3;
     }, function (module) {
       talentIcon = module.talentIcon;
-      heroSkillIcon = module.heroSkillIcon;
+    }, function (module) {
+      MercenaryDetailUI = module.MercenaryDetailUI;
     }, function (module) {
       talentHelp = module.talentHelp;
     }, function (module) {
       rewardDelta = module.rewardDelta;
-    }, function (module) {
-      attackSeconds = module.attackSeconds;
     }, function (module) {
       featureUnlocked = module.featureUnlocked;
     }, function (module) {
@@ -3895,6 +4257,8 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
       cclegacy._RF.push({}, "16b62CzHNtFnLErMhK41A9Q", "ExpansionUI", undefined);
       var ExpansionUI = exports('ExpansionUI', /*#__PURE__*/function () {
         function ExpansionUI(a) {
+          this.heroPanel = null;
+          this.heroId = -1;
           this.a = a;
         }
         var _proto = ExpansionUI.prototype;
@@ -4936,77 +5300,17 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           });
         };
         _proto.hero = function hero(i) {
-          var _this20 = this;
-          var a = this.a,
-            p = a.open(this.tr("hero." + i), 540);
-          a.ui.face(a.nodeAt(p, 'hero-art', 0, 132, 86, 86), 'merc-' + i);
-          a.label(p, this.tr('merc.cadence', {
-            weapon: this.tr('merc.weapon.' + i),
-            seconds: attackSeconds(i)
-          }), 0, 85, 370, 28, 13);
-          var values = [this.g.s.run.heroes[i], this.x.ascensions[i], this.x.heroSkills[i], this.g.s.weapons[i], this.g.s.scrolls[i]],
-            icons = ['symbol:up', 'rebirth', heroSkillIcon(i), 'sword', 'scroll'];
-          var boost = (1 + values[3] + values[4] * .5).toFixed(2),
-            target = [10, 25, 50, 100, 200, 400, 800][values[2]],
-            hints = [this.tr('ui.help.heroLevel', {
-              level: values[0]
-            }), this.tr('ui.help.heroAscend', {
-              count: values[1]
-            }), this.tr('training.help', {
-              weapon: this.tr('merc.weapon.' + i),
-              count: values[2],
-              factor: Math.pow(1.5, values[2]).toFixed(2),
-              next: target ? this.tr('action.level', {
-                level: target
-              }) : this.tr('action.maxReached')
-            }), this.tr('ui.help.heroWeapon', {
-              count: values[3],
-              boost: boost
-            }), this.tr('ui.help.heroManual', {
-              count: values[4],
-              boost: boost
-            })];
-          values.forEach(function (v, j) {
-            return a.metric(p, icons[j], String(v), j < 3 ? -125 + j * 125 : -78 + (j - 3) * 156, j < 3 ? 54 : 9, j < 3 ? 116 : 146, hints[j]);
+          var _this$heroPanel$getCh,
+            _this20 = this,
+            _p$getChildByName;
+          var offset = this.heroId === i && this.heroPanel && isValid(this.heroPanel, true) && this.heroPanel.parent === this.a.modal ? ((_this$heroPanel$getCh = this.heroPanel.getChildByName('scroll')) == null || (_this$heroPanel$getCh = _this$heroPanel$getCh.getComponent(ScrollView)) == null ? void 0 : _this$heroPanel$getCh.getScrollOffset().y) || 0 : 0;
+          var p = this.a.open(this.tr("hero." + i), 740, true, 'teal', false);
+          new MercenaryDetailUI(this.a).render(p, i, function () {
+            return _this20.hero(i);
           });
-          a.button(p, this.tr('extra.heroSkill'), -98, -78, 178, 56, function () {
-            return _this20.action(function () {
-              return _this20.e.heroSkill(i, _this20.id('hero-skill'));
-            }, function () {
-              return _this20.hero(i);
-            });
-          }, true, {
-            category: 'upgrade',
-            icon: heroSkillIcon(i),
-            iconSize: 30,
-            unavailable: function unavailable() {
-              var next = [10, 25, 50, 100, 200, 400, 800][_this20.x.heroSkills[i]];
-              return !next ? _this20.tr('action.maxReached') : a.progressReason(_this20.tr('action.heroLevel'), _this20.g.s.run.heroes[i], next) || a.costReason('gold', _this20.g.upgradeCost(i, 5));
-            }
-          });
-          a.button(p, this.tr('extra.ascend'), 98, -78, 178, 56, function () {
-            return a.confirm(_this20.tr('extra.ascend'), _this20.tr('extra.ascendInfo'), function () {
-              return _this20.action(function () {
-                return _this20.e.ascend(i, _this20.id('ascend'));
-              }, function () {
-                return _this20.hero(i);
-              });
-            });
-          }, false, {
-            category: 'ascend',
-            unavailable: function unavailable() {
-              return a.progressReason(_this20.tr('action.heroLevel'), _this20.g.s.run.heroes[i], 1000);
-            }
-          });
-          a.metric(p, 'symbol:damage', a.format(this.g.heroDamage(i)), 0, -149, 210, this.tr('ui.help.heroDPS', {
-            damage: a.format(this.g.heroDamage(i))
-          }));
-          var guide = a.button(p, this.tr('ui.iconHelp'), 0, -220, 370, 44, function () {
-            return a.tooltip(guide, _this20.tr('ui.help.heroGuide'));
-          }, false, {
-            icon: 'symbol:info',
-            category: 'details'
-          });
+          this.heroPanel = p;
+          this.heroId = i;
+          (_p$getChildByName = p.getChildByName('scroll')) == null || (_p$getChildByName = _p$getChildByName.getComponent(ScrollView)) == null || _p$getChildByName.scrollToOffset(new Vec2(0, offset), 0);
         };
         _proto.petDetail = function petDetail(i) {
           var _this21 = this;
@@ -7498,7 +7802,7 @@ System.register("chunks:///_virtual/Feedback.ts", ['./rollupPluginModLoBabelHelp
 });
 
 System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './EquipmentUI.ts', './Feedback.ts', './UITheme.ts', './Mercenaries.ts', './Config.ts', './Amount.ts', './Dialogue.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _extends, _createClass, cclegacy, BlockInputEvents, Node, isValid, UITransform, Sprite, tween, Vec3, Graphics, Mask, UIOpacity, equipmentReward, feedbackSnapshot, feedbackDiff, GrowthFeedbackQueue, UI, mercenaryArt, attackSeconds, PETS, ARTIFACTS, CARDS, HEROES, display, DIALOGUE_CONTEXTS, DialogueDeck, DialogueDirector;
+  var _createForOfIteratorHelperLoose, _extends, _createClass, cclegacy, BlockInputEvents, Node, isValid, UITransform, Sprite, tween, Vec3, Label, Graphics, Mask, UIOpacity, equipmentReward, feedbackSnapshot, feedbackDiff, GrowthFeedbackQueue, UI, mercenaryArt, attackSeconds, PETS, ARTIFACTS, CARDS, HEROES, display, DIALOGUE_CONTEXTS, DialogueDeck, DialogueDirector;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -7513,6 +7817,7 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
       Sprite = module.Sprite;
       tween = module.tween;
       Vec3 = module.Vec3;
+      Label = module.Label;
       Graphics = module.Graphics;
       Mask = module.Mask;
       UIOpacity = module.UIOpacity;
@@ -7553,7 +7858,9 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           this.growthLines = new WeakMap();
           this.dialogue = new DialogueDeck();
           this.director = new DialogueDirector();
-          this.chatter = null;
+          this.chatter = [];
+          this.chatterClock = 0;
+          this.chatterRun = null;
           this.deckReaction = null;
           this.recruits = [];
           this.recruitRun = null;
@@ -7584,17 +7891,27 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
             this.director.recordAttack((_hit$hero = hit.hero) != null ? _hit$hero : -1);
           }
         };
-        _proto.clearChatter = function clearChatter() {
-          if (this.chatter && isValid(this.chatter, true)) {
-            this.chatter.removeFromParent();
-            this.chatter.destroy();
+        _proto.removeChatter = function removeChatter(entry) {
+          var n = entry.node;
+          if (n && isValid(n, true)) {
+            n.removeFromParent();
+            n.destroy();
           }
-          this.chatter = null;
+          entry.node = null;
+          this.chatter = this.chatter.filter(function (e) {
+            return e !== entry;
+          });
+        };
+        _proto.clearChatter = function clearChatter() {
+          for (var _iterator2 = _createForOfIteratorHelperLoose(this.chatter.slice()), _step2; !(_step2 = _iterator2()).done;) {
+            var entry = _step2.value;
+            this.removeChatter(entry);
+          }
         };
         _proto.squadReaction = function squadReaction(speaker, deployed) {
           var _a$modal,
-            _illustration$getComp,
-            _this2 = this;
+            _this2 = this,
+            _illustration$getComp;
           var a = this.a,
             panel = (_a$modal = a.modal) == null ? void 0 : _a$modal.getChildByName('modal-panel');
           if (!panel) return;
@@ -7608,6 +7925,34 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
             this.deckReaction.destroy();
           }
           this.clearChatter();
+          var detail = panel.getChildByName('mercenary-detail-scene');
+          if (detail) {
+            // The fixed left column already displays this character's full cut-in. Put
+            // the reaction on that art, leaving the right-hand actions and close exposed.
+            var _h = detail.getComponent(UITransform).height,
+              _n = a.nodeAt(detail, 'squad-reaction', 0, -_h / 2 + 178, 192, 140);
+            this.deckReaction = _n;
+            _n.addComponent(BlockInputEvents);
+            var _bubble = this.comic(_n, 0, 0, 192, 140);
+            a.label(_bubble, a.tr(deployed ? 'squad.deploy' : 'squad.remove'), 0, 47, 160, 24, 16, UI.ink).node.name = 'reaction-action';
+            a.label(_bubble, a.tr(this.dialogue.next(speaker, deployed ? 'deploy' : 'withdraw')), 0, -5, 158, 74, 18, UI.ink).node.name = 'reaction-line';
+            this.dismissOnTap(_n, function () {
+              if (_this2.deckReaction === _n) _this2.deckReaction = null;
+              if (isValid(_n, true)) {
+                _n.removeFromParent();
+                _n.destroy();
+              }
+            });
+            a.scheduleOnce(function () {
+              if (isValid(_n, true)) {
+                _n.removeFromParent();
+                _n.destroy();
+              }
+              if (_this2.deckReaction === _n) _this2.deckReaction = null;
+            }, 2);
+            this.chime();
+            return;
+          }
           // The existing popup supplies the 50% dim. Keep its title, close and bottom actions exposed.
           var h = panel.getComponent(UITransform).height,
             n = a.nodeAt(panel, 'squad-reaction', 0, h / 2 - 240, 380, 300);
@@ -7648,34 +7993,71 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
           }, 2);
         };
         _proto.chatterTick = function chatterTick(dt) {
+          var a = this.a,
+            blocked = !a.entry.playing || a.bossEntrance.blocked || a.zoneTransition.active || a.placement.dragging || !!a.modal || this.showing || !!(a.toastNode && isValid(a.toastNode, true)) || !!(a.tooltipNode && isValid(a.tooltipNode, true)) || !!(this.banner && isValid(this.banner, true)) || this.growthQueue.waiting || a.tutorial.active || a.tutorial.firstBoss || a.liveOps.blocked || !a.operations.ready || a.operations.busy || a.operations.conflict || a.remoteBusy || this.asyncPending > 0;
+          this.chatterClock += Math.max(0, dt);
+          var r = a.game.s.run;
+          var top = a.designH / 2 - a.safeTop - 208,
+            bottom = (a.folded ? -337 : -39) - a.heightExtra + a.safeBottom + 20;
+          var compactBottom = -39 - a.heightExtra + a.safeBottom + 20,
+            capacity = Math.min(3, Math.max(1, Math.floor((top - compactBottom + 12) / 94)));
+          if (this.chatterRun !== r) {
+            this.clearChatter();
+            this.chatterRun = r;
+          }
+          for (var _iterator3 = _createForOfIteratorHelperLoose(this.chatter.slice()), _step3; !(_step3 = _iterator3()).done;) {
+            var entry = _step3.value;
+            if (entry.until <= this.chatterClock || entry.slot >= capacity) this.removeChatter(entry);
+          }
+          if (blocked) this.clearChatter();
+          var cues = this.director.step({
+            run: r,
+            stage: r.stage,
+            boss: r.boss,
+            roster: a.game.activeMercenaries(),
+            blocked: blocked,
+            speaking: this.chatter.length > 0,
+            capacity: capacity
+          }, dt);
+          if (cues) {
+            for (var _iterator4 = _createForOfIteratorHelperLoose(cues.entries()), _step4; !(_step4 = _iterator4()).done;) {
+              var _step4$value = _step4.value,
+                slot = _step4$value[0],
+                cue = _step4$value[1];
+              this.chatter.push({
+                node: null,
+                cue: cue,
+                line: this.dialogue.next(cue.speaker, cue.context),
+                until: this.chatterClock + 3.8 + slot * .35,
+                slot: slot
+              });
+            }
+          }
+          // Keep each lane and expiry when the menu, language or screen ratio redraws.
+          var pitch = Math.min(134, Math.max(94, (top - bottom - 82) / Math.max(1, capacity - 1)));
+          for (var _iterator5 = _createForOfIteratorHelperLoose(this.chatter), _step5; !(_step5 = _iterator5()).done;) {
+            var _entry = _step5.value;
+            if (!_entry.node || !isValid(_entry.node, true) || _entry.node.parent !== a.root) this.showChatter(_entry);
+            _entry.node.setPosition(122 + [0, -8, 2][_entry.slot], top - 41 - _entry.slot * pitch, 0);
+            _entry.node.getChildByName('dialogue-speaker').getComponent(Label).string = a.tr(_entry.cue.speaker < 0 ? 'master.title' : 'hero.' + _entry.cue.speaker);
+            _entry.node.getChildByName('dialogue-line').getComponent(Label).string = a.tr(_entry.line);
+          }
+        };
+        _proto.showChatter = function showChatter(entry) {
           var _this3 = this;
           var a = this.a,
-            blocked = !a.entry.playing || a.zoneTransition.active || a.placement.dragging || !!a.modal || this.showing || !!(a.toastNode && isValid(a.toastNode, true)) || !!(a.tooltipNode && isValid(a.tooltipNode, true)) || !!(this.banner && isValid(this.banner, true)) || this.growthQueue.waiting || a.tutorial.active || a.tutorial.firstBoss || a.liveOps.blocked || !a.operations.ready || a.operations.busy || a.operations.conflict || a.remoteBusy || this.asyncPending > 0;
-          if (blocked) this.clearChatter();
-          var r = a.game.s.run,
-            cue = this.director.step({
-              run: r,
-              stage: r.stage,
-              boss: r.boss,
-              roster: a.game.activeMercenaries(),
-              blocked: blocked,
-              speaking: !!(this.chatter && isValid(this.chatter, true))
-            }, dt);
-          if (!cue) return;
-          this.clearChatter();
-          var n = a.nodeAt(a.root, 'squad-dialogue', -122, a.designH / 2 - 239 - a.safeTop, 220, 86);
-          this.chatter = n;
-          this.comic(n, 0, 0, 220, 86);
-          var portrait = a.nodeAt(n, 'dialogue-portrait', -86, 22, 28, 30);
+            cue = entry.cue,
+            n = a.nodeAt(a.root, 'squad-dialogue', 0, 0, 200, 82);
+          entry.node = n;
+          this.comic(n, 0, 0, 200, 82);
+          var portrait = a.nodeAt(n, 'dialogue-portrait', -77, 21, 28, 30);
           a.ui.icon(portrait, cue.speaker < 0 ? 'face:guardian' : 'face:merc-' + mercenaryArt(cue.speaker));
-          var name = a.label(n, a.tr(cue.speaker < 0 ? 'master.title' : 'hero.' + cue.speaker), 14, 23, 157, 24, 16, UI.ink);
-          name.node.name = 'dialogue-speaker';
-          var line = a.label(n, a.tr(this.dialogue.next(cue.speaker, cue.context)), 0, -14, 188, 44, 15, UI.ink);
-          line.node.name = 'dialogue-line';
+          a.label(n, a.tr(cue.speaker < 0 ? 'master.title' : 'hero.' + cue.speaker), 15, 23, 142, 22, 15, UI.ink).node.name = 'dialogue-speaker';
+          a.label(n, a.tr(entry.line), 0, -14, 174, 44, 15, UI.ink).node.name = 'dialogue-line';
           this.dismissOnTap(n, function () {
-            if (_this3.chatter !== n) return;
-            _this3.director.dismiss();
-            _this3.clearChatter();
+            if (entry.node !== n) return;
+            _this3.removeChatter(entry);
+            if (!_this3.chatter.length) _this3.director.dismiss();
           });
           if (a.game.s.extra.effects) {
             n.setScale(.96, .96, 1);
@@ -7683,13 +8065,10 @@ System.register("chunks:///_virtual/FeedbackUI.ts", ['./rollupPluginModLoBabelHe
               scale: new Vec3(1, 1, 1)
             }).start();
           }
-          a.scheduleOnce(function () {
-            if (isValid(n, true)) {
-              n.removeFromParent();
-              n.destroy();
-            }
-            if (_this3.chatter === n) _this3.chatter = null;
-          }, 3.5);
+        };
+        _proto.pauseForBossEntrance = function pauseForBossEntrance() {
+          this.clearChatter();
+          this.clearBanner();
         };
         _proto.areaTransition = function areaTransition() {
           this.clearChatter();
@@ -42531,8 +42910,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
   };
 });
 
-System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SkillCatalog.ts', './SkillUI.ts', './ExplorationUI.ts', './SkillTrainingUI.ts', './EquipmentUI.ts', './Enemies.ts', './env', './EnemyArtBounds.ts', './RewardClaimUI.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './DroneFeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, Sprite, ScrollView, BlockInputEvents, resources, Texture2D, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, tacticIcon, tacticHelp, tacticManager, tacticDetail, explorationEntry, explorationBoard, skillTree, skillDetail, equipmentIdentity, equipmentStats, equipmentHelp, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, RewardClaimUI, SquadUI, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, DroneFeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, GooglePlayBilling, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
+System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './BossEntranceUI.ts', './SkillCatalog.ts', './SkillUI.ts', './ExplorationUI.ts', './SkillTrainingUI.ts', './EquipmentUI.ts', './Enemies.ts', './env', './EnemyArtBounds.ts', './RewardClaimUI.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './DroneFeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
+  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, Sprite, ScrollView, BlockInputEvents, resources, Texture2D, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, BossEntranceUI, tacticIcon, tacticHelp, tacticManager, tacticDetail, explorationEntry, explorationBoard, skillTree, skillDetail, equipmentIdentity, equipmentStats, equipmentHelp, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, RewardClaimUI, SquadUI, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, DroneFeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, GooglePlayBilling, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
@@ -42573,6 +42952,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       sys = module.sys;
       Component = module.Component;
       profiler = module.profiler;
+    }, function (module) {
+      BossEntranceUI = module.BossEntranceUI;
     }, function (module) {
       tacticIcon = module.tacticIcon;
     }, function (module) {
@@ -42769,6 +43150,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           _this.placement = new BattlePlacementUI(_assertThisInitialized(_this));
           _this.zoneTransition = new BattleTransitionUI(_assertThisInitialized(_this));
           _this.bossTimer = new BossTimerUI(_assertThisInitialized(_this));
+          _this.bossEntrance = new BossEntranceUI(_assertThisInitialized(_this));
           _this.rewards = new RewardClaimUI(_assertThisInitialized(_this));
           _this.game = void 0;
           _this.root = void 0;
@@ -46994,7 +47376,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           });
         };
         _proto.canAttack = function canAttack() {
-          return !this.zoneTransition.active && !this.placement.dragging && this.entry.playing && !this.liveOps.blocked && this.enemyTransition <= 0 && this.operations.ready && !this.operations.busy && !this.operations.conflict && !this.remoteBusy && !this.feedback.asyncPending && !this.feedback.showing;
+          return !this.bossEntrance.blocked && !this.zoneTransition.active && !this.placement.dragging && this.entry.playing && !this.liveOps.blocked && this.enemyTransition <= 0 && this.operations.ready && !this.operations.busy && !this.operations.conflict && !this.remoteBusy && !this.feedback.asyncPending && !this.feedback.showing;
         };
         _proto.canAutoFire = function canAutoFire() {
           return this.canAttack() && !this.modal && !this.tutorial.active && !this.tutorial.firstBoss && this.payments.model.autoFireActive() && (typeof document === 'undefined' || !document.hidden);
@@ -47201,6 +47583,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             return;
           }
           this.bossTimer.tick();
+          if (this.bossEntrance.tick()) return;
           this.droneFeedback.tick(dt);
           this.enemyFeedback.tick(dt, this.game.s.extra.effects);
           this.placement.tick();
@@ -47233,10 +47616,10 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           });
           for (var _iterator9 = _createForOfIteratorHelperLoose(due), _step9; !(_step9 = _iterator9()).done;) {
             var shot = _step9.value;
-            if (this.enemyTransition || this.zoneTransition.active) break;
+            if (this.bossEntrance.blocked || this.enemyTransition || this.zoneTransition.active) break;
             if (!shot.automatic || this.canAutoFire()) this.resolveTap(shot.automatic);
           }
-          if (this.zoneTransition.active) return;
+          if (this.zoneTransition.active || this.bossEntrance.tick()) return;
           this.tickAutoFire(dt);
           if (this.particles) {
             if (!this.game.s.extra.effects && this.particles.active) this.clear(this.particles);
@@ -47250,6 +47633,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           } else {
             this.syncAllies();
             this.game.tick(dt);
+            if (this.bossEntrance.tick()) return;
             for (var _iterator10 = _createForOfIteratorHelperLoose(this.game.heroEvents), _step10; !(_step10 = _iterator10()).done;) {
               var event = _step10.value;
               if (event.phase === 'attack') this.animateAlly(event.hero, event.windup);else this.strikeAlly(event.hero);
@@ -49798,6 +50182,24 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './SkillText.ts', './Enemie
         'drone.procCount': ' · ×{count}'
       });
       applySkillText(translations);
+      Object.assign(translations.ko, {
+        'bossIntro.alert': '보스 등장!',
+        'bossIntro.responses': '분대, 전투 준비!',
+        'bossIntro.progress': '구역 {stage} · 등장 연출 {step}/{total}',
+        'bossIntro.warning': '거대 적성 병기 접근!\n분대 반응을 확인하고 전투를 시작하세요.',
+        'bossIntro.tapHint': '어디든 누르면 현재 단계만 넘어갑니다.\n연출 중에는 전투와 보스 시간이 멈춥니다.',
+        'bossIntro.next': '눌러서 다음 단계',
+        'bossIntro.fight': '눌러서 전투 시작'
+      });
+      Object.assign(translations.en, {
+        'bossIntro.alert': 'BOSS INCOMING!',
+        'bossIntro.responses': 'Squad, get ready!',
+        'bossIntro.progress': 'Sector {stage} · Entrance {step}/{total}',
+        'bossIntro.warning': 'Heavy hostile approaching!\nHear your squad, then begin the fight.',
+        'bossIntro.tapHint': 'Tap anywhere to advance just one step.\nCombat and the boss timer pause during this scene.',
+        'bossIntro.next': 'Tap for next step',
+        'bossIntro.fight': 'Tap to begin battle'
+      });
       cclegacy._RF.pop();
     }
   };
@@ -50331,7 +50733,7 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
           }], [this.a.tr('live.8'), function () {
             void _this9.refresh().then(function () {
               if (!_this9.blocked) a.info(_this9.a.tr('live.9'), a.tr('ops.currentVersion', {
-                version: _this9.version,
+                version: _this9.displayVersion,
                 status: _this9.error ? a.tr('online.unreachable') : a.tr('live.11')
               }));
             });
@@ -50356,6 +50758,12 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
           get: function get() {
             return this.platform === 'web' ? APP_VERSION : STORE_VERSION;
           }
+        }, {
+          key: "displayVersion",
+          get: function get() {
+            var preview = globalThis.TAPWAR_PREVIEW_BUILD;
+            return typeof preview === 'string' && /^\d+\.\d+\.\d+$/.test(preview) ? preview : this.version.split('.').concat(['0', '0']).slice(0, 3).join('.');
+          }
         }]);
         return LiveOpsUI;
       }());
@@ -50364,9 +50772,9 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './CheatUI.ts', './CombatMotion.ts', './DroneFeedbackUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardClaimUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillIconArt.ts', './SkillTrainingUI.ts', './SkillUI.ts', './SquadUI.ts', './TitleUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './Dialogue.ts', './DroneEffects.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './SkillCatalog.ts', './SkillText.ts', './Squad.ts', './SquadName.ts', './firebase-sdk.js'], function () {
+System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossEntranceUI.ts', './BossTimerUI.ts', './CheatUI.ts', './CombatMotion.ts', './DroneFeedbackUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MercenaryDetailUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardClaimUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillIconArt.ts', './SkillTrainingUI.ts', './SkillUI.ts', './SquadUI.ts', './TitleUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './BossEntrance.ts', './Config.ts', './Dialogue.ts', './DroneEffects.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './SkillCatalog.ts', './SkillText.ts', './Squad.ts', './SquadName.ts', './TitleArtBounds.ts', './TitleCast.ts', './firebase-sdk.js'], function () {
   return {
-    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     execute: function () {}
   };
 });
@@ -50440,6 +50848,323 @@ System.register("chunks:///_virtual/Mercenaries.ts", ['cc'], function (exports) 
           'merc.motion': 'Idle / Attack / Illustration'
         });
       }
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/MercenaryDetailUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './UITheme.ts', './Expansion.ts', './Config.ts', './Mercenaries.ts', './SkillCatalog.ts', './Squad.ts'], function (exports) {
+  var _extends, cclegacy, UITransform, Mask, ScrollView, Vec2, Label, UI, BUTTON_TONES, SQUAD_ROLE_STYLE, Expansion, HEROES, attackSeconds, mercenaryArt, heroSkillIcon, SQUAD_TEAMS, squadRole, SQUAD_LIMIT;
+  return {
+    setters: [function (module) {
+      _extends = module.extends;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+      UITransform = module.UITransform;
+      Mask = module.Mask;
+      ScrollView = module.ScrollView;
+      Vec2 = module.Vec2;
+      Label = module.Label;
+    }, function (module) {
+      UI = module.UI;
+      BUTTON_TONES = module.BUTTON_TONES;
+      SQUAD_ROLE_STYLE = module.SQUAD_ROLE_STYLE;
+    }, function (module) {
+      Expansion = module.Expansion;
+    }, function (module) {
+      HEROES = module.HEROES;
+    }, function (module) {
+      attackSeconds = module.attackSeconds;
+      mercenaryArt = module.mercenaryArt;
+    }, function (module) {
+      heroSkillIcon = module.heroSkillIcon;
+    }, function (module) {
+      SQUAD_TEAMS = module.SQUAD_TEAMS;
+      squadRole = module.squadRole;
+      SQUAD_LIMIT = module.SQUAD_LIMIT;
+    }],
+    execute: function () {
+      cclegacy._RF.push({}, "c06e4+yRydGo6SR5/eVnW1u", "MercenaryDetailUI", undefined);
+
+      // Alpha bounds of the existing approved cut-ins. No source pixels are changed.
+      var ART_BOUNDS = [[4, 99, 380, 512], [4, 165, 380, 512], [4, 125, 380, 512], [4, 65, 380, 512], [9, 66, 375, 512], [4, 88, 380, 512], [4, 148, 380, 512], [4, 172, 380, 512], [4, 154, 380, 512], [4, 157, 380, 512], [4, 169, 380, 512], [4, 183, 380, 512], [4, 88, 380, 512], [4, 157, 380, 512], [4, 115, 380, 512], [23, 204, 380, 512], [4, 96, 380, 512], [4, 153, 380, 512], [4, 167, 380, 512], [4, 120, 380, 512], [4, 192, 380, 511], [4, 143, 380, 512], [4, 184, 380, 512], [4, 154, 380, 512], [4, 190, 379, 512], [4, 68, 380, 512], [4, 147, 380, 512], [4, 115, 380, 512], [4, 136, 380, 512], [4, 172, 380, 512]];
+      var WORDS = {
+        ko: {
+          combat: '전투 능력',
+          growth: '성장',
+          gear: '영구 장비',
+          squad: '분대 · 시너지',
+          level: '레벨',
+          dps: '초당 피해',
+          cadence: '공격 간격',
+          ascend: '승천',
+          skill: '숙련',
+          weapon: '무기',
+          manual: '훈련 교범',
+          train: '숙련 강화',
+          scroll: '↕ 항목 스크롤',
+          seconds: '{value}초',
+          bonus: '합산 피해 ×{value}'
+        },
+        en: {
+          combat: 'COMBAT',
+          growth: 'GROWTH',
+          gear: 'PERMANENT GEAR',
+          squad: 'SQUAD · SYNERGY',
+          level: 'Level',
+          dps: 'Damage / sec',
+          cadence: 'Attack interval',
+          ascend: 'Ascensions',
+          skill: 'Training',
+          weapon: 'Weapons',
+          manual: 'Manuals',
+          train: 'Train skill',
+          scroll: '↕ Scroll details',
+          seconds: '{value}s',
+          bonus: 'Combined damage ×{value}'
+        }
+      };
+
+      /** One detail layout for the main squad, deployment deck and codex. */
+      var MercenaryDetailUI = exports('MercenaryDetailUI', /*#__PURE__*/function () {
+        function MercenaryDetailUI(a) {
+          this.a = a;
+        }
+        var _proto = MercenaryDetailUI.prototype;
+        _proto.render = function render(p, id, refresh, team) {
+          var a = this.a,
+            g = a.game,
+            s = g.s,
+            x = s.extra,
+            artId = mercenaryArt(id),
+            role = squadRole(id),
+            style = SQUAD_ROLE_STYLE[role],
+            words = WORDS[s.locale];
+          p.name = 'modal-panel';
+          var height = p.getComponent(UITransform).height,
+            top = height / 2 - 84,
+            bottom = -height / 2 + 18,
+            bodyH = top - bottom,
+            leftW = 208,
+            rightW = 184,
+            rightX = 108;
+          var scene = a.nodeAt(p, 'mercenary-detail-scene', -96, (top + bottom) / 2, leftW, bodyH);
+          a.ui.surface(scene, style.background, 'cut');
+          var clip = a.nodeAt(scene, 'mercenary-detail-art-clip', 0, 0, leftW - 4, bodyH - 4),
+            mask = clip.addComponent(Mask);
+          mask.type = Mask.Type.GRAPHICS_STENCIL;
+          var stencil = mask.subComp,
+            points = a.ui.contours.get(scene);
+          stencil.fillColor = a.color(UI.text);
+          stencil.moveTo(points[0][0], points[0][1]);
+          points.slice(1).forEach(function (v) {
+            return stencil.lineTo(v[0], v[1]);
+          });
+          stencil.close();
+          stencil.fill();
+          var background = a.ui.frames.get('battlefield/' + id % 4);
+          if (background) {
+            var scale = Math.max(leftW / background.width, bodyH / background.height);
+            a.ui.paint(a.nodeAt(clip, 'mercenary-detail-background', 0, 0, background.width * scale, background.height * scale), 'battlefield/' + id % 4);
+          }
+          a.rect(clip, 0, 0, leftW, bodyH, style.background, undefined, 90);
+          var frame = a.ui.frames.get('cutin/' + artId),
+            bounds = ART_BOUNDS[artId];
+          if (frame) {
+            var _scale = Math.min((bodyH - 110) / (bounds[3] - bounds[1]), leftW * 2.1 / (bounds[2] - bounds[0])),
+              w = frame.width * _scale,
+              h = frame.height * _scale;
+            a.ui.paint(a.nodeAt(clip, 'mercenary-detail-illustration', (frame.width / 2 - (bounds[0] + bounds[2]) / 2) * _scale, bodyH / 2 - 16 - (frame.height / 2 - bounds[1]) * _scale, w, h), 'cutin/' + artId);
+          }
+          var identity = a.nodeAt(scene, 'mercenary-detail-identity', 0, -bodyH / 2 + 54, leftW - 8, 100);
+          a.ui.surface(identity, UI.bg, 'cut', 230);
+          var badge = a.nodeAt(identity, 'role-badge', -78, 28, 28, 28);
+          a.ui.surface(badge, style.color, 'cut');
+          a.ui.icon(a.nodeAt(badge, 'role-icon', 0, 0, 22, 22), style.icon, UI.ink);
+          a.touchAction(badge, function () {
+            return a.tooltip(badge, a.tr('squad.role.' + role) + '\n' + a.tr('squad.roleDesc.' + role));
+          });
+          a.label(identity, a.tr('squad.role.' + role), 18, 28, 148, 26, 17, style.color);
+          a.label(identity, a.tr('merc.weapon.' + id), 0, -3, 186, 38, 17, UI.text).node.name = 'mercenary-detail-weapon';
+          var deployed = x.mercenaryDeck.includes(id),
+            owned = x.mercenaryOwned.includes(id);
+          a.label(identity, a.tr(deployed ? 'squad.deployed' : owned ? 'squad.reserve' : 'squad.missing'), 0, -34, 184, 24, 16, deployed ? BUTTON_TONES.deck : UI.muted).node.name = 'mercenary-detail-status';
+          var viewH = bodyH - 28,
+            view = a.nodeAt(p, 'scroll', rightX, (top + bottom) / 2 + 14, rightW, viewH),
+            scroll = view.addComponent(ScrollView);
+          view.addComponent(Mask);
+          scroll.horizontal = false;
+          scroll.vertical = true;
+          scroll.inertia = true;
+          scroll.cancelInnerEvents = true;
+          a.label(p, words.scroll, rightX, bottom + 12, rightW, 24, 14, UI.muted).node.name = 'mercenary-detail-scroll-hint';
+          var content = a.nodeAt(view, 'mercenary-detail-categories', 0, viewH / 2, rightW, 1);
+          content.getComponent(UITransform).setAnchorPoint(.5, 1);
+          scroll.content = content;
+          var y = 0;
+          var title = function title(key, tone) {
+            var n = a.nodeAt(content, 'mercenary-category-' + key, 0, -y - 14, rightW, 28);
+            a.rect(n, -rightW / 2 + 2, 0, 3, 20, tone);
+            a.label(n, words[key], 4, 0, rightW - 16, 24, 15, tone, Label.HorizontalAlign.LEFT);
+            y += 34;
+          };
+          var stat = function stat(key, icon, value, hint) {
+            var n = a.nodeAt(content, 'mercenary-stat-' + key, 0, -y - 23, rightW, 46);
+            a.ui.surface(n, UI.panel, 'cut');
+            a.ui.icon(a.nodeAt(n, 'metric-icon', -rightW / 2 + 19, 0, 24, 24), icon);
+            a.label(n, words[key], 18, 10, rightW - 48, 20, 14, UI.muted, Label.HorizontalAlign.LEFT);
+            a.label(n, value, 18, -10, rightW - 48, 24, 18, UI.text, Label.HorizontalAlign.LEFT);
+            a.touchAction(n, function () {
+              return a.tooltip(n, hint);
+            }, hint);
+            y += 50;
+          };
+          var button = function button(name, label, fn, options) {
+            if (options === void 0) {
+              options = {};
+            }
+            var n = a.button(content, label, 0, -y - 23, rightW, 46, fn, true, _extends({
+              fontSize: 15
+            }, options));
+            n.name = name;
+            y += 52;
+            return n;
+          };
+          var change = function change(fn) {
+            return a.act(fn, function () {
+              a.syncAllies();
+              a.drawPanel();
+              refresh();
+              void a.operations.save()["catch"](function (e) {
+                return a.operations.report('mercenary.save', e);
+              });
+            });
+          };
+          title('combat', BUTTON_TONES.battle);
+          stat('level', 'symbol:up', String(s.run.heroes[id]), a.tr('ui.help.heroLevel', {
+            level: s.run.heroes[id]
+          }));
+          stat('dps', 'symbol:damage', a.format(g.heroDamage(id)), a.tr('ui.help.heroDPS', {
+            damage: a.format(g.heroDamage(id))
+          }));
+          stat('cadence', 'symbol:clock', words.seconds.replace('{value}', String(attackSeconds(id))), a.tr('merc.cadence', {
+            weapon: a.tr('merc.weapon.' + id),
+            seconds: attackSeconds(id)
+          }));
+          button('mercenary-detail-upgrade', a.levelButtonLabel(id), function () {
+            return change(function () {
+              return g.transaction(a.id('hero-detail-buy'), function () {
+                return g.require(g.buy(id, a.mode), g.notice || 'error.currency');
+              });
+            });
+          }, {
+            category: 'upgrade',
+            icon: 'symbol:plus',
+            unavailable: function unavailable() {
+              return a.levelReason(id);
+            },
+            label: function label() {
+              return a.levelButtonLabel(id);
+            }
+          });
+          y += 8;
+          title('growth', BUTTON_TONES.upgrade);
+          var tier = x.heroSkills[id],
+            target = [10, 25, 50, 100, 200, 400, 800][tier];
+          stat('skill', heroSkillIcon(id), tier + '/7 · ×' + Math.pow(1.5, tier).toFixed(2), a.tr('training.help', {
+            weapon: a.tr('merc.weapon.' + id),
+            count: tier,
+            factor: Math.pow(1.5, tier).toFixed(2),
+            next: target ? a.tr('action.level', {
+              level: target
+            }) : a.tr('action.maxReached')
+          }));
+          button('mercenary-detail-training', words.train, function () {
+            return change(function () {
+              return new Expansion(g).heroSkill(id, a.id('hero-skill'));
+            });
+          }, {
+            category: 'upgrade',
+            icon: heroSkillIcon(id),
+            unavailable: function unavailable() {
+              var next = [10, 25, 50, 100, 200, 400, 800][g.s.extra.heroSkills[id]];
+              return !next ? a.tr('action.maxReached') : a.progressReason(a.tr('action.heroLevel'), g.s.run.heroes[id], next) || a.costReason('gold', g.upgradeCost(id, 5));
+            }
+          });
+          stat('ascend', 'rebirth', String(x.ascensions[id]), a.tr('ui.help.heroAscend', {
+            count: x.ascensions[id]
+          }));
+          button('mercenary-detail-ascend', a.tr('extra.ascend'), function () {
+            return a.confirm(a.tr('extra.ascend'), a.tr('extra.ascendInfo'), function () {
+              return change(function () {
+                return new Expansion(g).ascend(id, a.id('ascend'));
+              });
+            });
+          }, {
+            category: 'ascend',
+            icon: 'rebirth',
+            unavailable: function unavailable() {
+              return a.progressReason(a.tr('action.heroLevel'), g.s.run.heroes[id], 1000);
+            }
+          });
+          y += 8;
+          title('gear', BUTTON_TONES.codex);
+          var boost = (1 + s.weapons[id] + s.scrolls[id] * .5).toFixed(2);
+          stat('weapon', 'sword', String(s.weapons[id]), a.tr('ui.help.heroWeapon', {
+            count: s.weapons[id],
+            boost: boost
+          }));
+          stat('manual', 'scroll', String(s.scrolls[id]), a.tr('ui.help.heroManual', {
+            count: s.scrolls[id],
+            boost: boost
+          }));
+          a.label(content, words.bonus.replace('{value}', boost), 0, -y - 16, rightW, 32, 14, UI.muted);
+          y += 40;
+          title('squad', BUTTON_TONES.deck);
+          button('mercenary-detail-deploy', a.tr(deployed ? 'squad.remove' : 'squad.deploy'), function () {
+            return a.squadUI.toggle(id, refresh);
+          }, {
+            category: 'deck',
+            icon: 'adventurer',
+            unavailable: function unavailable() {
+              return !g.s.extra.mercenaryOwned.includes(id) ? a.tr('squad.needRecruit') : !g.s.extra.mercenaryDeck.includes(id) && g.s.extra.mercenaryDeck.length >= SQUAD_LIMIT ? a.tr('squad.full', {
+                limit: SQUAD_LIMIT
+              }) : null;
+            }
+          });
+          button('mercenary-detail-preview', a.tr('merc.preview'), function () {
+            return a.feedback.showMercenary(id, true);
+          }, {
+            category: 'details',
+            icon: 'symbol:eye',
+            unavailable: function unavailable() {
+              return g.s.extra.mercenaryOwned.includes(id) ? null : a.tr('squad.needRecruit');
+            }
+          });
+          var teams = SQUAD_TEAMS.filter(function (v) {
+            return v.members.includes(id);
+          });
+          teams.forEach(function (v) {
+            return button('mercenary-detail-team-' + v.id, a.tr('squad.team.' + v.id), function () {
+              return team ? team(v.id) : a.squadUI.synergies();
+            }, {
+              category: 'synergy',
+              icon: 'symbol:info',
+              fontSize: 14,
+              hint: a.tr('squad.members', {
+                names: v.members.map(function (n) {
+                  return a.tr('hero.' + n);
+                }).join(', ')
+              })
+            });
+          });
+          content.getComponent(UITransform).setContentSize(rightW, y + 8);
+          scroll.scrollToOffset(new Vec2(), 0);
+          // Browsing a locked character still shows their approved illustration and real zero stats.
+          if (s.maxStage < HEROES[id].unlock) a.lockIcon(scene, -leftW / 2 + 18, bodyH / 2 - 20);
+        };
+        return MercenaryDetailUI;
+      }());
       cclegacy._RF.pop();
     }
   };
@@ -56309,8 +57034,8 @@ System.register("chunks:///_virtual/SquadName.ts", ['cc'], function (exports) {
   };
 });
 
-System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './UITheme.ts', './Config.ts', './Squad.ts'], function (exports) {
-  var _extends, _createClass, cclegacy, isValid, ScrollView, Vec2, Mask, UIOpacity, Graphics, SQUAD_ROLE_STYLE, UI, BUTTON_TONES, HEROES, squadRole, SQUAD_LIMIT, SQUAD_TEAMS, SQUAD_ROLES, EQUIPMENT_COLLECTIONS, equipmentKey;
+System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './MercenaryDetailUI.ts', './UITheme.ts', './Config.ts', './Squad.ts'], function (exports) {
+  var _extends, _createClass, cclegacy, isValid, ScrollView, Vec2, Mask, UIOpacity, Graphics, MercenaryDetailUI, SQUAD_ROLE_STYLE, UI, BUTTON_TONES, HEROES, squadRole, SQUAD_LIMIT, SQUAD_TEAMS, SQUAD_ROLES, EQUIPMENT_COLLECTIONS, equipmentKey;
   return {
     setters: [function (module) {
       _extends = module.extends;
@@ -56323,6 +57048,8 @@ System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpe
       Mask = module.Mask;
       UIOpacity = module.UIOpacity;
       Graphics = module.Graphics;
+    }, function (module) {
+      MercenaryDetailUI = module.MercenaryDetailUI;
     }, function (module) {
       SQUAD_ROLE_STYLE = module.SQUAD_ROLE_STYLE;
       UI = module.UI;
@@ -56677,60 +57404,13 @@ System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpe
         };
         _proto.mercenary = function mercenary(id) {
           var _this9 = this;
-          var a = this.a,
-            g = this.g,
-            p = this.open(this.tr('hero.' + id), 610, 'mercenary:' + id, function () {
-              return _this9.mercenary(id);
-            }),
-            role = squadRole(id),
-            style = SQUAD_ROLE_STYLE[role];
-          a.ui.surface(a.nodeAt(p, 'codex-portrait-background', 0, 141, 108, 118), style.background, 'cut');
-          a.ui.face(a.nodeAt(p, 'codex-portrait', 0, 141, 92, 108), 'merc-' + id);
-          var badge = a.nodeAt(p, 'role-badge', 78, 155, 34, 34);
-          a.ui.surface(badge, style.color, 'cut');
-          a.ui.icon(a.nodeAt(badge, 'role-icon', 0, 0, 24, 24), style.icon, UI.ink);
-          a.touchAction(badge, function () {
-            return a.tooltip(badge, _this9.tr('squad.role.' + role) + '\n' + _this9.tr('squad.roleDesc.' + role));
-          }, this.tr('squad.roleDesc.' + role));
-          a.label(p, this.tr('squad.role.' + role), 78, 120, 90, 25, 14, style.color);
-          a.label(p, this.tr('squad.heroInfo', {
-            role: this.tr('squad.role.' + squadRole(id)),
-            level: g.s.run.heroes[id],
-            state: this.state(id)
-          }), 0, 60, 384, 42, 18);
-          a.label(p, this.tr('squad.roleDesc.' + role), 0, 6, 384, 50, 15);
-          var teams = SQUAD_TEAMS.filter(function (team) {
-            return team.members.includes(id);
+          var p = this.open(this.tr('hero.' + id), 740, 'mercenary:' + id, function () {
+            return _this9.mercenary(id);
           });
-          a.scroll(p, 0, -114, 394, 144, teams.map(function (team) {
-            return {
-              title: _this9.tr('squad.team.' + team.id),
-              sub: _this9.tr('squad.members', {
-                names: team.members.map(function (i) {
-                  return _this9.tr('hero.' + i);
-                }).join(', ')
-              }),
-              action: _this9.tr('action.details'),
-              click: function click() {
-                return _this9.team(team.id, false);
-              }
-            };
-          }));
-          a.button(p, this.tr('merc.preview'), -101, -237, 194, 44, function () {
-            return a.feedback.showMercenary(id, true);
-          }, false, {
-            unavailable: function unavailable() {
-              return g.s.extra.mercenaryOwned.includes(id) ? null : _this9.tr('squad.needRecruit');
-            }
-          });
-          a.button(p, this.tr(g.s.extra.mercenaryDeck.includes(id) ? 'squad.remove' : 'squad.deploy'), 101, -237, 194, 44, function () {
-            return _this9.toggle(id, function () {
-              return _this9.mercenary(id);
-            });
-          }, true, {
-            unavailable: function unavailable() {
-              return _this9.deployReason(id);
-            }
+          new MercenaryDetailUI(this.a).render(p, id, function () {
+            return _this9.mercenary(id);
+          }, function (team) {
+            return _this9.team(team, false);
           });
         };
         _proto.synergies = function synergies() {
@@ -57032,8 +57712,95 @@ System.register("chunks:///_virtual/SquadUI.ts", ['./rollupPluginModLoBabelHelpe
   };
 });
 
-System.register("chunks:///_virtual/TitleUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc'], function (exports) {
-  var _createForOfIteratorHelperLoose, cclegacy, UIOpacity, UITransform, Vec3, isValid, Mask, Graphics, Label, Node;
+System.register("chunks:///_virtual/TitleArtBounds.ts", ['cc'], function (exports) {
+  var cclegacy;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+    }],
+    execute: function () {
+      cclegacy._RF.push({}, "1157fb7T11CAZMEufKITav+", "TitleArtBounds", undefined);
+      // Alpha bounds of the approved, unchanged title character PNGs (top-down pixels).
+      var TITLE_CUTIN_BOUNDS = exports('TITLE_CUTIN_BOUNDS', [[4, 99, 380, 512], [4, 165, 380, 512], [4, 125, 380, 512], [4, 65, 380, 512], [9, 66, 375, 512], [4, 88, 380, 512], [4, 148, 380, 512], [4, 172, 380, 512], [4, 154, 380, 512], [4, 157, 380, 512], [4, 169, 380, 512], [4, 183, 380, 512], [4, 88, 380, 512], [4, 157, 380, 512], [4, 115, 380, 512], [23, 204, 380, 512], [4, 96, 380, 512], [4, 153, 380, 512], [4, 167, 380, 512], [4, 120, 380, 512], [4, 192, 380, 511], [4, 143, 380, 512], [4, 184, 380, 512], [4, 154, 380, 512], [4, 190, 379, 512], [4, 68, 380, 512], [4, 147, 380, 512], [4, 115, 380, 512], [4, 136, 380, 512], [4, 172, 380, 512]]);
+      var TITLE_ACTOR_BOUNDS = exports('TITLE_ACTOR_BOUNDS', [[43, 8, 149, 186], [16, 8, 175, 186], [31, 8, 161, 186], [38, 8, 153, 186], [34, 8, 158, 186], [30, 8, 161, 186], [24, 8, 168, 186], [21, 8, 170, 186], [21, 8, 171, 186], [21, 8, 171, 186], [9, 8, 183, 186], [7, 8, 185, 186], [18, 8, 174, 186], [25, 8, 166, 186], [21, 8, 169, 186], [13, 8, 178, 186], [27, 8, 165, 186], [24, 8, 168, 186], [12, 8, 180, 186], [17, 8, 174, 186], [4, 16, 188, 186], [30, 8, 162, 186], [16, 8, 176, 186], [23, 8, 169, 186], [4, 18, 188, 186], [46, 44, 145, 186], [15, 8, 176, 186], [46, 31, 145, 186], [28, 17, 164, 186], [10, 4, 182, 186]]);
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/TitleCast.ts", ['cc', './Mercenaries.ts'], function (exports) {
+  var cclegacy, MERCENARY_COUNT;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+    }, function (module) {
+      MERCENARY_COUNT = module.MERCENARY_COUNT;
+    }],
+    execute: function () {
+      exports('nextTitleCast', nextTitleCast);
+      cclegacy._RF.push({}, "64099H9a+hKDaklxcX04s5e", "TitleCast", undefined);
+      var TITLE_CAST_KEY = exports('TITLE_CAST_KEY', 'tapwar-title-cast-v1');
+      var validId = function validId(id) {
+        return Number.isInteger(id) && Number(id) >= 0 && Number(id) < MERCENARY_COUNT;
+      };
+      function shuffle(ids, random) {
+        for (var i = ids.length - 1; i > 0; i--) {
+          var j = Math.max(0, Math.min(i, Math.floor(random() * (i + 1))));
+          var _ref = [ids[j], ids[i]];
+          ids[i] = _ref[0];
+          ids[j] = _ref[1];
+        }
+        return ids;
+      }
+      /** Presentation cache only: no recruitment, combat deck or account save changes. */
+      function nextTitleCast(raw, random) {
+        if (random === void 0) {
+          random = Math.random;
+        }
+        var previous = {
+          version: 1,
+          last: -1,
+          remaining: []
+        };
+        try {
+          var value = JSON.parse(raw || 'null');
+          if ((value == null ? void 0 : value.version) === 1 && (value.last === -1 || validId(value.last)) && Array.isArray(value.remaining) && value.remaining.length <= MERCENARY_COUNT && value.remaining.every(validId) && !value.remaining.includes(value.last) && new Set(value.remaining).size === value.remaining.length) previous = value;
+        } catch (_unused) {}
+        var remaining = [].concat(previous.remaining);
+        if (!remaining.length) remaining.push.apply(remaining, shuffle(Array.from({
+          length: MERCENARY_COUNT
+        }, function (_, i) {
+          return i;
+        }), random));
+        if (remaining[0] === previous.last && remaining.length > 1) {
+          var _ref2 = [remaining[1], remaining[0]];
+          remaining[0] = _ref2[0];
+          remaining[1] = _ref2[1];
+        }
+        var featured = remaining.shift(),
+          rear = shuffle(Array.from({
+            length: MERCENARY_COUNT
+          }, function (_, i) {
+            return i;
+          }).filter(function (id) {
+            return id !== featured;
+          }), random);
+        return {
+          lineup: [featured, rear[0], rear[1]],
+          state: JSON.stringify({
+            version: 1,
+            last: featured,
+            remaining: remaining
+          })
+        };
+      }
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/TitleUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './TitleArtBounds.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, cclegacy, UIOpacity, UITransform, Vec3, isValid, Mask, Graphics, Label, Node, TITLE_CUTIN_BOUNDS, TITLE_ACTOR_BOUNDS;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -57047,16 +57814,15 @@ System.register("chunks:///_virtual/TitleUI.ts", ['./rollupPluginModLoBabelHelpe
       Graphics = module.Graphics;
       Label = module.Label;
       Node = module.Node;
+    }, function (module) {
+      TITLE_CUTIN_BOUNDS = module.TITLE_CUTIN_BOUNDS;
+      TITLE_ACTOR_BOUNDS = module.TITLE_ACTOR_BOUNDS;
     }],
     execute: function () {
       cclegacy._RF.push({}, "a1981nRWlZHl6XoeF2bbvRN", "TitleUI", undefined);
-      var LINES = {
-        ko: ['대장 준비 완료. 이제 우리 차례야.', '분대는 내가 챙길게. 전선은 네가 골라.', '망설이지 마. 끝까지 함께 갈 테니까.'],
-        en: ['Captain ready. It is our turn.', 'I have the squad. You choose the front.', 'No hesitation. We go together.']
-      };
       /** Presentation only. EntryUI still owns consent, authentication and the start route. */
       var TitleUI = exports('TitleUI', /*#__PURE__*/function () {
-        function TitleUI(a, interactive, requestStart) {
+        function TitleUI(a, interactive, requestStart, lineup) {
           var _this = this;
           this.root = void 0;
           this.layers = [];
@@ -57090,6 +57856,7 @@ System.register("chunks:///_virtual/TitleUI.ts", ['./rollupPluginModLoBabelHelpe
           this.a = a;
           this.interactive = interactive;
           this.requestStart = requestStart;
+          this.lineup = lineup;
           var H = a.designH,
             top = H / 2 - a.safeTop,
             bottom = -H / 2 + a.safeBottom,
@@ -57097,42 +57864,31 @@ System.register("chunks:///_virtual/TitleUI.ts", ['./rollupPluginModLoBabelHelpe
           this.root = a.nodeAt(a.root, 'title-presentation', 0, 0, 480, H);
           var backdrop = a.nodeAt(this.root, 'title-backdrop', 0, 0, 480, H);
           backdrop.addComponent(Mask);
-          var cover = Math.max(560, H) * 1.045,
-            world = a.nodeAt(backdrop, 'title-base', 0, 20, cover, cover);
-          a.ui.paint(world, 'world/0');
+          var frame = a.ui.frames.get('title/assembly-ground'),
+            ratio = frame.texture.width / frame.texture.height,
+            coverW = Math.max(480, H * ratio) * 1.045,
+            coverH = coverW / ratio,
+            world = a.nodeAt(backdrop, 'title-base', 0, 0, coverW, coverH);
+          a.ui.paint(world, 'title/assembly-ground');
           this.layer(world, .25, 0, 0);
           a.rect(backdrop, 0, 0, 480, H, '#10170f', undefined, 58);
-          // Perspective landing strip, kept behind the squad and foreground illustration.
-          var runway = a.nodeAt(backdrop, 'title-runway', 0, stageY - 180, 480, 300),
-            g = runway.addComponent(Graphics);
-          g.strokeColor = a.color('#ffdb77', 58);
-          g.lineWidth = 1;
-          for (var _i = 0, _arr = [-225, -115, 115, 225]; _i < _arr.length; _i++) {
-            var x = _arr[_i];
-            g.moveTo(x, -150);
-            g.lineTo(x * .2, 150);
-            g.stroke();
-          }
-          this.layer(runway, .8, .08, 12);
           var squad = a.nodeAt(backdrop, 'title-squad', 0, stageY, 480, 400);
-          var left = a.nodeAt(squad, 'title-rear-left', 157, 30, 150, 150);
-          a.ui.actor(left, 'merc-2');
-          var right = a.nodeAt(squad, 'title-rear-right', 111, -76, 190, 190);
-          a.ui.actor(right, 'merc-1');
-          for (var _i2 = 0, _arr2 = [[157, -41, 83], [111, -166, 114]]; _i2 < _arr2.length; _i2++) {
-            var _arr2$_i = _arr2[_i2],
-              _x = _arr2$_i[0],
-              y = _arr2$_i[1],
-              w = _arr2$_i[2];
-            a.polygon(squad, _x, y, w, 12, [[-.5, 0], [-.35, -.5], [.35, -.5], [.5, 0], [.35, .5], [-.35, .5]], '#0b140d', 100);
-          }
+          var left = this.standing(squad, 'title-rear-left', lineup[1], 157, -41, 150);
+          var right = this.standing(squad, 'title-rear-right', lineup[2], 111, -166, 190);
           // Shadows precede sprites; their positions stay in the same depth layer.
           left.setSiblingIndex(squad.children.length - 1);
           right.setSiblingIndex(squad.children.length - 1);
           this.layer(squad, 1.15, .12, 20);
-          var heroH = Math.min(600, Math.max(448, (H - 340) * 1.08));
-          this.hero = a.nodeAt(backdrop, 'title-captain', -64, stageY - 24, heroH * .75, heroH);
-          a.ui.paint(this.hero, 'cutin/0');
+          var heroFrame = a.ui.frames.get('cutin/' + lineup[0]),
+            b = TITLE_CUTIN_BOUNDS[lineup[0]],
+            heroBottom = bottom + 190,
+            scale = Math.min(Math.max(180, top - 273 - heroBottom) / (b[3] - b[1]), 460 / (b[2] - b[0])),
+            heroW = (b[2] - b[0]) * scale,
+            heroH = (b[3] - b[1]) * scale;
+          this.hero = a.nodeAt(backdrop, 'title-captain', -64, heroBottom + heroH / 2, heroW, heroH);
+          var fullW = heroFrame.texture.width,
+            fullH = heroFrame.texture.height;
+          a.ui.paint(a.nodeAt(this.hero, 'title-featured-art', (fullW / 2 - (b[0] + b[2]) / 2) * scale, ((b[1] + b[3]) / 2 - fullH / 2) * scale, fullW * scale, fullH * scale), 'cutin/' + lineup[0]);
           this.layer(this.hero, 2.4, .18, 38);
           this.drone = a.nodeAt(backdrop, 'title-drone', 167, stageY + 159, 78, 78);
           a.ui.paint(this.drone, 'drones/0');
@@ -57141,13 +57897,13 @@ System.register("chunks:///_virtual/TitleUI.ts", ['./rollupPluginModLoBabelHelpe
           a.label(tag, a.game.s.locale === 'ko' ? '지원 드론' : 'SUPPORT DRONE', 0, 0, 94, 20, 11, '#e1e8cf');
           var dust = a.nodeAt(backdrop, 'title-atmosphere', 0, 0, 480, H);
           for (var i = 0; i < 12; i++) {
-            var _x2 = i * 137 % 454 - 227,
-              _y = bottom + 230 + i * 89 % Math.max(160, H - 490),
-              n = a.rect(dust, _x2, _y, i % 3 === 0 ? 3 : 2, i % 3 === 0 ? 3 : 2, '#ffe0a2', undefined, 80);
+            var x = i * 137 % 454 - 227,
+              y = bottom + 230 + i * 89 % Math.max(160, H - 490),
+              n = a.rect(dust, x, y, i % 3 === 0 ? 3 : 2, i % 3 === 0 ? 3 : 2, '#ffe0a2', undefined, 80);
             this.motes.push({
               node: n,
-              x: _x2,
-              y: _y,
+              x: x,
+              y: y,
               phase: i * .71
             });
           }
@@ -57155,15 +57911,15 @@ System.register("chunks:///_virtual/TitleUI.ts", ['./rollupPluginModLoBabelHelpe
           var r = this.ring.addComponent(Graphics);
           r.strokeColor = a.color('#ffda64');
           r.lineWidth = 1.5;
-          for (var _i3 = 0, _arr3 = [[-25, -25, 1, 1], [25, -25, -1, 1], [-25, 25, 1, -1], [25, 25, -1, -1]]; _i3 < _arr3.length; _i3++) {
-            var _arr3$_i = _arr3[_i3],
-              _x3 = _arr3$_i[0],
-              _y2 = _arr3$_i[1],
-              sx = _arr3$_i[2],
-              sy = _arr3$_i[3];
-            r.moveTo(_x3, _y2 + sy * 9);
-            r.lineTo(_x3, _y2);
-            r.lineTo(_x3 + sx * 9, _y2);
+          for (var _i = 0, _arr = [[-25, -25, 1, 1], [25, -25, -1, 1], [-25, 25, 1, -1], [25, 25, -1, -1]]; _i < _arr.length; _i++) {
+            var _arr$_i = _arr[_i],
+              _x = _arr$_i[0],
+              _y = _arr$_i[1],
+              sx = _arr$_i[2],
+              sy = _arr$_i[3];
+            r.moveTo(_x, _y + sy * 9);
+            r.lineTo(_x, _y);
+            r.lineTo(_x + sx * 9, _y);
             r.stroke();
           }
           this.ring.addComponent(UIOpacity).opacity = 0;
@@ -57194,9 +57950,9 @@ System.register("chunks:///_virtual/TitleUI.ts", ['./rollupPluginModLoBabelHelpe
           a.polygon(this.root, -171, bottom + 258, 111, 4, [[-.5, -.5], [.46, -.5], [.5, .5], [-.46, .5]], '#ffda64');
           a.label(this.root, a.tr('entry.titleHint'), 0, bottom + 143, 398, 44, 14, '#d3dac5');
           a.ui.paint(a.nodeAt(this.root, 'company-ci', 0, bottom + 66, 148, 74), 'branding');
-          var preview = globalThis.TAPWAR_PREVIEW_BUILD;
+          var version = a.liveOps.displayVersion;
           a.label(this.root, a.tr('entry.version', {
-            version: a.liveOps.version + (typeof preview === 'string' ? ' · ' + preview : '')
+            version: version
           }), 0, bottom + 23, 440, 22, 12, '#c6cdbb').node.name = 'preview-build-version';
           this.sweep = a.rect(this.root, -215, bottom + 274, 43, 2, '#ffda64');
           if (interactive) {
@@ -57314,13 +58070,22 @@ System.register("chunks:///_virtual/TitleUI.ts", ['./rollupPluginModLoBabelHelpe
           this.ring.setPosition(local);
           this.ringAge = 0;
         };
+        _proto.standing = function standing(parent, name, id, x, foot, size) {
+          var a = this.a,
+            b = TITLE_ACTOR_BOUNDS[id],
+            unit = a.nodeAt(parent, name, x, foot, size, size);
+          unit.getComponent(UITransform).setAnchorPoint(.5, (192 - b[3]) / 192);
+          a.ui.actor(unit, 'merc-' + id);
+          a.polygon(parent, x, foot - 2, Math.max(45, Math.min(size * .65, (b[2] - b[0]) * size / 192 * .72)), 10, [[-.5, 0], [-.35, -.5], [.35, -.5], [.5, 0], [.35, .5], [-.35, .5]], '#0b140d', 125).name = name + '-shadow';
+          return unit;
+        };
         _proto.respond = function respond(drone) {
           if (drone === void 0) {
             drone = false;
           }
           if (this.a.entry.starting || this.a.entry.busy) return;
           var locale = this.a.game.s.locale;
-          this.responseLabel.string = drone ? locale === 'ko' ? '신호 양호. 전선 지원 준비 완료.' : 'Signal clear. Front-line support ready.' : LINES[locale][this.line++ % LINES[locale].length];
+          this.responseLabel.string = drone ? locale === 'ko' ? '신호 양호. 전선 지원 준비 완료.' : 'Signal clear. Front-line support ready.' : this.a.tr('hero.' + this.lineup[0]) + ': ' + this.a.tr('dialogue.' + this.lineup[0] + '.idle.' + this.line++ % 2);
           this.responseTime = 2.5;
           this.response.active = true;
           this.heroPulse = drone ? 0 : .35;
@@ -57744,6 +58509,17 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           this.practiceTopic = null;
           this.a = a;
         }
+        _proto.pauseForBossEntrance = function pauseForBossEntrance() {
+          this.clearSpotlight();
+          for (var _iterator2 = _createForOfIteratorHelperLoose(this.a.root.children), _step2; !(_step2 = _iterator2()).done;) {
+            var n = _step2.value;
+            if (n.name === 'tutorial-guide-root' || n.name === 'tutorial-battle-area') n.active = false;
+          }
+        };
+        _proto.resumeAfterBossEntrance = function resumeAfterBossEntrance() {
+          this.gestures.clear();
+          this.redraw();
+        };
         _proto.event = function event(kind) {
           var _this5 = this;
           if (tutorialAdvance(this.a.game.s, kind)) {
@@ -57799,8 +58575,8 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
         _proto.redraw = function redraw() {
           var a = this.a;
           this.clearSpotlight();
-          for (var _iterator2 = _createForOfIteratorHelperLoose(new Set([this.gameFocus, this.extraFocus])), _step2; !(_step2 = _iterator2()).done;) {
-            var focus = _step2.value;
+          for (var _iterator3 = _createForOfIteratorHelperLoose(new Set([this.gameFocus, this.extraFocus])), _step3; !(_step3 = _iterator3()).done;) {
+            var focus = _step3.value;
             if (focus && isValid(focus, true)) {
               a.stopTweens(focus);
               focus.removeFromParent();
@@ -57916,8 +58692,8 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             parent = this.a.root;
           }
           if (parent.name === name) return parent;
-          for (var _iterator3 = _createForOfIteratorHelperLoose(parent.children), _step3; !(_step3 = _iterator3()).done;) {
-            var child = _step3.value;
+          for (var _iterator4 = _createForOfIteratorHelperLoose(parent.children), _step4; !(_step4 = _iterator4()).done;) {
+            var child = _step4.value;
             var found = this.find(name, child);
             if (found) return found;
           }
@@ -58029,7 +58805,7 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
             var a = _this9.a,
               guide = _this9.find('tutorial-guide-root'),
               guided = _this9.active || (a.modal ? !!_this9.popupTarget : !!_this9.inputTarget);
-            if (!guided || a.feedback.showing || _this9.practiceTopic && !_this9.active) return;
+            if (a.bossEntrance.active || !guided || a.feedback.showing || _this9.practiceTopic && !_this9.active) return;
             if (a.placement.dragging) return;
             var loc = e.getUILocation(),
               point = new Vec3(loc.x, loc.y, 0),
@@ -58093,8 +58869,8 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
           var target = null,
             best = Infinity;
           var search = function search(parent) {
-            for (var _iterator4 = _createForOfIteratorHelperLoose(parent.children), _step4; !(_step4 = _iterator4()).done;) {
-              var child = _step4.value;
+            for (var _iterator5 = _createForOfIteratorHelperLoose(parent.children), _step5; !(_step5 = _iterator5()).done;) {
+              var child = _step5.value;
               if (!child.activeInHierarchy || child.name.startsWith('guide-') || child.name === 'tutorial-guide-root') continue;
               if (child.name === 'ui-button' || /^tab-\d+$/.test(child.name)) {
                 var pos = rootTransform.convertToNodeSpaceAR(child.worldPosition),
@@ -58816,7 +59592,7 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
                     return _this.loadFrame('shop/' + key, 0, false, 'military/shop/' + key);
                   }), AREA_TRANSITION_ART.map(function (key) {
                     return _this.loadFrame('transition/' + key, 0, false, 'military/transition/' + key);
-                  }), Array.from({
+                  }), [this.loadFrame('title/assembly-ground', 0, false, 'military/title/assembly-ground')], Array.from({
                     length: 18
                   }, function (_, i) {
                     return _this.loadFrame('icons/talent-' + i, 0, false, 'military/talents/' + i);
