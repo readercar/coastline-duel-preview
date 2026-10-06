@@ -3845,8 +3845,8 @@ System.register("chunks:///_virtual/Expansion.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './RewardClaims.ts', './Mercenaries.ts', './EntryPolicy.ts', './LiveOps.ts', './Balance.ts', './UITheme.ts', './Expansion.ts', './Amount.ts', './I18n.ts'], function (exports) {
-  var _extends, _asyncToGenerator, _regeneratorRuntime, _createClass, _createForOfIteratorHelperLoose, cclegacy, UITransform, tween, Vec3, rewardDelta, attackSeconds, featureUnlocked, mailExpiry, GROWTH_STATS, gemstoneSlots, gemstoneBonus, UI, Expansion, display, t;
+System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SkillCatalog.ts', './SkillUI.ts', './RewardClaims.ts', './Mercenaries.ts', './EntryPolicy.ts', './LiveOps.ts', './Balance.ts', './UITheme.ts', './Expansion.ts', './Amount.ts', './I18n.ts'], function (exports) {
+  var _extends, _asyncToGenerator, _regeneratorRuntime, _createClass, _createForOfIteratorHelperLoose, cclegacy, UITransform, tween, Vec3, talentIcon, heroSkillIcon, talentHelp, rewardDelta, attackSeconds, featureUnlocked, mailExpiry, GROWTH_STATS, gemstoneSlots, gemstoneBonus, UI, Expansion, display, t;
   return {
     setters: [function (module) {
       _extends = module.extends;
@@ -3859,6 +3859,11 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
       UITransform = module.UITransform;
       tween = module.tween;
       Vec3 = module.Vec3;
+    }, function (module) {
+      talentIcon = module.talentIcon;
+      heroSkillIcon = module.heroSkillIcon;
+    }, function (module) {
+      talentHelp = module.talentHelp;
     }, function (module) {
       rewardDelta = module.rewardDelta;
     }, function (module) {
@@ -4788,10 +4793,11 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
           }, function (_, i) {
             return {
               title: _this17.tr("branch." + i),
-              sub: _this17.tr('extra.buildRow', {
-                levels: s.skills.slice(i * 3, i * 3 + 3).join(' / '),
-                damage: _this17.a.format(_this17.g.tapDamage())
-              }),
+              icon: i,
+              art: talentIcon(i * 3),
+              sub: talentHelp(_this17.a, i * 3, s.skills.slice(i * 3, i * 3 + 3).reduce(function (n, l) {
+                return n + l;
+              }, 0)),
               action: _this17.tr('action.details'),
               click: function click() {
                 return _this17.a.skills();
@@ -4913,15 +4919,17 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             seconds: attackSeconds(i)
           }), 0, 85, 370, 28, 13);
           var values = [this.g.s.run.heroes[i], this.x.ascensions[i], this.x.heroSkills[i], this.g.s.weapons[i], this.g.s.scrolls[i]],
-            icons = ['symbol:up', 'rebirth', 'lightning', 'sword', 'scroll'];
+            icons = ['symbol:up', 'rebirth', heroSkillIcon(i), 'sword', 'scroll'];
           var boost = (1 + values[3] + values[4] * .5).toFixed(2),
             target = [10, 25, 50, 100, 200, 400, 800][values[2]],
             hints = [this.tr('ui.help.heroLevel', {
               level: values[0]
             }), this.tr('ui.help.heroAscend', {
               count: values[1]
-            }), this.tr('ui.help.heroSkill', {
+            }), this.tr('training.help', {
+              weapon: this.tr('merc.weapon.' + i),
               count: values[2],
+              factor: Math.pow(1.5, values[2]).toFixed(2),
               next: target ? this.tr('action.level', {
                 level: target
               }) : this.tr('action.maxReached')
@@ -4943,6 +4951,8 @@ System.register("chunks:///_virtual/ExpansionUI.ts", ['./rollupPluginModLoBabelH
             });
           }, true, {
             category: 'upgrade',
+            icon: heroSkillIcon(i),
+            iconSize: 30,
             unavailable: function unavailable() {
               var next = [10, 25, 50, 100, 200, 400, 800][_this20.x.heroSkills[i]];
               return !next ? _this20.tr('action.maxReached') : a.progressReason(_this20.tr('action.heroLevel'), _this20.g.s.run.heroes[i], next) || a.costReason('gold', _this20.g.upgradeCost(i, 5));
@@ -7178,8 +7188,8 @@ System.register("chunks:///_virtual/FeatureLessons.ts", ['cc'], function (export
   };
 });
 
-System.register("chunks:///_virtual/Feedback.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Amount.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _extends, _createClass, cclegacy, ZERO, sub;
+System.register("chunks:///_virtual/Feedback.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SkillCatalog.ts', './Amount.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _extends, _createClass, cclegacy, talentIcon, tacticIcon, heroSkillIcon, ZERO, sub;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -7187,6 +7197,10 @@ System.register("chunks:///_virtual/Feedback.ts", ['./rollupPluginModLoBabelHelp
       _createClass = module.createClass;
     }, function (module) {
       cclegacy = module.cclegacy;
+    }, function (module) {
+      talentIcon = module.talentIcon;
+      tacticIcon = module.tacticIcon;
+      heroSkillIcon = module.heroSkillIcon;
     }, function (module) {
       ZERO = module.ZERO;
       sub = module.sub;
@@ -7290,8 +7304,8 @@ System.register("chunks:///_virtual/Feedback.ts", ['./rollupPluginModLoBabelHelp
         var levelArray = function levelArray(name, values, key, icon) {
           return values.forEach(function (value, i) {
             return levels[name + ':' + i] = {
-              key: key === 'hero' ? 'hero.' + i : key,
-              icon: icon,
+              key: key === 'hero' ? 'hero.' + i : name === 'spells' ? 'spell.' + i : key,
+              icon: name === 'skills' ? talentIcon(i) : name === 'spells' ? tacticIcon(i) : name === 'heroSkills' ? heroSkillIcon(i) : icon,
               value: value,
               args: {
                 index: i + 1
@@ -42491,8 +42505,8 @@ System.register("chunks:///_virtual/Game.ts", ['./rollupPluginModLoBabelHelpers.
   };
 });
 
-System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './ExplorationUI.ts', './SkillTrainingUI.ts', './EquipmentUI.ts', './Enemies.ts', './env', './EnemyArtBounds.ts', './RewardClaimUI.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './DroneFeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
-  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, Sprite, ScrollView, BlockInputEvents, resources, Texture2D, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, explorationEntry, explorationBoard, skillTree, skillDetail, equipmentIdentity, equipmentStats, equipmentHelp, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, RewardClaimUI, SquadUI, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, DroneFeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
+System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SkillCatalog.ts', './SkillUI.ts', './ExplorationUI.ts', './SkillTrainingUI.ts', './EquipmentUI.ts', './Enemies.ts', './env', './EnemyArtBounds.ts', './RewardClaimUI.ts', './SquadUI.ts', './BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './ShopUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './Squad.ts', './MotionBounds.ts', './CombatMotion.ts', './EnemyHitFeedback.ts', './Mercenaries.ts', './BattleFormation.ts', './CheatUI.ts', './FeedbackUI.ts', './DroneFeedbackUI.ts', './Game.ts', './Amount.ts', './Config.ts', './I18n.ts', './ExpansionUI.ts', './Monetization.ts', './MonetizationUI.ts', './OperationsClient.ts', './LiveOpsUI.ts', './EntryUI.ts', './TutorialUI.ts', './EntryPolicy.ts', './Online.ts', './FirebaseCloud.ts', './NativeServices.ts', './UITheme.ts'], function (exports) {
+  var _inheritsLoose, _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, _extends, _createClass, _assertThisInitialized, cclegacy, _decorator, view, input, Input, KeyCode, Color, Node, Layers, UITransform, Graphics, Label, isValid, Tween, tween, Vec3, UIOpacity, Mask, Sprite, ScrollView, BlockInputEvents, resources, Texture2D, SpriteFrame, EditBox, screen, ResolutionPolicy, sys, Component, profiler, tacticIcon, tacticHelp, tacticManager, tacticDetail, explorationEntry, explorationBoard, skillTree, skillDetail, equipmentIdentity, equipmentStats, equipmentHelp, enemyType, EDITOR, DEBUG, ENEMY_HIT_POINTS, RewardClaimUI, SquadUI, BattlePlacementUI, BattleTransitionUI, BossTimerUI, ShopUI, RewardGlowUI, SHOP_STYLE, squadRole, SQUAD_LIMIT, MOTION_LEFT, CombatMotion, enemyHitOffset, EnemyHitFeedback, mercenaryArt, attackSeconds, MELEE, mercenaryWeapon, battlefieldOffset, allyPosition, SOLDIER_SIZE, battleDensityScale, waveSize, partyBattlefieldLayout, bossSize, soldierSize, enemyFormation, CheatUI, FeedbackUI, DroneFeedbackUI, Game, display, ZERO, ratio, add, fmt, HEROES, SKILLS, SPELLS, PETS, ARTIFACTS, CARDS, t, matchesTranslation, ExpansionUI, AUTO_FIRE_INTERVAL, Monetization, rewardedAdMode, MonetizationUI, OperationsClient, LiveOpsUI, EntryUI, TutorialUI, tabUnlocked, featureUnlocked, replayTutorial, designHeight, TAB_STAGES, Online, FirebaseCloud, FirebaseCommerce, AdMobRewarded, BUTTON_CATEGORY_KEYS, BUTTON_TONES, contrastInk, ICON_HELP_KEYS, BLOCKED_NOTICE, UI, SQUAD_ROLE_STYLE, UITheme, BUTTON_COMPLETED_KEYS, BUTTON_STATE_TONES;
   return {
     setters: [function (module) {
       _inheritsLoose = module.inheritsLoose;
@@ -42533,6 +42547,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
       sys = module.sys;
       Component = module.Component;
       profiler = module.profiler;
+    }, function (module) {
+      tacticIcon = module.tacticIcon;
+    }, function (module) {
+      tacticHelp = module.tacticHelp;
+      tacticManager = module.tacticManager;
+      tacticDetail = module.tacticDetail;
     }, function (module) {
       explorationEntry = module.explorationEntry;
       explorationBoard = module.explorationBoard;
@@ -42965,8 +42985,6 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
         _proto.button = function button(parent, text, x, y, w, h, action, accent, options) {
           var _this2 = this,
             _options$iconOnly,
-            _options$icon,
-            _options$icon2,
             _this$tutorial2;
           if (accent === void 0) {
             accent = false;
@@ -43025,7 +43043,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               return _this2.tr(key) === text;
             }),
             iconOnly = (_options$iconOnly = options.iconOnly) != null ? _options$iconOnly : text === '×' || key === 'layout.collapse' || key === 'layout.expand';
-          var icon = (iconOnly || (_options$icon = options.icon) != null && _options$icon.startsWith('symbol:') || (_options$icon2 = options.icon) != null && _options$icon2.startsWith('shop:') ? options.icon : undefined) || (text === '×' ? 'symbol:close' : iconOnly && key ? symbols[key] : undefined);
+          var icon = (iconOnly || /^(symbol|shop|tactic|talent|training):/.test(options.icon || '') ? options.icon : undefined) || (text === '×' ? 'symbol:close' : iconOnly && key ? symbols[key] : undefined);
           var claimable = text === this.tr('action.claim') || text === this.tr('action.claimReady');
           var n = this.nodeAt(parent, 'ui-button', x, y, w, h);
           n.name = 'ui-button';
@@ -43604,18 +43622,28 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                   _this8.flushNotice();
                 }, false, {
                   category: 'battle',
+                  hint: tacticHelp(_this8, id),
                   unavailable: function unavailable() {
                     return _this8.spellReason(id);
                   }
                 });
-              var art = _this8.nodeAt(n, 'spell-art', 0, 9, 28, 28);
-              _this8.ui.icon(art, ['lightning', 'heart', 'adventurer', 'sword', 'flag', 'scroll'][i]);
+              var art = _this8.nodeAt(n, 'spell-art', 0, 12, 26, 26);
+              _this8.ui.icon(art, tacticIcon(id));
               if (!ready) {
                 art.addComponent(UIOpacity).opacity = 65;
                 _this8.lockIcon(n, 24, 15);
               }
+              _this8.label(n, _this8.tr('tactic.short.' + id), 0, -7, 70, 16, 11).node.name = 'current-tactic-name';
+              n.name = 'current-tactic-' + id;
+              var active = _this8.rect(n, 0, 28, 52, 2, C.mint);
+              _this8.buttonStates.push({
+                node: active,
+                refresh: function refresh() {
+                  active.active = _this8.game.s.run.spells[id] > 0;
+                }
+              });
               _this8.spellShown.push(id);
-              _this8.spellLabels.push(_this8.label(n, '', 0, -20, 70, 22, 10));
+              _this8.spellLabels.push(_this8.label(n, '', 0, -23, 70, 16, 10));
             });
           } else {
             this.rect(lower, 0, -105, 480, 56, C.bg);
@@ -44750,16 +44778,21 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               r.render(card);
               return;
             }
-            if (r.locked && !r.mercenary) {
+            if (r.locked && !r.mercenary && !r.revealLockedArt) {
               _this23.lockIcon(card, -w / 2 + 35, 0);
             }
             if (r.tint && !r.locked && !r.mercenary) _this23.polygon(card, -w / 2 + 33, 0, 48, 48, [[0, -.5], [.5, 0], [0, .5], [-.5, 0]], r.tint, 90);
-            if (r.mercenary) _this23.squadUI.profile(card, r.mercenary.id, -w / 2 + 43, 0, 72, r.mercenary.assigned, !!r.locked);else if (r.icon !== undefined && !r.locked) {
+            if (r.mercenary) _this23.squadUI.profile(card, r.mercenary.id, -w / 2 + 43, 0, 72, r.mercenary.assigned, !!r.locked);else if (r.icon !== undefined && (!r.locked || r.revealLockedArt)) {
               if (shopStyle) {
                 var art = _this23.nodeAt(card, 'item-art', -w / 2 + 39, 0, 56, 56);
                 _this23.ui.surface(art, shopStyle.accent, 'cut');
                 _this23.ui.icon(_this23.nodeAt(art, 'glyph', 0, 0, 50, 50), r.art);
               } else _this23.glyph(card, -w / 2 + 35, 0, r.icon, r.tint || C.gold, r.art);
+            }
+            if (r.locked && r.revealLockedArt) {
+              var _art = card.getChildByName('item-art');
+              if (_art) _art.addComponent(UIOpacity).opacity = 100;
+              _this23.lockIcon(card, -w / 2 + 51, -18);
             }
             if (r.badge && !r.mercenary) {
               var badge = _this23.nodeAt(card, 'role-badge', -w / 2 + 65, 0, 22, 22);
@@ -44939,8 +44972,12 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
               })) == null ? void 0 : _SPELLS$find.id);
             }).map(function (sp) {
               return {
+                revealLockedArt: true,
                 locked: r.master < sp.unlock,
-                title: _this24.tr("spell." + sp.id),
+                title: _this24.tr("spell." + sp.id) + (_this24.game.s.spellSlots.includes(sp.id) ? ' · ' + _this24.tr('tactic.assigned', {
+                  slot: _this24.game.s.spellSlots.indexOf(sp.id) + 1
+                }) : ''),
+                tint: _this24.game.s.spellSlots.includes(sp.id) ? C.mint : C.violet,
                 metrics: [{
                   icon: r.master < sp.unlock ? 'lock' : 'symbol:up',
                   value: String(r.master < sp.unlock ? sp.unlock : r.spellLevels[sp.id]),
@@ -44956,12 +44993,13 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                     cost: _this24.game.spellMana(sp.id)
                   })
                 }],
+                art: tacticIcon(sp.id),
                 icon: sp.id,
                 action: _this24.tr(r.master < sp.unlock ? 'action.level' : 'action.details', {
                   level: sp.unlock
                 }),
                 click: function click() {
-                  return _this24.spells(_this24.game.s.spellSlots.indexOf(sp.id) < 0 ? 0 : _this24.game.s.spellSlots.indexOf(sp.id));
+                  return _this24.spellDetail(sp.id, Math.max(0, _this24.game.s.spellSlots.indexOf(sp.id)));
                 }
               };
             }));
@@ -46578,80 +46616,24 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           });
         };
         _proto.spells = function spells(slot) {
-          var _this53 = this;
           if (slot === void 0) {
             slot = 0;
           }
-          var s = this.game.s,
-            p = this.open(this.tr('spell.title'), 715);
-          var _loop8 = function _loop8(j) {
-            _this53.button(p, String(j + 1), -165 + j * 66, 260, 60, 40, function () {
-              return _this53.spells(j);
-            }, j === slot, {
-              category: 'battle',
-              style: j === slot ? 'selected' : 'secondary'
-            });
-          };
-          for (var j = 0; j < 6; j++) {
-            _loop8(j);
+          tacticManager(this, slot);
+        };
+        _proto.spellDetail = function spellDetail(id, slot) {
+          if (slot === void 0) {
+            slot = 0;
           }
-          this.scroll(p, 0, -24, 400, 490, SPELLS.filter(function (c) {
-            var _SPELLS$find2;
-            return s.run.master >= c.unlock || c.id === ((_SPELLS$find2 = SPELLS.find(function (c) {
-              return s.run.master < c.unlock;
-            })) == null ? void 0 : _SPELLS$find2.id);
-          }).map(function (c) {
-            return {
-              locked: s.run.master < c.unlock,
-              title: _this53.tr("spell." + c.id),
-              sub: _this53.tr('spell.detail', {
-                level: s.run.spellLevels[c.id],
-                unlock: c.unlock,
-                mana: _this53.game.spellMana(c.id)
-              }),
-              icon: c.id,
-              tint: C.violet,
-              action: _this53.tr(s.spellSlots.includes(c.id) ? 'action.details' : 'action.select'),
-              click: function click() {
-                if (s.spellSlots.includes(c.id)) {
-                  var box = _this53.open(_this53.tr("spell." + c.id), 400);
-                  _this53.label(box, _this53.tr('spell.detail', {
-                    level: s.run.spellLevels[c.id],
-                    unlock: c.unlock,
-                    mana: _this53.game.spellMana(c.id)
-                  }), 0, 70, 375, 70, 20);
-                  _this53.label(box, _this53.tr('spell.multicast'), 0, 0, 375, 60, 16, C.muted);
-                  _this53.button(box, _this53.tr('action.upgrade'), 0, -106, 360, 50, function () {
-                    if (_this53.game.upgradeSpell(c.id)) {
-                      _this53.close();
-                      _this53.drawPanel();
-                      _this53.spells(slot);
-                    } else _this53.flushNotice();
-                  }, true, {
-                    unavailable: function unavailable() {
-                      return s.run.spellLevels[c.id] >= c.cap ? _this53.tr('action.maxReached') : s.run.master < c.unlock ? _this53.tr('action.needLevel', {
-                        level: c.unlock
-                      }) : _this53.costReason('gold', _this53.game.spellUpgradeCost(c.id));
-                    }
-                  });
-                } else _this53.confirm(_this53.tr('spell.title'), _this53.tr('spell.swap'), function () {
-                  if (_this53.game.selectSpell(slot, c.id)) {
-                    _this53.close();
-                    _this53.draw();
-                    _this53.spells(slot);
-                  } else _this53.flushNotice();
-                });
-              }
-            };
-          }));
+          tacticDetail(this, id, slot);
         };
         _proto.skillNode = function skillNode(i) {
           skillDetail(this, i);
         };
         _proto.artifactDetail = function artifactDetail(i) {
-          var _this54 = this;
+          var _this53 = this;
           if (this.tutorial.explain('intel', function () {
-            return _this54.artifactDetail(i);
+            return _this53.artifactDetail(i);
           })) return;
           this.tutorial.finishPractice('intel');
           this.tutorial.complete('first:artifact');
@@ -46672,190 +46654,190 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.button(p, this.tr('intel.upgrade', {
             cost: this.formatIntel(this.game.artifactCost(i))
           }), 0, -49, 370, 54, function () {
-            return _this54.act(function () {
-              return _this54.game.upgradeArtifact(i, _this54.id('artifact'));
+            return _this53.act(function () {
+              return _this53.game.upgradeArtifact(i, _this53.id('artifact'));
             }, function () {
-              _this54.drawPanel();
-              _this54.artifactDetail(i);
+              _this53.drawPanel();
+              _this53.artifactDetail(i);
             });
           }, true, {
             fontSize: 18,
             unavailable: function unavailable() {
-              return _this54.costReason('relics', _this54.game.artifactCost(i));
+              return _this53.costReason('relics', _this53.game.artifactCost(i));
             }
           }).name = 'intel-upgrade';
           this.button(p, this.tr('artifact.salvage'), -96, -129, 178, 54, function () {
-            return _this54.confirm(_this54.tr('artifact.salvage'), _this54.tr('artifact.salvageInfo'), function () {
-              return _this54.act(function () {
-                return _this54.game.salvageArtifact(i, _this54.id('salvage'));
+            return _this53.confirm(_this53.tr('artifact.salvage'), _this53.tr('artifact.salvageInfo'), function () {
+              return _this53.act(function () {
+                return _this53.game.salvageArtifact(i, _this53.id('salvage'));
               }, function () {
-                _this54.close();
-                _this54.drawPanel();
+                _this53.close();
+                _this53.drawPanel();
               });
             });
           }, false, {
             style: 'danger',
             unavailable: function unavailable() {
-              return s.enchanted[i] ? _this54.tr('error.protected') : _this54.costReason('gems', 20);
+              return s.enchanted[i] ? _this53.tr('error.protected') : _this53.costReason('gems', 20);
             }
           });
           this.button(p, this.tr('intel.enchantButton'), 96, -129, 178, 54, function () {
-            return _this54.act(function () {
-              return _this54.game.enchantArtifact(i, _this54.id('enchant'));
+            return _this53.act(function () {
+              return _this53.game.enchantArtifact(i, _this53.id('enchant'));
             }, function () {
-              return _this54.artifactDetail(i);
+              return _this53.artifactDetail(i);
             });
           }, false, {
             hint: this.tr('artifact.enchantInfo'),
             unavailable: function unavailable() {
-              return s.enchanted[i] ? _this54.tr('action.alreadyApplied') : !s.artifacts.every(function (v) {
+              return s.enchanted[i] ? _this53.tr('action.alreadyApplied') : !s.artifacts.every(function (v) {
                 return v > 0;
-              }) ? _this54.tr('artifact.enchantInfo') : _this54.costReason('relics', 3);
+              }) ? _this53.tr('artifact.enchantInfo') : _this53.costReason('relics', 3);
             }
           });
           this.button(p, this.tr('learn.open'), -96, -226, 178, 44, function () {
-            return _this54.tutorial.explain('intel', function () {
-              return _this54.artifactDetail(i);
+            return _this53.tutorial.explain('intel', function () {
+              return _this53.artifactDetail(i);
             }, true);
           }, false).name = 'intel-detail-help';
           this.button(p, this.tr('intel.details'), 96, -226, 178, 44, function () {
-            var body = _this54.tr('intel.detailBody', {
-              name: _this54.tr('artifact.' + i),
+            var body = _this53.tr('intel.detailBody', {
+              name: _this53.tr('artifact.' + i),
               effect: effect,
-              current: _this54.artifactMultiplier(i),
-              next: _this54.artifactMultiplier(i, 1),
-              cost: _this54.formatIntel(_this54.game.artifactCost(i)),
-              points: _this54.formatIntel(s.relics)
+              current: _this53.artifactMultiplier(i),
+              next: _this53.artifactMultiplier(i, 1),
+              cost: _this53.formatIntel(_this53.game.artifactCost(i)),
+              points: _this53.formatIntel(s.relics)
             });
-            var detail = _this54.open(_this54.tr('intel.details'), 550, true, 'teal', false, function () {
-              return _this54.artifactDetail(i);
+            var detail = _this53.open(_this53.tr('intel.details'), 550, true, 'teal', false, function () {
+              return _this53.artifactDetail(i);
             });
-            _this54.label(detail, body, 0, 5, 374, 340, 17, C.text);
-            _this54.button(detail, _this54.tr('action.back'), 0, -211, 370, 44, function () {
-              return _this54.artifactDetail(i);
+            _this53.label(detail, body, 0, 5, 374, 340, 17, C.text);
+            _this53.button(detail, _this53.tr('action.back'), 0, -211, 370, 44, function () {
+              return _this53.artifactDetail(i);
             });
           }, false);
         };
         _proto.salvaged = function salvaged() {
-          var _this55 = this;
+          var _this54 = this;
           var p = this.open(this.tr('artifact.salvaged'), 600);
           this.scroll(p, 0, -24, 400, 480, this.game.s.salvaged.map(function (i) {
             return {
-              title: _this55.tr("artifact." + i),
-              sub: _this55.tr('artifact.rebuyInfo'),
+              title: _this54.tr("artifact." + i),
+              sub: _this54.tr('artifact.rebuyInfo'),
               unavailable: function unavailable() {
-                return _this55.costReason('gems', 25);
+                return _this54.costReason('gems', 25);
               },
               icon: i,
-              action: _this55.tr('action.buy'),
+              action: _this54.tr('action.buy'),
               click: function click() {
-                return _this55.act(function () {
-                  return _this55.game.rebuyArtifact(i, _this55.id('rebuy'));
+                return _this54.act(function () {
+                  return _this54.game.rebuyArtifact(i, _this54.id('rebuy'));
                 }, function () {
-                  _this55.drawPanel();
-                  _this55.salvaged();
+                  _this54.drawPanel();
+                  _this54.salvaged();
                 });
               }
             };
           }));
         };
         _proto.equipmentTools = function equipmentTools() {
-          var _this56 = this;
+          var _this55 = this;
           var p = this.open(this.tr('nav.equipment'), 460);
           [['registry.title', function () {
-            return _this56.squadUI.registry();
+            return _this55.squadUI.registry();
           }], ['equipment.sets', function () {
-            return _this56.sets();
+            return _this55.sets();
           }], ['equipment.bulk', function () {
-            return _this56.confirm(_this56.tr('equipment.bulk'), _this56.tr('equipment.bulkInfo'), function () {
-              return _this56.act(function () {
-                return _this56.game.sell(_this56.game.s.equipment.filter(function (e) {
-                  return !e.locked && !_this56.game.s.equipped.includes(e.id);
+            return _this55.confirm(_this55.tr('equipment.bulk'), _this55.tr('equipment.bulkInfo'), function () {
+              return _this55.act(function () {
+                return _this55.game.sell(_this55.game.s.equipment.filter(function (e) {
+                  return !e.locked && !_this55.game.s.equipped.includes(e.id);
                 }).map(function (e) {
                   return e.id;
-                }), _this56.id('bulk'));
+                }), _this55.id('bulk'));
               }, function () {
-                _this56.close();
-                _this56.drawPanel();
+                _this55.close();
+                _this55.drawPanel();
               });
             });
           }], ['equipment.transmog', function () {
-            return _this56.transmog();
+            return _this55.transmog();
           }]].forEach(function (v, i) {
-            return _this56.button(p, _this56.tr(v[0]), 0, 114 - i * 96, 375, 60, v[1], false, {
+            return _this55.button(p, _this55.tr(v[0]), 0, 114 - i * 96, 375, 60, v[1], false, {
               unavailable: i === 2 ? function () {
-                return _this56.game.s.equipment.some(function (e) {
-                  return !e.locked && !_this56.game.s.equipped.includes(e.id);
-                }) ? null : _this56.tr('extra.noSellable');
+                return _this55.game.s.equipment.some(function (e) {
+                  return !e.locked && !_this55.game.s.equipped.includes(e.id);
+                }) ? null : _this55.tr('extra.noSellable');
               } : undefined
             });
           });
         };
         _proto.transmog = function transmog() {
-          var _this57 = this;
+          var _this56 = this;
           var p = this.open(this.tr('equipment.transmog'), 650);
           this.scroll(p, 0, -24, 400, 520, this.game.s.equipment.map(function (e) {
             return {
-              title: _this57.itemName(e),
+              title: _this56.itemName(e),
               icon: e.slot,
               unavailable: function unavailable() {
-                return _this57.game.s.appearance[e.slot] === e.id ? _this57.tr('action.alreadyApplied') : null;
+                return _this56.game.s.appearance[e.slot] === e.id ? _this56.tr('action.alreadyApplied') : null;
               },
-              action: _this57.tr(_this57.game.s.appearance[e.slot] === e.id ? 'action.selected' : 'action.apply'),
+              action: _this56.tr(_this56.game.s.appearance[e.slot] === e.id ? 'action.selected' : 'action.apply'),
               click: function click() {
-                return _this57.act(function () {
-                  return _this57.game.transmog(e.slot, e.id, _this57.id('transmog'));
+                return _this56.act(function () {
+                  return _this56.game.transmog(e.slot, e.id, _this56.id('transmog'));
                 }, function () {
-                  _this57.close();
-                  _this57.draw();
+                  _this56.close();
+                  _this56.draw();
                 });
               }
             };
           }));
         };
         _proto.achievements = function achievements() {
-          var _this58 = this;
+          var _this57 = this;
           var p = this.open(this.tr('achievement.title'), 570);
           this.scroll(p, 0, -24, 400, 450, [0, 1, 2, 3].map(function (i) {
             return {
-              title: _this58.tr("achievement." + i),
+              title: _this57.tr("achievement." + i),
               sub: function sub() {
-                return _this58.tr('daily.progress', {
-                  current: _this58.game.achievementProgress(i),
-                  goal: _this58.game.achievementGoal(i)
+                return _this57.tr('daily.progress', {
+                  current: _this57.game.achievementProgress(i),
+                  goal: _this57.game.achievementGoal(i)
                 });
               },
               unavailable: function unavailable() {
-                return _this58.rewardReason(_this58.tr("achievement." + i), _this58.game.achievementProgress(i), _this58.game.achievementGoal(i));
+                return _this57.rewardReason(_this57.tr("achievement." + i), _this57.game.achievementProgress(i), _this57.game.achievementGoal(i));
               },
               icon: i,
               tint: C.gold,
-              action: _this58.tr('action.claim'),
+              action: _this57.tr('action.claim'),
               click: function click() {
-                return _this58.rewards.local(_this58.tr('achievement.' + i), 'achievement:' + i + ':' + _this58.game.s.achievements[i], function (g) {
-                  return g.claimAchievement(i, _this58.id('achievement'));
+                return _this57.rewards.local(_this57.tr('achievement.' + i), 'achievement:' + i + ':' + _this57.game.s.achievements[i], function (g) {
+                  return g.claimAchievement(i, _this57.id('achievement'));
                 }, function () {
-                  return _this58.achievements();
+                  return _this57.achievements();
                 });
               }
             };
           }));
         };
         _proto.globalRaid = function globalRaid() {
-          var _this59 = this;
+          var _this58 = this;
           void this.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10() {
             var data;
             return _regeneratorRuntime().wrap(function _callee10$(_context10) {
               while (1) switch (_context10.prev = _context10.next) {
                 case 0:
                   _context10.next = 2;
-                  return _this59.onlineService.connect(_this59.tr('online.defaultName'));
+                  return _this58.onlineService.connect(_this58.tr('online.defaultName'));
                 case 2:
                   _context10.next = 4;
-                  return _this59.onlineService.request('/global');
+                  return _this58.onlineService.request('/global');
                 case 4:
                   data = _context10.sent;
-                  _this59.globalRaidPanel(data);
+                  _this58.globalRaidPanel(data);
                 case 6:
                 case "end":
                   return _context10.stop();
@@ -46864,22 +46846,22 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           })));
         };
         _proto.globalRaidPanel = function globalRaidPanel(data) {
-          var _this60 = this;
+          var _this59 = this;
           var p = this.open(this.tr('extra.globalRaid'), 450);
           this.label(p, this.tr('online.guildHP', {
             hp: display(data.hp)
           }), 0, 90, 375, 70, 24);
           this.button(p, this.tr('action.attack'), 0, -65, 375, 60, function () {
-            void _this60.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
+            void _this59.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
               var next;
               return _regeneratorRuntime().wrap(function _callee11$(_context11) {
                 while (1) switch (_context11.prev = _context11.next) {
                   case 0:
                     _context11.next = 2;
-                    return _this60.onlineService.command('/global/attack');
+                    return _this59.onlineService.command('/global/attack');
                   case 2:
                     next = _context11.sent;
-                    _this60.globalRaidPanel(next);
+                    _this59.globalRaidPanel(next);
                   case 4:
                   case "end":
                     return _context11.stop();
@@ -46888,32 +46870,32 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             })));
           }, true, {
             unavailable: function unavailable() {
-              return data.hp <= 0 ? _this60.tr('online.raidComplete') : null;
+              return data.hp <= 0 ? _this59.tr('online.raidComplete') : null;
             }
           });
         };
         _proto.eventRanks = function eventRanks() {
-          var _this61 = this;
+          var _this60 = this;
           void this.remote( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12() {
             var rows, p;
             return _regeneratorRuntime().wrap(function _callee12$(_context12) {
               while (1) switch (_context12.prev = _context12.next) {
                 case 0:
                   _context12.next = 2;
-                  return _this61.onlineService.connect(_this61.tr('online.defaultName'));
+                  return _this60.onlineService.connect(_this60.tr('online.defaultName'));
                 case 2:
                   _context12.next = 4;
-                  return _this61.onlineService.request('/global/ranks');
+                  return _this60.onlineService.request('/global/ranks');
                 case 4:
                   rows = _context12.sent;
-                  p = _this61.open(_this61.tr('extra.eventRanks'), 660);
-                  _this61.scroll(p, 0, -25, 400, 530, rows.map(function (r, i) {
+                  p = _this60.open(_this60.tr('extra.eventRanks'), 660);
+                  _this60.scroll(p, 0, -25, 400, 530, rows.map(function (r, i) {
                     return {
-                      title: _this61.tr('online.rank', {
+                      title: _this60.tr('online.rank', {
                         rank: i + 1,
                         name: r.name
                       }),
-                      sub: _this61.tr('extra.contribution', {
+                      sub: _this60.tr('extra.contribution', {
                         value: r.damage
                       })
                     };
@@ -46938,7 +46920,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           return !!this.game && !!((_this$entry = this.entry) != null && _this$entry.playing) && this.game.s.maxStage >= 3 && this.game.fairyReady() && this.operations.ready && !this.operations.busy && !this.operations.conflict && !this.remoteBusy && !this.feedback.asyncPending && !this.liveOps.blocked;
         };
         _proto.updateHUD = function updateHUD() {
-          var _this62 = this;
+          var _this61 = this;
           var g = this.game,
             r = g.s.run;
           this.equipmentPile.active = g.s.extra.unseenEquipment.length > 0;
@@ -46948,7 +46930,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.fairy.active = this.fairyClaimReady();
           this.stageLabel.string = String(this.zoneTransition.displayedStage || r.stage);
           this.stageNeighbors.forEach(function (l, i) {
-            return l.string = String(Math.max(1, (_this62.zoneTransition.displayedStage || r.stage) + (i ? 1 : -1)));
+            return l.string = String(Math.max(1, (_this61.zoneTransition.displayedStage || r.stage) + (i ? 1 : -1)));
           });
           this.enemyLabel.string = this.tr('battle.wave', {
             count: g.enemyHealth().filter(function (h) {
@@ -46977,8 +46959,8 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           var l = this.bossButton.getComponentInChildren(Label);
           if (l) l.string = this.tr(r.boss ? 'battle.leave' : 'battle.fight');
           this.spellLabels.forEach(function (l, slot) {
-            var i = _this62.spellShown[slot];
-            l.string = r.master < SPELLS[i].unlock ? String(SPELLS[i].unlock) : r.cooldowns[i] > 0 ? String(Math.ceil(r.cooldowns[i])) : '✓';
+            var i = _this61.spellShown[slot];
+            l.string = r.master < SPELLS[i].unlock ? String(SPELLS[i].unlock) : i !== 0 && r.spells[i] > 0 ? Math.ceil(r.spells[i]) + 's ×' + r.stacks[i] : r.cooldowns[i] > 0 ? Math.ceil(r.cooldowns[i]) + 's' : '✓';
           });
         };
         _proto.canAttack = function canAttack() {
@@ -47071,11 +47053,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           }).start();
         };
         _proto.spark = function spark(x, y, color) {
-          var _this63 = this;
+          var _this62 = this;
           var magic = color === C.violet;
           this.burst(magic ? 'ring' : 'impact', x, y, magic ? 92 : 66, magic ? .3 : .2);
-          var _loop9 = function _loop9() {
-            var n = _this63.combatSprite(magic ? 'shard' : 'sparkle', 'hit-particle', x, y, 12 + i % 3 * 3);
+          var _loop8 = function _loop8() {
+            var n = _this62.combatSprite(magic ? 'shard' : 'sparkle', 'hit-particle', x, y, 12 + i % 3 * 3);
             if (!n) return 1; // continue
             var angle = i * Math.PI / 3 + Math.random() * .3,
               opacity = n.addComponent(UIOpacity);
@@ -47089,7 +47071,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
             }).start();
           };
           for (var i = 0; i < 6; i++) {
-            if (_loop9()) continue;
+            if (_loop8()) continue;
           }
         };
         _proto.sound = function sound(frequency) {
@@ -47115,7 +47097,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           } catch (_unused) {}
         };
         _proto.toast = function toast(text, tone) {
-          var _this64 = this;
+          var _this63 = this;
           if (tone === void 0) {
             tone = 'normal';
           }
@@ -47127,11 +47109,11 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
           this.label(n, text, 0, 0, 404, 72, 16, C.text);
           tween(n).delay(3.2).call(function () {
             if (isValid(n, true)) n.destroy();
-            if (_this64.toastNode === n) _this64.toastNode = null;
+            if (_this63.toastNode === n) _this63.toastNode = null;
           }).start();
         };
         _proto.flushNotice = function flushNotice() {
-          var _this65 = this;
+          var _this64 = this;
           if (!this.modal && !this.tutorial.active && this.game.s.extra.unlockNotices.length) {
             var stage = this.game.s.extra.unlockNotices.shift();
             this.game.persist();
@@ -47149,7 +47131,7 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
                 sp: reward.count
               }
             }, function () {
-              return _this65.close();
+              return _this64.close();
             });else this.feedback.notice('complete.reward.' + reward.kind, {
               value: reward.value,
               count: reward.count,
@@ -47283,11 +47265,13 @@ System.register("chunks:///_virtual/GameApp.ts", ['./rollupPluginModLoBabelHelpe
   };
 });
 
-System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureLessons.ts', './Squad.ts', './Mercenaries.ts', './Dialogue.ts', './MilitaryTheme.ts'], function (exports) {
-  var cclegacy, applyEnemyText, applyLessonText, applySquadText, applyMercenaryText, applyDialogueText, applyMilitaryTheme;
+System.register("chunks:///_virtual/I18n.ts", ['cc', './SkillText.ts', './Enemies.ts', './FeatureLessons.ts', './Squad.ts', './Mercenaries.ts', './Dialogue.ts', './MilitaryTheme.ts'], function (exports) {
+  var cclegacy, applySkillText, applyEnemyText, applyLessonText, applySquadText, applyMercenaryText, applyDialogueText, applyMilitaryTheme;
   return {
     setters: [function (module) {
       cclegacy = module.cclegacy;
+    }, function (module) {
+      applySkillText = module.applySkillText;
     }, function (module) {
       applyEnemyText = module.applyEnemyText;
     }, function (module) {
@@ -49778,6 +49762,7 @@ System.register("chunks:///_virtual/I18n.ts", ['cc', './Enemies.ts', './FeatureL
         'drone.proc.2': 'Squad +{percent}%',
         'drone.procCount': ' · ×{count}'
       });
+      applySkillText(translations);
       cclegacy._RF.pop();
     }
   };
@@ -50344,9 +50329,9 @@ System.register("chunks:///_virtual/LiveOpsUI.ts", ['./rollupPluginModLoBabelHel
   };
 });
 
-System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './CheatUI.ts', './CombatMotion.ts', './DroneFeedbackUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardClaimUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillTrainingUI.ts', './SquadUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './Dialogue.ts', './DroneEffects.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './Squad.ts', './SquadName.ts', './firebase-sdk.js'], function () {
+System.register("chunks:///_virtual/main", ['./BattlePlacementUI.ts', './BattleTransitionUI.ts', './BossTimerUI.ts', './CheatUI.ts', './CombatMotion.ts', './DroneFeedbackUI.ts', './EnemyHitFeedback.ts', './EntryUI.ts', './EquipmentUI.ts', './ExpansionUI.ts', './ExplorationUI.ts', './FeedbackUI.ts', './FirebaseCloud.ts', './FirebaseConfig.ts', './GameApp.ts', './LiveOpsUI.ts', './MonetizationUI.ts', './NativeServices.ts', './OperationsClient.ts', './PushNotifications.ts', './RewardClaimUI.ts', './RewardGlowUI.ts', './ShopTheme.ts', './ShopUI.ts', './SkillIconArt.ts', './SkillTrainingUI.ts', './SkillUI.ts', './SquadUI.ts', './TutorialUI.ts', './UITheme.ts', './AllyPlacement.ts', './Amount.ts', './AreaTransition.ts', './Balance.ts', './BattleFormation.ts', './Config.ts', './Dialogue.ts', './DroneEffects.ts', './Enemies.ts', './EnemyArtBounds.ts', './EntryPolicy.ts', './Expansion.ts', './FeatureLessons.ts', './Feedback.ts', './Game.ts', './I18n.ts', './LiveOps.ts', './Mercenaries.ts', './MilitaryTheme.ts', './Monetization.ts', './MotionBounds.ts', './Online.ts', './Operations.ts', './PrototypeCheats.ts', './ReferenceRules.ts', './RewardClaims.ts', './SkillCatalog.ts', './SkillText.ts', './Squad.ts', './SquadName.ts', './firebase-sdk.js'], function () {
   return {
-    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    setters: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
     execute: function () {}
   };
 });
@@ -54774,6 +54759,456 @@ System.register("chunks:///_virtual/ShopUI.ts", ['./rollupPluginModLoBabelHelper
   };
 });
 
+System.register("chunks:///_virtual/SkillCatalog.ts", ['cc', './Config.ts', './Mercenaries.ts'], function (exports) {
+  var cclegacy, SPELLS, MELEE, mercenaryWeapon;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+    }, function (module) {
+      SPELLS = module.SPELLS;
+    }, function (module) {
+      MELEE = module.MELEE;
+      mercenaryWeapon = module.mercenaryWeapon;
+    }],
+    execute: function () {
+      exports({
+        heroSkillIcon: heroSkillIcon,
+        heroSkillMotif: heroSkillMotif,
+        tacticEffect: tacticEffect,
+        tacticIcon: tacticIcon,
+        talentFactor: talentFactor,
+        talentIcon: talentIcon,
+        talentStat: talentStat
+      });
+      cclegacy._RF.push({}, "d61c4MBVYJCnIbXhTheRmXd", "SkillCatalog", undefined);
+      var TACTIC_MOTIFS = exports('TACTIC_MOTIFS', ['target', 'stim', 'coins', 'pierce', 'orders', 'aircraft', 'drones', 'barrage', 'mortar', 'convoy']);
+      var TALENT_MOTIFS = exports('TALENT_MOTIFS', ['coins', 'target', 'orders', 'convoy', 'pierce', 'radio']);
+      var TALENT_STATS = exports('TALENT_STATS', ['coin', 'tap', 'hero', 'coin', 'tap', 'hero']);
+      var TACTIC_COLORS = exports('TACTIC_COLORS', ['#ffe27b', '#ef91b4', '#ffd34e', '#ff9276', '#8ad6ac', '#80d4ef', '#c4a1f1', '#ffb67e', '#eca66f', '#f1d673']);
+      function tacticIcon(id) {
+        return 'tactic:' + id;
+      }
+      function talentIcon(id) {
+        return 'talent:' + id;
+      }
+      function heroSkillIcon(id) {
+        return 'training:' + id;
+      }
+      function heroSkillMotif(id) {
+        var weapon = mercenaryWeapon(id);
+        if (['sniper', 'revolver', 'railgun', 'crossbow', 'bow'].includes(weapon)) return 'target';
+        if (weapon === 'flamer') return 'flame';
+        if (['laser', 'plasma'].includes(weapon)) return 'laser';
+        if (['rocket', 'grenade'].includes(weapon)) return 'mortar';
+        if (weapon === 'gauntlets') return 'fist';
+        if (weapon === 'hammer') return 'hammer';
+        if (MELEE.includes(weapon)) return 'blade';
+        return weapon === 'shotgun' ? 'pierce' : 'barrage';
+      }
+      /** Describe the implemented combat routes, rather than unused reference CSV columns. */
+      function tacticEffect(g, id) {
+        var level = g.s.run.spellLevels[id],
+          stacks = Math.max(1, g.s.run.stacks[id]),
+          index = g.spellIndex(id);
+        var routed = [2, 3, 4].includes(id) ? SPELLS[id].primary[index] * stacks : 3 * (1 + (level - 1) * .15) * stacks;
+        switch (id) {
+          case 0:
+            return {
+              kind: 'burst',
+              factor: SPELLS[id].primary[index],
+              stacked: false
+            };
+          case 1:
+            return {
+              kind: 'critical',
+              factor: 5,
+              chance: 70,
+              stacked: false
+            };
+          case 2:
+          case 9:
+            return {
+              kind: 'coin',
+              factor: routed,
+              stacked: true
+            };
+          case 3:
+          case 7:
+            return {
+              kind: 'tap',
+              factor: routed,
+              stacked: true
+            };
+          case 4:
+            return {
+              kind: 'hero',
+              factor: routed,
+              speed: SPELLS[id].secondary[index],
+              stacked: true
+            };
+          default:
+            return {
+              kind: 'continuous',
+              factor: id === 5 ? 12 : id === 6 ? 6 : 8,
+              stacked: false
+            };
+        }
+      }
+      function talentFactor(level) {
+        return Math.pow(10, level * .06);
+      }
+      function talentStat(id) {
+        return TALENT_STATS[Math.floor(id / 3)];
+      }
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/SkillIconArt.ts", ['cc', './SkillCatalog.ts'], function (exports) {
+  var cclegacy, UITransform, Graphics, Color, TACTIC_MOTIFS, TALENT_MOTIFS, heroSkillMotif, TACTIC_COLORS;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+      UITransform = module.UITransform;
+      Graphics = module.Graphics;
+      Color = module.Color;
+    }, function (module) {
+      TACTIC_MOTIFS = module.TACTIC_MOTIFS;
+      TALENT_MOTIFS = module.TALENT_MOTIFS;
+      heroSkillMotif = module.heroSkillMotif;
+      TACTIC_COLORS = module.TACTIC_COLORS;
+    }],
+    execute: function () {
+      exports('drawSkillIcon', drawSkillIcon);
+      cclegacy._RF.push({}, "57eddsV0EJG76oD+E9wQj+G", "SkillIconArt", undefined);
+
+      /** Code-native pixel silhouettes share the established UI icon renderer. */
+      function drawSkillIcon(node, key) {
+        node.skillIconKey = key;
+        var _key$split = key.split(':'),
+          type = _key$split[0],
+          raw = _key$split[1],
+          id = Number(raw);
+        if (!Number.isInteger(id) || id < 0) return false;
+        var motif = type === 'tactic' ? TACTIC_MOTIFS[id] : type === 'talent' ? TALENT_MOTIFS[Math.floor(id / 3)] : type === 'training' && id < 30 ? heroSkillMotif(id) : null;
+        if (!motif) return false;
+        var pixels = Array.from({
+          length: 16
+        }, function () {
+          return Array(16).fill(0);
+        });
+        var dot = function dot(x, y, c) {
+          if (c === void 0) {
+            c = 2;
+          }
+          if (x >= 0 && x < 16 && y >= 0 && y < 16) pixels[y][x] = c;
+        };
+        var rect = function rect(x, y, w, h, c) {
+          if (c === void 0) {
+            c = 2;
+          }
+          for (var yy = y; yy < y + h; yy++) for (var xx = x; xx < x + w; xx++) dot(xx, yy, c);
+        };
+        var line = function line(x, y, xx, yy, c) {
+          if (c === void 0) {
+            c = 2;
+          }
+          var steps = Math.max(Math.abs(xx - x), Math.abs(yy - y));
+          for (var i = 0; i <= steps; i++) dot(Math.round(x + (xx - x) * i / (steps || 1)), Math.round(y + (yy - y) * i / (steps || 1)), c);
+        };
+        var coin = function coin(x, y) {
+          rect(x + 1, y, 4, 6);
+          rect(x, y + 1, 6, 4);
+          line(x + 2, y + 1, x + 2, y + 4, 3);
+        };
+        var drone = function drone(x, y) {
+          rect(x + 2, y + 2, 3, 3);
+          line(x, y, x + 6, y + 6);
+          line(x + 6, y, x, y + 6);
+          rect(x, y, 2, 1, 3);
+          rect(x + 5, y, 2, 1, 3);
+          rect(x, y + 6, 2, 1, 3);
+          rect(x + 5, y + 6, 2, 1, 3);
+        };
+        switch (motif) {
+          case 'target':
+            for (var y = 2; y < 14; y++) for (var x = 2; x < 14; x++) if (Math.abs(Math.hypot(x - 7.5, y - 7.5) - 5) < .6) dot(x, y);
+            line(7, 0, 7, 5, 3);
+            line(7, 10, 7, 15, 3);
+            line(0, 7, 5, 7, 3);
+            line(10, 7, 15, 7, 3);
+            rect(7, 7, 2, 2, 3);
+            break;
+          case 'stim':
+            line(2, 13, 12, 3);
+            line(3, 13, 13, 3);
+            line(3, 10, 6, 13);
+            line(5, 8, 8, 11, 3);
+            line(7, 6, 10, 9, 3);
+            line(9, 4, 12, 7);
+            line(11, 1, 14, 4, 3);
+            line(12, 2, 10, 4, 3);
+            line(1, 14, 3, 12, 3);
+            break;
+          case 'coins':
+            rect(1, 9, 12, 5);
+            line(1, 9, 7, 7, 3);
+            line(7, 7, 13, 9, 3);
+            rect(6, 9, 2, 5, 3);
+            coin(8, 1);
+            break;
+          case 'pierce':
+            line(2, 12, 11, 3);
+            line(3, 13, 12, 4);
+            line(4, 14, 13, 5);
+            rect(10, 2, 3, 3, 3);
+            line(8, 6, 14, 11, 3);
+            line(5, 5, 9, 8, 3);
+            line(12, 11, 12, 15);
+            break;
+          case 'orders':
+            line(3, 1, 3, 8, 3);
+            rect(4, 1, 9, 4);
+            rect(4, 5, 6, 1);
+            for (var _i = 0, _arr = [1, 6, 11]; _i < _arr.length; _i++) {
+              var _x = _arr[_i];
+              rect(_x + 1, 9, 3, 3, 3);
+              rect(_x, 12, 5, 3);
+            }
+            break;
+          case 'aircraft':
+            rect(7, 1, 2, 13, 3);
+            rect(6, 2, 4, 4);
+            line(7, 6, 1, 10);
+            line(8, 6, 14, 10);
+            rect(1, 10, 14, 2);
+            line(7, 12, 4, 15);
+            line(8, 12, 11, 15);
+            break;
+          case 'drones':
+            drone(0, 1);
+            drone(8, 7);
+            line(7, 3, 10, 3, 3);
+            line(4, 11, 7, 11, 3);
+            break;
+          case 'barrage':
+            for (var _i2 = 0, _arr2 = [[1, 6], [6, 3], [11, 0]]; _i2 < _arr2.length; _i2++) {
+              var _arr2$_i = _arr2[_i2],
+                _x2 = _arr2$_i[0],
+                _y = _arr2$_i[1];
+              rect(_x2, _y + 2, 3, 7);
+              rect(_x2 + 1, _y, 1, 2, 3);
+              rect(_x2, _y + 9, 3, 1, 3);
+              line(_x2 + 1, _y + 11, _x2 + 1, 15, 3);
+            }
+            break;
+          case 'mortar':
+            line(1, 1, 4, 5, 3);
+            line(9, 0, 7, 5, 3);
+            rect(3, 5, 3, 5);
+            rect(8, 4, 3, 5);
+            for (var _i3 = 0, _arr3 = [[4, 12], [10, 11]]; _i3 < _arr3.length; _i3++) {
+              var _arr3$_i = _arr3[_i3],
+                _x3 = _arr3$_i[0],
+                _y2 = _arr3$_i[1];
+              line(_x3, _y2 - 2, _x3, _y2 + 2, 3);
+              line(_x3 - 2, _y2, _x3 + 2, _y2, 3);
+              line(_x3 - 2, _y2 - 2, _x3 + 2, _y2 + 2);
+            }
+            break;
+          case 'convoy':
+            rect(1, 4, 9, 7);
+            rect(10, 7, 5, 4);
+            rect(11, 5, 3, 2, 3);
+            rect(2, 11, 3, 3, 3);
+            rect(11, 11, 3, 3, 3);
+            line(5, 5, 5, 9, 3);
+            line(3, 7, 7, 7, 3);
+            break;
+          case 'radio':
+            rect(3, 4, 8, 11);
+            line(5, 0, 5, 4, 3);
+            rect(4, 5, 6, 4, 3);
+            rect(5, 11, 4, 1, 3);
+            line(13, 3, 15, 5, 3);
+            line(14, 1, 15, 2);
+            break;
+          case 'blade':
+            line(3, 12, 12, 3);
+            line(4, 13, 13, 4);
+            line(5, 14, 14, 5, 3);
+            line(2, 9, 7, 14, 3);
+            line(1, 15, 4, 12);
+            break;
+          case 'fist':
+            for (var _i4 = 0, _arr4 = [2, 5, 8, 11]; _i4 < _arr4.length; _i4++) {
+              var _x4 = _arr4[_i4];
+              rect(_x4, 4, 2, 5, 3);
+            }
+            rect(2, 8, 12, 4);
+            rect(5, 12, 7, 3);
+            line(1, 10, 4, 13, 3);
+            break;
+          case 'hammer':
+            rect(2, 2, 11, 5);
+            rect(3, 3, 9, 2, 3);
+            line(8, 6, 4, 15, 3);
+            line(9, 6, 5, 15);
+            break;
+          case 'flame':
+            line(7, 1, 4, 6);
+            line(7, 1, 9, 6, 3);
+            line(3, 5, 2, 11);
+            line(11, 5, 13, 11);
+            rect(3, 8, 10, 5);
+            rect(5, 12, 6, 3);
+            line(7, 7, 5, 12, 3);
+            line(7, 7, 9, 12, 3);
+            break;
+          case 'laser':
+            rect(1, 8, 5, 5);
+            line(4, 7, 14, 1, 3);
+            line(5, 8, 15, 2);
+            line(6, 9, 15, 4, 3);
+            rect(1, 13, 2, 2, 3);
+            break;
+        }
+        if (type === 'talent') {
+          var tier = id % 3 + 1;
+          for (var i = 0; i < tier; i++) rect(12, 11 + i * 2, 3, 1, 3);
+        }
+        if (type === 'training') {
+          rect(12, 11, 1, 5, 3);
+          rect(10, 13, 5, 1, 3);
+        }
+        var color = type === 'tactic' ? TACTIC_COLORS[id] : type === 'talent' ? ['#f1d673', '#80d4ef', '#8ad6ac', '#ffb67e', '#ef91b4', '#c4a1f1'][Math.floor(id / 3)] : '#ffe27b';
+        var size = node.getComponent(UITransform).contentSize,
+          u = Math.min(size.width, size.height) / 18,
+          g = node.addComponent(Graphics);
+        var ink = function ink(hex) {
+          var c = new Color();
+          Color.fromHEX(c, hex);
+          return c;
+        };
+        // One pixel outline keeps the silhouettes legible on every category background.
+        g.fillColor = ink('#17201c');
+        for (var _y3 = 0; _y3 < 16; _y3++) for (var _x5 = 0; _x5 < 16; _x5++) if (pixels[_y3][_x5]) {
+          g.rect((_x5 - 9) * u, (6 - _y3) * u, 3 * u, 3 * u);
+          g.fill();
+        }
+        for (var _y4 = 0; _y4 < 16; _y4++) for (var _x6 = 0; _x6 < 16; _x6++) if (pixels[_y4][_x6]) {
+          g.fillColor = ink(pixels[_y4][_x6] === 3 ? '#fff7dd' : color);
+          g.rect((_x6 - 8) * u, (7 - _y4) * u, u, u);
+          g.fill();
+        }
+        return true;
+      }
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/SkillText.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc'], function (exports) {
+  var _createForOfIteratorHelperLoose, cclegacy;
+  return {
+    setters: [function (module) {
+      _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
+    }, function (module) {
+      cclegacy = module.cclegacy;
+    }],
+    execute: function () {
+      exports('applySkillText', applySkillText);
+      cclegacy._RF.push({}, "65bebF4E75EyqahMVzJEIDp", "SkillText", undefined);
+      function applySkillText(t) {
+        var names = [['정밀 사격', '전투 자극제', '군수 확보', '화력 증강', '분대 집중 포화', '공중 지원', '드론 협공', '연속 사격', '포격 지원', '추가 보급'], ['Precision Shot', 'Combat Stim', 'Supply Surge', 'Firepower Boost', 'Squad Focus Fire', 'Air Support', 'Drone Assault', 'Rapid Fire', 'Artillery Support', 'Supply Convoy']];
+        var _short = [['정밀', '자극', '군수', '화력', '분대', '항공', '드론', '연사', '포격', '보급'], ['Aim', 'Stim', 'Coins', 'Power', 'Squad', 'Air', 'Drones', 'Rapid', 'Shells', 'Supply']];
+        var branches = [['보급 관리', '정밀 사격', '분대 전술', '군수 운송', '돌격 훈련', '전투 지휘'], ['Supply Management', 'Marksmanship', 'Squad Tactics', 'Supply Transport', 'Assault Training', 'Battle Command']];
+        for (var _iterator = _createForOfIteratorHelperLoose([['ko', 0], ['en', 1]]), _step; !(_step = _iterator()).done;) {
+          var _step$value = _step.value,
+            lang = _step$value[0],
+            l = _step$value[1];
+          for (var i = 0; i < 10; i++) {
+            t[lang]['spell.' + i] = names[l][i];
+            t[lang]['tactic.short.' + i] = _short[l][i];
+          }
+          for (var _i = 0; _i < 6; _i++) t[lang]['branch.' + _i] = branches[l][_i];
+        }
+        var branchShort = [['보급', '정밀', '분대', '운송', '돌격', '지휘'], ['Supply', 'Aim', 'Squad', 'Convoy', 'Assault', 'Command']];
+        for (var _iterator2 = _createForOfIteratorHelperLoose([['ko', 0], ['en', 1]]), _step2; !(_step2 = _iterator2()).done;) {
+          var _step2$value = _step2.value,
+            _lang = _step2$value[0],
+            _l = _step2$value[1];
+          for (var _i2 = 0; _i2 < 6; _i2++) t[_lang]['talent.short.' + _i2] = branchShort[_l][_i2];
+        }
+        Object.assign(t.ko, {
+          'tactic.once': '1회',
+          'tactic.instantTiming': '에너지 {mana} · 즉시 공격 · 재사용 {cooldown}초',
+          'spell.title': '전술 스킬',
+          'tactic.effect.burst': '적 한 명에게 탭 피해 ×{factor} 1회',
+          'tactic.effect.critical': '탭 치명타 확률 {chance}% · 치명타 {factor}배',
+          'tactic.effect.coin': '코인 획득 ×{factor}',
+          'tactic.effect.tap': '대장 탭 피해 ×{factor}',
+          'tactic.effect.hero': '용병 피해 ×{factor} · 공격속도 ×{speed}',
+          'tactic.effect.continuous': '탭 피해의 {factor}배를 초당 추가 공격',
+          'tactic.timing': '에너지 {mana} · 지속 {duration}초 · 재사용 {cooldown}초',
+          'tactic.stackEffect': '현재 효과 계산: {stacks}중첩',
+          'tactic.fixedEffect': '현재 효과는 고정입니다. 레벨·중첩으로 이 효과가 추가 증가하지 않습니다.',
+          'tactic.currentSlot': '슬롯 {slot} · {name}',
+          'tactic.assigned': '슬롯 {slot}에 배치',
+          'tactic.levelHelp': '전술 레벨 {level}/{max}\n재배치 시 전술 레벨이 초기화됩니다.',
+          'tactic.durationHelp': '활성 효과가 {seconds}초 유지됩니다.',
+          'tactic.cooldownHelp': '사용 후 {seconds}초 대기합니다. 중첩 가능한 활성 스킬은 다시 사용할 수 있습니다.',
+          'tactic.instant': '즉시 한 번 공격합니다. 다른 적에게 초과 피해를 넘기지 않습니다.',
+          'tactic.active': '활성 {seconds}초 · {stacks}중첩',
+          'tactic.ready': '사용 준비 완료',
+          'tactic.swap': '슬롯 {slot}: {old} → {next}\n교체할 스킬의 기존 활성 효과는 종료됩니다.',
+          'talent.stat.coin': '코인 획득',
+          'talent.stat.tap': '대장 탭 피해',
+          'talent.stat.hero': '용병 자동 공격 피해',
+          'talent.effect': '{effect} · Lv.{level}\n이 노드의 적용 배율 ×{factor}',
+          'talent.perLevel': '레벨당 {percent}% 곱연산 증가\n적용 버튼을 눌러야 전투에 반영됩니다.',
+          'talent.savedDraft': '저장된 레벨 {saved} → 임시 레벨 {draft}\n임시 변경은 적용 전까지 전투에 반영되지 않습니다.',
+          'talent.next': '다음 배율 ×{factor} · 다음 레벨 비용 {cost} 포인트',
+          'training.help': '용병 숙련 · {weapon}\n현재 {count}단계 · 이 용병 피해 ×{factor}\n단계당 ×1.5 · 다음 강화 {next}\n재배치 시 숙련 단계가 초기화됩니다.'
+        });
+        Object.assign(t.en, {
+          'tactic.once': 'Once',
+          'tactic.instantTiming': 'Energy {mana} · instant hit · cooldown {cooldown}s',
+          'spell.title': 'Tactical Skills',
+          'tactic.effect.burst': 'One target: tap damage ×{factor} once',
+          'tactic.effect.critical': 'Tap critical chance {chance}% · critical damage ×{factor}',
+          'tactic.effect.coin': 'Coins earned ×{factor}',
+          'tactic.effect.tap': 'Captain tap damage ×{factor}',
+          'tactic.effect.hero': 'Squad damage ×{factor} · attack speed ×{speed}',
+          'tactic.effect.continuous': 'Extra damage each second: tap damage ×{factor}',
+          'tactic.timing': 'Energy {mana} · duration {duration}s · cooldown {cooldown}s',
+          'tactic.stackEffect': 'Current effect uses {stacks} stack(s)',
+          'tactic.fixedEffect': 'This effect is fixed. Levels and extra stacks do not increase this effect.',
+          'tactic.currentSlot': 'Slot {slot} · {name}',
+          'tactic.assigned': 'Assigned to slot {slot}',
+          'tactic.levelHelp': 'Tactic level {level}/{max}\nTactic levels reset on redeployment.',
+          'tactic.durationHelp': 'The active effect lasts {seconds}s.',
+          'tactic.cooldownHelp': 'Wait {seconds}s after use. Active skills that support stacking can be used again.',
+          'tactic.instant': 'Deals one immediate hit. Excess damage does not pass to another enemy.',
+          'tactic.active': 'Active {seconds}s · {stacks} stack(s)',
+          'tactic.ready': 'Ready to use',
+          'tactic.swap': 'Slot {slot}: {old} → {next}\nThe replaced skill\'s active effect ends.',
+          'talent.stat.coin': 'Coins earned',
+          'talent.stat.tap': 'Captain tap damage',
+          'talent.stat.hero': 'Squad attack damage',
+          'talent.effect': '{effect} · Lv.{level}\nThis node applies ×{factor}',
+          'talent.perLevel': 'Each level multiplies this effect by +{percent}%\nChanges take effect after Apply.',
+          'talent.savedDraft': 'Saved level {saved} → draft level {draft}\nDraft changes do not affect battle before Apply.',
+          'talent.next': 'Next multiplier ×{factor} · next level costs {cost} points',
+          'training.help': 'Weapon training · {weapon}\nTier {count} · this mercenary damage ×{factor}\n×1.5 per tier · next upgrade {next}\nTraining tiers reset on redeployment.'
+        });
+      }
+      cclegacy._RF.pop();
+    }
+  };
+});
+
 System.register("chunks:///_virtual/SkillTrainingUI.ts", ['cc', './Config.ts', './UITheme.ts'], function (exports) {
   var cclegacy, Graphics, UIOpacity, SKILLS, contrastInk, BUTTON_TONES, UI;
   return {
@@ -55106,6 +55541,280 @@ System.register("chunks:///_virtual/SkillTrainingUI.ts", ['cc', './Config.ts', '
         }, false, {
           category: 'back',
           icon: 'symbol:back'
+        }).name = 'skill-back';
+      }
+      cclegacy._RF.pop();
+    }
+  };
+});
+
+System.register("chunks:///_virtual/SkillUI.ts", ['cc', './Config.ts', './SkillCatalog.ts', './UITheme.ts'], function (exports) {
+  var cclegacy, Label, SPELLS, SKILLS, tacticEffect, tacticIcon, talentFactor, talentIcon, talentStat, UI;
+  return {
+    setters: [function (module) {
+      cclegacy = module.cclegacy;
+      Label = module.Label;
+    }, function (module) {
+      SPELLS = module.SPELLS;
+      SKILLS = module.SKILLS;
+    }, function (module) {
+      tacticEffect = module.tacticEffect;
+      tacticIcon = module.tacticIcon;
+      talentFactor = module.talentFactor;
+      talentIcon = module.talentIcon;
+      talentStat = module.talentStat;
+    }, function (module) {
+      UI = module.UI;
+    }],
+    execute: function () {
+      exports({
+        tacticDescription: tacticDescription,
+        tacticDetail: tacticDetail,
+        tacticHelp: tacticHelp,
+        tacticManager: tacticManager,
+        talentDetail: talentDetail,
+        talentHelp: talentHelp
+      });
+      cclegacy._RF.push({}, "bc3f2Hb+6hD9bofQuJY3/8e", "SkillUI", undefined);
+      function tacticDescription(a, id) {
+        var e = tacticEffect(a.game, id);
+        return a.tr('tactic.effect.' + e.kind, {
+          factor: e.factor >= 1000 ? a.format(Math.log10(e.factor)) : e.factor.toFixed(2),
+          chance: e.chance || 0,
+          speed: e.speed || 1
+        });
+      }
+      function tacticHelp(a, id) {
+        var r = a.game.s.run,
+          c = SPELLS[id],
+          e = tacticEffect(a.game, id);
+        return a.tr('spell.' + id) + '\n' + tacticDescription(a, id) + '\n' + a.tr(id === 0 ? 'tactic.instantTiming' : 'tactic.timing', {
+          duration: c.duration,
+          cooldown: c.cooldown,
+          mana: a.game.spellMana(id)
+        }) + (id === 0 ? '' : e.stacked ? '\n' + a.tr('tactic.stackEffect', {
+          stacks: Math.max(1, r.stacks[id])
+        }) : '\n' + a.tr('tactic.fixedEffect'));
+      }
+      function tacticManager(a, slot) {
+        if (slot === void 0) {
+          slot = 0;
+        }
+        var g = a.game,
+          s = g.s,
+          p = a.open(a.tr('spell.title'), 715, true, 'teal', false);
+        p.name = 'tactics-panel';
+        var _loop = function _loop(j) {
+          var id = s.spellSlots[j],
+            n = a.button(p, '', -165 + j * 66, 250, 60, 66, function () {
+              return a.spells(j);
+            }, j === slot, {
+              category: 'battle',
+              style: j === slot ? 'selected' : 'secondary',
+              icon: tacticIcon(id),
+              iconOnly: true,
+              iconSize: 33,
+              hint: tacticHelp(a, id)
+            });
+          n.name = 'tactic-slot-' + j;
+          a.label(n, String(j + 1), -21, 23, 16, 18, 11, UI.ink);
+          a.label(n, a.tr('tactic.short.' + id), 0, -24, 56, 18, 10, UI.ink).node.name = 'tactic-slot-name';
+        };
+        for (var j = 0; j < 6; j++) {
+          _loop(j);
+        }
+        a.label(p, a.tr('tactic.currentSlot', {
+          slot: slot + 1,
+          name: a.tr('spell.' + s.spellSlots[slot])
+        }), 0, 193, 376, 30, 17, UI.mint).node.name = 'tactic-current';
+        a.scroll(p, 0, -44, 400, 438, SPELLS.filter(function (c) {
+          var _SPELLS$find;
+          return s.run.master >= c.unlock || c.id === ((_SPELLS$find = SPELLS.find(function (c) {
+            return s.run.master < c.unlock;
+          })) == null ? void 0 : _SPELLS$find.id);
+        }).map(function (c) {
+          return {
+            height: 112,
+            revealLockedArt: true,
+            locked: s.run.master < c.unlock,
+            title: a.tr('spell.' + c.id),
+            art: tacticIcon(c.id),
+            icon: c.id,
+            sub: tacticDescription(a, c.id) + (s.spellSlots.includes(c.id) ? ' · ' + a.tr('tactic.assigned', {
+              slot: s.spellSlots.indexOf(c.id) + 1
+            }) : ''),
+            action: a.tr('action.details'),
+            detail: function detail() {
+              return a.spellDetail(c.id, slot);
+            },
+            click: function click() {
+              return a.spellDetail(c.id, slot);
+            }
+          };
+        }));
+      }
+      function tacticDetail(a, id, slot) {
+        if (slot === void 0) {
+          slot = 0;
+        }
+        var g = a.game,
+          r = g.s.run,
+          c = SPELLS[id],
+          p = a.open(a.tr('spell.' + id), 672, true, 'teal', false, function () {
+            return a.spells(slot);
+          });
+        p.name = 'tactic-detail-panel';
+        var tile = a.nodeAt(p, 'tactic-portrait', -126, 182, 82, 82);
+        a.ui.surface(tile, UI.panel, 'cut');
+        a.ui.icon(a.nodeAt(tile, 'tactic-art', 0, 0, 72, 72), tacticIcon(id));
+        a.iconHelp(tile, function () {
+          return tacticHelp(a, id);
+        });
+        a.label(p, a.tr('spell.' + id), 49, 206, 228, 28, 21, UI.text, Label.HorizontalAlign.LEFT);
+        a.label(p, tacticDescription(a, id), 49, 158, 228, 70, 16, UI.gold, Label.HorizontalAlign.LEFT).node.name = 'tactic-effect';
+        a.metric(p, 'symbol:up', 'Lv.' + r.spellLevels[id], -95, 91, 178, a.tr('tactic.levelHelp', {
+          level: r.spellLevels[id],
+          max: c.cap
+        }));
+        a.metric(p, 'symbol:canteen', String(g.spellMana(id)), 95, 91, 178, a.tr('spell.energyCost', {
+          cost: g.spellMana(id)
+        }));
+        a.metric(p, id === 0 ? 'symbol:damage' : 'symbol:clock', id === 0 ? a.tr('tactic.once') : c.duration + 's', -95, 43, 178, id === 0 ? a.tr('tactic.instant') : a.tr('tactic.durationHelp', {
+          seconds: c.duration
+        }));
+        a.metric(p, 'symbol:clock', c.cooldown + 's', 95, 43, 178, a.tr('tactic.cooldownHelp', {
+          seconds: c.cooldown
+        }));
+        a.label(p, id === 0 ? a.tr('tactic.instant') : tacticEffect(g, id).stacked ? a.tr('spell.multicast') : a.tr('tactic.fixedEffect'), 0, -17, 374, 60, 15, UI.muted);
+        var status = a.label(p, '', 0, -74, 374, 28, 15, UI.mint);
+        status.node.name = 'tactic-state';
+        a.modalRefresh = function () {
+          status.string = r.master < c.unlock ? a.tr('action.needLevel', {
+            level: c.unlock
+          }) : id !== 0 && r.spells[id] > 0 ? a.tr('tactic.active', {
+            seconds: Math.ceil(r.spells[id]),
+            stacks: r.stacks[id]
+          }) : r.cooldowns[id] > 0 ? a.tr('action.waitSeconds', {
+            seconds: Math.ceil(r.cooldowns[id])
+          }) : a.tr('tactic.ready');
+        };
+        a.modalRefresh();
+        a.button(p, a.tr(r.spellLevels[id] >= c.cap ? 'action.maxReached' : 'action.upgrade') + (r.spellLevels[id] >= c.cap ? '' : ' · ' + a.format(g.spellUpgradeCost(id))), 0, -139, 374, 48, function () {
+          if (g.upgradeSpell(id)) {
+            a.drawPanel();
+            a.spellDetail(id, slot);
+          } else a.flushNotice();
+        }, true, {
+          category: 'upgrade',
+          icon: tacticIcon(id),
+          iconSize: 28,
+          unavailable: function unavailable() {
+            return r.spellLevels[id] >= c.cap ? a.tr('action.maxReached') : r.master < c.unlock ? a.tr('action.needLevel', {
+              level: c.unlock
+            }) : a.costReason('gold', g.spellUpgradeCost(id));
+          }
+        }).name = 'tactic-upgrade';
+        var assigned = g.s.spellSlots.indexOf(id);
+        a.button(p, a.tr(assigned === slot ? 'action.selected' : assigned >= 0 ? 'tactic.assigned' : 'action.select', {
+          slot: assigned + 1
+        }), 0, -202, 374, 48, function () {
+          if (assigned >= 0) {
+            a.tooltip(tile, tacticHelp(a, id));
+            return;
+          }
+          a.confirm(a.tr('spell.title'), a.tr('tactic.swap', {
+            slot: slot + 1,
+            old: a.tr('spell.' + g.s.spellSlots[slot]),
+            next: a.tr('spell.' + id)
+          }), function () {
+            if (g.selectSpell(slot, id)) {
+              a.draw();
+              a.spells(slot);
+            } else a.flushNotice();
+          }, {
+            category: 'confirm'
+          });
+        }, true, {
+          category: 'deck',
+          icon: tacticIcon(id),
+          iconSize: 28,
+          unavailable: function unavailable() {
+            return r.master < c.unlock ? a.tr('action.needLevel', {
+              level: c.unlock
+            }) : null;
+          }
+        }).name = 'tactic-select';
+        a.button(p, a.tr('action.back'), 0, -270, 374, 42, function () {
+          return a.spells(slot);
+        }, false, {
+          category: 'back'
+        }).name = 'tactic-back';
+      }
+      function talentHelp(a, id, level) {
+        if (level === void 0) {
+          level = a.game.s.skills[id];
+        }
+        var stat = talentStat(id);
+        return a.tr('branch.' + Math.floor(id / 3)) + '\n' + a.tr('talent.effect', {
+          effect: a.tr('talent.stat.' + stat),
+          level: level,
+          factor: talentFactor(level).toFixed(2)
+        }) + '\n' + a.tr('talent.perLevel', {
+          percent: ((talentFactor(1) - 1) * 100).toFixed(2)
+        });
+      }
+      function talentDetail(a, id) {
+        var branch = Math.floor(id / 3),
+          saved = a.game.s.skills[id],
+          draft = a.draft[id],
+          p = a.open(a.tr('skills.node', {
+            branch: a.tr('branch.' + branch),
+            tier: id % 3 + 1,
+            level: draft
+          }), 530, true, 'teal', false, function () {
+            return a.skills(false);
+          });
+        p.name = 'skill-detail-panel';
+        var card = a.nodeAt(p, 'talent-summary', 0, 110, 374, 146);
+        a.ui.surface(card, UI.panel, 'cut');
+        a.ui.icon(a.nodeAt(card, 'skill-art', -133, 0, 68, 68), talentIcon(id));
+        a.label(card, talentHelp(a, id, draft), 41, 0, 250, 130, 16, UI.text, Label.HorizontalAlign.LEFT);
+        a.metric(p, 'symbol:check', saved + ' → ' + draft, -96, 5, 178, a.tr('talent.savedDraft', {
+          saved: saved,
+          draft: draft
+        })).name = 'talent-saved';
+        a.metric(p, talentStat(id) === 'coin' ? 'symbol:coin' : 'symbol:damage', '×' + talentFactor(draft).toFixed(2), 96, 5, 178, talentHelp(a, id, draft)).name = 'talent-factor';
+        a.label(p, a.tr('talent.next', {
+          factor: talentFactor(Math.min(SKILLS[id].max, draft + 1)).toFixed(2),
+          cost: draft + 1
+        }), 0, -42, 374, 44, 16, UI.mint);
+        a.button(p, '−', -90, -105, 160, 54, function () {
+          a.draft[id] = Math.max(0, draft - 1);
+          a.skillNode(id);
+        }, false, {
+          style: 'quiet',
+          fontSize: 23,
+          unavailable: function unavailable() {
+            return a.draft[id] <= 0 ? a.tr('action.minReached') : null;
+          }
+        }).name = 'skill-decrease';
+        a.button(p, '+', 90, -105, 160, 54, function () {
+          a.draft[id] = Math.min(SKILLS[id].max, draft + 1);
+          a.skillNode(id);
+        }, true, {
+          fontSize: 23,
+          unavailable: function unavailable() {
+            return a.draft[id] >= SKILLS[id].max ? a.tr('action.maxReached') : SKILLS[id].prerequisite >= 0 && a.draft[SKILLS[id].prerequisite] < 3 ? a.tr('action.previousLevel', {
+              level: 3
+            }) : a.needReason(a.tr('feedback.sp'), a.game.s.sp + a.game.s.skills.reduce(function (n, l) {
+              return n + l * (l + 1) / 2;
+            }, 0) - a.draft.reduce(function (n, l) {
+              return n + l * (l + 1) / 2;
+            }, 0), draft + 1);
+          }
+        }).name = 'skill-increase';
+        a.button(p, a.tr('action.back'), 0, -200, 374, 44, function () {
+          return a.skills(false);
         }).name = 'skill-back';
       }
       cclegacy._RF.pop();
@@ -57279,8 +57988,8 @@ System.register("chunks:///_virtual/TutorialUI.ts", ['./rollupPluginModLoBabelHe
   };
 });
 
-System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './Enemies.ts', './EnemyArtBounds.ts', './Mercenaries.ts', './AreaTransition.ts', './MotionBounds.ts', './ShopTheme.ts', './EnemyHitFeedback.ts'], function (exports) {
-  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, Color, resources, Texture2D, SpriteFrame, Graphics, UITransform, Node, Mask, Sprite, Vec3, Font, ENEMY_TYPES, BOSS_TYPES, ENEMY_ALPHA_BOUNDS, MERCENARY_COUNT, AREA_TRANSITION_ART, MOTION_FRAMES, SHOP_ICONS, enemyHitOffset;
+System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpers.js', 'cc', './SkillIconArt.ts', './Enemies.ts', './EnemyArtBounds.ts', './Mercenaries.ts', './AreaTransition.ts', './MotionBounds.ts', './ShopTheme.ts', './EnemyHitFeedback.ts'], function (exports) {
+  var _createForOfIteratorHelperLoose, _asyncToGenerator, _regeneratorRuntime, cclegacy, Color, resources, Texture2D, SpriteFrame, Graphics, UITransform, Node, Mask, Sprite, Vec3, Font, drawSkillIcon, ENEMY_TYPES, BOSS_TYPES, ENEMY_ALPHA_BOUNDS, MERCENARY_COUNT, AREA_TRANSITION_ART, MOTION_FRAMES, SHOP_ICONS, enemyHitOffset;
   return {
     setters: [function (module) {
       _createForOfIteratorHelperLoose = module.createForOfIteratorHelperLoose;
@@ -57299,6 +58008,8 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
       Sprite = module.Sprite;
       Vec3 = module.Vec3;
       Font = module.Font;
+    }, function (module) {
+      drawSkillIcon = module.drawSkillIcon;
     }, function (module) {
       ENEMY_TYPES = module.ENEMY_TYPES;
       BOSS_TYPES = module.BOSS_TYPES;
@@ -58032,6 +58743,11 @@ System.register("chunks:///_virtual/UITheme.ts", ['./rollupPluginModLoBabelHelpe
           if (color === void 0) {
             color = UI.text;
           }
+          if (key.startsWith('talent:') && this.frames.has('icons/talent-' + key.slice(7))) {
+            node.skillIconKey = key;
+            return this.paint(node, 'icons/talent-' + key.slice(7));
+          }
+          if (/^(tactic|talent|training):/.test(key)) return drawSkillIcon(node, key);
           if (key.startsWith('drones:')) return this.paint(node, 'drones/' + key.slice(7));
           if (key.startsWith('equipment:')) return this.equipmentIcon(node, key.slice(10));
           if (key.startsWith('shop:')) return this.paint(node, 'shop/' + key.slice(5));
