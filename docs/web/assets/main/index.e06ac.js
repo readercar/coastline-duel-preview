@@ -56673,8 +56673,8 @@ System.register("chunks:///_virtual/PackedUIArt.ts", ['cc'], function (exports) 
         "ui/military/cutins/7": ["ui/atlases/portraits-1", 778, 1034, 384, 512],
         "ui/military/cutins/8": ["ui/atlases/portraits-1", 1166, 1034, 384, 512],
         "ui/military/cutins/9": ["ui/atlases/portraits-1", 1554, 1034, 384, 512],
-        "ui/military/title/logo-ko": ["ui/atlases/title-logos", 0, 0, 512, 160],
-        "ui/military/title/logo-en": ["ui/atlases/title-logos", 0, 164, 512, 160]
+        "ui/military/title/logo-ko": ["ui/atlases/title-logos", 0, 0, 512, 432],
+        "ui/military/title/logo-en": ["ui/atlases/title-logos", 0, 436, 512, 432]
       });
       cclegacy._RF.pop();
     }
@@ -61380,6 +61380,10 @@ System.register("chunks:///_virtual/TitleUI.ts", ['./rollupPluginModLoBabelHelpe
             top = H / 2 - a.safeTop,
             bottom = -H / 2 + a.safeBottom,
             stageY = (top + bottom) / 2 - 34;
+          var logoH = Math.min(238, Math.max(194, H * .272)),
+            logoW = logoH * 512 / 432,
+            logoY = top - 70 - logoH / 2,
+            logoBottom = top - 70 - logoH;
           this.root = a.nodeAt(a.root, 'title-presentation', 0, 0, 480, H);
           var backdrop = a.nodeAt(this.root, 'title-backdrop', 0, 0, 480, H);
           backdrop.addComponent(Mask);
@@ -61398,10 +61402,11 @@ System.register("chunks:///_virtual/TitleUI.ts", ['./rollupPluginModLoBabelHelpe
           left.setSiblingIndex(squad.children.length - 1);
           right.setSiblingIndex(squad.children.length - 1);
           this.layer(squad, 1.15, .12, 20);
+          // Width includes safe space for the visible figure, parallax and the small tap pulse.
           var heroFrame = a.ui.frames.get('cutin/' + lineup[0]),
             b = TITLE_CUTIN_BOUNDS[lineup[0]],
-            heroBottom = bottom + 190,
-            scale = Math.min(Math.max(180, top - 273 - heroBottom) / (b[3] - b[1]), 460 / (b[2] - b[0])),
+            heroBottom = bottom + 268,
+            scale = Math.min(Math.max(90, logoBottom - 18 - heroBottom) / (b[3] - b[1]), 312 / (b[2] - b[0])),
             heroW = (b[2] - b[0]) * scale,
             heroH = (b[3] - b[1]) * scale;
           this.hero = a.nodeAt(backdrop, 'title-captain', -64, heroBottom + heroH / 2, heroW, heroH);
@@ -61409,7 +61414,7 @@ System.register("chunks:///_virtual/TitleUI.ts", ['./rollupPluginModLoBabelHelpe
             fullH = heroFrame.originalSize.height;
           a.ui.paint(a.nodeAt(this.hero, 'title-featured-art', (fullW / 2 - (b[0] + b[2]) / 2) * scale, ((b[1] + b[3]) / 2 - fullH / 2) * scale, fullW * scale, fullH * scale), 'cutin/' + lineup[0]);
           this.layer(this.hero, 2.4, .18, 38);
-          this.drone = a.nodeAt(backdrop, 'title-drone', 167, stageY + 159, 78, 78);
+          this.drone = a.nodeAt(backdrop, 'title-drone', 180, logoBottom - 50, 78, 78);
           a.ui.paint(this.drone, 'drones/0');
           this.layer(this.drone, 1.7, .34, 25);
           var tag = a.nodeAt(this.drone, 'title-drone-tag', 0, -42, 94, 20);
@@ -61443,8 +61448,7 @@ System.register("chunks:///_virtual/TitleUI.ts", ['./rollupPluginModLoBabelHelpe
           }
           this.ring.addComponent(UIOpacity).opacity = 0;
           // Downloaded bilingual pixel logos retain their own transparent padding and ratio.
-          a.polygon(this.root, 0, top - 162, 448, 188, [[-.5, .5], [.5, .5], [.46, -.3], [.12, -.5], [-.5, -.35]], '#0c140e', 220);
-          var title = a.nodeAt(this.root, 'title-logo', 0, top - 164, 430, 430 * 160 / 512);
+          var title = a.nodeAt(this.root, 'title-logo', 0, logoY, logoW, logoH);
           this.layer(title, .35, .03, 18);
           var logoKey = 'title/logo-' + a.game.s.locale;
           if (a.ui.frames.has(logoKey)) a.ui.paint(title, logoKey);else {
