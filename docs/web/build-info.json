@@ -1,11 +1,11 @@
 {
-  "name": "tapWar",
-  "version": "0.1.23",
-  "builtAt": "2026-10-06T23:47:02.554Z",
+  "name": "Army Girls: Idle Assault RPG",
+  "version": "0.1.24",
+  "builtAt": "2026-10-07T01:33:27.553Z",
   "engine": "Cocos Creator 3.8.8",
-  "entry": "app.0.1.23.html",
-  "buildVersion": "0.1.23",
+  "entry": "app.0.1.24.html",
+  "buildVersion": "0.1.24",
   "policyVersion": "0.1.0",
-  "sourceCommit": "2e41f8687358203d2c776b4047501f743a59f93e",
-  "tag": "preview-0.1.23"
+  "sourceCommit": "c215b3618ec3ae8e0e6878e3e94bf7dedcd3994c",
+  "tag": "preview-0.1.24"
 }

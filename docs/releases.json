@@ -1,5 +1,20 @@
 [
   {
+    "buildVersion": "0.1.24",
+    "tag": "preview-0.1.24",
+    "sourceCommit": "c215b3618ec3ae8e0e6878e3e94bf7dedcd3994c",
+    "version": "0.1.24",
+    "policyVersion": "0.1.0",
+    "publishedAt": "2026-10-07T01:33:26.554Z",
+    "previousCommit": "6f9ff962a041b99ffac998f4136d1eb28118601f",
+    "notes": [
+      "게임 이름을 여군키우기 : 방치형 돌격 RPG / Army Girls: Idle Assault RPG로 통일했습니다.",
+      "한글·영문 투명 픽셀 타이틀 로고를 제작해 원본 비율과 언어 선택을 유지하며 적용했습니다.",
+      "미사용 실행 리소스 13개를 보관 위치로 옮기고 아틀라스 8개·343프레임을 검수했습니다.",
+      "회사 CI 원본과 타이틀 조작·약관·로그인·저장 흐름을 유지했습니다."
+    ]
+  },
+  {
     "buildVersion": "0.1.23",
     "tag": "preview-0.1.23",
     "sourceCommit": "2e41f8687358203d2c776b4047501f743a59f93e",
