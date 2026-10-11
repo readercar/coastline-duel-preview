@@ -14,8 +14,8 @@ System.register([], function (_export, _context) {
       _export("Application", Application = /*#__PURE__*/function () {
         function Application() {
           _classCallCheck(this, Application);
-          this.settingsPath = 'src/settings.042e4.json';
-          this.showFPS = true;
+          this.settingsPath = 'src/settings.9a2fa.json';
+          this.showFPS = false;
         }
         _createClass(Application, [{
           key: "init",
@@ -39,7 +39,7 @@ System.register([], function (_export, _context) {
           key: "start",
           value: function start() {
             return cc.game.init({
-              debugMode: true ? cc.DebugMode.INFO : cc.DebugMode.ERROR,
+              debugMode: false ? cc.DebugMode.INFO : cc.DebugMode.ERROR,
               settingsPath: this.settingsPath,
               overrideSettings: {
                 // assets: {
