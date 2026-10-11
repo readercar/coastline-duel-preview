@@ -1,5 +1,18 @@
 [
   {
+    "buildVersion": "1.0.3",
+    "tag": "preview-1.0.3",
+    "sourceCommit": "61efc9f2893c6a1a90a91e2c5dff7d4d40bac956",
+    "version": "1.0.3",
+    "policyVersion": "0.1.0",
+    "publishedAt": "2026-10-11T21:00:52.512Z",
+    "previousCommit": "2398c7327f8cf1bac9d2f0caa6b391f9a1ddaa46",
+    "notes": [
+      "보스 안내 중 배치 입력이 남아 전투가 멈출 수 있던 문제를 수정했습니다.",
+      "후속 안내 중에는 캐릭터·드론 배치를 시작하지 않으며, 진행 중인 배치 입력을 안전하게 정리합니다."
+    ]
+  },
+  {
     "buildVersion": "1.0.2",
     "tag": "preview-1.0.2",
     "sourceCommit": "995e9260d1b283c824b854fd7bacc5b715ca2c0b",
