@@ -1,5 +1,18 @@
 [
   {
+    "buildVersion": "1.0.4",
+    "tag": "preview-1.0.4",
+    "sourceCommit": "edfebe433645e0f1e0b853d552eea92ca6787c1f",
+    "version": "1.0.4",
+    "policyVersion": "0.1.0",
+    "publishedAt": "2026-10-11T21:15:11.484Z",
+    "previousCommit": "b3291af09ff9c78bb980e2e69c9066d255d3058c",
+    "notes": [
+      "보스와 호위의 앞뒤 표시를 발 위치 기준으로 정렬했습니다.",
+      "아군 배치를 옮겨도 적 대형의 위치가 바뀌지 않도록 수정했습니다."
+    ]
+  },
+  {
     "buildVersion": "1.0.3",
     "tag": "preview-1.0.3",
     "sourceCommit": "61efc9f2893c6a1a90a91e2c5dff7d4d40bac956",
