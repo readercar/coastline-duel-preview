@@ -1,5 +1,19 @@
 [
   {
+    "buildVersion": "1.0.8",
+    "tag": "preview-1.0.8",
+    "sourceCommit": "9b597ff6b7e13bebf4e73e180f107d2f1249cbd2",
+    "version": "1.0.8",
+    "policyVersion": "0.1.0",
+    "publishedAt": "2026-10-12T08:03:06.787Z",
+    "previousCommit": "edbdbca1b02b36146fc1ec517e2c21dc12d41652",
+    "notes": [
+      "보스가 혼자 남았을 때 표시하는 대사를 Cocos 정본에도 통합하고, 튜토리얼 완료 후의 구역 번호 제한을 제거했습니다.",
+      "적군 체력 게이지는 보스전에서만 표시합니다. 좌상단 웨이브 진행 글자와 표시 영역을 확대했습니다.",
+      "정본에서 완료된 진급 이미지 파티클·장비함 확인·전술 훈련 안내도 보존했습니다."
+    ]
+  },
+  {
     "buildVersion": "1.0.7",
     "tag": "preview-1.0.7",
     "sourceCommit": "ad6c89290c754b47b3b661ce7e546f072729550d",
