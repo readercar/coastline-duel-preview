@@ -1,5 +1,19 @@
 [
   {
+    "buildVersion": "1.0.5",
+    "tag": "preview-1.0.5",
+    "sourceCommit": "7b4c1cb629f2e11918ef8b92fb1ad20751e5e9e4",
+    "version": "1.0.5",
+    "policyVersion": "0.1.0",
+    "publishedAt": "2026-10-12T01:53:41.940Z",
+    "previousCommit": "067d635ebb5fafa9c106909b0fb2b455f82e6b54",
+    "notes": [
+      "캐릭터 머리가 상단 체력게이지 바로 아래까지 올라가도록 배치 범위를 넓혔습니다.",
+      "드론이 있어도 캐릭터 이동 영역을 줄이지 않습니다.",
+      "배틀 가이드·버튼 배경·프레임과 튜토리얼 안내에 약 50% 투명도의 그라데이션을 적용했습니다."
+    ]
+  },
+  {
     "buildVersion": "1.0.4",
     "tag": "preview-1.0.4",
     "sourceCommit": "edfebe433645e0f1e0b853d552eea92ca6787c1f",
