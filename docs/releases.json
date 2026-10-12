@@ -1,5 +1,18 @@
 [
   {
+    "buildVersion": "1.0.7",
+    "tag": "preview-1.0.7",
+    "sourceCommit": "ad6c89290c754b47b3b661ce7e546f072729550d",
+    "version": "1.0.7",
+    "policyVersion": "0.1.0",
+    "publishedAt": "2026-10-12T07:35:25.014Z",
+    "previousCommit": "f8348114cb7711770edf974c4ec158e9693839f9",
+    "notes": [
+      "체력게이지 아래 상단 선까지 아군 위치 조정 가능. 지휘관은 실제 머리 영역으로 경계를 계산하며 크기를 유지합니다.",
+      "호위 전멸 후 보스 머리 위에 상황에 맞는 대사를 한 번 표시합니다. 초반 튜토리얼은 제외합니다."
+    ]
+  },
+  {
     "buildVersion": "1.0.6",
     "tag": "preview-1.0.6",
     "sourceCommit": "fdd74daa3283a22b2292b45390f6c1e424d455fe",
