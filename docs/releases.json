@@ -1,5 +1,19 @@
 [
   {
+    "buildVersion": "1.0.6",
+    "tag": "preview-1.0.6",
+    "sourceCommit": "fdd74daa3283a22b2292b45390f6c1e424d455fe",
+    "version": "1.0.6",
+    "policyVersion": "0.1.0",
+    "publishedAt": "2026-10-12T02:23:02.311Z",
+    "previousCommit": "8c7399620b46fc1ae5f02b52371e96e38680b07b",
+    "notes": [
+      "드론 이동을 시작하면 사각 선택 프레임이 즉시 나타나고 드론을 따라갑니다.",
+      "용병의 무기 폭 때문에 수동 배치가 지휘관보다 일찍 막히던 문제를 수정했습니다.",
+      "하단 캐릭터 대사 배경을 불투명하게 표시합니다."
+    ]
+  },
+  {
     "buildVersion": "1.0.5",
     "tag": "preview-1.0.5",
     "sourceCommit": "7b4c1cb629f2e11918ef8b92fb1ad20751e5e9e4",
