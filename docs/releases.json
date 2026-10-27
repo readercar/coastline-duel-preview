@@ -1,5 +1,18 @@
 [
   {
+    "buildVersion": "1.0.24",
+    "tag": "preview-1.0.24",
+    "sourceCommit": "65584f4ace5a42eba4b89c503c60bc786f5bcbde",
+    "version": "1.0.24",
+    "policyVersion": "1.4.1",
+    "publishedAt": "2026-10-27T03:31:21.167Z",
+    "previousCommit": "eeb9d5a96c33402c03ff60d9431a77b5f0587ab8",
+    "notes": [
+      "Cocos 실행 빌드에서 동작 이미지 목록이 잘못 변환되던 문제를 수정했습니다. 병영 선택 일러스트와 전투 후방의 호흡·사격·지원 호출 프레임을 정상 로딩합니다.",
+      "병영 전투 기술의 선행 트리 표시도 같은 목록 변환 문제를 수정했습니다. 기존 계정·진행·전투 수치는 유지합니다."
+    ]
+  },
+  {
     "buildVersion": "1.0.23",
     "tag": "preview-1.0.23",
     "sourceCommit": "26cad1638c1c58ca7fcf675c06bb95e9e34c3be4",
