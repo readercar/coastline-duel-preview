@@ -1,6 +1,22 @@
 [
   {
     "testPurchases": true,
+    "buildVersion": "1.0.35",
+    "tag": "preview-1.0.35",
+    "sourceCommit": "1d38d9a19fd6be785704f34cc401a06b0c7078ef",
+    "version": "1.0.35",
+    "policyVersion": "1.4.14",
+    "publishedAt": "2026-10-29T16:52:10.455Z",
+    "previousCommit": "26851858ea9a929b9418584cd3a42e1a3f02a006",
+    "notes": [
+      "추가 코스튬에 캐릭터별 다이아 구매와 훈련·작전 달성 획득 조건을 적용했습니다.",
+      "병영과 코스튬의 일러스트 영역을 확대하고 의상에 맞는 배경 5종을 추가했습니다.",
+      "11명의 추가 의상 44벌에 서로 다른 소개 자세를 반영했습니다.",
+      "기존 장착 의상과 계정 진행을 보존하고 중복 구매·소유권 위조를 차단했습니다."
+    ]
+  },
+  {
+    "testPurchases": true,
     "buildVersion": "1.0.34",
     "tag": "preview-1.0.34",
     "sourceCommit": "0a96ed9603527f253c1fc4c67e23c6f1df4f8df4",
