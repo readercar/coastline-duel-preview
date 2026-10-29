@@ -1,6 +1,20 @@
 [
   {
     "testPurchases": true,
+    "buildVersion": "1.0.33",
+    "tag": "preview-1.0.33",
+    "sourceCommit": "8b119aed98a11d9e50c0ae946f13ef71f0f5805c",
+    "version": "1.0.33",
+    "policyVersion": "1.4.13",
+    "publishedAt": "2026-10-29T14:55:22.632Z",
+    "previousCommit": "77360d615f325da468564f83e6a009e0e6c44667",
+    "notes": [
+      "광고 리롤·체력 회복·일일 추가 보급 버튼의 미리보기 문구를 제거했습니다.",
+      "전술 리롤의 레어도 상승 안내, 무료 1회와 광고/다이아 선택, 작전당 총 5회 제한은 유지됩니다."
+    ]
+  },
+  {
+    "testPurchases": true,
     "buildVersion": "1.0.32",
     "tag": "preview-1.0.32",
     "sourceCommit": "bbf49b5ec78c8d06d8311a33e2acb8f65abeb132",
