@@ -1,6 +1,20 @@
 [
   {
     "testPurchases": true,
+    "buildVersion": "1.0.34",
+    "tag": "preview-1.0.34",
+    "sourceCommit": "0a96ed9603527f253c1fc4c67e23c6f1df4f8df4",
+    "version": "1.0.34",
+    "policyVersion": "1.4.13",
+    "publishedAt": "2026-10-29T15:05:22.810Z",
+    "previousCommit": "3a2a672d5a0cb1df0962397cff727cc5f8eecabe",
+    "notes": [
+      "전술 선택에서 해당 캐릭터 자신의 공격 강화 효과를 동료 피해 대신 피해로 표시합니다.",
+      "영문 강화 효과도 DAMAGE +30%로 간결하게 표시합니다."
+    ]
+  },
+  {
+    "testPurchases": true,
     "buildVersion": "1.0.33",
     "tag": "preview-1.0.33",
     "sourceCommit": "8b119aed98a11d9e50c0ae946f13ef71f0f5805c",
