@@ -1,6 +1,24 @@
 [
   {
     "testPurchases": true,
+    "buildVersion": "1.0.31",
+    "tag": "preview-1.0.31",
+    "sourceCommit": "052882758ffb85778464ffee3f388b56415e1823",
+    "version": "1.0.31",
+    "policyVersion": "1.4.12",
+    "publishedAt": "2026-10-29T13:53:08.753Z",
+    "previousCommit": "edf61c3b666c7a3e65e613b0caa53ab23e85326e",
+    "notes": [
+      "결과창 광고 2배와 수령하기를 좌우 배치하고 미리보기 접미사 제거",
+      "증원 전차 선택 시에만 최대 3대로 증가하며 작은 전차가 좌우로 나란히 출격",
+      "적이 많은 위치 또는 무작위 진입로에서 전차 출격",
+      "5분 무렵 최종 공세 후 신규 생성 종료, 남은 적을 모두 처치하면 클리어",
+      "신규 합류 전술 상단에 NEW 태그 표시",
+      "기존 계정 및 이전 버전 전투 복원·보상 중복 수령 방지 검증"
+    ]
+  },
+  {
+    "testPurchases": true,
     "buildVersion": "1.0.30",
     "tag": "preview-1.0.30",
     "sourceCommit": "873b954444638d047a1e804e277d72a4a4ae5ccb",
