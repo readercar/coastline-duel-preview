@@ -1,6 +1,22 @@
 [
   {
     "testPurchases": true,
+    "buildVersion": "1.0.30",
+    "tag": "preview-1.0.30",
+    "sourceCommit": "873b954444638d047a1e804e277d72a4a4ae5ccb",
+    "version": "1.0.30",
+    "policyVersion": "1.4.11",
+    "publishedAt": "2026-10-29T07:07:32.292Z",
+    "previousCommit": "bd88221eb234bdc6ff15317f01688ad4e512c342",
+    "notes": [
+      "외곽·사막·공업·해안의 원경이 열린 전장과 완만한 좌우 사선을 적용했습니다.",
+      "전술 카드를 일반·희귀·영웅 등급 색상으로 구분하고 캐릭터 상반신을 확대했습니다.",
+      "전술 다시 선택은 무료1회 후 광고 또는 다이아20개, 스테이지당 합계5회까지 이용할 수 있습니다. 광고·다이아 리롤은 해금된 희귀 이상 선택지1개를 보장합니다.",
+      "기존 계정과 진행 중 작전의 규칙을 보존하며, 전투 다양성·웨이브 밸런스·일일 보상·무료 테스트 상점을 포함합니다."
+    ]
+  },
+  {
+    "testPurchases": true,
     "buildVersion": "1.0.29",
     "tag": "preview-1.0.29",
     "sourceCommit": "2ebcd25eef3d2f111a77eb0c0d9b3483705f721d",

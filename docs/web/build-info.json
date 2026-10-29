@@ -1,12 +1,12 @@
 {
   "name": "Army Girls: Idle Assault RPG",
-  "version": "1.0.29",
-  "builtAt": "2026-10-29T02:10:07.399Z",
+  "version": "1.0.30",
+  "builtAt": "2026-10-29T07:07:33.123Z",
   "engine": "Cocos Creator 3.8.8",
-  "entry": "app.1.0.29.html",
-  "buildVersion": "1.0.29",
+  "entry": "app.1.0.30.html",
+  "buildVersion": "1.0.30",
   "testPurchases": true,
-  "policyVersion": "1.4.10",
-  "sourceCommit": "2ebcd25eef3d2f111a77eb0c0d9b3483705f721d",
-  "tag": "preview-1.0.29"
+  "policyVersion": "1.4.11",
+  "sourceCommit": "873b954444638d047a1e804e277d72a4a4ae5ccb",
+  "tag": "preview-1.0.30"
 }
