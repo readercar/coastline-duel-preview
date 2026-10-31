@@ -1,6 +1,23 @@
 [
   {
     "testPurchases": true,
+    "buildVersion": "1.0.36",
+    "tag": "preview-1.0.36",
+    "sourceCommit": "b1b5788cce4a8f54f0ee9548f78296e83a5aee1e",
+    "version": "1.0.36",
+    "policyVersion": "1.4.16",
+    "publishedAt": "2026-10-31T01:27:22.752Z",
+    "previousCommit": "7fea0c3df9523ca6bf76a2ee4b2535c8d5c7c2f8",
+    "notes": [
+      "배틀 주인공의 몸·머리카락·무기에 흰색 외곽선을 적용하고 대기·사격·효과 끄기 상태에서 유지합니다.",
+      "로비를 큰 보스 실루엣을 좌우로 넘기는 방식으로 바꾸고 하단 아군을 1.5배 확대했습니다.",
+      "적이 초반부터 약 3배 등장하며 후반과 뒤 작전에서 점진적으로 많아집니다. 기존 진행 중 작전의 원래 규칙을 유지합니다.",
+      "일러스트의 고개·상체·팔 움직임을 강화하고 11명·55착장의 전투 대기·공격 연출을 적용했습니다.",
+      "기존 계정·성장·코스튬 보유와 무료 테스트 상점 설정을 유지합니다."
+    ]
+  },
+  {
+    "testPurchases": true,
     "buildVersion": "1.0.35",
     "tag": "preview-1.0.35",
     "sourceCommit": "1d38d9a19fd6be785704f34cc401a06b0c7078ef",
