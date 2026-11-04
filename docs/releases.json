@@ -1,6 +1,22 @@
 [
   {
     "testPurchases": true,
+    "buildVersion": "1.0.41",
+    "tag": "preview-1.0.41",
+    "sourceCommit": "6f213016ee8c78389c0c69e24baad236d83c5318",
+    "version": "1.0.41",
+    "policyVersion": "1.4.35",
+    "publishedAt": "2026-11-04T11:41:50.578Z",
+    "previousCommit": "6278b3037ba80235b607ac40fab7fb6d72f21f23",
+    "notes": [
+      "11명·55종 캐릭터 일러스트의 그림체·복장 품질을 통일했습니다.",
+      "반복적으로 고개를 크게 끄덕이던 모션을 줄이고 느린 호흡 중심으로 변경했습니다.",
+      "복장 전환과 효과 OFF/ON에서도 선택한 캐릭터 원화를 유지합니다.",
+      "이전 보상 묶음 수령·팝업 개선·로비 조작·기존 계정과 무료 테스트 상점을 유지합니다."
+    ]
+  },
+  {
+    "testPurchases": true,
     "buildVersion": "1.0.40",
     "tag": "preview-1.0.40",
     "sourceCommit": "f6b229565e8185685001c4afc7e63a44dbdd27ab",
