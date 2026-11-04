@@ -1,6 +1,22 @@
 [
   {
     "testPurchases": true,
+    "buildVersion": "1.0.39",
+    "tag": "preview-1.0.39",
+    "sourceCommit": "ce24c428385a05b7de8339effd6dc164dd19345b",
+    "version": "1.0.39",
+    "policyVersion": "1.4.35",
+    "publishedAt": "2026-11-04T06:55:54.521Z",
+    "previousCommit": "ae21b57712b17e675b25bd0bd8876d846ea94d92",
+    "notes": [
+      "메인 로비의 좌우 버튼을 누른 뒤 드래그가 멈추던 문제를 수정했습니다.",
+      "짧은 드래그와 좌우 버튼으로 작전을 한 개씩 전환합니다.",
+      "내구도 보상을 최고 기록 게이지와 달성 상자 표식으로 바꾸었습니다.",
+      "달성한 미수령 보상만 표식을 눌러 받을 수 있으며 기존 보상·성장·계정 진행과 무료 테스트 상점을 유지합니다."
+    ]
+  },
+  {
+    "testPurchases": true,
     "buildVersion": "1.0.38",
     "tag": "preview-1.0.38",
     "sourceCommit": "827252d94257b88a2ef63f5225bfe418f35bb3fd",
