@@ -1,6 +1,23 @@
 [
   {
     "testPurchases": true,
+    "buildVersion": "1.0.38",
+    "tag": "preview-1.0.38",
+    "sourceCommit": "827252d94257b88a2ef63f5225bfe418f35bb3fd",
+    "version": "1.0.38",
+    "policyVersion": "1.4.35",
+    "publishedAt": "2026-11-04T06:02:24.569Z",
+    "previousCommit": "e7b58058cd5e2c7eeb69f2286b8647061fed572c",
+    "notes": [
+      "전투 강화 노트를 2배로 늘리고, 미출전 보유 동료에게도 절반을 지급합니다.",
+      "작전 승리마다 장비 6부위 도면을 각각 1개씩 추가 지급합니다.",
+      "자동 순찰의 캐릭터별 노트를 2배로 늘렸습니다. 12시간 기준 144개입니다.",
+      "기존 강화 비용·계정 진행·미완료 전투 보상과 무료 테스트 상점은 유지합니다.",
+      "드론 위치로 인해 후반 전투 저장이 거부되던 문제를 수정했습니다."
+    ]
+  },
+  {
+    "testPurchases": true,
     "buildVersion": "1.0.37",
     "tag": "preview-1.0.37",
     "sourceCommit": "0e995feb1930780010f648a004c741310f2b8fbb",
