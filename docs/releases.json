@@ -1,6 +1,23 @@
 [
   {
     "testPurchases": true,
+    "buildVersion": "1.0.37",
+    "tag": "preview-1.0.37",
+    "sourceCommit": "0e995feb1930780010f648a004c741310f2b8fbb",
+    "version": "1.0.37",
+    "policyVersion": "1.4.34",
+    "publishedAt": "2026-11-04T03:48:52.669Z",
+    "previousCommit": "fc60154e534c98aa1b1406f13e1967a4791b37ee",
+    "notes": [
+      "11명 전원의 추가 코스튬 44벌을 다양한 의상 형태와 자세로 교체했습니다.",
+      "코스튬을 바꾸면 전투 중 복장과 실제 대기·공격 그림도 같은 의상으로 표시합니다.",
+      "새 코스튬의 원화를 당기는 변형과 겹침 잔상을 없애고 실제로 그린 자세를 재생합니다.",
+      "전투 대사 검정 패널을 아주 연하게 하고 글자 외곽선으로 읽기 쉬움을 유지했습니다.",
+      "기존 계정·성장·보유 의상·아이템과 무료 테스트 상점을 유지합니다."
+    ]
+  },
+  {
+    "testPurchases": true,
     "buildVersion": "1.0.36",
     "tag": "preview-1.0.36",
     "sourceCommit": "b1b5788cce4a8f54f0ee9548f78296e83a5aee1e",
