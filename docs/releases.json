@@ -1,6 +1,21 @@
 [
   {
     "testPurchases": true,
+    "buildVersion": "1.0.44",
+    "tag": "preview-1.0.44",
+    "sourceCommit": "08e86c2ad1dc63e0b7f1f49ca6ec0fcc17a6227f",
+    "version": "1.0.44",
+    "policyVersion": "1.4.38",
+    "publishedAt": "2026-11-06T07:45:23.558Z",
+    "previousCommit": "9fdc38d1dee9baaad7a43c596184ab9ec0715a43",
+    "notes": [
+      "전술 선택 캐릭터를 얼굴과 상반신 중심으로 확대했습니다.",
+      "합류·인물형 연계 아이콘을 해당 캐릭터와 장착 복장의 현재 원화로 통일했습니다.",
+      "병영 닫기, 정지 원화, 기존 계정·진행과 웹 무료 테스트 상점을 유지합니다."
+    ]
+  },
+  {
+    "testPurchases": true,
     "buildVersion": "1.0.43",
     "tag": "preview-1.0.43",
     "sourceCommit": "d72d8914953ce27a2abe99aa357f229631ac44e6",
