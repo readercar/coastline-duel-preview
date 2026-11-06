@@ -1,6 +1,22 @@
 [
   {
     "testPurchases": true,
+    "buildVersion": "1.0.42",
+    "tag": "preview-1.0.42",
+    "sourceCommit": "8d06deb92b67ba05b1d3fb32f4035e442560c9ee",
+    "version": "1.0.42",
+    "policyVersion": "1.4.37",
+    "publishedAt": "2026-11-06T06:12:47.727Z",
+    "previousCommit": "e6142ad4a850e9397c0ce77c2befa5adddde826e",
+    "notes": [
+      "새로운 다양한 인물 원화를 적용하고 11명·55벌 일러스트를 정지 이미지로 표시합니다.",
+      "기본복 외 코스튬 보유 1종당 해당 캐릭터 화력 +2%, 최대 +8%가 다음 출격부터 적용됩니다.",
+      "로비 드래그·좌우 버튼·내구도 게이지와 보상 묶음 수령·팝업 개선을 유지합니다. 우편은 개별 수령입니다.",
+      "기존 계정·진행과 웹 무료 테스트 상점을 유지합니다."
+    ]
+  },
+  {
+    "testPurchases": true,
     "buildVersion": "1.0.41",
     "tag": "preview-1.0.41",
     "sourceCommit": "6f213016ee8c78389c0c69e24baad236d83c5318",
