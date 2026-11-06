@@ -1,5 +1,21 @@
 [
   {
+    "testPurchases": false,
+    "buildVersion": "1.0.47",
+    "tag": "preview-1.0.47",
+    "sourceCommit": "74f9cbaa9255adc21febe420fdcf037d5aa19fb4",
+    "version": "1.0.47",
+    "policyVersion": "1.4.39",
+    "publishedAt": "2026-11-06T12:16:59.396Z",
+    "previousCommit": "d95e0b3114e9945fbd9cee6a511bdc3d81901e1f",
+    "notes": [
+      "코스튬 직접 구매: 트레이닝·데일리500, 서머·정복1000다이아",
+      "웹 치트 다이아10000·골드/보급품1000000 지급과 백업 있는 전투·성장 초기화 복원",
+      "전투 중 코스튬 변경 동기화 및 포탑 단발 효과음 수정",
+      "기존 보유 의상·미수령 의상 아이템·계정 보존. 전투 원화 재제작은 이번 빌드에 포함되지 않음"
+    ]
+  },
+  {
     "testPurchases": true,
     "buildVersion": "1.0.46",
     "tag": "preview-1.0.46",
