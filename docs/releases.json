@@ -1,5 +1,20 @@
 [
   {
+    "testPurchases": true,
+    "buildVersion": "1.0.46",
+    "tag": "preview-1.0.46",
+    "sourceCommit": "9d1eaf385dc50d0b473d210fba3df8285764e82f",
+    "version": "1.0.46",
+    "policyVersion": "1.4.38",
+    "publishedAt": "2026-11-06T10:52:28.455Z",
+    "previousCommit": "406148a7b7af0b8d92b6990ffb34200fac55c443",
+    "notes": [
+      "웹 치트 메뉴에서 무료 다이아·재료·상자·코스튬 테스트 보급으로 이동할 수 있습니다. 기존 보급 제한이 적용됩니다.",
+      "배틀 우상단 2배속 버튼으로 미클리어 작전도 1배속과 2배속을 전환합니다. 새 전투는 1배속으로 시작합니다.",
+      "기존 계정·보상·정지 일러스트·전술 화면과 무료 웹 테스트 상점을 유지합니다."
+    ]
+  },
+  {
     "testPurchases": false,
     "buildVersion": "1.0.45",
     "tag": "preview-1.0.45",
