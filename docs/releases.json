@@ -1,5 +1,21 @@
 [
   {
+    "testPurchases": false,
+    "buildVersion": "1.0.45",
+    "tag": "preview-1.0.45",
+    "sourceCommit": "4afe5a38d5fad2aec4039990e70ea4caac9269a9",
+    "version": "1.0.45",
+    "policyVersion": "1.4.38",
+    "publishedAt": "2026-11-06T10:47:46.931Z",
+    "previousCommit": "7705606a02a2e779096ef5cadfbb5c08b535a1e9",
+    "notes": [
+      "전투 캐릭터의 반투명 잔상을 제거하고 동작 연결을 유지했습니다.",
+      "전술 선택에서 블레어 등 캐릭터의 무기·지원 장비 아이콘을 바로잡았습니다.",
+      "전 캐릭터 55종 코스튬·썸네일 연결을 검수하고 병영 닫기 및 정지 원화를 유지합니다.",
+      "프로덕션 웹에서는 테스트 구매를 비활성화합니다."
+    ]
+  },
+  {
     "testPurchases": true,
     "buildVersion": "1.0.44",
     "tag": "preview-1.0.44",
