@@ -1,6 +1,21 @@
 [
   {
     "testPurchases": true,
+    "buildVersion": "1.0.43",
+    "tag": "preview-1.0.43",
+    "sourceCommit": "d72d8914953ce27a2abe99aa357f229631ac44e6",
+    "version": "1.0.43",
+    "policyVersion": "1.4.38",
+    "publishedAt": "2026-11-06T07:29:33.443Z",
+    "previousCommit": "8c1150cdeea469fb44e15abc0917124bd66feb24",
+    "notes": [
+      "병영 오른쪽 위 닫기 버튼으로 로비에 돌아갈 수 있습니다.",
+      "전술 카드가 옛 일러스트로 바뀌던 문제를 수정하고 새 정지 원화를 유지합니다.",
+      "첫 로딩 속도와 무관하게 같은 캐릭터 일러스트를 사용합니다. 기존 계정·진행과 웹 테스트 상점은 유지합니다."
+    ]
+  },
+  {
+    "testPurchases": true,
     "buildVersion": "1.0.42",
     "tag": "preview-1.0.42",
     "sourceCommit": "8d06deb92b67ba05b1d3fb32f4035e442560c9ee",
